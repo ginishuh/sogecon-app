@@ -1,5 +1,13 @@
 # 서강대학교 경제대학원 총동문회 앱
 
+**EN Summary**
+- Public monorepo for the Sogang GS Economics Alumni web service
+- Contains Next.js frontend, FastAPI backend, and schema tooling
+- Local-first setup with Dockerized Postgres, custom Git hooks, and CI via GitHub Actions
+- See below for full Korean documentation; English quickstart steps are mirrored in comments
+
+---
+
 서강대학교 경제대학원 총동문회 공개 웹 애플리케이션을 위한 모노레포입니다. 브랜드는 **"서강대학교 경제대학원 총동문회"**, 참고용 사이트는 https://sogangeconomics.com 입니다.
 
 ## 주요 특징
@@ -20,26 +28,38 @@ docs/            # todo/worklog/dev_log_YYMMDD 기록
 ## 빠른 시작
 1. **데이터베이스**
    ```bash
-docker compose -f infra/docker-compose.dev.yml up -d
-```
+   docker compose -f infra/docker-compose.dev.yml up -d
+   ```
 2. **API 서버**
    ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
-alembic -c apps/api/alembic.ini upgrade head
-make api-dev  # uvicorn apps.api.main:app --reload --port 3001
-```
+   python -m venv .venv && source .venv/bin/activate
+   pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
+   alembic -c apps/api/alembic.ini upgrade head
+   make api-dev  # uvicorn apps.api.main:app --reload --port 3001
+   ```
 3. **웹 앱**
    ```bash
-corepack enable
-pnpm -C apps/web install
-make web-dev  # Next.js dev server (http://localhost:3000)
-```
+   corepack enable
+   pnpm -C apps/web install
+   make web-dev  # Next.js dev server (http://localhost:3000)
+   ```
 4. **스키마 타입 생성 (선택)**
    ```bash
-pnpm -C packages/schemas install
-make schema-gen
-```
+   pnpm -C packages/schemas install
+   make schema-gen
+   ```
+
+> **English Quickstart (mirror)**
+> 1. `docker compose -f infra/docker-compose.dev.yml up -d`
+> 2. `python -m venv .venv && source .venv/bin/activate`
+>    `pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt`
+>    `alembic -c apps/api/alembic.ini upgrade head`
+>    `make api-dev`
+> 3. `corepack enable`
+>    `pnpm -C apps/web install`
+>    `make web-dev`
+> 4. `pnpm -C packages/schemas install` (optional)
+>    `make schema-gen`
 
 ## 품질 및 워크플로
 - `git config core.hooksPath .githooks`로 훅을 활성화하면, 프리커밋은 변경된 파일만 대상으로 `ruff`와 `eslint/tsc`를 실행합니다.
