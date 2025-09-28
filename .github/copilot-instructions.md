@@ -1,6 +1,6 @@
 ## Copilot instructions for this repo
 
-Context: Monorepo for Sogang GS Economics Alumni app. Frontend: Next.js App Router (TypeScript, Tailwind, PWA). Backend: FastAPI + SQLAlchemy + Alembic. Local DB defaults to SQLite; Postgres via docker-compose for dev.
+Context: Monorepo for Sogang GS Economics Alumni app. Frontend: Next.js App Router (TypeScript, Tailwind, PWA). Backend: FastAPI + SQLAlchemy + Alembic. Local DB defaults to SQLite; Postgres via docker-compose for dev. See [`docs/architecture.md`](../docs/architecture.md) for the consolidated technical design (Korean).
 
 Language and Communication
 - Primary language: Korean. Default to answering in Korean unless the user explicitly chooses another language.

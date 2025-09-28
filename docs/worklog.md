@@ -16,4 +16,4 @@
 - 홈 화면에서 실시간 fetch 대신 안내 문구로 헬스 체크 정보를 전달하도록 단순화
 - README 상단에 영어 요약 및 quickstart를 병기해 국제 협업 대비
 - `.github/copilot-instructions.md`를 추가하여 AI 코딩 에이전트용 가이드를 정리
-
+- `docs/architecture.md`를 신설하고 에이전트 지침 문서에 교차 링크를 추가

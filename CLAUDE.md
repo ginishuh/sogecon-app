@@ -14,6 +14,8 @@ This is a monorepo for the 서강대학교 경제대학원 총동문회 (Sogang 
 
 The application supports both Korean and English documentation, with primary development happening in a Korean context.
 
+자세한 설계 결정과 도메인 설명은 [`docs/architecture.md`](docs/architecture.md)에 최신화된다.
+
 ## Language and Communication
 
 - **Primary Language**: Korean is the primary language for this project

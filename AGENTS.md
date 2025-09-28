@@ -6,7 +6,7 @@
 - `packages/schemas`: Scripts that convert the API `openapi.json` into TypeScript DTOs.
 - `infra/docker-compose.dev.yml`: Development PostgreSQL 16 container.
 - `ops/`: Placeholder for cloud automation scripts.
-- `docs/`: Track notes in `todo.md`, `worklog.md`, and date-based `dev_log_YYMMDD.md` files.
+- `docs/`: Track notes in `todo.md`, `worklog.md`, and date-based `dev_log_YYMMDD.md` files. Core technical design decisions live in [`docs/architecture.md`](docs/architecture.md) (Korean).
 
 ## Build, Test, and Development Commands
 - `make db-up` / `make db-down`: Start or stop the PostgreSQL container.
