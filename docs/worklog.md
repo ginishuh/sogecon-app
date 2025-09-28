@@ -1,6 +1,8 @@
 # Worklog
 
 ## 2025-09-28
+- .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거
+- AGENTS.md 본문을 영어로 통일하면서 한국어 우선 커뮤니케이션 규칙을 유지
 - 프로젝트 스캐폴드 구성 완료 (API, Web, Schemas, Infra, Ops)
 - 프리커밋/프리푸시 훅 및 CI 구성 초안 마련
 - pyright 타입 검사를 .venv 기반 dev requirements에 통합하고 프리커밋/CI와 연동
@@ -13,4 +15,5 @@
 - Next.js 빌드가 권장하는 tsconfig/next-env 업데이트를 반영해 반복 diff를 방지
 - 홈 화면에서 실시간 fetch 대신 안내 문구로 헬스 체크 정보를 전달하도록 단순화
 - README 상단에 영어 요약 및 quickstart를 병기해 국제 협업 대비
+- `.github/copilot-instructions.md`를 추가하여 AI 코딩 에이전트용 가이드를 정리
 

@@ -13,3 +13,6 @@ apps/web/tsconfig.tsbuildinfo
 *.sqlite3
 .DS_Store
 apps/api/migrations/__pycache__/
+
+.mypy_cache/
+.ruff_cache/
