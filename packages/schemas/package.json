@@ -1,0 +1,11 @@
+{
+  "name": "schemas",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "gen": "curl -s http://localhost:3001/openapi.json > openapi.json && npx openapi-typescript openapi.json -o index.d.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.4.3"
+  }
+}

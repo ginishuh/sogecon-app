@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1; then
+  mapfile -t FILES < <(git log --format= --name-only @{u}..HEAD | sort -u)
+else
+  mapfile -t FILES < <(git log --format= --name-only HEAD | sort -u)
+fi
+
+pruned_files=()
+for file in "${FILES[@]}"; do
+  if [ -n "$file" ]; then
+    pruned_files+=("$file")
+  fi
+done
+FILES=("${pruned_files[@]}")
+
+if [ "${#FILES[@]}" -eq 0 ]; then
+  exit 0
+fi
+
+doc_only=true
+for file in "${FILES[@]}"; do
+  if [[ "$file" =~ ^docs/ ]] || [[ "$file" =~ \.(md|MD|txt|adoc|rst)$ ]] || [[ "$file" == README.md ]] || [[ "$file" == CONTRIBUTING.md ]] || [[ "$file" == SECURITY.md ]] || [[ "$file" == LICENSE ]]; then
+    continue
+  else
+    doc_only=false
+    break
+  fi
+done
+
+if [ "$doc_only" = true ]; then
+  echo "[hooks] Docs-only push detected; skipping pre-push checks."
+  exit 0
+fi
+
+devlog_present=false
+for file in "${FILES[@]}"; do
+  if [[ "$file" =~ ^docs/dev_log_[0-9]{6}\.md$ ]]; then
+    devlog_present=true
+    break
+  fi
+done
+
+if [ "$devlog_present" = false ]; then
+  echo "[hooks] Include a docs/dev_log_YYMMDD.md update with non-documentation changes."
+  exit 1
+fi
+
+python_changed=false
+web_changed=false
+schemas_changed=false
+for file in "${FILES[@]}"; do
+  if [[ "$file" == *.py ]]; then
+    python_changed=true
+  fi
+  if [[ "$file" == apps/web/* ]] && [[ "$file" =~ \.(ts|tsx|js|jsx)$ ]]; then
+    web_changed=true
+  fi
+  if [[ "$file" == packages/schemas/* ]]; then
+    schemas_changed=true
+  fi
+done
+
+if [ "$python_changed" = true ]; then
+  PY_BIN=""
+  if [ -n "${VIRTUAL_ENV:-}" ] && [ -x "$VIRTUAL_ENV/bin/python" ]; then
+    PY_BIN="$VIRTUAL_ENV/bin/python"
+  elif [ -x ".venv/bin/python" ]; then
+    PY_BIN=".venv/bin/python"
+  elif command -v python >/dev/null 2>&1; then
+    PY_BIN="$(command -v python)"
+  fi
+
+  if [ -n "$PY_BIN" ] && "$PY_BIN" -m pyright --version >/dev/null 2>&1; then
+    echo "[hooks] Running pyright type check"
+    "$PY_BIN" -m pyright --project pyrightconfig.json
+  else
+    echo "[hooks] Warning: pyright not available; skipping type check"
+  fi
+fi
+
+if [ "$web_changed" = true ]; then
+  if command -v pnpm >/dev/null 2>&1; then
+    echo "[hooks] Building web app"
+    pnpm -C apps/web build
+  else
+    echo "[hooks] Warning: pnpm not found; skipping web build"
+  fi
+fi
+
+if [ "$schemas_changed" = true ]; then
+  if command -v pnpm >/dev/null 2>&1; then
+    if curl -sf --max-time 2 http://localhost:3001/healthz >/dev/null 2>&1; then
+      echo "[hooks] Regenerating schema package"
+      pnpm -C packages/schemas run gen
+    else
+      echo "[hooks] Warning: API not reachable; skipping schema generation"
+    fi
+  else
+    echo "[hooks] Warning: pnpm not found; skipping schema generation"
+  fi
+fi
+
+exit 0

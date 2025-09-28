@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+.next/
+dist/
+coverage/
+.pytest_cache/
+.tsbuildinfo
+apps/web/tsconfig.tsbuildinfo
+.env
+.env.*
+*.sqlite3
+.DS_Store
+apps/api/migrations/__pycache__/

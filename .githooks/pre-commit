@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mapfile -t FILES < <(git diff --cached --name-only --diff-filter=ACMRTUXB)
+
+if [ "${#FILES[@]}" -eq 0 ]; then
+  exit 0
+fi
+
+doc_only=true
+for file in "${FILES[@]}"; do
+  if [[ "$file" =~ ^docs/ ]] || [[ "$file" =~ \.(md|MD|txt|adoc|rst)$ ]] || [[ "$file" == README.md ]] || [[ "$file" == CONTRIBUTING.md ]] || [[ "$file" == SECURITY.md ]] || [[ "$file" == LICENSE ]]; then
+    continue
+  else
+    doc_only=false
+    break
+  fi
+done
+
+if [ "$doc_only" = true ]; then
+  echo "[hooks] Docs-only change detected; skipping pre-commit checks."
+  exit 0
+fi
+
+worklog_staged=false
+for file in "${FILES[@]}"; do
+  if [[ "$file" == docs/worklog.md ]]; then
+    worklog_staged=true
+    break
+  fi
+done
+
+if [ "$worklog_staged" = false ]; then
+  echo "[hooks] docs/worklog.md must be updated for non-documentation changes."
+  exit 1
+fi
+
+python_targets=()
+for file in "${FILES[@]}"; do
+  if [[ "$file" == *.py ]]; then
+    python_targets+=("$file")
+  fi
+done
+
+web_targets=()
+for file in "${FILES[@]}"; do
+  if [[ "$file" == apps/web/* ]] && [[ "$file" =~ \.(ts|tsx|js|jsx)$ ]]; then
+    web_targets+=("${file#apps/web/}")
+  fi
+done
+
+if [ ${#python_targets[@]} -gt 0 ]; then
+  if command -v ruff >/dev/null 2>&1; then
+    echo "[hooks] Running ruff on changed Python files"
+    ruff check --force-exclude "${python_targets[@]}"
+  else
+    echo "[hooks] Warning: ruff not found; skipping Python lint"
+  fi
+fi
+
+if [ ${#web_targets[@]} -gt 0 ]; then
+  if command -v pnpm >/dev/null 2>&1; then
+    echo "[hooks] Running eslint on changed web files"
+    (cd apps/web && pnpm exec eslint --max-warnings=0 "${web_targets[@]}")
+    echo "[hooks] Running tsc --noEmit on web project"
+    pnpm -C apps/web exec tsc --noEmit
+  else
+    echo "[hooks] Warning: pnpm not found; skipping web lint/type-check"
+  fi
+fi
+
+exit 0
