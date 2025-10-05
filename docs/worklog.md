@@ -20,6 +20,9 @@
 - API: ruff 오류 정리(E501/I001/UP*), FastAPI 관례(B008)는 ruff 설정에서 예외 처리
 - SQLAlchemy: 타입체커 호환을 위해 setattr 패턴 유지, ruff에서 B010 예외 처리
 - 에이전트 베이스: 언어/커뮤니케이션 규칙을 영문/국문 베이스 문서에 명시(코드 주석/문서/커밋/PR은 한국어 기본)
+- 에이전트 가이드 정리: 베이스(`docs/agents_base*.md`)의 SSOT 섹션 제거, `AGENTS.md`/`CLAUDE.md`/`copilot-instructions.md`에 비‑SSOT 배너만 유지
+- 에이전트 문서 동기화: `AGENTS.md`/`CLAUDE.md`/`copilot-instructions.md`에 Agents Base(영문) 전체 본문을 'verbatim copy'로 포함하여 각 문서 단독으로 완결성 확보
+ - 한글 베이스 동기화: `docs/agents_base_kr.md`에 동일 SSOT 섹션을 추가(영문 베이스와 의미 동등)
 
 ## 2025-09-28
 - .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거

@@ -6,6 +6,16 @@ This is the canonical, English “Agents Base” for this repository. All agent-
 - Source of truth for agent/editor guidelines and code-quality guardrails.
 - Other agent docs should link to this file and avoid duplicating details. Minor doc drift is allowed only for examples; rules must be identical.
 
+## SSOT
+- This is not a product/system SSOT; it governs agent/editor guidelines only.
+- Repository SSOT docs (authoritative for their domains):
+  - `docs/architecture.md` — system architecture, domain decisions, API surfaces.
+  - `docs/pwa_push.md` — PWA/Web Push design and operational flows.
+  - `docs/versions.md` — pinned runtimes/toolchain versions (CI‑enforced).
+  - `docs/security_hardening.md` — security guardrails and CI/SAST policy.
+  - `SECURITY.md` — vulnerability reporting and security contact.
+- If guidance here conflicts with a domain SSOT, the domain SSOT prevails for that scope; this guide still governs code‑quality and agent behavior.
+
 ## Quality Guardrails (Non‑negotiable)
 
 ### 1) No Lint/Type Overrides (Default: Forbidden)
