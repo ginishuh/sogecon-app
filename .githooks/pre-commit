@@ -22,6 +22,14 @@ if [ "$doc_only" = true ]; then
   exit 0
 fi
 
+# Repo guards on staged files (policy: no suppression comments, max lines, etc.)
+if command -v python3 >/dev/null 2>&1; then
+  echo "[hooks] Running repo guards"
+  python3 ops/ci/guards.py || { echo "[hooks] Repo guards failed"; exit 1; }
+else
+  echo "[hooks] Warning: python3 not found; skipping repo guards"
+fi
+
 worklog_staged=false
 for file in "${FILES[@]}"; do
   if [[ "$file" == docs/worklog.md ]]; then
@@ -50,9 +58,17 @@ for file in "${FILES[@]}"; do
 done
 
 if [ ${#python_targets[@]} -gt 0 ]; then
-  if command -v ruff >/dev/null 2>&1; then
-    echo "[hooks] Running ruff on changed Python files"
-    ruff check --force-exclude "${python_targets[@]}"
+  RUFF_BIN=""
+  if [ -n "${VIRTUAL_ENV:-}" ] && [ -x "$VIRTUAL_ENV/bin/ruff" ]; then
+    RUFF_BIN="$VIRTUAL_ENV/bin/ruff"
+  elif [ -x ".venv/bin/ruff" ]; then
+    RUFF_BIN=".venv/bin/ruff"
+  elif command -v ruff >/dev/null 2>&1; then
+    RUFF_BIN="ruff"
+  fi
+  if [ -n "$RUFF_BIN" ]; then
+    echo "[hooks] Running ruff on changed Python files ($RUFF_BIN)"
+    "$RUFF_BIN" check --force-exclude "${python_targets[@]}"
   else
     echo "[hooks] Warning: ruff not found; skipping Python lint"
   fi
@@ -60,10 +76,9 @@ fi
 
 if [ ${#web_targets[@]} -gt 0 ]; then
   if command -v pnpm >/dev/null 2>&1; then
-    echo "[hooks] Running eslint on changed web files"
-    (cd apps/web && pnpm exec eslint --max-warnings=0 "${web_targets[@]}")
-    echo "[hooks] Running tsc --noEmit on web project"
-    pnpm -C apps/web exec tsc --noEmit
+    echo "[hooks] Running next lint on changed web files"
+    pnpm -C apps/web run lint
+    # Type-check is covered in CI build; skipping here to keep commits fast
   else
     echo "[hooks] Warning: pnpm not found; skipping web lint/type-check"
   fi

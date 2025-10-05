@@ -17,7 +17,7 @@ export function ServiceWorkerRegister() {
       }
     };
 
-    register();
+    void register();
   }, []);
 
   return null;

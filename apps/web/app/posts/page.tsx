@@ -33,7 +33,7 @@ export default function PostsPage() {
       }
     };
 
-    run();
+    void run();
   }, []);
 
   if (loading) {

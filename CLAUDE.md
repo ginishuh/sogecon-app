@@ -1,12 +1,12 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. It is governed by the English base `docs/agents_base.md` (Korean mirror: `docs/agents_base_kr.md`). In case of conflict, the base prevails.
 
 ## Architecture Overview
 
 This is a monorepo for the 서강대학교 경제대학원 총동문회 (Sogang GS Economics Alumni) web application with the following structure:
 
-- **`apps/web`**: Next.js frontend with App Router, Tailwind CSS, and PWA support
+- **`apps/web`**: Next.js frontend with App Router, Tailwind CSS, and PWA/Web Push support
 - **`apps/api`**: FastAPI backend with SQLAlchemy, Alembic migrations, and PostgreSQL support
 - **`packages/schemas`**: OpenAPI to TypeScript type generation utilities
 - **`infra/`**: Docker Compose configuration for development PostgreSQL
@@ -39,7 +39,7 @@ The application supports both Korean and English documentation, with primary dev
 ### Web Development
 - `make web-dev` - Start Next.js dev server on port 3000 (`pnpm -C apps/web dev`)
 - Setup: `corepack enable && pnpm -C apps/web install`
-- Build: `pnpm -C apps/web build`
+- Build: `pnpm -C apps/web build` (includes ESLint/TypeScript checks)
 - Lint: `pnpm -C apps/web lint`
 
 ### Schema Generation
@@ -58,6 +58,7 @@ Activate custom git hooks with: `git config core.hooksPath .githooks`
 ### Pre-commit Hook
 - Runs `ruff check` on changed Python files
 - Runs `eslint` and `tsc --noEmit` on changed Web files
+- Runs repo guards (see below) on staged files
 - Requires `docs/worklog.md` update for code changes (documentation-only commits skip this)
 
 ### Pre-push Hook
@@ -68,9 +69,14 @@ Activate custom git hooks with: `git config core.hooksPath .githooks`
 
 ### CI Pipeline
 - Skips Draft PRs, runs on Ready for Review
+- Repo guards (ban overrides, max lines, etc.)
 - Python: `ruff` → `pyright` → `compileall`
-- Web: `pnpm build`
+- Web: `pnpm build` (ESLint/TS checks)
 - Security: `gitleaks` secret scanning
+
+### Commit Messages
+- Follow Conventional Commits (`type(scope): subject`). See `docs/commit_message_convention.md` and the base `docs/agents_base.md`.
+- The `commit-msg` hook enforces commitlint (pinned). CI re-checks recent commits.
 
 ## Key Technologies
 
@@ -82,10 +88,10 @@ Activate custom git hooks with: `git config core.hooksPath .githooks`
 - **pytest** for testing
 
 ### Frontend (apps/web)
-- **Next.js** 14.2.5 with App Router
-- **React** 18.3.1 with TypeScript 5.5.4
-- **Tailwind CSS** 3.4.8 for styling
-- **PWA** support with service worker
+- **Next.js** with App Router
+- **React** with TypeScript
+- **Tailwind CSS** for styling
+- **PWA/Web Push** support with service worker (see `docs/pwa_push.md`)
 
 ## Documentation Standards
 
@@ -118,4 +124,9 @@ Activate custom git hooks with: `git config core.hooksPath .githooks`
 - API tests in `tests/api/test_<feature>.py` pattern
 - Run with `pytest -q` in activated .venv
 - CI validates with `ruff`, `pyright`, and `compileall`
-- Web testing framework not yet established (consider vitest or @testing-library/react)
+- Web tests with `vitest` and/or `@testing-library/react` (add under `apps/web/__tests__/`)
+
+## Quality Guardrails (see `docs/agents_base.md`)
+- No lint/type overrides except the single Alembic exception.
+- No unguardable types (`any`, `dict[str, Any]`, etc.); prefer generated DTOs and explicit models.
+- Cyclomatic complexity ≤10; module size ≤600 lines; avoid import cycles.

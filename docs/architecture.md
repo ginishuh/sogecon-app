@@ -5,7 +5,7 @@
 
 ## 시스템 전반 개요
 - **사용자 대상 웹 서비스**: 서강대학교 경제대학원 총동문회 회원이 공지, 이벤트, RSVP를 관리하는 포털.
-- **프런트엔드 (`apps/web`)**: Next.js(App Router) 기반의 SSR/SSG 혼합 아키텍처. Tailwind CSS, PWA 설정을 포함하며 한국어 UI를 기본값으로 제공한다.
+- **프런트엔드 (`apps/web`)**: Next.js(App Router) 기반의 SSR/SSG 혼합 아키텍처. Tailwind CSS, PWA 설정을 포함하며 한국어 UI를 기본값으로 제공한다. 모바일 웹 우선(모바일 퍼스트)로 반응형을 설계한다.
 - **백엔드 API (`apps/api`)**: FastAPI + SQLAlchemy 조합으로 RESTful API를 제공한다. Pydantic 스키마(`schemas.py`)가 요청/응답 검증과 문서화를 담당한다.
 - **데이터 스토어**: 개발 기본값은 SQLite(`sqlite:///./dev.sqlite3`), 운영 전환 시 PostgreSQL 16( `infra/docker-compose.dev.yml` 참조 )을 사용한다. ORM 레벨에서 두 엔진 모두 호환되도록 설계했다.
 - **스키마 공유 (`packages/schemas`)**: FastAPI에서 생성한 `openapi.json`을 TypeScript DTO로 변환하여 프런트엔드에서 타입 안정성을 확보한다.
@@ -31,7 +31,7 @@
 - **App Router** 기반 디렉터리 구조(`apps/web/src/app`). 페이지 단위 서버 컴포넌트와 클라이언트 컴포넌트를 혼합.
 - **데이터 패칭**: REST API 호출을 위해 `fetch` 래퍼 또는 `@tanstack/react-query` 도입을 검토한다. 초기에는 SSR에서 서버 액션을 통해 데이터 Hydration을 제공한다.
 - **UI 패턴**: Tailwind 유틸리티 클래스 + Headless UI 계열 컴포넌트 활용. 다국어는 i18n 준비만 해두고 한국어를 기본값으로 한다.
-- **PWA**: `public/manifest.json`, Service Worker 설정 포함. 알림 기능 필요 시 Web Push 연동을 추후 고려.
+- **PWA**: `public/manifest.json`, Service Worker 설정을 포함한다. 모바일 웹 우선 UX를 전제로 오프라인 스켈레톤과 설치 가능한 웹앱(Installable PWA)을 제공하며, Web Push 알림을 1차 채널로 지원한다(SMS 채널은 보류).
 
 ## 통신 및 계약
 - **REST 규약**: `/members`, `/posts`, `/events`, `/rsvps` 네임스페이스. JSON 응답, ISO 8601 타임스탬프 사용.
@@ -52,8 +52,38 @@
 ## 향후 결정이 필요한 항목
 1. 인증 체계: 동문회 계정 관리 방식(학교 계정 연동 vs 자체 가입) 및 세션 전략.
 2. 권한/역할 설계: `roles` 문자열을 Enum 구조로 정규화할지 여부.
-3. 알림 채널: 이메일, 카카오톡 챗봇, 푸시 등 채널 선정과 발송 인프라.
+3. 알림 채널: 이메일/푸시 중심으로 운영하며 SMS는 1차 릴리스에서 제외(보류). 카카오톡 챗봇 등은 차기 검토.
 4. 데이터 이력: 게시글·이벤트 수정 이력, 감사 로그 보존 정책.
 5. 관측성: 로깅·모니터링 스택(ELK, OpenTelemetry 등) 채택 여부.
+
+## PWA / Web Push 아키텍처(모바일 웹 우선)
+모바일 웹 사용성을 최우선으로 다음 원칙을 따른다.
+- 성능 목표: 모바일 P95 LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1(홈·목록 기준). 이미지 `srcset`/`sizes`, 폰트 디스플레이 스왑, 중요한 경로 CSS 최소화 적용.
+- 반응형: 모바일 360–414px 뷰포트 기준으로 1차 설계, 데스크톱은 확장.
+
+알림은 Web Push를 1차 채널로 제공한다(SMS 보류).
+
+### 프런트엔드 구성 (`apps/web`)
+- 매니페스트: `apps/web/public/manifest.json` — 이름, 아이콘(192/512), `display: standalone`, `start_url: /dashboard`.
+- 서비스 워커: `apps/web/public/sw.js`(또는 `next-pwa` 커스텀 SW) — `push`, `notificationclick`, `install`, `activate` 핸들러 포함.
+- 구독 등록 UI: `apps/web/app/sw-register.tsx` — 권한 요청(`Notification.requestPermission`), 서비스워커 등록, `PushManager.subscribe`로 엔드포인트·키 수집 후 API로 전송.
+- 권한 UX: 최초 진입에서 즉시 요청하지 않고, 대시보드 온보딩 단계에서 맥락(행사 알림 등)을 설명 후 요청.
+
+### 백엔드 구성 (`apps/api`)
+- 구독 저장 엔드포인트: `POST /notifications/subscriptions` — 바디에 `endpoint`, `keys.p256dh`, `keys.auth`, `ua`, `member_id`(서버에서 식별) 저장. 테이블 예: `push_subscription(id, member_id, endpoint, p256dh, auth, ua, created_at, last_seen_at, revoked_at)`.
+- 테스트 발송 엔드포인트(운영자): `POST /admin/notifications/test` — 샘플 N명에게 미리보기 발송.
+- 예약/대량 발송: APScheduler 혹은 별도 워커 프로세스에서 Web Push를 큐잉 처리. 재시도/TTL/배치 크기 제어.
+- 키 관리: VAPID 공개/비공개 키 쌍을 `.env`로 주입(`VAPID_PUBLIC_KEY`,`VAPID_PRIVATE_KEY`,`VAPID_SUBJECT`). 키 순환 시 롤링 기간 동안 구독 재발급 유도.
+
+### 운영 가드레일
+- 레이트리밋: 구독 등록/삭제, 발송 API에 IP·계정별 제한.
+- 옵트인/옵트아웃: `NotificationPreference(member_id, channel='webpush', topic, enabled)` 모델로 토픽 단위 제어.
+- 장애 복원: HTTP 410(Gone)/404 응답 구독은 즉시 폐기 처리, 연속 실패 카운트 임계 시 비활성화.
+- 프라이버시: 구독 엔드포인트/키는 암호화 at-rest, 감사 로그에 마스킹.
+
+### 구현 메모
+- iOS/Android 주요 브라우저에서 설치형 PWA 기준 Web Push 지원. 설치되지 않은 상태, 또는 지원 불가 환경에서는 이메일로 폴백(Phase 1에선 폴백 없이 UI만 안내 가능).
+- 프런트 키 배포: VAPID 공개키를 빌드 타임/런타임 노출(환경변수 → 페이지 데이터 주입)하고, 비공개키는 서버 전용으로 보관.
+
 
 이 문서는 스케폴드 이후 아키텍처 변경 사항이 생길 때마다 함께 업데이트하며, 변경 내역은 해당 날짜의 `docs/dev_log_YYMMDD.md`에 링크한다.

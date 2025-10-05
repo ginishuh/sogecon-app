@@ -6,8 +6,16 @@
   "include": [
     "apps/api"
   ],
-  "typeCheckingMode": "basic",
+  "typeCheckingMode": "strict",
   "reportMissingImports": "warning",
+  "reportMissingTypeStubs": "warning",
+  "reportUnknownArgumentType": "error",
+  "reportUnknownLambdaType": "error",
+  "reportUnknownMemberType": "error",
+  "reportUnknownParameterType": "error",
+  "reportUnknownVariableType": "error",
+  "reportAny": "error",
+  "reportImplicitOptional": "error",
   "executionEnvironments": [
     {
       "root": "apps/api",

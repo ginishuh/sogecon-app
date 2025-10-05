@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+MSG_FILE="$1"
+
+# Use pinned CLI via pnpm dlx to avoid global dependence
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm dlx @commitlint/cli@20.1.0 --config docs/commitlint.config.cjs --edit "$MSG_FILE"
+else
+  echo "[hooks] pnpm not found; skipping commit message lint."
+fi
+
+exit 0
+

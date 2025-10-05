@@ -34,7 +34,7 @@ export default function EventsPage() {
       }
     };
 
-    run();
+    void run();
   }, []);
 
   if (loading) {

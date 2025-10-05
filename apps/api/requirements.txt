@@ -1,7 +1,8 @@
-fastapi==0.115.2
-uvicorn[standard]==0.30.6
-sqlalchemy==2.0.32
-psycopg[binary]==3.2.1
-alembic==1.13.2
-pydantic-settings==2.5.2
-python-multipart==0.0.9
+fastapi==0.118.0
+uvicorn[standard]==0.37.0
+sqlalchemy==2.0.43
+psycopg[binary]==3.2.10
+alembic==1.16.5
+pydantic-settings==2.11.0
+python-multipart==0.0.20
+slowapi==0.1.9

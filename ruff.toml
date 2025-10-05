@@ -1,0 +1,16 @@
+target-version = "py312"
+
+[lint]
+select = [
+  "E", "F", "I",           # pycodestyle/pyflakes/isort
+  "B",                       # flake8-bugbear
+  "C90",                     # mccabe complexity (C901)
+  "UP",                      # pyupgrade
+  "PL",                      # pylint-inspired
+  "RUF"                      # ruff-specific
+]
+ignore = []
+
+[lint.mccabe]
+max-complexity = 10
+

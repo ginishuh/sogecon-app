@@ -1,5 +1,13 @@
 # Worklog
 
+## 2025-10-05
+- 모바일 웹 우선 원칙과 PWA/Web Push 지원을 아키텍처에 반영, SMS 채널 보류 명시 및 세부 가이드(`docs/pwa_push.md`) 추가
+- 에이전트 베이스 문서 추가(`docs/agents_base.md`, `docs/agents_base_kr.md`) 및 AGENTS/CLAUDE/Copilot 문서 동기화
+- 품질 가드 도입: 우회 주석 금지/파일 600줄 제한/복잡도 가드 스크립트(`ops/ci/guards.py`), Ruff/Pyright/ESLint 설정 강화
+- CI에 레포 가드 잡 추가, 프리커밋 훅에 레포 가드 실행 포함
+- API 레이트리밋 도입(`slowapi==0.1.9`), 기본 per-IP 120/minute. FastAPI 미들웨어와 예외 핸들러 연결
+- pre-push 훅이 활성 venv 우선으로 `pyright` 실행 후, 테스트 존재 시 `pytest -q`까지 수행하도록 강화
+
 ## 2025-09-28
 - .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거
 - AGENTS.md 본문을 영어로 통일하면서 한국어 우선 커뮤니케이션 규칙을 유지

@@ -1,5 +1,7 @@
 # Repository Guidelines
 
+> This document is governed by the English base: `docs/agents_base.md` (and mirrored in Korean: `docs/agents_base_kr.md`). In case of any conflict, the English base prevails. Do not diverge from the base; keep sections in sync.
+
 ## Project Structure & Module Organization
 - `apps/web`: Next.js App Router frontend with Tailwind configuration and PWA assets in `public/`.
 - `apps/api`: FastAPI backend. `routers/` provides CRUD stubs, `models.py` and `schemas.py` define the domain, and `migrations/` stores the Alembic history.
@@ -10,9 +12,11 @@
 
 ## Build, Test, and Development Commands
 - `make db-up` / `make db-down`: Start or stop the PostgreSQL container.
-- `make api-dev`: Run `uvicorn apps.api.main:app --reload --port 3001`.
+- `make venv` → `make api-install`: Create `.venv` and install API deps.
+- `make api-dev`: Run API using `.venv`’s uvicorn on port 3001.
 - `make web-dev`: Launch the Next.js development server (`http://localhost:3000`).
 - `make schema-gen`: Generate TypeScript types from OpenAPI (`packages/schemas`).
+ - `make test-api`: Run API tests in `.venv` (`pytest -q`).
 - CI pipeline verifies quality with `ruff`, `pyright`, `python -m compileall`, and `pnpm -C apps/web build`.
 
 ## Language and Communication
@@ -29,6 +33,11 @@
 - Logs: Maintain cumulative notes in `docs/worklog.md` and daily notes in `docs/dev_log_YYMMDD.md`.
 - Module names (routers, hooks, etc.): Use lowercase with hyphens/underscores (e.g., `members.py`, `cloud-start.sh`).
 
+### Quality Guardrails (summary; see `docs/agents_base.md`)
+- Do not use suppression comments: `eslint-disable`, `@ts-nocheck`, `@ts-ignore`, `# type: ignore`, `# pyright: ignore`, `# noqa` (file-wide). The only standing exception is `apps/api/migrations/env.py` with `# noqa: E402`.
+- Avoid unguardable types and unsafe casts: TS `any`/double-cast/non-null spam; Python `Any`-heavy payloads.
+- Complexity ≤ 10; nesting ≤ 4; prevent import cycles; keep modules ≤ 600 lines (split early).
+
 ## Testing Guidelines
 - Activate `.venv` and run `pytest -q` for API tests; follow the `tests/api/test_<feature>.py` pattern.
 - CI continues to enforce `ruff`, `pyright`, and `compileall` for static checks.
@@ -43,10 +52,12 @@
 ## Commit & Pull Request Guidelines
 - Enable hooks via `git config core.hooksPath .githooks`.
 - Pre-commit hook: Runs `ruff` on changed Python files and `eslint`/`tsc --noEmit` on changed web files (documentation-only commits skip this).
-- Pre-push hook: Requires a `docs/dev_log_YYMMDD.md` update for non-documentation changes, runs `pyright` for Python updates, `pnpm -C apps/web build` for web updates, and `pnpm -C packages/schemas run gen` for schema updates when the server is running.
+- Pre-push hook: Requires a `docs/dev_log_YYMMDD.md` update for non-documentation changes, runs `pyright` (from the active venv or `.venv`) for Python updates, runs `pytest -q` when tests exist, runs `pnpm -C apps/web build` for web updates, and `pnpm -C packages/schemas run gen` for schema updates when the server is running.
 - Pull requests: Use imperative, present-tense commit messages, provide a detailed description, include related issues/screenshots. Draft PRs pause CI; full checks run once marked Ready for Review.
+ - Commit messages must follow Conventional Commits. See `docs/commit_message_convention.md`. The commit-msg hook enforces this with commitlint (pinned via pnpm dlx).
 
 ## Security & Configuration Tips
 - Do not commit `.env`; keep the example file updated instead.
 - Default database is SQLite (`sqlite:///./dev.sqlite3`); PostgreSQL follows `infra/docker-compose.dev.yml`.
 - Report security issues to `security@trr.co.kr` per `SECURITY.md` guidance.
+ - See `docs/security_hardening.md` for security headers, SAST/Dependency audit, and CI policy.

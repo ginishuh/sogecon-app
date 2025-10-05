@@ -7,7 +7,30 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
+  repo-guards:
+    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.3'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.17.1'
+      - name: Run repository guards
+        run: python ops/ci/guards.py
+      - name: Enforce standardized versions
+        run: python ops/ci/check_versions.py
+      - name: Lint commit messages (recent commits)
+        run: |
+          # Check up to last 30 commits in this ref
+          RANGE="$(git rev-list --count HEAD)"
+          COUNT=$([ "$RANGE" -gt 30 ] && echo 30 || echo "$RANGE")
+          pnpm dlx @commitlint/cli@20.1.0 --config docs/commitlint.config.cjs --from=HEAD~$COUNT --to=HEAD || true
+
   python:
+    needs: repo-guards
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
     steps:
@@ -19,27 +42,35 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
+          pip install pip-audit bandit
       - name: Lint
         run: ruff check apps/api
       - name: Type check
         run: python -m pyright --project pyrightconfig.json
+      - name: Security scan (bandit)
+        run: bandit -r apps/api -x apps/api/migrations -q
+      - name: Dependency audit (pip-audit)
+        run: pip-audit -r apps/api/requirements.txt -r apps/api/requirements-dev.txt --strict
       - name: Compile bytecode
         run: python -m compileall apps/api
 
   web:
+    needs: repo-guards
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.17.1'
       - name: Install dependencies
         run: |
           corepack enable
           pnpm -C apps/web install --frozen-lockfile
       - name: Build
         run: pnpm -C apps/web build
+      - name: Dependency audit (pnpm)
+        run: pnpm -C apps/web audit --audit-level=high
 
   secrets-scan:
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
@@ -49,3 +80,12 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         with:
           args: "detect --no-banner"
+
+  semgrep:
+    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: returntocorp/semgrep-action@v1
+        with:
+          config: p/ci

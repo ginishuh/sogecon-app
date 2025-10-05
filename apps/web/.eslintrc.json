@@ -1,3 +1,22 @@
 {
-  "extends": ["next/core-web-vitals"]
+  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "import", "promise"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/ban-ts-comment": [
+      "error",
+      { "ts-ignore": true, "ts-nocheck": true, "ts-expect-error": "allow-with-description" }
+    ],
+    "@typescript-eslint/no-unsafe-assignment": "error",
+    "@typescript-eslint/no-unsafe-call": "error",
+    "@typescript-eslint/no-unsafe-member-access": "error",
+    "@typescript-eslint/no-unsafe-return": "error",
+    "@typescript-eslint/no-floating-promises": "error",
+    "promise/catch-or-return": "error",
+    "complexity": ["error", { "max": 10 }],
+    "max-depth": ["error", 4],
+    "max-lines": ["error", { "max": 600, "skipBlankLines": true, "skipComments": false }],
+    "import/no-cycle": ["error", { "maxDepth": 1 }]
+  }
 }

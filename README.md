@@ -13,7 +13,7 @@
 ## 주요 특징
 - **모노레포 구조**: Next.js 프런트(`apps/web`), FastAPI 백엔드(`apps/api`), 스키마 생성 툴(`packages/schemas`)을 한 곳에서 관리합니다.
 - **로컬 친화적 환경**: WSL2 및 macOS/리눅스에서 바로 실행 가능하며, 개발용 Postgres 컨테이너를 포함합니다.
-- **PWA 준비**: 프런트는 Tailwind 기반 UI와 PWA 아티팩트, 간단한 오프라인 스켈레톤을 제공합니다.
+- **모바일 웹 우선 · PWA/Web Push**: Tailwind 기반 UI와 PWA 아티팩트, 설치형 웹앱, Web Push 알림을 지원합니다. 세부는 `docs/pwa_push.md` 참고.
 - **품질 자동화**: Git 훅과 GitHub Actions가 `ruff`, `pyright`, `pytest`, `pnpm build`, `gitleaks`를 통해 기본 품질을 보장합니다.
 
 ## 폴더 구조
@@ -30,13 +30,15 @@ docs/            # todo/worklog/dev_log_YYMMDD 기록
    ```bash
    docker compose -f infra/docker-compose.dev.yml up -d
    ```
-2. **API 서버**
-   ```bash
-   python -m venv .venv && source .venv/bin/activate
-   pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
-   alembic -c apps/api/alembic.ini upgrade head
-   make api-dev  # uvicorn apps.api.main:app --reload --port 3001
-   ```
+2. **API 서버(venv 필수)**
+    ```bash
+   # 활성 venv가 있다면 그대로 사용됩니다. 없다면 .venv를 생성하세요.
+   make venv && make api-install
+   # 현재 감지된 venv 확인
+   make info-venv
+    alembic -c apps/api/alembic.ini upgrade head
+    make api-dev  # uvicorn apps.api.main:app --reload --port 3001
+    ```
 3. **웹 앱**
    ```bash
    corepack enable
@@ -51,8 +53,7 @@ docs/            # todo/worklog/dev_log_YYMMDD 기록
 
 > **English Quickstart (mirror)**
 > 1. `docker compose -f infra/docker-compose.dev.yml up -d`
-> 2. `python -m venv .venv && source .venv/bin/activate`
->    `pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt`
+> 2. `make venv && make api-install`
 >    `alembic -c apps/api/alembic.ini upgrade head`
 >    `make api-dev`
 > 3. `corepack enable`
