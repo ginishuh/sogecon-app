@@ -24,5 +24,5 @@ def create_member(db: Session, payload: schemas.MemberCreate) -> models.Member:
         select(models.Member).where(models.Member.email == payload.email)
     )
     if exists.scalars().first() is not None:
-        raise AlreadyExistsError("email exists")
+        raise AlreadyExistsError(code="member_exists", detail="Email already in use")
     return members_repo.create_member(db, payload)

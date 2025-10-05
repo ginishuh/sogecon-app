@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..db import get_db
-from ..errors import NotFoundError
 from ..services import posts_service
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -23,10 +22,7 @@ def list_posts(
 
 @router.get("/{post_id}", response_model=schemas.PostRead)
 def get_post(post_id: int, db: Session = Depends(get_db)) -> schemas.PostRead:
-    try:
-        post = posts_service.get_post(db, post_id)
-    except NotFoundError as err:
-        raise HTTPException(status_code=404, detail="Post not found") from err
+    post = posts_service.get_post(db, post_id)
     return schemas.PostRead.model_validate(post)
 
 
@@ -35,8 +31,5 @@ def create_post(
     payload: schemas.PostCreate,
     db: Session = Depends(get_db),
 ) -> schemas.PostRead:
-    try:
-        post = posts_service.create_post(db, payload)
-    except NotFoundError as err:
-        raise HTTPException(status_code=404, detail="Author not found") from err
+    post = posts_service.create_post(db, payload)
     return schemas.PostRead.model_validate(post)

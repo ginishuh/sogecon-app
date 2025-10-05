@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..db import get_db
-from ..errors import AlreadyExistsError, NotFoundError
 from ..services import members_service
 
 router = APIRouter(prefix="/members", tags=["members"])
@@ -23,10 +22,7 @@ def list_members(
 
 @router.get("/{member_id}", response_model=schemas.MemberRead)
 def get_member(member_id: int, db: Session = Depends(get_db)) -> schemas.MemberRead:
-    try:
-        member = members_service.get_member(db, member_id)
-    except NotFoundError as err:
-        raise HTTPException(status_code=404, detail="Member not found") from err
+    member = members_service.get_member(db, member_id)
     return schemas.MemberRead.model_validate(member)
 
 
@@ -35,8 +31,5 @@ def create_member(
     payload: schemas.MemberCreate,
     db: Session = Depends(get_db),
 ) -> schemas.MemberRead:
-    try:
-        member = members_service.create_member(db, payload)
-    except AlreadyExistsError as err:
-        raise HTTPException(status_code=409, detail="Member already exists") from err
+    member = members_service.create_member(db, payload)
     return schemas.MemberRead.model_validate(member)

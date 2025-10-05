@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..db import get_db
-from ..errors import AlreadyExistsError, NotFoundError
 from ..services import rsvps_service
 
 router = APIRouter(prefix="/rsvps", tags=["rsvps"])
@@ -27,10 +26,7 @@ def get_rsvp(
     event_id: int,
     db: Session = Depends(get_db),
 ) -> schemas.RSVPRead:
-    try:
-        rsvp = rsvps_service.get_rsvp(db, member_id, event_id)
-    except NotFoundError as err:
-        raise HTTPException(status_code=404, detail="RSVP not found") from err
+    rsvp = rsvps_service.get_rsvp(db, member_id, event_id)
     return schemas.RSVPRead.model_validate(rsvp)
 
 
@@ -39,10 +35,5 @@ def create_rsvp(
     payload: schemas.RSVPCreate,
     db: Session = Depends(get_db),
 ) -> schemas.RSVPRead:
-    try:
-        rsvp = rsvps_service.create_rsvp(db, payload)
-    except NotFoundError as err:
-        raise HTTPException(status_code=404, detail="Not found") from err
-    except AlreadyExistsError as err:
-        raise HTTPException(status_code=409, detail="RSVP already exists") from err
+    rsvp = rsvps_service.create_rsvp(db, payload)
     return schemas.RSVPRead.model_validate(rsvp)

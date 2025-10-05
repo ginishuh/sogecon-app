@@ -21,7 +21,7 @@ def list_members(db: Session, *, limit: int, offset: int) -> Sequence[models.Mem
 def get_member(db: Session, member_id: int) -> models.Member:
     member = db.get(models.Member, member_id)
     if member is None:
-        raise NotFoundError("member not found")
+        raise NotFoundError(code="member_not_found", detail="Member not found")
     return member
 
 

@@ -1,20 +1,34 @@
+"""
+도메인/서비스 계층에서 사용하는 API-무관 예외 계층.
+필수: 안정적인 `code`를 포함해 프런트/클라이언트가 분기 가능하도록 한다.
+전역 예외 핸들러가 HTTP 상태와 Problem Details(JSON)로 변환한다.
+"""
+
 from __future__ import annotations
 
-"""
-도메인 계층에서 사용하는 예외 정의.
-HTTP 의존성을 제거하기 위해 서비스/리포지토리에서는 이 예외만 발생시키고,
-라우터에서 HTTPException으로 매핑한다.
-"""
+from dataclasses import dataclass
 
 
-class NotFoundError(Exception):
-    """요청한 리소스를 찾을 수 없음."""
+@dataclass
+class ApiError(Exception):
+    code: str
+    detail: str = ""
+    status: int | None = None  # 권장 HTTP 상태(선택)
+
+    def __str__(self) -> str:
+        return self.detail or self.code
 
 
-class AlreadyExistsError(Exception):
-    """중복 생성 등으로 리소스가 이미 존재함."""
+class NotFoundError(ApiError):
+    def __init__(self, code: str = "not_found", detail: str = "") -> None:
+        super().__init__(code=code, detail=detail, status=404)
 
 
-class ConflictError(Exception):
-    """상태 충돌(예: 정원 초과, 상태 전이 불가 등)."""
+class AlreadyExistsError(ApiError):
+    def __init__(self, code: str = "already_exists", detail: str = "") -> None:
+        super().__init__(code=code, detail=detail, status=409)
 
+
+class ConflictError(ApiError):
+    def __init__(self, code: str = "conflict", detail: str = "") -> None:
+        super().__init__(code=code, detail=detail, status=409)

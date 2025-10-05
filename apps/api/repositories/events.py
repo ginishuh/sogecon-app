@@ -22,7 +22,7 @@ def list_events(db: Session, *, limit: int, offset: int) -> Sequence[models.Even
 def get_event(db: Session, event_id: int) -> models.Event:
     event = db.get(models.Event, event_id)
     if event is None:
-        raise NotFoundError("event not found")
+        raise NotFoundError(code="event_not_found", detail="Event not found")
     return event
 
 

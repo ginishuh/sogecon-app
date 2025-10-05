@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..db import get_db
-from ..errors import NotFoundError
 from ..services import events_service
 
 router = APIRouter(prefix="/events", tags=["events"])
@@ -23,10 +22,7 @@ def list_events(
 
 @router.get("/{event_id}", response_model=schemas.EventRead)
 def get_event(event_id: int, db: Session = Depends(get_db)) -> schemas.EventRead:
-    try:
-        event = events_service.get_event(db, event_id)
-    except NotFoundError as err:
-        raise HTTPException(status_code=404, detail="Event not found") from err
+    event = events_service.get_event(db, event_id)
     return schemas.EventRead.model_validate(event)
 
 
@@ -45,11 +41,7 @@ def create_rsvp(
     payload: schemas.RSVPStatusUpdate,
     db: Session = Depends(get_db),
 ) -> schemas.RSVPRead:
-    try:
-        rsvp = events_service.upsert_rsvp_status(
-            db, event_id=event_id, member_id=payload.member_id, status=payload.status
-        )
-    except NotFoundError as err:
-        # 도메인 예외 메시지에 의존하지 않고 404로 통일
-        raise HTTPException(status_code=404, detail="Not found") from err
+    rsvp = events_service.upsert_rsvp_status(
+        db, event_id=event_id, member_id=payload.member_id, status=payload.status
+    )
     return schemas.RSVPRead.model_validate(rsvp)

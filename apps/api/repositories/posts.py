@@ -22,7 +22,7 @@ def list_posts(db: Session, *, limit: int, offset: int) -> Sequence[models.Post]
 def get_post(db: Session, post_id: int) -> models.Post:
     post = db.get(models.Post, post_id)
     if post is None:
-        raise NotFoundError("post not found")
+        raise NotFoundError(code="post_not_found", detail="Post not found")
     return post
 
 

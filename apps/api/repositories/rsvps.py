@@ -18,7 +18,7 @@ def get_rsvp(db: Session, member_id: int, event_id: int) -> models.RSVP:
     key: tuple[int, int] = (member_id, event_id)
     rsvp = db.get(models.RSVP, key)
     if rsvp is None:
-        raise NotFoundError("rsvp not found")
+        raise NotFoundError(code="rsvp_not_found", detail="RSVP not found")
     return rsvp
 
 
@@ -27,7 +27,7 @@ def create_rsvp(db: Session, payload: schemas.RSVPCreate) -> models.RSVP:
     key: tuple[int, int] = (payload.member_id, payload.event_id)
     exists = db.get(models.RSVP, key)
     if exists is not None:
-        raise AlreadyExistsError("rsvp exists")
+        raise AlreadyExistsError(code="rsvp_exists", detail="RSVP already exists")
     data = payload.model_dump()
     rsvp = models.RSVP(**data)
     db.add(rsvp)

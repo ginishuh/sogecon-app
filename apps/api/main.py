@@ -10,6 +10,7 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from .config import get_settings
+from .errors import ApiError
 from .ratelimit import create_limiter
 from .routers import events, members, posts, rsvps
 
@@ -63,6 +64,27 @@ app.add_middleware(SlowAPIMiddleware)
 @app.get("/healthz")
 def healthcheck() -> dict[str, bool]:
     return {"ok": True}
+
+
+# Domain → HTTP 매핑 (전역 핸들러, Problem Details 형식 간소 버전)
+def _status_for(exc: ApiError) -> int:
+    if exc.status is not None:
+        return exc.status
+    # 기본 폴백(안 쓰이도록 status를 각 예외에 지정)
+    return 400
+
+
+@app.exception_handler(ApiError)
+async def _handle_api_error(_request: Request, exc: ApiError) -> JSONResponse:
+    status = _status_for(exc)
+    body = {
+        "type": "about:blank",  # RFC7807 최소 구현
+        "title": "",
+        "status": status,
+        "detail": str(exc) or exc.code,
+        "code": exc.code,
+    }
+    return JSONResponse(body, status_code=status)
 
 
 app.include_router(members.router)
