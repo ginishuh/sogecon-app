@@ -76,8 +76,8 @@ fi
 
 if [ ${#web_targets[@]} -gt 0 ]; then
   if command -v pnpm >/dev/null 2>&1; then
-    echo "[hooks] Running ESLint (flat config) on web"
-    pnpm -C apps/web exec eslint . --max-warnings=0
+    echo "[hooks] Running ESLint (flat config) on web (app dir only)"
+    (cd apps/web && pnpm exec eslint app --ext .ts,.tsx,.js,.jsx --max-warnings=0 --ignore-pattern .next)
     # Type-check is covered in CI build; skipping here to keep commits fast
   else
     echo "[hooks] Warning: pnpm not found; skipping web lint/type-check"

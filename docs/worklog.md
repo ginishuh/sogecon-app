@@ -12,6 +12,7 @@
 - pre-push 훅: 테스트 파일 탐색 로직 수정(매치 없을 때 pytest 미실행)
 - repo-guards: 빌드 산출물 `.next` 디렉터리 제외(@ts-ignore false positive 방지)
 - pre-push 훅에서 웹 빌드 제거(CI에서만 실행). 과도기 플래그는 폐기
+- 웹: Tailwind v4 마이그레이션(@tailwindcss/postcss + `@import "tailwindcss"`), Next monorepo root 지정(outputFileTracingRoot)
 
 ## 2025-09-28
 - .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거

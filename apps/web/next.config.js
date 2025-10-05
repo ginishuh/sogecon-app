@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const path = require('node:path');
 const isProd = process.env.NODE_ENV === 'production';
 
 const cspDirectives = [
@@ -31,6 +32,8 @@ const securityHeaders = [
 
 const nextConfig = {
   poweredByHeader: false,
+  // Ensure Next resolves configs within this workspace (monorepo safe)
+  outputFileTracingRoot: path.resolve(__dirname, '../../'),
   async headers() {
     return [
       {
@@ -39,9 +42,8 @@ const nextConfig = {
       },
     ];
   },
-  experimental: {
-    typedRoutes: true,
-  },
+  // Next 15+: typedRoutes at top-level
+  typedRoutes: true,
 };
 
 module.exports = nextConfig;

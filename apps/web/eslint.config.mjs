@@ -8,6 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const compat = new FlatCompat({ baseDirectory: __dirname });
 
 export default [
+  { ignores: ['**/.next/**'] },
   // Load equivalent of our .eslintrc.json
   ...compat.config({
     extends: ['next/core-web-vitals', 'plugin:@typescript-eslint/recommended'],
