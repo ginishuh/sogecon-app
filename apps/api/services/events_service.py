@@ -23,7 +23,7 @@ def create_event(db: Session, payload: schemas.EventCreate) -> models.Event:
 
 
 def upsert_rsvp_status(
-    db: Session, *, event_id: int, member_id: int, status: str
+    db: Session, *, event_id: int, member_id: int, status: schemas.RSVPLiteral
 ) -> models.RSVP:
     """RSVP 상태를 생성/갱신.
 
