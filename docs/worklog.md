@@ -15,6 +15,7 @@
 - 웹: Tailwind v3.4.13로 다운그레이드(안정화), PostCSS 설정 복원(tailwindcss 플러그인)
 - CI: gitleaks 액션 입력 경고 제거(args 제거) 및 shallow fetch 문제 해결(fetch-depth: 0)
 - CI: Corepack으로 pnpm 버전 고정(10.17.1) — repo-guards/web 잡 모두 적용
+- CI 트리거를 PR 전용으로 전환(push:main 제거), concurrency로 중복 실행 방지
 - 루트 package.json은 제거(불필요). pnpm pin은 apps/web/package.json + CI Corepack으로 유지
 - API: ruff 오류 정리(E501/I001/UP*), FastAPI 관례(B008)는 ruff 설정에서 예외 처리
 - SQLAlchemy: 타입체커 호환을 위해 setattr 패턴 유지, ruff에서 B010 예외 처리
