@@ -14,8 +14,10 @@ def fail(msg: str) -> None:
 
 
 def check_package_json() -> None:
+    # apps/web specific deps pins
     pkg_path = ROOT / "apps/web/package.json"
     data = json.loads(pkg_path.read_text(encoding="utf-8"))
+    problems: list[str] = []
 
     expected_deps = {
         "dependencies": {
@@ -38,7 +40,6 @@ def check_package_json() -> None:
         },
     }
 
-    problems: list[str] = []
     for section, expected in expected_deps.items():
         actual: dict[str, str] = data.get(section, {})
         for name, ver in expected.items():
@@ -86,6 +87,7 @@ def normalize_req_line(line: str) -> str:
 
 
 def check_requirements() -> None:
+    problems: list[str] = []
     req_txt = (
         ROOT / "apps/api/requirements.txt"
     ).read_text(encoding="utf-8").splitlines()
@@ -111,7 +113,6 @@ def check_requirements() -> None:
         ],
     }
 
-    problems: list[str] = []
 
     def assert_contains(
         path: str, content_lines: list[str], expected_lines: list[str]
