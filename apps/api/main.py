@@ -86,6 +86,9 @@ async def _handle_api_error(_request: Request, exc: ApiError) -> JSONResponse:
     }
     return JSONResponse(body, status_code=status)
 
+# Keep a reference for static analyzers (decorator registers this handler)
+_ = _handle_api_error
+
 
 app.include_router(members.router)
 app.include_router(posts.router)

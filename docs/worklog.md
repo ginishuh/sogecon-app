@@ -5,6 +5,7 @@
 - `events_service.upsert_rsvp_status`에서 `RSVPCreate` 인스턴스 생성해 레포 호출(딕셔너리 전달 제거)
 - RSVP 상태 타입을 `schemas.RSVPLiteral`로 명시(events_service)해 pyright 엄격 모드 오류 제거
 - 전역 예외 핸들러 추가: 도메인 예외(NotFound/AlreadyExists/Conflict) → HTTP 상태(404/409)로 매핑, 라우터의 try/except 제거
+- 정적 분석 정리: 전역 예외 핸들러 참조를 유지해 pyright의 unused 경고 해소
 - API 계층화 적용: Routers → Services → Repositories 구조 스캐폴드(`apps/api/services/*`, `apps/api/repositories/*`, `apps/api/errors.py`) 추가 및 기존 라우터 전면 위임으로 리팩터링
 - Web 데이터 계층 도입: 공용 API 클라이언트(`apps/web/lib/api.ts`)와 도메인 서비스(`apps/web/services/posts.ts`, `apps/web/services/events.ts`) 추가, 페이지에서 직접 fetch 제거
 - `docs/architecture.md`를 SSOT 규칙에 맞춰 레이어드 아키텍처 강제 문구로 갱신
