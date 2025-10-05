@@ -64,7 +64,7 @@ def create_rsvp(
         rsvp = models.RSVP(member_id=payload.member_id, event_id=event_id)
         db.add(rsvp)
 
-    rsvp.status = models.RSVPStatus(payload.status)
+    setattr(rsvp, "status", models.RSVPStatus(payload.status))
     db.commit()
     db.refresh(rsvp)
     return schemas.RSVPRead.model_validate(rsvp)

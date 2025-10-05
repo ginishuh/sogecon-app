@@ -13,7 +13,8 @@ select = [
   "RUF"                      # ruff-specific
 ]
 ignore = [
-  "B008"   # FastAPI dependency injection uses call in default args (Depends)
+  "B008",  # FastAPI dependency injection uses call in default args (Depends)
+  "B010"   # setattr pattern used for SQLAlchemy model fields to satisfy type checkers
 ]
 
 
