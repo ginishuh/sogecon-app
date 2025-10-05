@@ -3,8 +3,10 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import schemas
 from ..db import get_db
+from ..errors import NotFoundError
+from ..services import events_service
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -15,21 +17,16 @@ def list_events(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ) -> list[schemas.EventRead]:
-    events = (
-        db.query(models.Event)
-        .order_by(models.Event.starts_at.asc())
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
+    events = events_service.list_events(db, limit=limit, offset=offset)
     return [schemas.EventRead.model_validate(event) for event in events]
 
 
 @router.get("/{event_id}", response_model=schemas.EventRead)
 def get_event(event_id: int, db: Session = Depends(get_db)) -> schemas.EventRead:
-    event = db.get(models.Event, event_id)
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+    try:
+        event = events_service.get_event(db, event_id)
+    except NotFoundError as err:
+        raise HTTPException(status_code=404, detail="Event not found") from err
     return schemas.EventRead.model_validate(event)
 
 
@@ -38,10 +35,7 @@ def create_event(
     payload: schemas.EventCreate,
     db: Session = Depends(get_db),
 ) -> schemas.EventRead:
-    event = models.Event(**payload.model_dump())
-    db.add(event)
-    db.commit()
-    db.refresh(event)
+    event = events_service.create_event(db, payload.model_dump())
     return schemas.EventRead.model_validate(event)
 
 
@@ -51,20 +45,11 @@ def create_rsvp(
     payload: schemas.RSVPStatusUpdate,
     db: Session = Depends(get_db),
 ) -> schemas.RSVPRead:
-    event = db.get(models.Event, event_id)
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-
-    member = db.get(models.Member, payload.member_id)
-    if not member:
-        raise HTTPException(status_code=404, detail="Member not found")
-
-    rsvp = db.get(models.RSVP, (payload.member_id, event_id))
-    if not rsvp:
-        rsvp = models.RSVP(member_id=payload.member_id, event_id=event_id)
-        db.add(rsvp)
-
-    setattr(rsvp, "status", models.RSVPStatus(payload.status))
-    db.commit()
-    db.refresh(rsvp)
+    try:
+        rsvp = events_service.upsert_rsvp_status(
+            db, event_id=event_id, member_id=payload.member_id, status=payload.status
+        )
+    except NotFoundError as err:
+        # 도메인 예외 메시지에 의존하지 않고 404로 통일
+        raise HTTPException(status_code=404, detail="Not found") from err
     return schemas.RSVPRead.model_validate(rsvp)

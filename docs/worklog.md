@@ -1,6 +1,9 @@
 # Worklog
 
 ## 2025-10-05
+- API 계층화 적용: Routers → Services → Repositories 구조 스캐폴드(`apps/api/services/*`, `apps/api/repositories/*`, `apps/api/errors.py`) 추가 및 기존 라우터 전면 위임으로 리팩터링
+- Web 데이터 계층 도입: 공용 API 클라이언트(`apps/web/lib/api.ts`)와 도메인 서비스(`apps/web/services/posts.ts`, `apps/web/services/events.ts`) 추가, 페이지에서 직접 fetch 제거
+- `docs/architecture.md`를 SSOT 규칙에 맞춰 레이어드 아키텍처 강제 문구로 갱신
 - 모바일 웹 우선 원칙과 PWA/Web Push 지원을 아키텍처에 반영, SMS 채널 보류 명시 및 세부 가이드(`docs/pwa_push.md`) 추가
 - 에이전트 베이스 문서 추가(`docs/agents_base.md`, `docs/agents_base_kr.md`) 및 AGENTS/CLAUDE/Copilot 문서 동기화
 - 품질 가드 도입: 우회 주석 금지/파일 600줄 제한/복잡도 가드 스크립트(`ops/ci/guards.py`), Ruff/Pyright/ESLint 설정 강화

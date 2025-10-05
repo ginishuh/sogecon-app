@@ -3,8 +3,10 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import schemas
 from ..db import get_db
+from ..errors import AlreadyExistsError, NotFoundError
+from ..services import rsvps_service
 
 router = APIRouter(prefix="/rsvps", tags=["rsvps"])
 
@@ -15,12 +17,7 @@ def list_rsvps(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ) -> list[schemas.RSVPRead]:
-    rsvps = (
-        db.query(models.RSVP)
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
+    rsvps = rsvps_service.list_rsvps(db, limit=limit, offset=offset)
     return [schemas.RSVPRead.model_validate(rsvp) for rsvp in rsvps]
 
 
@@ -30,9 +27,10 @@ def get_rsvp(
     event_id: int,
     db: Session = Depends(get_db),
 ) -> schemas.RSVPRead:
-    rsvp = db.get(models.RSVP, (member_id, event_id))
-    if not rsvp:
-        raise HTTPException(status_code=404, detail="RSVP not found")
+    try:
+        rsvp = rsvps_service.get_rsvp(db, member_id, event_id)
+    except NotFoundError as err:
+        raise HTTPException(status_code=404, detail="RSVP not found") from err
     return schemas.RSVPRead.model_validate(rsvp)
 
 
@@ -41,19 +39,10 @@ def create_rsvp(
     payload: schemas.RSVPCreate,
     db: Session = Depends(get_db),
 ) -> schemas.RSVPRead:
-    member = db.get(models.Member, payload.member_id)
-    if not member:
-        raise HTTPException(status_code=404, detail="Member not found")
-    event = db.get(models.Event, payload.event_id)
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-
-    existing = db.get(models.RSVP, (payload.member_id, payload.event_id))
-    if existing:
-        raise HTTPException(status_code=409, detail="RSVP already exists")
-
-    rsvp = models.RSVP(**payload.model_dump())
-    db.add(rsvp)
-    db.commit()
-    db.refresh(rsvp)
+    try:
+        rsvp = rsvps_service.create_rsvp(db, payload.model_dump())
+    except NotFoundError as err:
+        raise HTTPException(status_code=404, detail="Not found") from err
+    except AlreadyExistsError as err:
+        raise HTTPException(status_code=409, detail="RSVP already exists") from err
     return schemas.RSVPRead.model_validate(rsvp)

@@ -3,8 +3,10 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import schemas
 from ..db import get_db
+from ..errors import NotFoundError
+from ..services import posts_service
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -15,21 +17,16 @@ def list_posts(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ) -> list[schemas.PostRead]:
-    posts = (
-        db.query(models.Post)
-        .order_by(models.Post.published_at.desc())
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
+    posts = posts_service.list_posts(db, limit=limit, offset=offset)
     return [schemas.PostRead.model_validate(post) for post in posts]
 
 
 @router.get("/{post_id}", response_model=schemas.PostRead)
 def get_post(post_id: int, db: Session = Depends(get_db)) -> schemas.PostRead:
-    post = db.get(models.Post, post_id)
-    if not post:
-        raise HTTPException(status_code=404, detail="Post not found")
+    try:
+        post = posts_service.get_post(db, post_id)
+    except NotFoundError as err:
+        raise HTTPException(status_code=404, detail="Post not found") from err
     return schemas.PostRead.model_validate(post)
 
 
@@ -38,11 +35,8 @@ def create_post(
     payload: schemas.PostCreate,
     db: Session = Depends(get_db),
 ) -> schemas.PostRead:
-    author = db.get(models.Member, payload.author_id)
-    if not author:
-        raise HTTPException(status_code=404, detail="Author not found")
-    post = models.Post(**payload.model_dump())
-    db.add(post)
-    db.commit()
-    db.refresh(post)
+    try:
+        post = posts_service.create_post(db, payload.model_dump())
+    except NotFoundError as err:
+        raise HTTPException(status_code=404, detail="Author not found") from err
     return schemas.PostRead.model_validate(post)

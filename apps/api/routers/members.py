@@ -3,8 +3,10 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import schemas
 from ..db import get_db
+from ..errors import AlreadyExistsError, NotFoundError
+from ..services import members_service
 
 router = APIRouter(prefix="/members", tags=["members"])
 
@@ -15,15 +17,16 @@ def list_members(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ) -> list[schemas.MemberRead]:
-    members = db.query(models.Member).offset(offset).limit(limit).all()
+    members = members_service.list_members(db, limit=limit, offset=offset)
     return [schemas.MemberRead.model_validate(member) for member in members]
 
 
 @router.get("/{member_id}", response_model=schemas.MemberRead)
 def get_member(member_id: int, db: Session = Depends(get_db)) -> schemas.MemberRead:
-    member = db.get(models.Member, member_id)
-    if not member:
-        raise HTTPException(status_code=404, detail="Member not found")
+    try:
+        member = members_service.get_member(db, member_id)
+    except NotFoundError as err:
+        raise HTTPException(status_code=404, detail="Member not found") from err
     return schemas.MemberRead.model_validate(member)
 
 
@@ -32,8 +35,8 @@ def create_member(
     payload: schemas.MemberCreate,
     db: Session = Depends(get_db),
 ) -> schemas.MemberRead:
-    member = models.Member(**payload.model_dump())
-    db.add(member)
-    db.commit()
-    db.refresh(member)
+    try:
+        member = members_service.create_member(db, payload.model_dump())
+    except AlreadyExistsError as err:
+        raise HTTPException(status_code=409, detail="Member already exists") from err
     return schemas.MemberRead.model_validate(member)

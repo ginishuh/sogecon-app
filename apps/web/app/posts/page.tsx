@@ -1,16 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-type Post = {
-  id: number;
-  title: string;
-  content: string;
-  published_at: string | null;
-  author_id: number;
-};
-
-const API_BASE = process.env.NEXT_PUBLIC_WEB_API_BASE ?? 'http://localhost:3001';
+import { listPosts, type Post } from '../../services/posts';
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -20,11 +11,7 @@ export default function PostsPage() {
   useEffect(() => {
     const run = async () => {
       try {
-        const res = await fetch(`${API_BASE}/posts?limit=20`);
-        if (!res.ok) {
-          throw new Error(`Status ${res.status}`);
-        }
-        const data = (await res.json()) as Post[];
+        const data = await listPosts({ limit: 20 });
         setPosts(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : '알 수 없는 오류');
@@ -32,7 +19,6 @@ export default function PostsPage() {
         setLoading(false);
       }
     };
-
     void run();
   }, []);
 
