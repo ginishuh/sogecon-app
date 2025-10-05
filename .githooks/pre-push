@@ -103,8 +103,12 @@ fi
 
 if [ "$web_changed" = true ]; then
   if command -v pnpm >/dev/null 2>&1; then
-    echo "[hooks] Building web app"
-    pnpm -C apps/web build
+    if [ -n "${SKIP_WEB_BUILD:-}" ]; then
+      echo "[hooks] SKIP_WEB_BUILD is set; skipping web build"
+    else
+      echo "[hooks] Building web app"
+      pnpm -C apps/web build
+    fi
   else
     echo "[hooks] Warning: pnpm not found; skipping web build"
   fi
