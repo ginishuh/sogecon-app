@@ -13,6 +13,7 @@
 - repo-guards: 빌드 산출물 `.next` 디렉터리 제외(@ts-ignore false positive 방지)
 - pre-push 훅에서 웹 빌드 제거(CI에서만 실행). 과도기 플래그는 폐기
 - 웹: Tailwind v3.4.13로 다운그레이드(안정화), PostCSS 설정 복원(tailwindcss 플러그인)
+- CI: gitleaks 액션 입력 경고 제거(args 제거) 및 shallow fetch 문제 해결(fetch-depth: 0)
 
 ## 2025-09-28
 - .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거

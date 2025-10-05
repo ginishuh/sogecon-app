@@ -77,9 +77,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: gitleaks/gitleaks-action@v2
         with:
-          args: "detect --no-banner"
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
 
   semgrep:
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
