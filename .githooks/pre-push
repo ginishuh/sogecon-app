@@ -80,7 +80,8 @@ if [ "$python_changed" = true ]; then
   fi
 
   # Run pytest if tests are present
-  if git ls-files -- "tests/**/*.py" "tests/api/test_*.py" >/dev/null 2>&1; then
+  TEST_FILES=$(git ls-files -- "tests/**/*.py" "tests/api/test_*.py" 2>/dev/null || true)
+  if [ -n "$TEST_FILES" ]; then
     PYTEST_BIN=""
     if [ -n "${VIRTUAL_ENV:-}" ] && [ -x "$VIRTUAL_ENV/bin/pytest" ]; then
       PYTEST_BIN="$VIRTUAL_ENV/bin/pytest"
