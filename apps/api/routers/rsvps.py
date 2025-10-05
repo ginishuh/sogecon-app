@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -9,12 +9,12 @@ from ..db import get_db
 router = APIRouter(prefix="/rsvps", tags=["rsvps"])
 
 
-@router.get("/", response_model=List[schemas.RSVPRead])
+@router.get("/", response_model=list[schemas.RSVPRead])
 def list_rsvps(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-) -> List[schemas.RSVPRead]:
+) -> list[schemas.RSVPRead]:
     rsvps = (
         db.query(models.RSVP)
         .offset(offset)
@@ -25,7 +25,11 @@ def list_rsvps(
 
 
 @router.get("/{member_id}/{event_id}", response_model=schemas.RSVPRead)
-def get_rsvp(member_id: int, event_id: int, db: Session = Depends(get_db)) -> schemas.RSVPRead:
+def get_rsvp(
+    member_id: int,
+    event_id: int,
+    db: Session = Depends(get_db),
+) -> schemas.RSVPRead:
     rsvp = db.get(models.RSVP, (member_id, event_id))
     if not rsvp:
         raise HTTPException(status_code=404, detail="RSVP not found")
@@ -33,7 +37,10 @@ def get_rsvp(member_id: int, event_id: int, db: Session = Depends(get_db)) -> sc
 
 
 @router.post("/", response_model=schemas.RSVPRead, status_code=201)
-def create_rsvp(payload: schemas.RSVPCreate, db: Session = Depends(get_db)) -> schemas.RSVPRead:
+def create_rsvp(
+    payload: schemas.RSVPCreate,
+    db: Session = Depends(get_db),
+) -> schemas.RSVPRead:
     member = db.get(models.Member, payload.member_id)
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")

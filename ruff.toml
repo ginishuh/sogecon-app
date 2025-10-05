@@ -1,4 +1,7 @@
 target-version = "py312"
+exclude = [
+  "apps/api/migrations/versions/*",
+]
 
 [lint]
 select = [
@@ -9,8 +12,10 @@ select = [
   "PL",                      # pylint-inspired
   "RUF"                      # ruff-specific
 ]
-ignore = []
+ignore = [
+  "B008"   # FastAPI dependency injection uses call in default args (Depends)
+]
+
 
 [lint.mccabe]
 max-complexity = 10
-

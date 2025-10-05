@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -9,12 +9,12 @@ from ..db import get_db
 router = APIRouter(prefix="/members", tags=["members"])
 
 
-@router.get("/", response_model=List[schemas.MemberRead])
+@router.get("/", response_model=list[schemas.MemberRead])
 def list_members(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-) -> List[schemas.MemberRead]:
+) -> list[schemas.MemberRead]:
     members = db.query(models.Member).offset(offset).limit(limit).all()
     return [schemas.MemberRead.model_validate(member) for member in members]
 
@@ -28,7 +28,10 @@ def get_member(member_id: int, db: Session = Depends(get_db)) -> schemas.MemberR
 
 
 @router.post("/", response_model=schemas.MemberRead, status_code=201)
-def create_member(payload: schemas.MemberCreate, db: Session = Depends(get_db)) -> schemas.MemberRead:
+def create_member(
+    payload: schemas.MemberCreate,
+    db: Session = Depends(get_db),
+) -> schemas.MemberRead:
     member = models.Member(**payload.model_dump())
     db.add(member)
     db.commit()

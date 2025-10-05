@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
@@ -13,7 +13,7 @@ class MemberBase(BaseModel):
     email: EmailStr
     name: str
     cohort: int
-    major: Optional[str] = None
+    major: str | None = None
     roles: str = "member"
     visibility: VisibilityLiteral = "all"
 
@@ -31,7 +31,7 @@ class MemberRead(MemberBase):
 class PostBase(BaseModel):
     title: str
     content: str
-    published_at: Optional[datetime] = None
+    published_at: datetime | None = None
 
 
 class PostCreate(PostBase):

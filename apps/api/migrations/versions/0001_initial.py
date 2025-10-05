@@ -38,7 +38,12 @@ def upgrade() -> None:
     op.create_table(
         "posts",
         sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("author_id", sa.Integer(), sa.ForeignKey("members.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "author_id",
+            sa.Integer(),
+            sa.ForeignKey("members.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("title", sa.String(length=255), nullable=False),
         sa.Column("content", sa.Text(), nullable=False),
         sa.Column("published_at", sa.DateTime(timezone=True), nullable=True),
@@ -59,8 +64,18 @@ def upgrade() -> None:
 
     op.create_table(
         "rsvps",
-        sa.Column("member_id", sa.Integer(), sa.ForeignKey("members.id", ondelete="CASCADE"), primary_key=True),
-        sa.Column("event_id", sa.Integer(), sa.ForeignKey("events.id", ondelete="CASCADE"), primary_key=True),
+        sa.Column(
+            "member_id",
+            sa.Integer(),
+            sa.ForeignKey("members.id", ondelete="CASCADE"),
+            primary_key=True,
+        ),
+        sa.Column(
+            "event_id",
+            sa.Integer(),
+            sa.ForeignKey("events.id", ondelete="CASCADE"),
+            primary_key=True,
+        ),
         sa.Column("status", rsvp_status_enum, nullable=False),
     )
 

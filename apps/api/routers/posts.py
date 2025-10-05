@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -9,12 +9,12 @@ from ..db import get_db
 router = APIRouter(prefix="/posts", tags=["posts"])
 
 
-@router.get("/", response_model=List[schemas.PostRead])
+@router.get("/", response_model=list[schemas.PostRead])
 def list_posts(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-) -> List[schemas.PostRead]:
+) -> list[schemas.PostRead]:
     posts = (
         db.query(models.Post)
         .order_by(models.Post.published_at.desc())
@@ -34,7 +34,10 @@ def get_post(post_id: int, db: Session = Depends(get_db)) -> schemas.PostRead:
 
 
 @router.post("/", response_model=schemas.PostRead, status_code=201)
-def create_post(payload: schemas.PostCreate, db: Session = Depends(get_db)) -> schemas.PostRead:
+def create_post(
+    payload: schemas.PostCreate,
+    db: Session = Depends(get_db),
+) -> schemas.PostRead:
     author = db.get(models.Member, payload.author_id)
     if not author:
         raise HTTPException(status_code=404, detail="Author not found")

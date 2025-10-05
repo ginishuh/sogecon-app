@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -9,12 +9,12 @@ from ..db import get_db
 router = APIRouter(prefix="/events", tags=["events"])
 
 
-@router.get("/", response_model=List[schemas.EventRead])
+@router.get("/", response_model=list[schemas.EventRead])
 def list_events(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-) -> List[schemas.EventRead]:
+) -> list[schemas.EventRead]:
     events = (
         db.query(models.Event)
         .order_by(models.Event.starts_at.asc())
@@ -34,7 +34,10 @@ def get_event(event_id: int, db: Session = Depends(get_db)) -> schemas.EventRead
 
 
 @router.post("/", response_model=schemas.EventRead, status_code=201)
-def create_event(payload: schemas.EventCreate, db: Session = Depends(get_db)) -> schemas.EventRead:
+def create_event(
+    payload: schemas.EventCreate,
+    db: Session = Depends(get_db),
+) -> schemas.EventRead:
     event = models.Event(**payload.model_dump())
     db.add(event)
     db.commit()
@@ -61,7 +64,7 @@ def create_rsvp(
         rsvp = models.RSVP(member_id=payload.member_id, event_id=event_id)
         db.add(rsvp)
 
-    setattr(rsvp, "status", models.RSVPStatus(payload.status))
+    rsvp.status = models.RSVPStatus(payload.status)
     db.commit()
     db.refresh(rsvp)
     return schemas.RSVPRead.model_validate(rsvp)

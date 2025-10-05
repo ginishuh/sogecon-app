@@ -39,7 +39,12 @@ class Post(Base):
     __tablename__ = "posts"
 
     id = Column(Integer, primary_key=True)
-    author_id = Column(Integer, ForeignKey("members.id", ondelete="CASCADE"), nullable=False, index=True)
+    author_id = Column(
+        Integer,
+        ForeignKey("members.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
     published_at = Column(DateTime(timezone=True), nullable=True, index=True)
@@ -69,8 +74,16 @@ Index("ix_events_starts_at", Event.starts_at)
 class RSVP(Base):
     __tablename__ = "rsvps"
 
-    member_id = Column(Integer, ForeignKey("members.id", ondelete="CASCADE"), primary_key=True)
-    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), primary_key=True)
+    member_id = Column(
+        Integer,
+        ForeignKey("members.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    event_id = Column(
+        Integer,
+        ForeignKey("events.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
     status = Column(Enum(RSVPStatus), nullable=False, default=RSVPStatus.GOING)
 
     member = relationship("Member", back_populates="rsvps")
