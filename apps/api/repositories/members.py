@@ -27,6 +27,8 @@ def get_member(db: Session, member_id: int) -> models.Member:
 
 def create_member(db: Session, payload: schemas.MemberCreate) -> models.Member:
     data = payload.model_dump()
+    if "visibility" in data:
+        data["visibility"] = models.Visibility(data["visibility"])  # normalize enum
     member = models.Member(**data)
     db.add(member)
     db.commit()

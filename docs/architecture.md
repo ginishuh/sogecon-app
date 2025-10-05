@@ -44,6 +44,14 @@
 - **오류 포맷**: FastAPI 기본 `HTTPException` 구조(`{"detail": "..."}`)를 유지. 도메인 오류는 추후 `code` 필드를 확장.
 - **스키마 동기화**: `make schema-gen` 실행 → `packages/schemas`에서 TypeScript DTO 갱신 → `apps/web`에서 import. 프런트 작업 전 항상 API 변경분을 반영한다.
 
+### 오류 처리 전략(절충안; Problem Details)
+- 서비스/리포지토리: 프레임워크 비의존 `ApiError` 파생 예외만 발생(`NotFoundError`, `AlreadyExistsError`, `ConflictError`). 각 예외는 안정적 `code`, `detail`, 권장 `status`를 포함한다.
+- 전역 예외 핸들러: `ApiError`를 RFC7807-lt(경량) JSON으로 매핑해 응답.
+  - 응답 형태: `{ type: "about:blank", title: "", status: <int>, detail: <string>, code: <string> }`
+- 라우터: 예외 변환을 수행하지 않고 서비스만 호출(얇은 라우터).
+- 초기 코드 카탈로그(가이드): `member_not_found`, `post_not_found`, `event_not_found`, `rsvp_not_found`, `member_exists`, `rsvp_exists`, `conflict`.
+- 프런트 처리: `code`를 기준으로 UX 분기(예: `member_exists` → 필드 하이라이트, `rsvp_exists` → 안내 토스트).
+
 ## 품질 및 운영 가드레일
 - **정적 검사**: `ruff`, `pyright`, `eslint`, `tsc --noEmit`.
 - **테스트**: `pytest -q`로 API 단위 테스트, 웹 쪽은 `vitest`/`@testing-library/react` 도입 예정.

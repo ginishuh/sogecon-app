@@ -29,6 +29,8 @@ def create_rsvp(db: Session, payload: schemas.RSVPCreate) -> models.RSVP:
     if exists is not None:
         raise AlreadyExistsError(code="rsvp_exists", detail="RSVP already exists")
     data = payload.model_dump()
+    if "status" in data:
+        data["status"] = models.RSVPStatus(data["status"])  # normalize enum
     rsvp = models.RSVP(**data)
     db.add(rsvp)
     db.commit()
