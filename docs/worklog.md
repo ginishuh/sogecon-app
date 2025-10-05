@@ -8,6 +8,7 @@
 - API 레이트리밋 도입(`slowapi==0.1.9`), 기본 per-IP 120/minute. FastAPI 미들웨어와 예외 핸들러 연결
 - pre-push 훅이 활성 venv 우선으로 `pyright` 실행 후, 테스트 존재 시 `pytest -q`까지 수행하도록 강화
 - commit-msg 훅 실행 권한 추가 및 Conventional Commits 규칙 적용 확인
+- pyright 오류 수정: SecurityHeadersMiddleware.dispatch 타입 보강 및 레이트리밋 예외 핸들러 래퍼; 마이그레이션 폴더는 pyright 제외
 
 ## 2025-09-28
 - .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거

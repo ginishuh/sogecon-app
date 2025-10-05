@@ -6,6 +6,9 @@
   "include": [
     "apps/api"
   ],
+  "exclude": [
+    "apps/api/migrations/versions"
+  ],
   "typeCheckingMode": "strict",
   "reportMissingImports": "warning",
   "reportMissingTypeStubs": "warning",

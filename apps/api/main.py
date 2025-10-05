@@ -1,9 +1,12 @@
+from collections.abc import Awaitable, Callable
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from .config import get_settings
@@ -27,7 +30,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp) -> None:
         super().__init__(app)
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         response = await call_next(request)
         # Minimal, safe-by-default headers for APIs
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
@@ -44,7 +49,14 @@ app.add_middleware(SecurityHeadersMiddleware)
 # Rate limiting (per-IP; default from settings)
 limiter = create_limiter(settings)
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+def _rl_handler(request: Request, exc: Exception) -> Response:
+    if isinstance(exc, RateLimitExceeded):
+        # Delegate to SlowAPI's default handler
+        return _rate_limit_exceeded_handler(request, exc)
+    return JSONResponse({"detail": "Unhandled error"}, status_code=500)
+
+
+app.add_exception_handler(Exception, _rl_handler)
 app.add_middleware(SlowAPIMiddleware)
 
 
