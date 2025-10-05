@@ -11,7 +11,7 @@
 - pyright 오류 수정: SecurityHeadersMiddleware.dispatch 타입 보강 및 레이트리밋 예외 핸들러 래퍼; 마이그레이션 폴더는 pyright 제외
 - pre-push 훅: 테스트 파일 탐색 로직 수정(매치 없을 때 pytest 미실행)
 - repo-guards: 빌드 산출물 `.next` 디렉터리 제외(@ts-ignore false positive 방지)
-- pre-push 훅: `SKIP_WEB_BUILD=1` 설정 시 웹 빌드 생략 가능(대규모 업그레이드 과도기 대처)
+- pre-push 훅에서 웹 빌드 제거(CI에서만 실행). 과도기 플래그는 폐기
 
 ## 2025-09-28
 - .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거

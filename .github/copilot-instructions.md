@@ -35,7 +35,7 @@ Developer workflows (local)
 - Schemas: `make schema-gen` to regenerate TS types from OpenAPI (requires API reachable).
 
 Quality gates & CI
-- Hooks: enable with `git config core.hooksPath .githooks`. Pre-commit runs ruff/eslint/tsc and repo guards on changed files. Pre-push ensures `docs/dev_log_YYMMDD.md` is updated and runs `pyright` and `pnpm -C apps/web build` as needed.
+- Hooks: enable with `git config core.hooksPath .githooks`. Pre-commit runs ruff/ESLint and repo guards on changed files. Pre-push ensures `docs/dev_log_YYMMDD.md` is updated and runs `pyright`; builds run in CI.
 - CI (Ready for Review PRs): Repo guards → Python `ruff → pyright → compileall` → Web `pnpm build` → Security `gitleaks`.
 
 Quality guardrails (enforced): no suppression comments (`eslint-disable`, `@ts-nocheck`, `@ts-ignore`, `# type: ignore`, `# noqa`, etc., except Alembic `env.py E402`), cyclomatic complexity ≤10, module size ≤600 lines, import cycles denied. Full policy: `docs/agents_base.md`.

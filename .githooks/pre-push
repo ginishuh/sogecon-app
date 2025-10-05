@@ -101,18 +101,7 @@ if [ "$python_changed" = true ]; then
   fi
 fi
 
-if [ "$web_changed" = true ]; then
-  if command -v pnpm >/dev/null 2>&1; then
-    if [ -n "${SKIP_WEB_BUILD:-}" ]; then
-      echo "[hooks] SKIP_WEB_BUILD is set; skipping web build"
-    else
-      echo "[hooks] Building web app"
-      pnpm -C apps/web build
-    fi
-  else
-    echo "[hooks] Warning: pnpm not found; skipping web build"
-  fi
-fi
+## Web build is handled by CI. Pre-push does not build the web app.
 
 if [ "$schemas_changed" = true ]; then
   if command -v pnpm >/dev/null 2>&1; then

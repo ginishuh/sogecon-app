@@ -57,14 +57,14 @@ Activate custom git hooks with: `git config core.hooksPath .githooks`
 
 ### Pre-commit Hook
 - Runs `ruff check` on changed Python files
-- Runs `eslint` and `tsc --noEmit` on changed Web files
+- Runs ESLint (flat config) on Web files
 - Runs repo guards (see below) on staged files
 - Requires `docs/worklog.md` update for code changes (documentation-only commits skip this)
 
 ### Pre-push Hook
 - Checks for `docs/dev_log_YYMMDD.md` update for non-documentation changes
-- Runs `pyright` for Python changes
-- Runs `pnpm -C apps/web build` for Web changes
+- Runs `pyright` for Python changes; runs tests if present
+- Web builds run in CI, not in pre-push
 - Runs schema generation for API changes when server is running
 
 ### CI Pipeline

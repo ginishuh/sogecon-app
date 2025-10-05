@@ -52,7 +52,7 @@
 ## Commit & Pull Request Guidelines
 - Enable hooks via `git config core.hooksPath .githooks`.
 - Pre-commit hook: Runs `ruff` on changed Python files and `eslint`/`tsc --noEmit` on changed web files (documentation-only commits skip this).
-- Pre-push hook: Requires a `docs/dev_log_YYMMDD.md` update for non-documentation changes, runs `pyright` (from the active venv or `.venv`) for Python updates, runs `pytest -q` when tests exist, runs `pnpm -C apps/web build` for web updates, and `pnpm -C packages/schemas run gen` for schema updates when the server is running.
+- Pre-push hook: Requires a `docs/dev_log_YYMMDD.md` update for non-documentation changes, runs `pyright` (from the active venv or `.venv`) for Python updates, runs `pytest -q` when tests exist, and `pnpm -C packages/schemas run gen` for schema updates when the server is running. Web build runs in CI, not pre-push.
 - Pull requests: Use imperative, present-tense commit messages, provide a detailed description, include related issues/screenshots. Draft PRs pause CI; full checks run once marked Ready for Review.
  - Commit messages must follow Conventional Commits. See `docs/commit_message_convention.md`. The commit-msg hook enforces this with commitlint (pinned via pnpm dlx).
 
