@@ -34,9 +34,10 @@ def upsert_rsvp_status(
 
     rsvp = db.get(models.RSVP, (member_id, event_id))
     if rsvp is None:
-        rsvp = rsvps_repo.create_rsvp(
-            db, {"member_id": member_id, "event_id": event_id, "status": status}
+        payload = schemas.RSVPCreate(
+            member_id=member_id, event_id=event_id, status=status
         )
+        rsvp = rsvps_repo.create_rsvp(db, payload)
     else:
         # 타입체커 호환을 위해 setattr 사용
         setattr(rsvp, "status", models.RSVPStatus(status))
