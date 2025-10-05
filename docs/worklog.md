@@ -14,6 +14,7 @@
 - pre-push 훅에서 웹 빌드 제거(CI에서만 실행). 과도기 플래그는 폐기
 - 웹: Tailwind v3.4.13로 다운그레이드(안정화), PostCSS 설정 복원(tailwindcss 플러그인)
 - CI: gitleaks 액션 입력 경고 제거(args 제거) 및 shallow fetch 문제 해결(fetch-depth: 0)
+- CI: Corepack으로 pnpm 버전 고정(10.17.1) — repo-guards/web 잡 모두 적용
 - API: ruff 오류 정리(E501/I001/UP*), FastAPI 관례(B008)는 ruff 설정에서 예외 처리
 - SQLAlchemy: 타입체커 호환을 위해 setattr 패턴 유지, ruff에서 B010 예외 처리
 - 에이전트 베이스: 언어/커뮤니케이션 규칙을 영문/국문 베이스 문서에 명시(코드 주석/문서/커밋/PR은 한국어 기본)

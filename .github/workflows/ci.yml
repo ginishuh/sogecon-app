@@ -18,6 +18,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.17.1'
+      - name: Pin pnpm version via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.17.1 --activate
+          pnpm -v
       - name: Run repository guards
         run: python ops/ci/guards.py
       - name: Enforce standardized versions
@@ -66,6 +71,7 @@ jobs:
       - name: Install dependencies
         run: |
           corepack enable
+          corepack prepare pnpm@10.17.1 --activate
           pnpm -C apps/web install --frozen-lockfile
       - name: Build
         run: pnpm -C apps/web build
