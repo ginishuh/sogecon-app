@@ -24,6 +24,32 @@ The application supports both Korean and English documentation, with primary dev
 - Commits/PRs: Korean
 - User-facing content: Korean by default
 
+## Agents Base (verbatim copy)
+This section mirrors the English base so this file is self‑contained for agents.
+
+### Quality Guardrails (Non‑negotiable)
+1) No Lint/Type Overrides (Default: Forbidden): no `eslint-disable`, `@ts-nocheck`, `@ts-ignore`, `# type: ignore`, `# pyright: ignore`, or file‑wide `# noqa` (except `apps/api/migrations/env.py: E402`).
+2) Ban “unguardable” types and unsafe casts: forbid TS `any`/double-cast/non‑null spam; avoid Python `Any`‑heavy payloads.
+3) Complexity & Spaghetti: complexity ≤10, depth ≤4, no import cycles.
+4) Module size & structure: ≤600 lines; API Routers→Services→Repos; Web UI→hooks/services→API client.
+5) Error handling: no bare except; no floating promises.
+6) Notifications & Privacy: web push subs encrypted; drop dead subs (404/410).
+
+### Testing & CI
+- Pyright strict; Ruff complexity; ESLint rules.
+- Python tools must run from `.venv` (use `make venv`, `make api-install`, `make test-api`).
+
+### Commit & PR
+- Conventional Commits `type(scope): subject` (72 chars). Types: `feat|fix|refactor|perf|test|chore|build|ci|docs`; scopes: `api|web|schemas|infra|docs|ops|ci|build`.
+- Commitlint hook (pinned) must pass; CI re-checks.
+- Non-doc changes update `docs/worklog.md`; pushes include `docs/dev_log_YYMMDD.md`.
+
+### Language
+- Korean default for docs/comments/commits/PRs; exceptions: vendor/generated/licences/protocol constants/external payloads. Add Korean note if English-only is required.
+
+### Exceptions & Waivers
+- Only `apps/api/migrations/env.py` may keep `# noqa: E402`. Waivers must include issue/owner/expiry and be local to code.
+
 ## Development Commands
 
 ### Database

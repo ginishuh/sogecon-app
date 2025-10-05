@@ -1,13 +1,21 @@
 ## Copilot instructions for this repo
 
-Context: Monorepo for Sogang GS Economics Alumni app. This guide is governed by the English base `docs/agents_base.md` (Korean mirror: `docs/agents_base_kr.md`). Frontend: Next.js App Router (TypeScript, Tailwind, PWA/Web Push). Backend: FastAPI + SQLAlchemy + Alembic. Local DB defaults to SQLite; Postgres via docker-compose for dev. See [`docs/architecture.md`](../docs/architecture.md) for the consolidated technical design (Korean).
+Context: Monorepo for Sogang GS Economics Alumni app. This guide includes the English base content inline so it is self‑contained for agents. Frontend: Next.js App Router (TypeScript, Tailwind, PWA/Web Push). Backend: FastAPI + SQLAlchemy + Alembic. Local DB defaults to SQLite; Postgres via docker-compose for dev. See [`docs/architecture.md`](../docs/architecture.md) for the consolidated technical design (Korean).
 
-Language and Communication (see `docs/agents_base.md`)
+Language and Communication (base, verbatim)
 - Primary language: Korean for internal docs and code comments.
 - Code comments: Korean by default; English identifiers; Korean domain terms allowed.
 - Documentation: Korean preferred for `docs/` folder.
 - Commit messages and PR descriptions: Korean.
 - User-facing content: Korean by default.
+
+Agents Base (verbatim copy)
+- No lint/type overrides (no `eslint-disable`, `@ts-nocheck`, `@ts-ignore`, `# type: ignore`, `# pyright: ignore`, file‑wide `# noqa`; only exception: Alembic env.py `E402`).
+- Ban unguardable types/unsafe casts (TS `any`/double‑cast/non‑null spam; Python `Any` payloads).
+- Complexity ≤10, nesting ≤4, no import cycles, ≤600 lines per file (generated migrations excluded), layered architecture.
+- Error handling: no bare except; no floating promises.
+- Testing/CI: pyright strict; Ruff complexity; ESLint rules; Python tools run from `.venv`.
+- Commits/PRs: Conventional Commits; commitlint hook; `docs/worklog.md` and `docs/dev_log_YYMMDD.md` required for non-doc pushes.
 
 Architecture and data flow
 - apps/api: FastAPI app (`apps/api/main.py`) exposes routers: `members`, `posts`, `events`, `rsvps`. CORS is configured from `config.get_settings()`.

@@ -1,5 +1,61 @@
 # Repository Guidelines
 
+## Agents Base (verbatim copy)
+This section mirrors the English base `docs/agents_base.md` so that this document is self‑contained for all agents.
+
+### Scope & Sync
+- Source of truth for agent/editor guidelines and code-quality guardrails.
+- Other agent docs should align with this content. Rules must be identical.
+
+### Quality Guardrails (Non‑negotiable)
+1) No Lint/Type Overrides (Default: Forbidden)
+- Do NOT disable linters or type checkers globally or per file.
+- Forbidden examples: `/* eslint-disable */`, `// eslint-disable-next-line`, `// @ts-nocheck`, `// @ts-ignore`, `# type: ignore`, `# pyright: ignore`, `# noqa` (file-level or broad).
+- Only exception: Alembic `apps/api/migrations/env.py` may use `# noqa: E402` due to tool constraints.
+- If absolutely necessary elsewhere, a one-line localized suppression may be used only with ALL of: specific rule ID, inline rationale, linked issue/removal plan.
+
+2) Ban “unguardable” types and unsafe casts
+- TS: forbid `any`, double-casts (`as unknown as T`), pervasive `!`. Prefer `unknown`+narrowing, discriminated unions, generated DTOs.
+- Python: avoid `Any`, `dict[str, Any]`, `list[Any]`, broad `object`. Prefer Pydantic models/TypedDict/explicit generics.
+
+3) Complexity & Spaghetti-code guards
+- Max cyclomatic complexity 10; max nesting depth 4; forbid import cycles.
+
+4) Module Size & Structure
+- Max 600 lines per source file (generated migrations excluded). Split modules early.
+- Layering: API Routers → Services → Repositories/DB; Web UI → hooks/services → API client.
+
+5) Error handling and logging
+- Python: no bare `except:`/`except Exception:`; TS: handle promise rejections.
+
+6) Notifications & Privacy (Web Push)
+- Treat push subscriptions as sensitive; encrypt at rest; redact in logs; drop 404/410.
+
+### Testing & CI Expectations
+- Pyright strict; Ruff enforces complexity; ESLint enforces TS rules.
+- Python tools must run from project `.venv` (use `make venv`, `make api-install`, `make test-api`).
+
+### Commit & PR Conventions
+- Conventional Commits `type(scope): subject` (72 chars). Types: `feat|fix|refactor|perf|test|chore|build|ci|docs`. Scopes: `api|web|schemas|infra|docs|ops|ci|build`.
+- Imperative present-tense; Korean allowed/preferred. See `docs/commit_message_convention.md`.
+- `commit-msg` hook (pinned commitlint) must pass; CI re-validates.
+- Non-doc changes must update `docs/worklog.md`; pushes must include `docs/dev_log_YYMMDD.md`.
+
+### Language & Communication
+- Primary: Korean for internal docs and code comments.
+- Code comments: Korean by default; English identifiers; Korean domain terms allowed.
+- User-facing copy: Korean by default.
+- Commits/PRs: Korean.
+- Exceptions: vendored/third‑party, generated, licenses, protocol constants, external quotes and API payloads/fixtures.
+- If English-only content is necessary, add a brief Korean note when practical.
+
+### Exceptions & Waivers
+- Only `apps/api/migrations/env.py` may keep `# noqa: E402`.
+- Temporary waivers require linked issue/owner/expiry and live next to code.
+
+### Edit Policy
+- Update BOTH `agents_base.md` and `agents_base_kr.md` when changing rules; keep this copy in sync.
+
 > This document is governed by the English base: `docs/agents_base.md` (and mirrored in Korean: `docs/agents_base_kr.md`). In case of any conflict, the English base prevails. Do not diverge from the base; keep sections in sync.
 
 ## Project Structure & Module Organization
