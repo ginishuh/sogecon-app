@@ -34,7 +34,7 @@ def check_package_json() -> None:
             "typescript": "5.8.3",
             "autoprefixer": "10.4.21",
             "postcss": "8.5.6",
-            "tailwindcss": "4.1.12",
+            "tailwindcss": "3.4.13",
         },
     }
 

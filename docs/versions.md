@@ -36,7 +36,7 @@
 - eslint-plugin-import: 2.32.0
 - eslint-import-resolver-typescript: 3.10.1
 - eslint-plugin-promise: 7.2.1
-- tailwindcss: 4.1.12
+- tailwindcss: 3.4.13
 - autoprefixer: 10.4.21
 - postcss: 8.5.6
 
