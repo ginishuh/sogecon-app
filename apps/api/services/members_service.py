@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import models
+from .. import models, schemas
 from ..errors import AlreadyExistsError
 from ..repositories import members as members_repo
 
@@ -18,10 +18,10 @@ def get_member(db: Session, member_id: int) -> models.Member:
     return members_repo.get_member(db, member_id)
 
 
-def create_member(db: Session, payload: dict) -> models.Member:
+def create_member(db: Session, payload: schemas.MemberCreate) -> models.Member:
     # 이메일 중복 방지(사전 검사)
     exists = db.execute(
-        select(models.Member).where(models.Member.email == payload["email"])
+        select(models.Member).where(models.Member.email == payload.email)
     )
     if exists.scalars().first() is not None:
         raise AlreadyExistsError("email exists")

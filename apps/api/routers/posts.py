@@ -36,7 +36,7 @@ def create_post(
     db: Session = Depends(get_db),
 ) -> schemas.PostRead:
     try:
-        post = posts_service.create_post(db, payload.model_dump())
+        post = posts_service.create_post(db, payload)
     except NotFoundError as err:
         raise HTTPException(status_code=404, detail="Author not found") from err
     return schemas.PostRead.model_validate(post)

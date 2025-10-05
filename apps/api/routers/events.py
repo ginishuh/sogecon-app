@@ -35,7 +35,7 @@ def create_event(
     payload: schemas.EventCreate,
     db: Session = Depends(get_db),
 ) -> schemas.EventRead:
-    event = events_service.create_event(db, payload.model_dump())
+    event = events_service.create_event(db, payload)
     return schemas.EventRead.model_validate(event)
 
 

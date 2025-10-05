@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
-from .. import models
+from .. import models, schemas
 from ..errors import NotFoundError
 
 
@@ -26,8 +26,9 @@ def get_post(db: Session, post_id: int) -> models.Post:
     return post
 
 
-def create_post(db: Session, payload: dict) -> models.Post:
-    post = models.Post(**payload)
+def create_post(db: Session, payload: schemas.PostCreate) -> models.Post:
+    data = payload.model_dump()
+    post = models.Post(**data)
     db.add(post)
     db.commit()
     db.refresh(post)

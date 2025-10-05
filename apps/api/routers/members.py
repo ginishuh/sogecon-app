@@ -36,7 +36,7 @@ def create_member(
     db: Session = Depends(get_db),
 ) -> schemas.MemberRead:
     try:
-        member = members_service.create_member(db, payload.model_dump())
+        member = members_service.create_member(db, payload)
     except AlreadyExistsError as err:
         raise HTTPException(status_code=409, detail="Member already exists") from err
     return schemas.MemberRead.model_validate(member)

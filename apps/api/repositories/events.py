@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from sqlalchemy import asc, select
 from sqlalchemy.orm import Session
 
-from .. import models
+from .. import models, schemas
 from ..errors import NotFoundError
 
 
@@ -26,8 +26,9 @@ def get_event(db: Session, event_id: int) -> models.Event:
     return event
 
 
-def create_event(db: Session, payload: dict) -> models.Event:
-    event = models.Event(**payload)
+def create_event(db: Session, payload: schemas.EventCreate) -> models.Event:
+    data = payload.model_dump()
+    event = models.Event(**data)
     db.add(event)
     db.commit()
     db.refresh(event)

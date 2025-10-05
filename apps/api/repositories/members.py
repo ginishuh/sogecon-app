@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import models
+from .. import models, schemas
 from ..errors import NotFoundError
 
 
@@ -25,8 +25,9 @@ def get_member(db: Session, member_id: int) -> models.Member:
     return member
 
 
-def create_member(db: Session, payload: dict) -> models.Member:
-    member = models.Member(**payload)
+def create_member(db: Session, payload: schemas.MemberCreate) -> models.Member:
+    data = payload.model_dump()
+    member = models.Member(**data)
     db.add(member)
     db.commit()
     db.refresh(member)

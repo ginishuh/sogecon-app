@@ -40,7 +40,7 @@ def create_rsvp(
     db: Session = Depends(get_db),
 ) -> schemas.RSVPRead:
     try:
-        rsvp = rsvps_service.create_rsvp(db, payload.model_dump())
+        rsvp = rsvps_service.create_rsvp(db, payload)
     except NotFoundError as err:
         raise HTTPException(status_code=404, detail="Not found") from err
     except AlreadyExistsError as err:

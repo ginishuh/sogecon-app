@@ -1,6 +1,7 @@
 # Worklog
 
 ## 2025-10-05
+- 타입 명세 강화: 서비스/리포지토리 payload에 Pydantic 스키마 타입 적용(pyright strict 통과), SQLAlchemy Enum 속성은 `setattr`로 할당
 - API 계층화 적용: Routers → Services → Repositories 구조 스캐폴드(`apps/api/services/*`, `apps/api/repositories/*`, `apps/api/errors.py`) 추가 및 기존 라우터 전면 위임으로 리팩터링
 - Web 데이터 계층 도입: 공용 API 클라이언트(`apps/web/lib/api.ts`)와 도메인 서비스(`apps/web/services/posts.ts`, `apps/web/services/events.ts`) 추가, 페이지에서 직접 fetch 제거
 - `docs/architecture.md`를 SSOT 규칙에 맞춰 레이어드 아키텍처 강제 문구로 갱신
