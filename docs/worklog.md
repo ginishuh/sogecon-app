@@ -10,6 +10,7 @@
 - commit-msg 훅 실행 권한 추가 및 Conventional Commits 규칙 적용 확인
 - pyright 오류 수정: SecurityHeadersMiddleware.dispatch 타입 보강 및 레이트리밋 예외 핸들러 래퍼; 마이그레이션 폴더는 pyright 제외
 - pre-push 훅: 테스트 파일 탐색 로직 수정(매치 없을 때 pytest 미실행)
+- repo-guards: 빌드 산출물 `.next` 디렉터리 제외(@ts-ignore false positive 방지)
 
 ## 2025-09-28
 - .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거

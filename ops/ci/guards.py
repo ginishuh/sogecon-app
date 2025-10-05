@@ -48,6 +48,7 @@ EXCLUDE_DIRS = {
     ROOT / "apps/api/migrations/versions",
     ROOT / ".venv",
     ROOT / "node_modules",
+    ROOT / "apps/web/.next",
 }
 
 # Exclude this guard script from scanning to avoid false positives
