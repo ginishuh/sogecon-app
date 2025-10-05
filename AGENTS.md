@@ -20,7 +20,7 @@
 - CI pipeline verifies quality with `ruff`, `pyright`, `python -m compileall`, and `pnpm -C apps/web build`.
 
 ## Language and Communication
-- Primary language: Korean. Default to answering in Korean unless the user explicitly chooses another language.
+- Primary language: Korean. Follow the base language rules in `docs/agents_base.md` (code comments, docs, commits/PRs in Korean by default; exceptions as listed there).
 - Code comments: Document business logic or domain-specific behavior in Korean when clarification is needed.
 - Documentation: Prefer Korean for updates under `docs/`, mirroring the guidance in `CLAUDE.md`.
 - Commit messages and PRs: Write summaries and descriptions in Korean.

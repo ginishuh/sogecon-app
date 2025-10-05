@@ -49,6 +49,14 @@ Do NOT disable linters or type checkers globally or per file.
 - Use imperative, present-tense subjects; Korean is fine. Details: `docs/commit_message_convention.md`.
 - The `commit-msg` hook runs `@commitlint/cli` (pinned) via pnpm dlx and must pass locally; CI re-validates recent commits.
 - Non-doc changes must update `docs/worklog.md`; pushes must include the current `docs/dev_log_YYMMDD.md` entry.
+
+## Language & Communication
+- Primary language: Korean for all internal documentation and code comments across this repository.
+- Code comments: write comments in Korean by default. Use English for identifiers (variables, functions, types); Korean domain terms are acceptable when they improve clarity.
+- User-facing copy: Korean by default unless a feature explicitly requires another language.
+- Commits/PRs: write commit messages and PR descriptions in Korean.
+- Exceptions (may remain in English): vendored/third‑party code, auto‑generated files, license texts, protocol constants, quotes from external systems, and external API payloads/fixtures.
+- When introducing English-only content for technical reasons, include a brief Korean note or summary in the same change whenever practical.
 - Repo guards fail CI on:
   - Disallowed suppression comments (see 1),
   - Files over 600 lines,

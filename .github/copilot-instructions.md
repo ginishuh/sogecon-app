@@ -2,13 +2,12 @@
 
 Context: Monorepo for Sogang GS Economics Alumni app. This guide is governed by the English base `docs/agents_base.md` (Korean mirror: `docs/agents_base_kr.md`). Frontend: Next.js App Router (TypeScript, Tailwind, PWA/Web Push). Backend: FastAPI + SQLAlchemy + Alembic. Local DB defaults to SQLite; Postgres via docker-compose for dev. See [`docs/architecture.md`](../docs/architecture.md) for the consolidated technical design (Korean).
 
-Language and Communication
-- Primary language: Korean. Default to answering in Korean unless the user explicitly chooses another language.
-- Code comments: Write in Korean when explaining business logic or domain-specific concepts.
-- Documentation: Korean preferred for internal docs in `docs/` folder.
-- Commit messages and PR descriptions: Use Korean.
-- Variable/function names: Use English following standard conventions, but Korean is acceptable for domain-specific terms.
-- User-facing content: Provide in Korean by default.
+Language and Communication (see `docs/agents_base.md`)
+- Primary language: Korean for internal docs and code comments.
+- Code comments: Korean by default; English identifiers; Korean domain terms allowed.
+- Documentation: Korean preferred for `docs/` folder.
+- Commit messages and PR descriptions: Korean.
+- User-facing content: Korean by default.
 
 Architecture and data flow
 - apps/api: FastAPI app (`apps/api/main.py`) exposes routers: `members`, `posts`, `events`, `rsvps`. CORS is configured from `config.get_settings()`.

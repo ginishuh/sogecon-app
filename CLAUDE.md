@@ -16,14 +16,13 @@ The application supports both Korean and English documentation, with primary dev
 
 자세한 설계 결정과 도메인 설명은 [`docs/architecture.md`](docs/architecture.md)에 최신화된다.
 
-## Language and Communication
+## Language and Communication (follow `docs/agents_base.md`)
 
-- **Primary Language**: Korean is the primary language for this project
-- **Code Comments**: Write code comments in Korean when explaining business logic or domain-specific concepts
-- **Documentation**: Korean is preferred for internal documentation in `docs/` folder
-- **Commit Messages**: Use Korean for commit messages and PR descriptions
-- **Variable Names**: Use English for variable/function names following standard conventions, but Korean is acceptable for domain-specific terms
-- **User-Facing Content**: All user-facing content should be in Korean
+- Primary language: Korean for internal docs and code comments
+- Code comments: Korean by default; English identifiers; Korean domain terms allowed
+- Documentation: Korean preferred for `docs/`
+- Commits/PRs: Korean
+- User-facing content: Korean by default
 
 ## Development Commands
 
