@@ -1,6 +1,9 @@
 ## 2025-10-06
 
-- 테스트 픽스처(conftest):  우회 주석 제거 및  조작 삭제. import 순서 정리로 Ruff 규칙 위반 해소(레포 가이드 준수).
+- 테스트 픽스처(conftest): `# noqa: E402` 우회 주석 제거 및 `sys.path` 조작 삭제. import 순서 정리로 Ruff 규칙 위반 해소(레포 가이드 준수).
+ - conftest: CI 환경 호환을 위해 함수 내부에서 `apps.*` 지연 import 및 `sys.path` 보정으로 동작 유지(우회 주석 없이 해결).
+ - 테스트 루트 `tests/conftest.py`에서 `sys.path` 보정 추가(패키지 import 안정화).
+ - CI: Pytest Guard(`ops/ci/pytest_guard.py`) 추가 — API 관련 변경 시 `pytest --collect-only`로 수집 ≥1 보장.
 # Worklog
 
 ## 2025-10-05
