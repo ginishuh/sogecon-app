@@ -59,6 +59,7 @@
 - 제목은 명령형·현재 시제로 작성하며 한국어 사용 가능. 자세한 규칙: `docs/commit_message_convention.md`.
 - `commit-msg` 훅이 pnpm dlx 기반 고정 버전 `@commitlint/cli`로 즉시 검증하며, CI에서도 최근 커밋을 재검증합니다.
 - 비-문서 변경은 `docs/worklog.md` 한 줄 요약 필수, 푸시 시 당일 `docs/dev_log_YYMMDD.md`가 포함되어야 합니다.
+ - PR은 `.github/pull_request_template.md` 템플릿을 반드시 사용합니다. Draft 단계에서는 상단 섹션만 채우고, Ready for Review로 전환하기 전에 템플릿 체크리스트를 모두 완료합니다.
 
 ## 언어/커뮤니케이션
 - 기본 언어: 레포 내 모든 내부 문서와 코드 주석은 한국어를 원칙으로 합니다.

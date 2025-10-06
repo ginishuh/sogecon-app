@@ -165,6 +165,7 @@ Activate custom git hooks with: `git config core.hooksPath .githooks`
 ### Commit Messages
 - Follow Conventional Commits (`type(scope): subject`). See `docs/commit_message_convention.md` and the base `docs/agents_base.md`.
 - The `commit-msg` hook enforces commitlint (pinned). CI re-checks recent commits.
+ - PRs must use `.github/pull_request_template.md`. For Draft, fill the top sections; before Ready for Review, complete all checklists.
 
 ## Key Technologies
 
