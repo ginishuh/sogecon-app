@@ -65,6 +65,7 @@
   - Web(Admin): /admin/notifications에 요약(활성 구독/성공/실패)과 최근 발송 로그 테이블 추가, 새로고침 버튼.
   - Web: `lib/api.ts`의 `apiFetch`를 헬퍼 분리로 복잡도 10 이하 리팩터링(ESLint complexity 통과).
   - 문서(SSOT/에이전트 베이스): 로컬 DB 도커화/포트 변수(`DB_DEV_PORT`,`DB_TEST_PORT`)·CORS JSON 규칙·Web Push 운영 가드·Admin 경로를 agents_base(en/kr)/architecture에 반영.
+  - Web: 개발환경에서 서비스워커 등록을 기본 비활성화(NEXT_PUBLIC_ENABLE_SW=1로 강제). Next.js App Router RSC 스트리밍 중 "Connection closed" 오류 완화.
 # Worklog
 
 ## 2025-10-05
