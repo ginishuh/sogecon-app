@@ -52,8 +52,10 @@ def upsert_rsvp_status(
         capacity_int: int = cast(int, event_obj.capacity)
         # 업데이트 시 본인 카운트는 제외하여 재요청으로 인한 부당한 대기열 강등을 방지
         effective = int(going_count)
-        if existing is not None and existing.status == models.RSVPStatus.GOING:
-            effective -= 1
+        if existing is not None:
+            current: models.RSVPStatus = cast(models.RSVPStatus, existing.status)
+            if current == models.RSVPStatus.GOING:
+                effective -= 1
         if effective >= capacity_int:
             return models.RSVPStatus.WAITLIST
         return models.RSVPStatus.GOING
