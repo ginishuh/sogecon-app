@@ -22,3 +22,23 @@ export async function deleteSubscription(endpoint: string): Promise<void> {
   });
 }
 
+export type SendLog = {
+  created_at: string;
+  ok: boolean;
+  status_code: number | null;
+  endpoint_tail: string | null;
+};
+
+export type NotificationStats = {
+  active_subscriptions: number;
+  recent_accepted: number;
+  recent_failed: number;
+};
+
+export async function getSendLogs(limit = 50): Promise<SendLog[]> {
+  return apiFetch<SendLog[]>(`/notifications/admin/notifications/logs?limit=${limit}`);
+}
+
+export async function getNotificationStats(): Promise<NotificationStats> {
+  return apiFetch<NotificationStats>('/notifications/admin/notifications/stats');
+}

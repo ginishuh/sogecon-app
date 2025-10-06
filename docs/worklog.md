@@ -62,6 +62,7 @@
   - API(Admin): 발송 로그/통계 엔드포인트 추가(`/admin/notifications/logs`, `/admin/notifications/stats`). 로그는 endpoint 해시/테일만 저장(민감정보 마스킹).
   - 타입 보완: 로그 DTO 변환 시 pyright 캐스팅으로 Column 타입 경고 제거.
   - pyright: Column truthiness 경고 회피를 위해 isinstance 기반 변환 적용.
+  - Web(Admin): /admin/notifications에 요약(활성 구독/성공/실패)과 최근 발송 로그 테이블 추가, 새로고침 버튼.
 # Worklog
 
 ## 2025-10-05
