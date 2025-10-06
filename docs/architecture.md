@@ -98,7 +98,8 @@
 
 ### 백엔드 구성 (`apps/api`)
 - 구독 저장 엔드포인트: `POST /notifications/subscriptions` — 바디에 `endpoint`, `keys.p256dh`, `keys.auth`, `ua`, `member_id`(서버에서 식별) 저장. 테이블 예: `push_subscription(id, member_id, endpoint, p256dh, auth, ua, created_at, last_seen_at, revoked_at)`.
-- 테스트 발송 엔드포인트(운영자): `POST /admin/notifications/test` — 샘플 N명에게 미리보기 발송.
+- 테스트 발송 엔드포인트(운영자): `POST /admin/notifications/test` — payload: `{ title, body, url? }`로 전 구독자에 테스트 발송.
+- 발송: VAPID(pywebpush)로 전송, HTTP 404/410 응답 구독은 자동 폐기 처리.
 - 예약/대량 발송: APScheduler 혹은 별도 워커 프로세스에서 Web Push를 큐잉 처리. 재시도/TTL/배치 크기 제어.
 - 키 관리: VAPID 공개/비공개 키 쌍을 `.env`로 주입(`VAPID_PUBLIC_KEY`,`VAPID_PRIVATE_KEY`,`VAPID_SUBJECT`). 키 순환 시 롤링 기간 동안 구독 재발급 유도.
 
@@ -111,6 +112,7 @@
 ### 구현 메모
 - iOS/Android 주요 브라우저에서 설치형 PWA 기준 Web Push 지원. 설치되지 않은 상태, 또는 지원 불가 환경에서는 이메일로 폴백(Phase 1에선 폴백 없이 UI만 안내 가능).
 - 프런트 키 배포: VAPID 공개키를 빌드 타임/런타임 노출(환경변수 → 페이지 데이터 주입)하고, 비공개키는 서버 전용으로 보관.
+- Admin UI: `/admin/notifications`에서 테스트 알림(제목/본문/URL) 발송 요청 가능.
 
 
 이 문서는 스케폴드 이후 아키텍처 변경 사항이 생길 때마다 함께 업데이트하며, 변경 내역은 해당 날짜의 `docs/dev_log_YYMMDD.md`에 링크한다.

@@ -62,6 +62,7 @@ def delete_subscription(
 class TestPushPayload(BaseModel):
     title: str = "테스트 알림"
     body: str = "웹 푸시 경로 연결 확인"
+    url: str | None = None
 
 
 @router.post("/admin/notifications/test", status_code=202)
@@ -81,6 +82,6 @@ def send_test_push(
         checker(_consume)(request)
 
     result = notif_svc.send_test_to_all(
-        db, provider, title=_payload.title, body=_payload.body
+        db, provider, title=_payload.title, body=_payload.body, url=_payload.url
     )
     return {"accepted": result.accepted, "failed": result.failed}

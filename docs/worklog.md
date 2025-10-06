@@ -57,6 +57,8 @@
   - 타입: `SubscriptionData` TypedDict 도입, pyright 적합성(cast/주석) 정리, 관리자 발송 레이트리밋 타입 보완.
   - TypedDict 안전 접근으로 `member_id` 처리 로직 경고 제거.
   - Web: Service Worker에 push/notificationclick 핸들러 추가, 구독 유틸(lib/push.ts) 및 서비스 호출(services/notifications.ts) 구현, CTA 컴포넌트(components/notify-cta.tsx) 추가 및 레이아웃에 연결. 204 응답 처리 위해 apiFetch 204 대응.
+  - Web(Admin): `/admin/notifications` 페이지에서 테스트 발송(제목/본문/URL) UI 추가.
+  - API: 테스트 발송 payload에 `url` 필드 추가, SW 클릭 시 해당 URL 포커스/열림.
 # Worklog
 
 ## 2025-10-05

@@ -65,13 +65,20 @@ def delete_subscription(db: Session, *, endpoint: str) -> None:
 
 
 def send_test_to_all(
-    db: Session, provider: PushProvider, *, title: str, body: str
+    db: Session,
+    provider: PushProvider,
+    *,
+    title: str,
+    body: str,
+    url: str | None = None,
 ) -> SendResult:
     subs = repo.list_active_subscriptions(db)
     accepted = 0
     failed = 0
     for sub in subs:
-        ok, status = provider.send(sub, {"title": title, "body": body})
+        ok, status = provider.send(
+            sub, {"title": title, "body": body, **({"url": url} if url else {})}
+        )
         if ok:
             accepted += 1
         else:

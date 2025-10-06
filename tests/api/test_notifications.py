@@ -66,7 +66,8 @@ def test_admin_send_uses_provider_and_handles_410(admin_login: TestClient) -> No
     router_mod.get_push_provider = lambda: _DummyProvider(fail_every=2)  # type: ignore[assignment]
 
     res = client.post(
-        "/notifications/admin/notifications/test", json={"title": "t", "body": "b"}
+        "/notifications/admin/notifications/test",
+        json={"title": "t", "body": "b", "url": "https://example.com/x"},
     )
     assert res.status_code == HTTPStatus.ACCEPTED
     data = res.json()
