@@ -87,7 +87,9 @@ def send_test_push(
 ) -> dict[str, int]:
     # 레이트리밋(1/min/IP) — 테스트클라이언트는 면제
     if not (request.client and request.client.host == "testclient"):
-        def _consume(_req: Request) -> None:
+        # slowapi expects the parameter name literally 'request'
+        def _consume(request: Request) -> None:
+            """Consume a token."""
             return None
 
         class _LimiterProto(Protocol):

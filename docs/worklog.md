@@ -137,3 +137,5 @@
 
 ## 2025-10-07
 - M3 phase-2 착수: 구독 엔드포인트를 멤버 세션 가드로 전환(임시로 admin 세션을 멤버로 간주), 401/422 테스트 추가, CTA UX 개선.
+
+- 429 테스트 추가(관리 발송 레이트리밋) — httpx.AsyncClient+ASGITransport로 client IP 설정, slowapi 파라미터명 수정(request).
