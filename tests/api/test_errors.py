@@ -43,7 +43,8 @@ def test_event_not_found_returns_problem_details(client: TestClient) -> None:
     assert data["code"] == "event_not_found"
 
 
-def test_rsvp_not_found_returns_problem_details(client: TestClient) -> None:
+def test_rsvp_not_found_returns_problem_details(admin_login: TestClient) -> None:
+    client = admin_login
     # 선행: 회원/이벤트 생성
     m = client.post(
         "/members/",
@@ -67,7 +68,8 @@ def test_rsvp_not_found_returns_problem_details(client: TestClient) -> None:
     assert data["code"] == "rsvp_not_found"
 
 
-def test_rsvp_create_conflict_code(client: TestClient) -> None:
+def test_rsvp_create_conflict_code(admin_login: TestClient) -> None:
+    client = admin_login
     # 선행: 회원/이벤트 생성
     m = client.post(
         "/members/",
@@ -95,7 +97,8 @@ def test_rsvp_create_conflict_code(client: TestClient) -> None:
     assert data["code"] == "rsvp_exists"
 
 
-def test_events_rsvp_upsert_create_and_update(client: TestClient) -> None:
+def test_events_rsvp_upsert_create_and_update(admin_login: TestClient) -> None:
+    client = admin_login
     # 선행: 회원/이벤트 생성
     m = client.post(
         "/members/",
@@ -127,7 +130,8 @@ def test_events_rsvp_upsert_create_and_update(client: TestClient) -> None:
     assert res_update.json()["status"] == "waitlist"
 
 
-def test_events_rsvp_invalid_enum_422(client: TestClient) -> None:
+def test_events_rsvp_invalid_enum_422(admin_login: TestClient) -> None:
+    client = admin_login
     # 선행: 회원/이벤트 생성
     m = client.post(
         "/members/",
