@@ -21,6 +21,13 @@ class Settings(BaseSettings):
     # Rate limiting (SlowAPI) — default per-IP limit
     rate_limit_default: str = Field(default="120/minute", alias="RATE_LIMIT_DEFAULT")
 
+    # Web Push (VAPID)
+    vapid_public_key: str = Field(default="", alias="VAPID_PUBLIC_KEY")
+    vapid_private_key: str = Field(default="", alias="VAPID_PRIVATE_KEY")
+    vapid_subject: str = Field(
+        default="mailto:security@trr.co.kr", alias="VAPID_SUBJECT"
+    )
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

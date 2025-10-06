@@ -78,3 +78,20 @@
 
 ## 편집 정책
 - 변경은 `agents_base.md`와 `agents_base_kr.md`를 동시에 업데이트하고, AGENTS.md/CLAUDE.md에서 해당 변경을 참조합니다.
+
+## 개발 환경 & 환경변수(2025‑10‑06)
+- API는 로컬 uvicorn으로 실행, PostgreSQL은 Docker Compose로 실행합니다.
+  - DB 시작/중지: `make db-up` / `make db-down`
+  - 기본 포트: dev `5433`, test `5434`. `infra/.env`에서 다음으로 오버라이드 가능:
+    - `DB_DEV_PORT`(기본 `5433`), `DB_TEST_PORT`(기본 `5434`)
+  - `.env`의 `DATABASE_URL`이 선택한 dev 포트와 일치해야 합니다.
+- CORS 설정: `CORS_ORIGINS`는 JSON 배열 문자열이어야 합니다(예: `["http://localhost:3000"]`).
+- Web Push 채택: 표준 Web Push(VAPID). 현 단계에서 FCM은 사용하지 않습니다.
+  - `.env`: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
+  - `apps/web/.env.local`: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+  - 시크릿은 커밋하지 말고, `*.example` 파일을 최신으로 유지합니다.
+- 프라이버시/운영 가드
+  - 서버 로그에는 구독 endpoint의 SHA‑256 해시 + 말미 16자만 저장합니다.
+  - 404/410 응답 구독은 자동 무효화합니다.
+  - 관리자 테스트 발송: `POST /admin/notifications/test` (payload `{ title, body, url? }`).
+  - 관리자 UI: `/admin/notifications`에서 발송/요약/최근 로그 확인.

@@ -42,12 +42,35 @@
  - Dev DB 포트: Docker Postgres 개발 기본 포트를 5433으로 전환(ports: "5433:5432"), .env.example/launch.json 동기화.
  - Pytest DB 스위치: 기본 SQLite, `TEST_DB=pg` 설정 시 `TEST_DB_URL`(또는 `DATABASE_URL`)로 Postgres 테스트 지원(안전가드 포함).
  - 테스트 전용 DB: docker-compose에 `postgres_test`(5434) 추가, Make 타깃(`db-test-up`), VS Code 런치(Pytest PG) 동기화.
- - 리뷰 반영(P1):
+- 리뷰 반영(P1):
   - API: RSVP capacity 계산 시 기존 참석자 제외(재요청으로 인한 부당 강등 방지).
     - pyright 호환 보완: 기존 상태 비교 시 enum 캐스팅으로 타입 안정화.
   - Web: apiFetch에서 Problem Details code를 보존(에러 코드→UX 매핑 동작 보장).
   - 보안: bandit(B101) 지적된 assert 제거 — 이벤트 용량 검사는 사전 조회한 capacity로 처리.
     - 타입: capacity는 `cast(int, event.capacity)`로 지정하여 pyright 오류 해소.
+
+- M3 착수: 브랜치 `feat/m3-webpush` 생성, `docs/m3_plan.md` 추가, 실행 계획 문서에 진행상태 반영.
+  - API 스캐폴드: `apps/api/models.py`에 push_subscriptions/notification_preferences 모델 추가, 알렘빅 마이그레이션(0004, 0005) 초안 추가.
+  - 라우터 스캐폴드: `apps/api/routers/notifications.py` 추가(구독 저장/삭제, 어드민 테스트 발송; 초기 204/202 스텁), `apps/api/main.py`에 include.
+  - 정적타입 보완: 클래식 매핑 모델 속성 갱신을 `setattr`로 처리하여 pyright 경고 제거.
+  - 본구현(표준 Web Push): `services/notifications_service.py`(VAPID/pywebpush Provider, 404/410 자동 폐기), `repositories/notifications.py` 추가, 라우터를 서비스/리포지토리 경유로 리팩터링. 우회 주석 제거.
+  - 타입: `SubscriptionData` TypedDict 도입, pyright 적합성(cast/주석) 정리, 관리자 발송 레이트리밋 타입 보완.
+  - TypedDict 안전 접근으로 `member_id` 처리 로직 경고 제거.
+  - Web: Service Worker에 push/notificationclick 핸들러 추가, 구독 유틸(lib/push.ts) 및 서비스 호출(services/notifications.ts) 구현, CTA 컴포넌트(components/notify-cta.tsx) 추가 및 레이아웃에 연결. 204 응답 처리 위해 apiFetch 204 대응.
+  - Web(Admin): `/admin/notifications` 페이지에서 테스트 발송(제목/본문/URL) UI 추가.
+  - API: 테스트 발송 payload에 `url` 필드 추가, SW 클릭 시 해당 URL 포커스/열림.
+  - API(Admin): 발송 로그/통계 엔드포인트 추가(`/admin/notifications/logs`, `/admin/notifications/stats`). 로그는 endpoint 해시/테일만 저장(민감정보 마스킹).
+  - 타입 보완: 로그 DTO 변환 시 pyright 캐스팅으로 Column 타입 경고 제거.
+  - pyright: Column truthiness 경고 회피를 위해 isinstance 기반 변환 적용.
+  - Web(Admin): /admin/notifications에 요약(활성 구독/성공/실패)과 최근 발송 로그 테이블 추가, 새로고침 버튼.
+  - Web: `lib/api.ts`의 `apiFetch`를 헬퍼 분리로 복잡도 10 이하 리팩터링(ESLint complexity 통과).
+  - 문서(SSOT/에이전트 베이스): 로컬 DB 도커화/포트 변수(`DB_DEV_PORT`,`DB_TEST_PORT`)·CORS JSON 규칙·Web Push 운영 가드·Admin 경로를 agents_base(en/kr)/architecture에 반영.
+  - Web: 개발환경에서 서비스워커 등록을 기본 비활성화(NEXT_PUBLIC_ENABLE_SW=1로 강제). Next.js App Router RSC 스트리밍 중 "Connection closed" 오류 완화.
+  - API: 구독 저장/삭제는 인증 필요로 변경(임시로 admin 세션 사용). 레이트리밋 데코레이터의 타입 부족은 1줄 억제 주석과 제거 계획/일자(TODO 2025-11-15)로 문서화.
+  - API: FastAPI 의존성 타입 시그니처 보완 및 레이트리밋 래퍼를 Protocol로 엄격화(pyright 경고 제거).
+  - API: Protocol 반환 타입을 직접 Callable로 명시하여 pyright "unknown"/"invalid type form" 오류 제거.
+  - Git hygiene: `.api-dev.pid`, `.web-dev.pid`, `logs/`를 `.gitignore`에 추가하고 추적 해제(동기화 잡음 제거).
+  - API: 구독 저장 로직에서 클라이언트 member_id 입력 참조 제거(pyright 오류 수정, 서버 신뢰 경로만 사용).
 # Worklog
 
 ## 2025-10-05
@@ -82,6 +105,16 @@
 - 에이전트 가이드 정리: 베이스(`docs/agents_base*.md`)의 SSOT 섹션 제거, `AGENTS.md`/`CLAUDE.md`/`copilot-instructions.md`에 비‑SSOT 배너만 유지
 - 에이전트 문서 동기화: `AGENTS.md`/`CLAUDE.md`/`copilot-instructions.md`에 Agents Base(영문) 전체 본문을 'verbatim copy'로 포함하여 각 문서 단독으로 완결성 확보
  - 한글 베이스 동기화: `docs/agents_base_kr.md`에 동일 SSOT 섹션을 추가(영문 베이스와 의미 동등)
+
+## 2025-10-06(추가)
+- Web(dev) CSP 완화: HMR/RSC/인라인 부트스트랩 허용(`unsafe-inline`, `unsafe-eval`, `blob:`) — 프로덕션은 그대로 엄격.
+- Web: RSC ‘flight’ 요청 로깅용 dev 미들웨어 추가(`apps/web/middleware.ts`).
+- Web: favicon 404 노이즈 제거(임시 204 라우트 추가).
+- Makefile: `api-*/web-*` 백그라운드 태스크와 `dev-up|down|status` 추가, 로그/ PID 분리.
+- Hooks: pre-push에서 `logs/*`, `*.log`, `*.pid`, `.next/`, `node_modules/` 등 히스토리 상의 잡파일 무시하도록 필터링 추가.
+- API: WebPush provider 예외 범위 축소 — `except Exception` 제거, `ValueError|TypeError|RuntimeError|RequestException`만 처리(가드 준수).
+- API: RSVP 취소 시 승급 로직 트랜잭션 강화 — SAVEPOINT(begin_nested)로 후보 조회+승급을 한 단위로 처리하고, Postgres에서는 `SELECT … FOR UPDATE SKIP LOCKED` 적용(경합 완화). 복잡도 초과 방지를 위해 헬퍼로 분리.
+- 리뷰 대응 추가: 테스트 더미 공급자 타입 시그니처 보강(# type: ignore 제거), Next.js 미들웨어에서 불변 헤더 직접 수정 문제 수정(Headers 복제 후 전달), 0001 마이그레이션을 SQLite 호환으로 조정(dialect 분기).
 
 ## 2025-09-28
 - .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거

@@ -18,3 +18,7 @@ apps/api/migrations/__pycache__/
 
 .mypy_cache/
 .ruff_cache/
+# Runtime/dev artifacts
+.api-dev.pid
+.web-dev.pid
+logs/

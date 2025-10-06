@@ -7,6 +7,7 @@ Create Date: 2025-09-28 00:00:00
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 revision = "0001_initial"
@@ -15,13 +16,44 @@ branch_labels = None
 depends_on = None
 
 
-visibility_enum = sa.Enum("all", "cohort", "private", name="visibility")
-rsvp_status_enum = sa.Enum("going", "waitlist", "cancel", name="rsvp_status")
+def _pg_enums():
+    visibility = postgresql.ENUM(
+        "all", "cohort", "private", name="visibility", create_type=False
+    )
+    rsvp = postgresql.ENUM(
+        "going", "waitlist", "cancel", name="rsvp_status", create_type=False
+    )
+    return visibility, rsvp
 
 
 def upgrade() -> None:
-    visibility_enum.create(op.get_bind(), checkfirst=True)
-    rsvp_status_enum.create(op.get_bind(), checkfirst=True)
+    bind = op.get_bind()
+    is_pg = bind.dialect.name == "postgresql"
+
+    if is_pg:
+        # Create enum types idempotently (avoid duplicate create within same txn)
+        op.execute(
+            """
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'visibility') THEN
+                    CREATE TYPE visibility AS ENUM ('all','cohort','private');
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'rsvp_status') THEN
+                    CREATE TYPE rsvp_status AS ENUM ('going','waitlist','cancel');
+                END IF;
+            END$$;
+            """
+        )
+        visibility_enum, rsvp_status_enum = _pg_enums()
+    else:
+        # Portable enums for SQLite and others (CHECK-constrained TEXT)
+        visibility_enum = sa.Enum(
+            "all", "cohort", "private", name="visibility", native_enum=False
+        )
+        rsvp_status_enum = sa.Enum(
+            "going", "waitlist", "cancel", name="rsvp_status", native_enum=False
+        )
 
     op.create_table(
         "members",
@@ -90,5 +122,9 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_members_email"), table_name="members")
     op.drop_table("members")
 
-    rsvp_status_enum.drop(op.get_bind(), checkfirst=True)
-    visibility_enum.drop(op.get_bind(), checkfirst=True)
+    bind = op.get_bind()
+    is_pg = bind.dialect.name == "postgresql"
+    if is_pg:
+        visibility_enum, rsvp_status_enum = _pg_enums()
+        rsvp_status_enum.drop(bind, checkfirst=True)
+        visibility_enum.drop(bind, checkfirst=True)

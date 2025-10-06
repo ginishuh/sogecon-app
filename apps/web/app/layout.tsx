@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { ServiceWorkerRegister } from './sw-register';
 import { Providers } from './providers';
 import { HeaderAuth } from '../components/header-auth';
+import { NotifyCTA } from '../components/notify-cta';
 
 export const metadata: Metadata = {
   title: 'Alumni Web App',
@@ -20,7 +21,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <ServiceWorkerRegister />
+        {/* Dev에서 SW가 RSC 스트림을 끊는 것을 피하기 위해 prod/NEXT_PUBLIC_ENABLE_SW=1 에서만 렌더 */}
+        {(process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_SW === '1') && (
+          <ServiceWorkerRegister />
+        )}
         <Providers>
         <header className="flex flex-col gap-2 border-b border-slate-200 pb-4">
           <h1 className="text-2xl font-semibold text-brand-primary">Alumni Web App</h1>
@@ -29,11 +33,15 @@ export default function RootLayout({
               <Link href="/">홈</Link>
               <Link href="/posts">게시글</Link>
               <Link href="/events">행사</Link>
+              <Link href="/admin/notifications">알림(Admin)</Link>
               <span className="ml-4 text-slate-400">│</span>
               <Link href="/posts/new">게시글 작성</Link>
               <Link href="/events/new">행사 생성</Link>
             </nav>
-            <HeaderAuth />
+            <div className="flex items-center gap-3">
+              <NotifyCTA />
+              <HeaderAuth />
+            </div>
           </div>
         </header>
         <main>{children}</main>

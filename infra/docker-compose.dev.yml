@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: devpass
     ports:
-      - "5433:5432"
+      - "${DB_DEV_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -24,7 +24,7 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: devpass
     ports:
-      - "5434:5432"
+      - "${DB_TEST_PORT:-5434}:5432"
     volumes:
       - pgdata_test:/var/lib/postgresql/data
     healthcheck:

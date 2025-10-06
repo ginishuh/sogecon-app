@@ -2,7 +2,17 @@ from __future__ import annotations
 
 import enum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
 
@@ -103,3 +113,55 @@ class AdminUser(Base):
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+
+# Web Push 구독 정보(민감 데이터: endpoint/key는 운영에서 암호화 저장 고려)
+class PushSubscription(Base):
+    __tablename__ = "push_subscriptions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    member_id = Column(
+        Integer,
+        ForeignKey("members.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    endpoint = Column(String(512), unique=True, index=True, nullable=False)
+    p256dh = Column(String(255), nullable=False)
+    auth = Column(String(255), nullable=False)
+    ua = Column(String(255), nullable=True)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    last_seen_at = Column(DateTime(timezone=True), nullable=True)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class NotificationPreference(Base):
+    __tablename__ = "notification_preferences"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    member_id = Column(
+        Integer,
+        ForeignKey("members.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    channel = Column(String(32), nullable=False, index=True)  # e.g., 'webpush'
+    topic = Column(String(64), nullable=False)
+    enabled = Column(Boolean, nullable=False, default=True)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class NotificationSendLog(Base):
+    __tablename__ = "notification_send_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), index=True
+    )
+    ok = Column(Integer, nullable=False, default=0)  # 1=accepted, 0=failed
+    status_code = Column(Integer, nullable=True)
+    endpoint_hash = Column(String(64), nullable=False, index=True)
+    endpoint_tail = Column(String(32), nullable=True)
