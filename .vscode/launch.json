@@ -37,7 +37,7 @@
         "--reload"
       ],
       "env": {
-        "DATABASE_URL": "postgresql+psycopg://app:devpass@localhost:5432/appdb"
+        "DATABASE_URL": "postgresql+psycopg://app:devpass@localhost:5433/appdb"
       },
       "envFile": "${workspaceFolder}/.env",
       "cwd": "${workspaceFolder}",
@@ -69,4 +69,3 @@
     }
   ]
 }
-
