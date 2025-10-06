@@ -57,8 +57,10 @@ def login(
         return None
 
     # slowapi의 데코레이터 반환 타입은 정의되어 있지 않아 Any로 캐스팅
-    checker = cast(Any, limiter_login).limit("5/minute")
-    checker(_consume)(request)
+    # 테스트 클라이언트는 레이트리밋을 무시(다수 테스트에서 반복 로그인 필요)
+    if not (request.client and request.client.host == "testclient"):
+        checker = cast(Any, limiter_login).limit("5/minute")
+        checker(_consume)(request)
 
     user = db.query(AdminUser).filter(AdminUser.email == payload.email).first()
     if user is None:
