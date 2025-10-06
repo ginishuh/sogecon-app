@@ -15,6 +15,7 @@
  - 테스트 확장(성공 경로): 목록 200 검증, /rsvps 생성 201 스모크.
  - Dev: VS Code 디버그 설정 추가(`.vscode/launch.json`) — API(SQLite/Postgres), Web 단일/복합 실행 지원.
  - Repo: .gitignore 정리 — `.env`/`.env.*` 무시, 단 `.env.example`은 명시적으로 추적.
+ - 환경 예시(.env.example) 정리 — SQLite 기본값, Postgres 옵션 주석, NEXT_PUBLIC_WEB_API_BASE로 웹 변수 통일, 한국어 주석 보강.
 # Worklog
 
 ## 2025-10-05
