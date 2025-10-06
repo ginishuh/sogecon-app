@@ -76,6 +76,37 @@ def test_rsvp_capacity_v1_enforces_waitlist(client: TestClient) -> None:
     assert r2.json()["status"] == "waitlist"
 
 
+def test_rsvp_going_reassertion_keeps_status(client: TestClient) -> None:
+    # capacity 1: 첫 참석자가 going을 재요청해도 waitlist로 강등되지 않아야 한다
+    e = client.post(
+        "/events/",
+        json={
+            "title": "Cap1-Reassert",
+            "starts_at": "2030-06-01T09:00:00Z",
+            "ends_at": "2030-06-01T10:00:00Z",
+            "location": "Seoul",
+            "capacity": 1,
+        },
+    ).json()
+    m1 = client.post(
+        "/members/",
+        json={"email": "ra@example.com", "name": "ReAssert", "cohort": 2025},
+    ).json()
+
+    r1 = client.post(
+        f"/events/{e['id']}/rsvp", json={"member_id": m1["id"], "status": "going"}
+    )
+    assert r1.status_code == HTTPStatus.CREATED
+    assert r1.json()["status"] == "going"
+
+    # 동일 회원이 다시 going 요청
+    r_again = client.post(
+        f"/events/{e['id']}/rsvp", json={"member_id": m1["id"], "status": "going"}
+    )
+    assert r_again.status_code == HTTPStatus.CREATED
+    assert r_again.json()["status"] == "going"
+
+
 def test_list_endpoints_ok(client: TestClient) -> None:
     assert client.get("/members/?limit=5").status_code == HTTPStatus.OK
     assert client.get("/posts/?limit=5").status_code == HTTPStatus.OK

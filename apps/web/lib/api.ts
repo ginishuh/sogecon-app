@@ -34,8 +34,11 @@ export async function apiFetch<T>(path: string, init?: RequestInit & { method?: 
     try {
       const problem = (await res.json()) as ProblemDetails;
       const msg = problem.detail || problem.title || `HTTP ${res.status}`;
+      // JSON 파싱이 성공했다면 서버가 제공한 code를 보존하여 UI 매핑이 가능하도록 함
       throw new ApiError(problem.status ?? res.status, msg, problem.code);
-    } catch {
+    } catch (e) {
+      // 위에서 던진 ApiError는 그대로 재전파
+      if (e instanceof ApiError) throw e;
       const text = await res.text().catch(() => '');
       throw new ApiError(res.status, text || `HTTP ${res.status}`);
     }
