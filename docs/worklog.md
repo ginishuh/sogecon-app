@@ -69,6 +69,7 @@
   - API: 구독 저장/삭제는 인증 필요로 변경(임시로 admin 세션 사용). 레이트리밋 데코레이터의 타입 부족은 1줄 억제 주석과 제거 계획/일자(TODO 2025-11-15)로 문서화.
   - API: FastAPI 의존성 타입 시그니처 보완 및 레이트리밋 래퍼를 Protocol로 엄격화(pyright 경고 제거).
   - API: Protocol 반환 타입을 직접 Callable로 명시하여 pyright "unknown"/"invalid type form" 오류 제거.
+  - Git hygiene: `.api-dev.pid`, `.web-dev.pid`, `logs/`를 `.gitignore`에 추가하고 추적 해제(동기화 잡음 제거).
 # Worklog
 
 ## 2025-10-05
