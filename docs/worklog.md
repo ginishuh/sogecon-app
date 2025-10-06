@@ -133,3 +133,10 @@
 - README 상단에 영어 요약 및 quickstart를 병기해 국제 협업 대비
 - `.github/copilot-instructions.md`를 추가하여 AI 코딩 에이전트용 가이드를 정리
 - `docs/architecture.md`를 신설하고 에이전트 지침 문서에 교차 링크를 추가
+
+
+## 2025-10-07
+- M3 phase-2 착수: 구독 엔드포인트를 멤버 세션 가드로 전환(임시로 admin 세션을 멤버로 간주), 401/422 테스트 추가, CTA UX 개선.
+
+- 429 테스트 추가(관리 발송 레이트리밋) — httpx.AsyncClient+ASGITransport로 client IP 설정, slowapi 파라미터명 수정(request).
+- 테스트 정리 강화: 429 테스트에서 provider override를 try/finally로 복구. Web CTA는 ApiError.status로 401 판별.

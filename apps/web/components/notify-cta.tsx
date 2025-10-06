@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from './toast';
+import { ApiError } from '../lib/api';
 import { ensureServiceWorker, getCurrentSubscription, subscribePush, unsubscribePush } from '../lib/push';
 import { deleteSubscription, saveSubscription } from '../services/notifications';
 
@@ -40,14 +41,17 @@ export function NotifyCTA() {
       }
       const result = await subscribePush(vapid);
       if (!result) {
-        toast.show('알림 권한이 거부되었거나 구독에 실패했습니다.', { type: 'error' });
+        toast.show('권한이 거부되었거나 구독에 실패했습니다. 브라우저 알림 권한을 확인하세요.', { type: 'error' });
         return;
       }
       await saveSubscription({ ...result, ua: navigator.userAgent });
       setSubscribed(true);
       toast.show('알림 구독이 활성화되었습니다.', { type: 'success' });
-    } catch {
-      toast.show('구독 중 오류가 발생했습니다.', { type: 'error' });
+    } catch (e) {
+      const msg = e instanceof ApiError && e.status === 401
+        ? '로그인 후 다시 시도하세요.'
+        : '구독 중 오류가 발생했습니다.';
+      toast.show(msg, { type: 'error' });
     } finally {
       setBusy(false);
     }
@@ -62,8 +66,11 @@ export function NotifyCTA() {
       }
       setSubscribed(false);
       toast.show('알림 구독을 해지했습니다.', { type: 'success' });
-    } catch {
-      toast.show('해지 중 오류가 발생했습니다.', { type: 'error' });
+    } catch (e) {
+      const msg = e instanceof ApiError && e.status === 401
+        ? '로그인 후 다시 시도하세요.'
+        : '해지 중 오류가 발생했습니다.';
+      toast.show(msg, { type: 'error' });
     } finally {
       setBusy(false);
     }

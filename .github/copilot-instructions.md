@@ -128,7 +128,7 @@ Quality gates & CI
 
 Quality guardrails (enforced): no suppression comments (`eslint-disable`, `@ts-nocheck`, `@ts-ignore`, `# type: ignore`, `# noqa`, etc., except Alembic `env.py E402`), cyclomatic complexity ≤10, module size ≤600 lines, import cycles denied. Full policy: `docs/agents_base.md`.
 
-Commit messages: Follow Conventional Commits. The `commit-msg` hook runs commitlint; CI re-validates recent commits. See `docs/commit_message_convention.md`.
+Commit & PR: Follow Conventional Commits. The `commit-msg` hook runs commitlint; CI re-validates recent commits. See `docs/commit_message_convention.md`. PRs must use `.github/pull_request_template.md`; in Draft, fill the top sections; before Ready for Review, complete all checklists.
 
 When extending
 - New API endpoint: update SQLAlchemy models (if needed), add Pydantic schema(s), create router in `apps/api/routers/`, wire it in `apps/api/main.py`, and add Alembic migration under `apps/api/migrations/versions/`. Return Pydantic models with `model_validate`.
