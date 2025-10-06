@@ -59,6 +59,9 @@
   - Web: Service Worker에 push/notificationclick 핸들러 추가, 구독 유틸(lib/push.ts) 및 서비스 호출(services/notifications.ts) 구현, CTA 컴포넌트(components/notify-cta.tsx) 추가 및 레이아웃에 연결. 204 응답 처리 위해 apiFetch 204 대응.
   - Web(Admin): `/admin/notifications` 페이지에서 테스트 발송(제목/본문/URL) UI 추가.
   - API: 테스트 발송 payload에 `url` 필드 추가, SW 클릭 시 해당 URL 포커스/열림.
+  - API(Admin): 발송 로그/통계 엔드포인트 추가(`/admin/notifications/logs`, `/admin/notifications/stats`). 로그는 endpoint 해시/테일만 저장(민감정보 마스킹).
+  - 타입 보완: 로그 DTO 변환 시 pyright 캐스팅으로 Column 타입 경고 제거.
+  - pyright: Column truthiness 경고 회피를 위해 isinstance 기반 변환 적용.
 # Worklog
 
 ## 2025-10-05

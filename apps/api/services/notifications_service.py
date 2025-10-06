@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from ..config import get_settings
 from ..models import PushSubscription
 from ..repositories import notifications as repo
+from ..repositories import send_logs
 from ..repositories.notifications import SubscriptionData
 
 
@@ -85,4 +86,8 @@ def send_test_to_all(
             failed += 1
             if status in (404, 410):
                 repo.remove_by_endpoint(db, endpoint=cast(str, sub.endpoint))
+        # 발송 로그(민감정보 해시 보관)
+        send_logs.create_log(
+            db, endpoint=cast(str, sub.endpoint), ok=ok, status_code=status
+        )
     return SendResult(accepted=accepted, failed=failed)

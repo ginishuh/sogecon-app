@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated, Any, cast
 
 from fastapi import APIRouter, Depends, Request
@@ -10,6 +11,8 @@ from sqlalchemy.orm import Session
 
 from ..config import get_settings
 from ..db import get_db
+from ..repositories import notifications as subs_repo
+from ..repositories import send_logs as logs_repo
 from ..services import notifications_service as notif_svc
 from .auth import CurrentAdmin, require_admin
 
@@ -85,3 +88,52 @@ def send_test_push(
         db, provider, title=_payload.title, body=_payload.body, url=_payload.url
     )
     return {"accepted": result.accepted, "failed": result.failed}
+
+
+class SendLogRead(BaseModel):
+    created_at: str
+    ok: bool
+    status_code: int | None
+    endpoint_tail: str | None
+
+
+@router.get("/admin/notifications/logs")
+def get_send_logs(
+    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    limit: int = 50,
+    db: Session = Depends(get_db),
+) -> list[SendLogRead]:
+    rows = logs_repo.list_recent(db, limit=min(max(limit, 1), 200))
+    out: list[SendLogRead] = []
+    for r in rows:
+        out.append(
+            SendLogRead(
+                created_at=(
+                    cast(datetime, r.created_at).isoformat() if r.created_at else ""
+                ),
+                ok=bool(cast(int, r.ok)),
+                status_code=cast(int | None, r.status_code),
+                endpoint_tail=cast(str | None, r.endpoint_tail),
+            )
+        )
+    return out
+
+
+class NotificationStats(BaseModel):
+    active_subscriptions: int
+    recent_accepted: int
+    recent_failed: int
+
+
+@router.get("/admin/notifications/stats")
+def get_stats(
+    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    db: Session = Depends(get_db),
+) -> NotificationStats:
+    subs = subs_repo.list_active_subscriptions(db)
+    logs = logs_repo.list_recent(db, limit=200)
+    accepted = sum(1 for r in logs if bool(r.ok))
+    failed = sum(1 for r in logs if not bool(r.ok))
+    return NotificationStats(
+        active_subscriptions=len(subs), recent_accepted=accepted, recent_failed=failed
+    )

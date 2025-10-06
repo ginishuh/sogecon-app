@@ -72,3 +72,18 @@ def test_admin_send_uses_provider_and_handles_410(admin_login: TestClient) -> No
     assert res.status_code == HTTPStatus.ACCEPTED
     data = res.json()
     assert data["accepted"] + data["failed"] >= 1
+
+    # fetch stats and logs
+    res2 = client.get("/notifications/admin/notifications/stats")
+    assert res2.status_code == HTTPStatus.OK
+    stats = res2.json()
+    assert (
+        "active_subscriptions" in stats
+        and "recent_accepted" in stats
+        and "recent_failed" in stats
+    )
+
+    res3 = client.get("/notifications/admin/notifications/logs?limit=10")
+    assert res3.status_code == HTTPStatus.OK
+    logs = res3.json()
+    assert isinstance(logs, list) and len(logs) >= 1

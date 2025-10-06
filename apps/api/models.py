@@ -152,3 +152,16 @@ class NotificationPreference(Base):
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+
+class NotificationSendLog(Base):
+    __tablename__ = "notification_send_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), index=True
+    )
+    ok = Column(Integer, nullable=False, default=0)  # 1=accepted, 0=failed
+    status_code = Column(Integer, nullable=True)
+    endpoint_hash = Column(String(64), nullable=False, index=True)
+    endpoint_tail = Column(String(32), nullable=True)
