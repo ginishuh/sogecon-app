@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import datetime
-from typing import Annotated, cast
+from typing import Annotated, Protocol, cast
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, HttpUrl
@@ -39,7 +39,7 @@ class SubscriptionPayload(BaseModel):
 def save_subscription(
     payload: SubscriptionPayload,
     db: Session = Depends(get_db),
-    _admin: Annotated[CurrentAdmin, Depends(require_admin)] = None,
+    _admin: CurrentAdmin = Depends(require_admin),
 ) -> None:
     """Web Push 구독 저장(idempotent). 동일 endpoint는 갱신 처리."""
     notif_svc.save_subscription(
@@ -62,7 +62,7 @@ class UnsubscribePayload(BaseModel):
 def delete_subscription(
     payload: UnsubscribePayload,
     db: Session = Depends(get_db),
-    _admin: Annotated[CurrentAdmin, Depends(require_admin)] = None,
+    _admin: CurrentAdmin = Depends(require_admin),
 ) -> None:
     notif_svc.delete_subscription(db, endpoint=str(payload.endpoint))
 
@@ -86,12 +86,13 @@ def send_test_push(
         def _consume(_req: Request) -> None:
             return None
 
-        RateCheck = Callable[[Callable[[Request], None]], Callable[[Request], None]]
-        class _LimiterProto:
-            # typing shim only
-            def limit(self, limit_value: str) -> RateCheck:  # pragma: no cover
+        class _LimiterProto(Protocol):
+            # pragma: no cover
+            def limit(
+                self, limit_value: str
+            ) -> Callable[[Callable[[Request], None]], Callable[[Request], None]]:
                 ...
-        limiter_typed = cast(_LimiterProto, limiter_admin)
+        limiter_typed: _LimiterProto = cast(_LimiterProto, limiter_admin)
         checker = limiter_typed.limit("1/minute")
         checker(_consume)(request)
 

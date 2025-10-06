@@ -109,3 +109,27 @@ INFO:     Finished server process [674521]
 INFO:     Started server process [675712]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'apps/api/routers/notifications.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [675712]
+INFO:     Started server process [678511]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'apps/api/routers/notifications.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [678511]
+INFO:     Started server process [680550]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'apps/api/routers/notifications.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [680550]
+INFO:     Started server process [682063]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
