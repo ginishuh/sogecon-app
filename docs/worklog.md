@@ -13,6 +13,7 @@
    - pyright 타입 오류 추가 수정: SQLAlchemy 인스턴스 속성 안전 추출로 경고 제거.
  - Web: 간단 토스트(ToastProvider) 추가, 게시글/행사 생성 및 RSVP 액션 성공/에러 피드백 연결.
  - 테스트 확장(성공 경로): 목록 200 검증, /rsvps 생성 201 스모크.
+ - Dev: VS Code 디버그 설정 추가(`.vscode/launch.json`) — API(SQLite/Postgres), Web 단일/복합 실행 지원.
 # Worklog
 
 ## 2025-10-05
