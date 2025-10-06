@@ -10,6 +10,7 @@
  - CI 파이프라인: Python 잡에 Pytest Guard + pytest 실행 단계 추가.
  - Web(M1-1 시작): react-query 도입(QueryClientProvider), 이벤트 목록 CSR→react-query 전환, 이벤트 상세 페이지(/events/[id]) + RSVP 액션(going/waitlist/cancel), API 오류 코드→UX 매핑 유틸 추가.
  - API: RSVP capacity v1 적용(going 요청 시 정원 초과면 waitlist로 저장).
+   - pyright 타입 오류 수정: 정원 계산 시 Optional·SQL 표현식 타입 안전화.
 # Worklog
 
 ## 2025-10-05

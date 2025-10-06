@@ -44,8 +44,10 @@ def upsert_rsvp_status(
                 models.RSVP.status == models.RSVPStatus.GOING,
             )
         ).scalar_one()
-        capacity = db.get(models.Event, event_id).capacity
-        if going_count >= capacity:
+        event_obj = db.get(models.Event, event_id)
+        assert event_obj is not None
+        capacity_int: int = int(event_obj.capacity)
+        if int(going_count) >= capacity_int:
             return models.RSVPStatus.WAITLIST
         return models.RSVPStatus.GOING
 
