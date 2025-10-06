@@ -66,6 +66,7 @@
   - Web: `lib/api.ts`의 `apiFetch`를 헬퍼 분리로 복잡도 10 이하 리팩터링(ESLint complexity 통과).
   - 문서(SSOT/에이전트 베이스): 로컬 DB 도커화/포트 변수(`DB_DEV_PORT`,`DB_TEST_PORT`)·CORS JSON 규칙·Web Push 운영 가드·Admin 경로를 agents_base(en/kr)/architecture에 반영.
   - Web: 개발환경에서 서비스워커 등록을 기본 비활성화(NEXT_PUBLIC_ENABLE_SW=1로 강제). Next.js App Router RSC 스트리밍 중 "Connection closed" 오류 완화.
+  - API: 구독 저장/삭제는 인증 필요로 변경(임시로 admin 세션 사용). 레이트리밋 데코레이터의 타입 부족은 1줄 억제 주석과 제거 계획/일자(TODO 2025-11-15)로 문서화.
 # Worklog
 
 ## 2025-10-05

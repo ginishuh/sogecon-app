@@ -4,6 +4,7 @@ from http import HTTPStatus
 
 from fastapi.testclient import TestClient
 
+from apps.api.main import app
 from apps.api.routers import notifications as router_mod
 from apps.api.services.notifications_service import PushProvider
 
@@ -62,8 +63,10 @@ def test_admin_send_uses_provider_and_handles_410(admin_login: TestClient) -> No
             },
         )
 
-    # override provider to avoid real network
-    router_mod.get_push_provider = lambda: _DummyProvider(fail_every=2)  # type: ignore[assignment]
+    # override provider to avoid real network (FastAPI dependency override)
+    app.dependency_overrides[router_mod.get_push_provider] = lambda: _DummyProvider(
+        fail_every=2
+    )
 
     res = client.post(
         "/notifications/admin/notifications/test",
@@ -87,3 +90,5 @@ def test_admin_send_uses_provider_and_handles_410(admin_login: TestClient) -> No
     assert res3.status_code == HTTPStatus.OK
     logs = res3.json()
     assert isinstance(logs, list) and len(logs) >= 1
+    # clean override
+    app.dependency_overrides.pop(router_mod.get_push_provider, None)

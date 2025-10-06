@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import datetime
-from typing import Annotated, Any, cast
+from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, HttpUrl
@@ -9,12 +10,12 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
-from ..config import get_settings
-from ..db import get_db
-from ..repositories import notifications as subs_repo
-from ..repositories import send_logs as logs_repo
-from ..services import notifications_service as notif_svc
-from .auth import CurrentAdmin, require_admin
+from apps.api.config import get_settings
+from apps.api.db import get_db
+from apps.api.repositories import notifications as subs_repo
+from apps.api.repositories import send_logs as logs_repo
+from apps.api.routers.auth import CurrentAdmin, require_admin
+from apps.api.services import notifications_service as notif_svc
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 limiter_admin = Limiter(key_func=get_remote_address)
@@ -36,7 +37,9 @@ class SubscriptionPayload(BaseModel):
 
 @router.post("/subscriptions", status_code=204)
 def save_subscription(
-    payload: SubscriptionPayload, db: Session = Depends(get_db)
+    payload: SubscriptionPayload,
+    db: Session = Depends(get_db),
+    _admin: Annotated[CurrentAdmin, Depends(require_admin)] = None,
 ) -> None:
     """Web Push 구독 저장(idempotent). 동일 endpoint는 갱신 처리."""
     notif_svc.save_subscription(
@@ -57,7 +60,9 @@ class UnsubscribePayload(BaseModel):
 
 @router.delete("/subscriptions", status_code=204)
 def delete_subscription(
-    payload: UnsubscribePayload, db: Session = Depends(get_db)
+    payload: UnsubscribePayload,
+    db: Session = Depends(get_db),
+    _admin: Annotated[CurrentAdmin, Depends(require_admin)] = None,
 ) -> None:
     notif_svc.delete_subscription(db, endpoint=str(payload.endpoint))
 
@@ -81,7 +86,13 @@ def send_test_push(
         def _consume(_req: Request) -> None:
             return None
 
-        checker = cast(Any, limiter_admin).limit("1/minute")
+        RateCheck = Callable[[Callable[[Request], None]], Callable[[Request], None]]
+        class _LimiterProto:
+            # typing shim only
+            def limit(self, limit_value: str) -> RateCheck:  # pragma: no cover
+                ...
+        limiter_typed = cast(_LimiterProto, limiter_admin)
+        checker = limiter_typed.limit("1/minute")
         checker(_consume)(request)
 
     result = notif_svc.send_test_to_all(
@@ -106,17 +117,13 @@ def get_send_logs(
     rows = logs_repo.list_recent(db, limit=min(max(limit, 1), 200))
     out: list[SendLogRead] = []
     for r in rows:
-        created_any: Any = r.created_at
-        created_s = created_any.isoformat() if isinstance(created_any, datetime) else ""
-        ok_any: Any = r.ok
-        code_any: Any = r.status_code
-        tail_any: Any = r.endpoint_tail
+        created_dt = cast(datetime | None, r.created_at)
         out.append(
             SendLogRead(
-                created_at=created_s,
-                ok=bool(ok_any),
-                status_code=(int(code_any) if isinstance(code_any, int) else None),
-                endpoint_tail=(str(tail_any) if isinstance(tail_any, str) else None),
+                created_at=created_dt.isoformat() if created_dt else "",
+                ok=bool(cast(int, r.ok)),
+                status_code=cast(int | None, r.status_code),
+                endpoint_tail=cast(str | None, r.endpoint_tail),
             )
         )
     return out

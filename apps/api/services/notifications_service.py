@@ -39,6 +39,9 @@ class PyWebPushProvider:
             "vapid_claims": {"sub": self._settings.vapid_subject},
         }
         try:
+            # Basic configuration validation to avoid raising on obvious misconfig
+            if not vapid["vapid_private_key"]:
+                raise ValueError("vapid_private_key missing")
             resp = self._webpush(
                 subscription_info=subscription_info,
                 data=json.dumps(payload),
@@ -49,6 +52,9 @@ class PyWebPushProvider:
         except WebPushException as exc:
             status = getattr(getattr(exc, "response", None), "status_code", None)
             return (False, int(status) if status is not None else None)
+        except Exception:
+            # Treat unexpected errors as send failures so caller can log and continue
+            return (False, None)
 
 
 @dataclass
