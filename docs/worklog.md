@@ -22,7 +22,8 @@
  - 리뷰 반영(P1):
   - API: RSVP capacity 계산 시 기존 참석자 제외(재요청으로 인한 부당 강등 방지).
     - pyright 호환 보완: 기존 상태 비교 시 enum 캐스팅으로 타입 안정화.
-   - Web: apiFetch에서 Problem Details code를 보존(에러 코드→UX 매핑 동작 보장).
+  - Web: apiFetch에서 Problem Details code를 보존(에러 코드→UX 매핑 동작 보장).
+  - 보안: bandit(B101) 지적된 assert 제거 — 이벤트 용량 검사는 사전 조회한 capacity로 처리.
 # Worklog
 
 ## 2025-10-05
