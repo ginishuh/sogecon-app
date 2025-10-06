@@ -27,6 +27,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit & { method?: 
       'Content-Type': 'application/json',
       ...(init?.headers ?? {}),
     },
+    // 세션 쿠키 기반 인증을 위해 크리덴셜 포함
+    credentials: 'include',
     cache: 'no-store',
   });
   if (!res.ok) {

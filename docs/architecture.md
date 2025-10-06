@@ -7,6 +7,7 @@
 - **사용자 대상 웹 서비스**: 서강대학교 경제대학원 총동문회 회원이 공지, 이벤트, RSVP를 관리하는 포털.
 - **프런트엔드 (`apps/web`)**: Next.js(App Router) 기반의 SSR/SSG 혼합 아키텍처. Tailwind CSS, PWA 설정을 포함하며 한국어 UI를 기본값으로 제공한다. 모바일 웹 우선(모바일 퍼스트)로 반응형을 설계한다.
 - **백엔드 API (`apps/api`)**: FastAPI + SQLAlchemy 조합으로 RESTful API를 제공한다. Pydantic 스키마(`schemas.py`)가 요청/응답 검증과 문서화를 담당한다.
+  - 인증/권한(개발 단계): 세션 쿠키 기반 관리자 로그인(/auth), 생성/수정/삭제 라우트는 `require_admin`으로 보호한다. 쿠키는 HttpOnly + SameSite=Lax(개발), 운영에서는 Secure 적용.
 - **데이터 스토어**: 개발 기본값은 SQLite(`sqlite:///./dev.sqlite3`), 운영 전환 시 PostgreSQL 16( `infra/docker-compose.dev.yml` 참조 )을 사용한다. ORM 레벨에서 두 엔진 모두 호환되도록 설계했다.
 - **스키마 공유 (`packages/schemas`)**: FastAPI에서 생성한 `openapi.json`을 TypeScript DTO로 변환하여 프런트엔드에서 타입 안정성을 확보한다.
 
@@ -42,6 +43,7 @@
 ## 통신 및 계약
 - **REST 규약**: `/members`, `/posts`, `/events`, `/rsvps` 네임스페이스. JSON 응답, ISO 8601 타임스탬프 사용.
 - **오류 포맷**: FastAPI 기본 `HTTPException` 구조(`{"detail": "..."}`)를 유지. 도메인 오류는 추후 `code` 필드를 확장.
+  - 인증 에러 코드: `login_failed`, `unauthorized` 등은 Problem Details `detail`/`code`로 제공하여 프런트 매핑이 가능하도록 한다.
 - **스키마 동기화**: `make schema-gen` 실행 → `packages/schemas`에서 TypeScript DTO 갱신 → `apps/web`에서 import. 프런트 작업 전 항상 API 변경분을 반영한다.
 
 ### 오류 처리 전략(절충안; Problem Details)
@@ -51,6 +53,17 @@
 - 라우터: 예외 변환을 수행하지 않고 서비스만 호출(얇은 라우터).
 - 초기 코드 카탈로그(가이드): `member_not_found`, `post_not_found`, `event_not_found`, `rsvp_not_found`, `member_exists`, `rsvp_exists`, `conflict`.
 - 프런트 처리: `code`를 기준으로 UX 분기(예: `member_exists` → 필드 하이라이트, `rsvp_exists` → 안내 토스트).
+
+## 인증/권한(요약)
+- 로그인: `POST /auth/login`(email, password) → 세션 쿠키 발급(HttpOnly, SameSite=Lax; prod Secure).
+- 세션 조회: `GET /auth/me` → `{ id, email }`.
+- 로그아웃: `POST /auth/logout` → 세션 제거.
+- 보호 라우트: posts/events/members 생성 시 `require_admin` 의존성 적용.
+- 레이트리밋: 로그인 시도 `5/min/IP`(SlowAPI), 글로벌 기본 제한은 설정값(`RATE_LIMIT_DEFAULT`).
+
+## RSVP 규칙
+- v1: 정원 초과 시 요청은 `waitlist`로 강제. 기존 참석자의 재요청은 유지.
+- v2: 참석자 `cancel` 시 대기열(created_at 기준) 최상위 1인을 `going`으로 자동 승급(트랜잭션).
 
 ## 품질 및 운영 가드레일
 - **정적 검사**: `ruff`, `pyright`, `eslint`, `tsc --noEmit`.

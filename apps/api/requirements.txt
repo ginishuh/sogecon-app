@@ -6,4 +6,6 @@ alembic==1.16.5
 pydantic-settings==2.11.0
 python-multipart==0.0.20
 slowapi==0.1.9
+bcrypt==4.2.0
+itsdangerous==2.2.0
 email-validator==2.2.0

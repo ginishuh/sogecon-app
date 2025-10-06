@@ -7,8 +7,12 @@ import { createPost } from '../../../services/posts';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
 import { useToast } from '../../../components/toast';
+import { useAuth } from '../../../hooks/useAuth';
+import { usePathname } from 'next/navigation';
 
 export default function NewPostPage() {
+  const { status } = useAuth();
+  const pathname = usePathname();
   const [authorId, setAuthorId] = useState<number | ''>('' as const);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -33,6 +37,17 @@ export default function NewPostPage() {
       }
     }
   });
+
+  if (status === 'unauthorized') {
+    return (
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">게시글 작성</h2>
+        <p className="text-sm text-slate-600">
+          이 페이지는 관리자만 접근할 수 있습니다. <a className="underline" href={`/login?next=${pathname}`}>로그인</a> 후 이용해주세요.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-4">

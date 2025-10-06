@@ -1,6 +1,29 @@
 ## 2025-10-06
 
 
+- 문서: M1 계획서 추가(docs/m1_plan.md) — 범위/체크리스트/테스트/의사결정 요약
+ - 문서: 실행 계획(로드맵) 추가(docs/execution_plan_251006.md) — 현재 상태/가드/갭/마일스톤/작업 순서 정리
+- M2 착수: 세션 인증/권한 + RSVP v2
+  - API: SessionMiddleware 추가, `/auth`(login/logout/me) 라우터, `admin_users` 마이그레이션, `RSVP.created_at` 추가
+  - 권한: `require_admin` 의존성으로 posts/events/members 생성 라우트 보호
+  - RSVP v2: `cancel` 시 대기열 최상위 1인 자동 승급(트랜잭션)
+  - 테스트: 로그인 성공/실패, 보호 라우트 401/201 스모크 추가
+  - 타입/훅 대응: bcrypt는 라우트 내부 임포트로 전환, `require_admin` 반환 타입을 의존성 시그니처에 명시
+  - 세션 타입 안전화: 세션 dict를 런타임 검사·cast하여 pyright 경고 제거
+  - 테스트 보강: admin_login 픽스처로 보호 라우트 생성 흐름 업데이트
+  - 기존 테스트 정렬: 성공/에러 케이스에서 보호 라우트 호출 전에 admin_login 적용
+  - Web: /login 페이지 추가, useAuth 훅/헤더 로그인·로그아웃 UI, 보호 라우트 가드(posts/new, events/new)
+  - Web: 세션 쿠키 사용을 위해 apiFetch에 credentials: 'include' 적용
+  - Web: /login에서 useSearchParams를 Suspense로 감싸 Next 빌드 에러 해결
+  - API: /auth 로그인 시도 레이트리밋(5/min/IP) 적용(함수 내부 체크, Request 인자 수용); 테스트클라이언트는 면제 처리
+  - 테스트: RSVP v2 승급(취소→대기열 최상위 going) 회귀 테스트 추가
+  - 문서: architecture.md에 인증/권한/RSVP v2 정책 반영
+  - 훅 보강: pre-push가 requirements 변경 시 pip install을 수행해 의존성 누락으로 인한 실패 방지
+- M2 브랜치/PR 초안: 세션 인증/권한 + RSVP v2 계획 문서 추가(docs/m2_plan.md)
+## 2025-10-06
+
+
+
 - 테스트 픽스처(conftest): `# noqa: E402` 우회 주석 제거 및 `sys.path` 조작 삭제. import 순서 정리로 Ruff 규칙 위반 해소(레포 가이드 준수).
  - conftest: CI 환경 호환을 위해 함수 내부에서 `apps.*` 지연 import 및 `sys.path` 보정으로 동작 유지(우회 주석 없이 해결).
  - 테스트 루트 `tests/conftest.py`에서 `sys.path` 보정 추가(패키지 import 안정화).
