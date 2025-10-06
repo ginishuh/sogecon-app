@@ -89,11 +89,16 @@ jobs:
   secrets-scan:
     if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   semgrep:
     if: ${{ github.event.pull_request.draft == false }}

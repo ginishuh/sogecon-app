@@ -5,6 +5,7 @@
  - conftest: CI 환경 호환을 위해 함수 내부에서 `apps.*` 지연 import 및 `sys.path` 보정으로 동작 유지(우회 주석 없이 해결).
  - 테스트 루트 `tests/conftest.py`에서 `sys.path` 보정 추가(패키지 import 안정화).
  - CI: Pytest Guard(`ops/ci/pytest_guard.py`) 추가 — API 관련 변경 시 `pytest --collect-only`로 수집 ≥1 보장.
+ - CI: gitleaks 액션에 `GITHUB_TOKEN` 주입 및 `permissions: pull-requests: read` 설정(PR 스캔 실패 수정).
  - 테스트 확장: 404(post/event/rsvp), 409(rsvp_exists), 이벤트 RSVP upsert(생성/업데이트), 잘못된 enum→422 케이스 추가.
  - CI 파이프라인: Python 잡에 Pytest Guard + pytest 실행 단계 추가.
 # Worklog
