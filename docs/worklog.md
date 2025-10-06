@@ -50,6 +50,8 @@
     - 타입: capacity는 `cast(int, event.capacity)`로 지정하여 pyright 오류 해소.
 
 - M3 착수: 브랜치 `feat/m3-webpush` 생성, `docs/m3_plan.md` 추가, 실행 계획 문서에 진행상태 반영.
+  - API 스캐폴드: `apps/api/models.py`에 push_subscriptions/notification_preferences 모델 추가, 알렘빅 마이그레이션(0004, 0005) 초안 추가.
+  - 라우터 스캐폴드: `apps/api/routers/notifications.py` 추가(구독 저장/삭제, 어드민 테스트 발송; 초기 204/202 스텁), `apps/api/main.py`에 include.
 # Worklog
 
 ## 2025-10-05
