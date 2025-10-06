@@ -4,14 +4,18 @@ const isProd = process.env.NODE_ENV === 'production';
 
 const cspDirectives = [
   "default-src 'self'",
-  // Next.js dev needs 'unsafe-eval'; remove in production
+  // Next.js dev: allow inline/eval/blob for HMR/overlay; lock down in prod
   isProd
     ? "script-src 'self'"
-    : "script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'",
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self' http://localhost:3001",
+  // Allow API and dev-time transports. In dev, include WebSocket to avoid hidden failures in HMR/RSC streams.
+  // Note: 'self' does not implicitly cover ws: scheme.
+  isProd
+    ? "connect-src 'self' http://localhost:3001"
+    : "connect-src 'self' http://localhost:3001 ws:",
   "worker-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",

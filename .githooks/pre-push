@@ -15,6 +15,30 @@ for file in "${FILES[@]}"; do
 done
 FILES=("${pruned_files[@]}")
 
+# Drop ephemeral/dev artifacts that may appear in historical commits but should
+# not influence hook decisions for the current push.
+filtered=()
+for file in "${FILES[@]}"; do
+  case "$file" in
+    # logs and runtime pids
+    logs/*|*.log|*.pid)
+      continue
+      ;;
+    # build outputs & caches
+    apps/web/.next/*|node_modules/*|packages/schemas/node_modules/*)
+      continue
+      ;;
+    # python caches
+    **/__pycache__/*)
+      continue
+      ;;
+    *)
+      filtered+=("$file")
+      ;;
+  esac
+done
+FILES=("${filtered[@]}")
+
 if [ "${#FILES[@]}" -eq 0 ]; then
   exit 0
 fi

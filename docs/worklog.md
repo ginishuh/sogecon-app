@@ -106,6 +106,13 @@
 - 에이전트 문서 동기화: `AGENTS.md`/`CLAUDE.md`/`copilot-instructions.md`에 Agents Base(영문) 전체 본문을 'verbatim copy'로 포함하여 각 문서 단독으로 완결성 확보
  - 한글 베이스 동기화: `docs/agents_base_kr.md`에 동일 SSOT 섹션을 추가(영문 베이스와 의미 동등)
 
+## 2025-10-06(추가)
+- Web(dev) CSP 완화: HMR/RSC/인라인 부트스트랩 허용(`unsafe-inline`, `unsafe-eval`, `blob:`) — 프로덕션은 그대로 엄격.
+- Web: RSC ‘flight’ 요청 로깅용 dev 미들웨어 추가(`apps/web/middleware.ts`).
+- Web: favicon 404 노이즈 제거(임시 204 라우트 추가).
+- Makefile: `api-*/web-*` 백그라운드 태스크와 `dev-up|down|status` 추가, 로그/ PID 분리.
+- Hooks: pre-push에서 `logs/*`, `*.log`, `*.pid`, `.next/`, `node_modules/` 등 히스토리 상의 잡파일 무시하도록 필터링 추가.
+
 ## 2025-09-28
 - .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거
 - AGENTS.md 본문을 영어로 통일하면서 한국어 우선 커뮤니케이션 규칙을 유지
