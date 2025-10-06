@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TypedDict
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -8,7 +9,15 @@ from sqlalchemy.orm import Session
 from .. import models
 
 
-def upsert_subscription(db: Session, data: dict) -> models.PushSubscription:
+class SubscriptionData(TypedDict, total=False):
+    endpoint: str
+    p256dh: str
+    auth: str
+    ua: str | None
+    member_id: int | None
+
+
+def upsert_subscription(db: Session, data: SubscriptionData) -> models.PushSubscription:
     endpoint = str(data.get("endpoint"))
     sub = (
         db.query(models.PushSubscription)

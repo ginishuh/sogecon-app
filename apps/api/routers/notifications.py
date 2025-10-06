@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Any, cast
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, HttpUrl
@@ -74,8 +74,11 @@ def send_test_push(
 ) -> dict[str, int]:
     # 레이트리밋(1/min/IP) — 테스트클라이언트는 면제
     if not (request.client and request.client.host == "testclient"):
-        checker = limiter_admin.limit("1/minute")
-        checker(lambda _req: None)(request)
+        def _consume(_req: Request) -> None:
+            return None
+
+        checker = cast(Any, limiter_admin).limit("1/minute")
+        checker(_consume)(request)
 
     result = notif_svc.send_test_to_all(
         db, provider, title=_payload.title, body=_payload.body

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 from pywebpush import WebPushException, webpush
 from sqlalchemy.orm import Session
@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from ..config import get_settings
 from ..models import PushSubscription
 from ..repositories import notifications as repo
+from ..repositories.notifications import SubscriptionData
 
 
 class PushProvider(Protocol):
@@ -55,7 +56,7 @@ class SendResult:
     failed: int
 
 
-def save_subscription(db: Session, data: dict[str, Any]) -> None:
+def save_subscription(db: Session, data: SubscriptionData) -> None:
     repo.upsert_subscription(db, data)
 
 
@@ -76,5 +77,5 @@ def send_test_to_all(
         else:
             failed += 1
             if status in (404, 410):
-                repo.remove_by_endpoint(db, endpoint=sub.endpoint)
+                repo.remove_by_endpoint(db, endpoint=cast(str, sub.endpoint))
     return SendResult(accepted=accepted, failed=failed)
