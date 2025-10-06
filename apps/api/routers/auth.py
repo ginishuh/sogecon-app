@@ -5,12 +5,15 @@ from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..models import AdminUser
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+limiter_login = Limiter(key_func=get_remote_address)
 
 
 class LoginPayload(BaseModel):
@@ -42,6 +45,7 @@ def require_admin(req: Request) -> CurrentAdmin:
     return admin
 
 
+@limiter_login.limit("5/minute")
 @router.post("/login")
 def login(
     payload: LoginPayload, request: Request, db: Session = Depends(get_db)
