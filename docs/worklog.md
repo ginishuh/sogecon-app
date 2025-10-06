@@ -55,6 +55,7 @@
   - 정적타입 보완: 클래식 매핑 모델 속성 갱신을 `setattr`로 처리하여 pyright 경고 제거.
   - 본구현(표준 Web Push): `services/notifications_service.py`(VAPID/pywebpush Provider, 404/410 자동 폐기), `repositories/notifications.py` 추가, 라우터를 서비스/리포지토리 경유로 리팩터링. 우회 주석 제거.
   - 타입: `SubscriptionData` TypedDict 도입, pyright 적합성(cast/주석) 정리, 관리자 발송 레이트리밋 타입 보완.
+  - TypedDict 안전 접근으로 `member_id` 처리 로직 경고 제거.
 # Worklog
 
 ## 2025-10-05
