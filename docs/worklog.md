@@ -1,6 +1,25 @@
+## 2025-10-06
+
+
+- 테스트 픽스처(conftest): `# noqa: E402` 우회 주석 제거 및 `sys.path` 조작 삭제. import 순서 정리로 Ruff 규칙 위반 해소(레포 가이드 준수).
+ - conftest: CI 환경 호환을 위해 함수 내부에서 `apps.*` 지연 import 및 `sys.path` 보정으로 동작 유지(우회 주석 없이 해결).
+ - 테스트 루트 `tests/conftest.py`에서 `sys.path` 보정 추가(패키지 import 안정화).
+ - CI: Pytest Guard(`ops/ci/pytest_guard.py`) 추가 — API 관련 변경 시 `pytest --collect-only`로 수집 ≥1 보장.
+ - CI: gitleaks 액션에 `GITHUB_TOKEN` 주입 및 `permissions: pull-requests: read` 설정(PR 스캔 실패 수정).
+ - 테스트 확장: 404(post/event/rsvp), 409(rsvp_exists), 이벤트 RSVP upsert(생성/업데이트), 잘못된 enum→422 케이스 추가.
+ - CI 파이프라인: Python 잡에 Pytest Guard + pytest 실행 단계 추가.
 # Worklog
 
 ## 2025-10-05
+- 타입 명세 강화: 서비스/리포지토리 payload에 Pydantic 스키마 타입 적용(pyright strict 통과), SQLAlchemy Enum 속성은 `setattr`로 할당
+- `events_service.upsert_rsvp_status`에서 `RSVPCreate` 인스턴스 생성해 레포 호출(딕셔너리 전달 제거)
+- RSVP 상태 타입을 `schemas.RSVPLiteral`로 명시(events_service)해 pyright 엄격 모드 오류 제거
+- 전역 예외 핸들러 추가: 도메인 예외(NotFound/AlreadyExists/Conflict) → HTTP 상태(404/409)로 매핑, 라우터의 try/except 제거
+- 정적 분석 정리: 전역 예외 핸들러 참조를 유지해 pyright의 unused 경고 해소
+- 테스트 스캐폴드 추가: FastAPI TestClient + SQLite 임시 DB로 404(`member_not_found`)·409(`member_exists`) Problem Details 검증
+- API 계층화 적용: Routers → Services → Repositories 구조 스캐폴드(`apps/api/services/*`, `apps/api/repositories/*`, `apps/api/errors.py`) 추가 및 기존 라우터 전면 위임으로 리팩터링
+- Web 데이터 계층 도입: 공용 API 클라이언트(`apps/web/lib/api.ts`)와 도메인 서비스(`apps/web/services/posts.ts`, `apps/web/services/events.ts`) 추가, 페이지에서 직접 fetch 제거
+- `docs/architecture.md`를 SSOT 규칙에 맞춰 레이어드 아키텍처 강제 문구로 갱신
 - 모바일 웹 우선 원칙과 PWA/Web Push 지원을 아키텍처에 반영, SMS 채널 보류 명시 및 세부 가이드(`docs/pwa_push.md`) 추가
 - 에이전트 베이스 문서 추가(`docs/agents_base.md`, `docs/agents_base_kr.md`) 및 AGENTS/CLAUDE/Copilot 문서 동기화
 - 품질 가드 도입: 우회 주석 금지/파일 600줄 제한/복잡도 가드 스크립트(`ops/ci/guards.py`), Ruff/Pyright/ESLint 설정 강화

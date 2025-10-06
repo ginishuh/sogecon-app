@@ -22,21 +22,35 @@
 
 ## 백엔드 구조
 - **진입점**: `apps/api/main.py`에서 FastAPI 앱 구성, `router` 묶음을 include.
-- **라우터 구성**: `routers/` 디렉터리에 `members.py`, `posts.py`, `events.py`, `rsvps.py`. 각 파일은 CRUD 스텁으로 시작하며, 비즈니스 규칙 확장 시 모듈 단위로 책임을 분리한다.
+- **레이어드 아키텍처(강제)**: Routers → Services → Repositories/DB. 라우터는 ORM을 직접 사용하지 않는다(SSOT 규칙 준수).
+  - `apps/api/services/`: 도메인 규칙·상태 전이·예외를 담당. HTTP 의존성 금지, `apps/api/errors.py`의 도메인 예외를 발생.
+  - `apps/api/repositories/`: SQLAlchemy를 통한 영속성 접근. 쿼리/정렬/페이징 책임을 가짐.
+- **라우터 구성**: `routers/` 하위 `members.py`, `posts.py`, `events.py`, `rsvps.py`가 서비스만 호출하도록 리팩터링 완료(초판).
 - **DB 세션 관리**: `db.py`의 `get_db()` 의존성을 통해 요청 단위 세션 생성/정리.
 - **마이그레이션**: `migrations/` 하위 Alembic 스크립트로 버전 관리. 새로운 모델 변경 시 `alembic revision --autogenerate` 사용 후 코드 검토.
 - **예정 기능**: 인증(예: OAuth2, SSO), 권한 레이어, 감사 로깅, 웹훅 등은 추후 설계 항목으로 남겨둔다.
 
 ## 프런트엔드 구조
-- **App Router** 기반 디렉터리 구조(`apps/web/src/app`). 페이지 단위 서버 컴포넌트와 클라이언트 컴포넌트를 혼합.
-- **데이터 패칭**: REST API 호출을 위해 `fetch` 래퍼 또는 `@tanstack/react-query` 도입을 검토한다. 초기에는 SSR에서 서버 액션을 통해 데이터 Hydration을 제공한다.
+- **App Router** 기반 디렉터리 구조(`apps/web/app`). 페이지 단위 서버/클라이언트 컴포넌트 혼합.
+- **레이어드 아키텍처(강제)**: UI Components → Hooks/Services → API Client. 컴포넌트는 공용 클라이언트가 존재할 때 직접 `fetch`를 호출하지 않는다(SSOT 규칙 준수).
+  - `apps/web/lib/api.ts`: 공통 fetch 래퍼(에러/BASE_URL/헤더 일관화).
+  - `apps/web/services/*.ts`: 도메인 서비스. 페이지는 서비스 함수만 호출.
+- **데이터 패칭**: 초기판은 CSR `useEffect` + 서비스 호출. 후속으로 `@tanstack/react-query`와 서버 컴포넌트/캐싱 전략 도입 검토.
 - **UI 패턴**: Tailwind 유틸리티 클래스 + Headless UI 계열 컴포넌트 활용. 다국어는 i18n 준비만 해두고 한국어를 기본값으로 한다.
-- **PWA**: `public/manifest.json`, Service Worker 설정을 포함한다. 모바일 웹 우선 UX를 전제로 오프라인 스켈레톤과 설치 가능한 웹앱(Installable PWA)을 제공하며, Web Push 알림을 1차 채널로 지원한다(SMS 채널은 보류).
+- **PWA**: `public/manifest.json`, 서비스 워커. 모바일 웹 우선 UX 전제로 오프라인 스켈레톤, 설치 가능한 PWA 제공. Web Push 1차 채널, SMS 보류.
 
 ## 통신 및 계약
 - **REST 규약**: `/members`, `/posts`, `/events`, `/rsvps` 네임스페이스. JSON 응답, ISO 8601 타임스탬프 사용.
 - **오류 포맷**: FastAPI 기본 `HTTPException` 구조(`{"detail": "..."}`)를 유지. 도메인 오류는 추후 `code` 필드를 확장.
 - **스키마 동기화**: `make schema-gen` 실행 → `packages/schemas`에서 TypeScript DTO 갱신 → `apps/web`에서 import. 프런트 작업 전 항상 API 변경분을 반영한다.
+
+### 오류 처리 전략(절충안; Problem Details)
+- 서비스/리포지토리: 프레임워크 비의존 `ApiError` 파생 예외만 발생(`NotFoundError`, `AlreadyExistsError`, `ConflictError`). 각 예외는 안정적 `code`, `detail`, 권장 `status`를 포함한다.
+- 전역 예외 핸들러: `ApiError`를 RFC7807-lt(경량) JSON으로 매핑해 응답.
+  - 응답 형태: `{ type: "about:blank", title: "", status: <int>, detail: <string>, code: <string> }`
+- 라우터: 예외 변환을 수행하지 않고 서비스만 호출(얇은 라우터).
+- 초기 코드 카탈로그(가이드): `member_not_found`, `post_not_found`, `event_not_found`, `rsvp_not_found`, `member_exists`, `rsvp_exists`, `conflict`.
+- 프런트 처리: `code`를 기준으로 UX 분기(예: `member_exists` → 필드 하이라이트, `rsvp_exists` → 안내 토스트).
 
 ## 품질 및 운영 가드레일
 - **정적 검사**: `ruff`, `pyright`, `eslint`, `tsc --noEmit`.

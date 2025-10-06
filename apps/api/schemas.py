@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import enum
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 VisibilityLiteral = Literal["all", "cohort", "private"]
 RSVPLiteral = Literal["going", "waitlist", "cancel"]
@@ -26,6 +27,13 @@ class MemberRead(MemberBase):
     id: int
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("visibility", mode="before")
+    @classmethod
+    def _visibility_from_enum(cls, v: object) -> object:
+        if isinstance(v, enum.Enum):
+            return v.value
+        return v
 
 
 class PostBase(BaseModel):
@@ -80,6 +88,13 @@ class RSVPStatusUpdate(BaseModel):
 
 class RSVPRead(RSVPBase):
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def _status_from_enum(cls, v: object) -> object:
+        if isinstance(v, enum.Enum):
+            return v.value
+        return v
 
 
 class Pagination(BaseModel):

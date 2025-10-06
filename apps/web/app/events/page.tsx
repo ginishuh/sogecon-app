@@ -1,17 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-type Event = {
-  id: number;
-  title: string;
-  starts_at: string;
-  ends_at: string;
-  location: string;
-  capacity: number;
-};
-
-const API_BASE = process.env.NEXT_PUBLIC_WEB_API_BASE ?? 'http://localhost:3001';
+import { listEvents, type Event } from '../../services/events';
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -21,11 +11,7 @@ export default function EventsPage() {
   useEffect(() => {
     const run = async () => {
       try {
-        const res = await fetch(`${API_BASE}/events?limit=20`);
-        if (!res.ok) {
-          throw new Error(`Status ${res.status}`);
-        }
-        const data = (await res.json()) as Event[];
+        const data = await listEvents({ limit: 20 });
         setEvents(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : '알 수 없는 오류');
@@ -33,7 +19,6 @@ export default function EventsPage() {
         setLoading(false);
       }
     };
-
     void run();
   }, []);
 
