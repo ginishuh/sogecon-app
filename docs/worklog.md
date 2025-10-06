@@ -56,6 +56,7 @@
   - 본구현(표준 Web Push): `services/notifications_service.py`(VAPID/pywebpush Provider, 404/410 자동 폐기), `repositories/notifications.py` 추가, 라우터를 서비스/리포지토리 경유로 리팩터링. 우회 주석 제거.
   - 타입: `SubscriptionData` TypedDict 도입, pyright 적합성(cast/주석) 정리, 관리자 발송 레이트리밋 타입 보완.
   - TypedDict 안전 접근으로 `member_id` 처리 로직 경고 제거.
+  - Web: Service Worker에 push/notificationclick 핸들러 추가, 구독 유틸(lib/push.ts) 및 서비스 호출(services/notifications.ts) 구현, CTA 컴포넌트(components/notify-cta.tsx) 추가 및 레이아웃에 연결. 204 응답 처리 위해 apiFetch 204 대응.
 # Worklog
 
 ## 2025-10-05

@@ -45,5 +45,9 @@ export async function apiFetch<T>(path: string, init?: RequestInit & { method?: 
       throw new ApiError(res.status, text || `HTTP ${res.status}`);
     }
   }
+  // 204 No Content 처리: 바디가 없으므로 그대로 undefined 반환
+  if (res.status === 204) {
+    return undefined as unknown as T;
+  }
   return (await res.json()) as T;
 }

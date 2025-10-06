@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { ServiceWorkerRegister } from './sw-register';
 import { Providers } from './providers';
 import { HeaderAuth } from '../components/header-auth';
+import { NotifyCTA } from '../components/notify-cta';
 
 export const metadata: Metadata = {
   title: 'Alumni Web App',
@@ -33,7 +34,10 @@ export default function RootLayout({
               <Link href="/posts/new">게시글 작성</Link>
               <Link href="/events/new">행사 생성</Link>
             </nav>
-            <HeaderAuth />
+            <div className="flex items-center gap-3">
+              <NotifyCTA />
+              <HeaderAuth />
+            </div>
           </div>
         </header>
         <main>{children}</main>
