@@ -27,6 +27,9 @@ export default function RootLayout({
             <Link href="/">홈</Link>
             <Link href="/posts">게시글</Link>
             <Link href="/events">행사</Link>
+            <span className="ml-4 text-slate-400">│</span>
+            <Link href="/posts/new">게시글 작성</Link>
+            <Link href="/events/new">행사 생성</Link>
           </nav>
         </header>
         <main>{children}</main>

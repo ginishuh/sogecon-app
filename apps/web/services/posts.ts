@@ -19,3 +19,11 @@ export async function listPosts(params: { limit?: number; offset?: number } = {}
   return apiFetch<Post[]>(`/posts${qs ? `?${qs}` : ''}`);
 }
 
+export async function createPost(payload: {
+  author_id: number;
+  title: string;
+  content: string;
+  published_at?: string | null;
+}): Promise<Post> {
+  return apiFetch<Post>(`/posts/`, { method: 'POST', body: JSON.stringify(payload) });
+}

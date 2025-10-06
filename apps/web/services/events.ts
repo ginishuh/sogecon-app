@@ -35,3 +35,13 @@ export async function upsertEventRsvp(
     body: JSON.stringify({ member_id: memberId, status })
   });
 }
+
+export async function createEvent(payload: {
+  title: string;
+  starts_at: string;
+  ends_at: string;
+  location: string;
+  capacity: number;
+}): Promise<Event> {
+  return apiFetch<Event>(`/events/`, { method: 'POST', body: JSON.stringify(payload) });
+}

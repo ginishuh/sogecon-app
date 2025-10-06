@@ -9,6 +9,7 @@
  - 테스트 확장: 404(post/event/rsvp), 409(rsvp_exists), 이벤트 RSVP upsert(생성/업데이트), 잘못된 enum→422 케이스 추가.
  - CI 파이프라인: Python 잡에 Pytest Guard + pytest 실행 단계 추가.
  - Web(M1-1 시작): react-query 도입(QueryClientProvider), 이벤트 목록 CSR→react-query 전환, 이벤트 상세 페이지(/events/[id]) + RSVP 액션(going/waitlist/cancel), API 오류 코드→UX 매핑 유틸 추가.
+ - API: RSVP capacity v1 적용(going 요청 시 정원 초과면 waitlist로 저장).
 # Worklog
 
 ## 2025-10-05
