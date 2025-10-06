@@ -19,3 +19,19 @@ export async function listEvents(params: { limit?: number; offset?: number } = {
   return apiFetch<Event[]>(`/events${qs ? `?${qs}` : ''}`);
 }
 
+export async function getEvent(id: number): Promise<Event> {
+  return apiFetch<Event>(`/events/${id}`);
+}
+
+export type RSVPLiteral = 'going' | 'waitlist' | 'cancel';
+
+export async function upsertEventRsvp(
+  eventId: number,
+  memberId: number,
+  status: RSVPLiteral
+) {
+  return apiFetch(`/events/${eventId}/rsvp`, {
+    method: 'POST',
+    body: JSON.stringify({ member_id: memberId, status })
+  });
+}
