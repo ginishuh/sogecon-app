@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from .. import schemas
 from ..db import get_db
 from ..services import events_service
-from .auth import require_admin
+from .auth import CurrentAdmin, require_admin
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -31,7 +31,7 @@ def get_event(event_id: int, db: Session = Depends(get_db)) -> schemas.EventRead
 def create_event(
     payload: schemas.EventCreate,
     db: Session = Depends(get_db),
-    _admin=Depends(require_admin),
+    _admin: CurrentAdmin = Depends(require_admin),
 ) -> schemas.EventRead:
     event = events_service.create_event(db, payload)
     return schemas.EventRead.model_validate(event)

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
@@ -42,6 +41,8 @@ def require_admin(req: Request) -> CurrentAdmin:
 def login(
     payload: LoginPayload, request: Request, db: Session = Depends(get_db)
 ) -> dict[str, str]:
+    bcrypt = __import__("bcrypt")  # 런타임 임포트로 훅 환경 의존성 문제 최소화
+
     user = db.query(AdminUser).filter(AdminUser.email == payload.email).first()
     if user is None:
         raise HTTPException(status_code=401, detail="login_failed")

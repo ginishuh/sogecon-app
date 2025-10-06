@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from .. import schemas
 from ..db import get_db
 from ..services import posts_service
-from .auth import require_admin
+from .auth import CurrentAdmin, require_admin
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -31,7 +31,7 @@ def get_post(post_id: int, db: Session = Depends(get_db)) -> schemas.PostRead:
 def create_post(
     payload: schemas.PostCreate,
     db: Session = Depends(get_db),
-    _admin=Depends(require_admin),
+    _admin: CurrentAdmin = Depends(require_admin),
 ) -> schemas.PostRead:
     post = posts_service.create_post(db, payload)
     return schemas.PostRead.model_validate(post)
