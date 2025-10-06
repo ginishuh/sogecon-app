@@ -102,3 +102,61 @@ def admin_login(client: TestClient) -> TestClient:
         "/auth/login", json={"email": "__seed__@example.com", "password": "__seed__"}
     )
     return client
+
+
+@pytest.fixture()
+def member_login(client: TestClient) -> TestClient:
+    """일반 멤버 계정 시드 후 로그인한 클라이언트를 반환."""
+    # 시도: 기존 세션으로 바로 로그인
+    rc = client.post(
+        "/auth/member/login",
+        json={"email": "member@example.com", "password": "memberpass"},
+    )
+    if rc.status_code == HTTPStatus.OK:
+        return client
+
+    # 시드: Member + MemberAuth
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found for member seeding")
+    gen = override()
+    db: Session = next(gen)
+    try:
+        # create member if not exists
+        m = (
+            db.query(models.Member)
+            .filter(models.Member.email == "member@example.com")
+            .first()
+        )
+        if m is None:
+            m = models.Member(
+                email="member@example.com",
+                name="Member",
+                cohort=1,
+                major=None,
+                roles="member",
+            )
+            db.add(m)
+            db.commit()
+            db.refresh(m)
+        pwd = hashpw(b"memberpass", gensalt()).decode()
+        auth_row = (
+            db.query(models.MemberAuth)
+            .filter(models.MemberAuth.email == m.email)
+            .first()
+        )
+        if auth_row is None:
+            db.add(models.MemberAuth(member_id=m.id, email=m.email, password_hash=pwd))
+            db.commit()
+    finally:
+        db.close()
+        try:
+            gen.close()
+        except Exception:
+            pass
+
+    client.post(
+        "/auth/member/login",
+        json={"email": "member@example.com", "password": "memberpass"},
+    )
+    return client

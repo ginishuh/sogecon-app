@@ -165,3 +165,18 @@ class NotificationSendLog(Base):
     status_code = Column(Integer, nullable=True)
     endpoint_hash = Column(String(64), nullable=False, index=True)
     endpoint_tail = Column(String(32), nullable=True)
+
+
+class MemberAuth(Base):
+    __tablename__ = "member_auth"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    member_id = Column(
+        Integer, ForeignKey("members.id", ondelete="CASCADE"), nullable=False
+    )
+    __table_args__ = (Index("ix_member_auth_member_id", "member_id"),)
+    email = Column(String(255), nullable=False, unique=True, index=True)
+    password_hash = Column(String(255), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )

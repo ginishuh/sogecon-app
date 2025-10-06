@@ -35,8 +35,8 @@ def test_subscription_requires_auth(anon_client: TestClient) -> None:
     assert res.status_code == HTTPStatus.UNAUTHORIZED
 
 
-def test_subscription_invalid_payload_returns_422(admin_login: TestClient) -> None:
-    client = admin_login
+def test_subscription_invalid_payload_returns_422(member_login: TestClient) -> None:
+    client = member_login
     # missing p256dh/auth → 422
     res = client.post(
         "/notifications/subscriptions",

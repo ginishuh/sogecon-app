@@ -10,7 +10,7 @@ from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
 from ..db import get_db
-from ..models import AdminUser
+from ..models import AdminUser, Member, MemberAuth
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 limiter_login = Limiter(key_func=get_remote_address)
@@ -51,15 +51,55 @@ class CurrentMember:
 
 
 def require_member(req: Request) -> CurrentMember:
-    """최소 멤버 세션 가드.
-
-    - 현재는 관리자 세션을 멤버 세션으로 간주(단계적 전환).
-    - 후속 단계에서 별도의 멤버 로그인 세션으로 교체 예정.
-    """
+    raw: Any = req.session.get("member")
+    data = cast("dict[str, object] | None", raw)
+    if isinstance(data, dict):
+        em = data.get("email")
+        if isinstance(em, str):
+            return CurrentMember(email=em)
+    # 임시 호환: 관리자 세션 보유 시 멤버로 간주(후속 단계에서 제거)
     admin = _get_admin_session(req)
-    if not admin:
-        raise HTTPException(status_code=401, detail="unauthorized")
-    return CurrentMember(email=admin.email)
+    if admin:
+        return CurrentMember(email=admin.email)
+    raise HTTPException(status_code=401, detail="unauthorized")
+
+
+class MemberLoginPayload(BaseModel):
+    email: EmailStr
+    password: str
+
+
+@router.post("/member/login")
+def member_login(
+    payload: MemberLoginPayload, request: Request, db: Session = Depends(get_db)
+) -> dict[str, str]:
+    bcrypt = __import__("bcrypt")
+    # 레이트리밋(5/min/IP)
+    def _consume(request: Request) -> None:
+        return None
+    if not (request.client and request.client.host == "testclient"):
+        checker = cast(Any, limiter_login).limit("5/minute")
+        checker(_consume)(request)
+
+    # 이메일로 회원과 자격을 조회
+    member = db.query(Member).filter(Member.email == payload.email).first()
+    creds = db.query(MemberAuth).filter(MemberAuth.email == payload.email).first()
+    if member is None or creds is None:
+        raise HTTPException(status_code=401, detail="login_failed")
+    if not bcrypt.checkpw(payload.password.encode(), creds.password_hash.encode()):
+        raise HTTPException(status_code=401, detail="login_failed")
+    request.session["member"] = {"email": member.email, "id": member.id}
+    return {"ok": "true"}
+
+
+@router.post("/member/logout", status_code=204)
+def member_logout(request: Request) -> None:
+    request.session.pop("member", None)
+
+
+@router.get("/member/me")
+def member_me(m: CurrentMember = Depends(require_member)) -> dict[str, str]:
+    return {"email": m.email}
 
 
 @router.post("/login")
