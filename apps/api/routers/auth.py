@@ -45,6 +45,23 @@ def require_admin(req: Request) -> CurrentAdmin:
     return admin
 
 
+@dataclass
+class CurrentMember:
+    email: str
+
+
+def require_member(req: Request) -> CurrentMember:
+    """최소 멤버 세션 가드.
+
+    - 현재는 관리자 세션을 멤버 세션으로 간주(단계적 전환).
+    - 후속 단계에서 별도의 멤버 로그인 세션으로 교체 예정.
+    """
+    admin = _get_admin_session(req)
+    if not admin:
+        raise HTTPException(status_code=401, detail="unauthorized")
+    return CurrentMember(email=admin.email)
+
+
 @router.post("/login")
 def login(
     payload: LoginPayload, request: Request, db: Session = Depends(get_db)

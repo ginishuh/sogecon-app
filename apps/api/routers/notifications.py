@@ -14,7 +14,12 @@ from apps.api.config import get_settings
 from apps.api.db import get_db
 from apps.api.repositories import notifications as subs_repo
 from apps.api.repositories import send_logs as logs_repo
-from apps.api.routers.auth import CurrentAdmin, require_admin
+from apps.api.routers.auth import (
+    CurrentAdmin,
+    CurrentMember,
+    require_admin,
+    require_member,
+)
 from apps.api.services import notifications_service as notif_svc
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
@@ -38,7 +43,7 @@ class SubscriptionPayload(BaseModel):
 def save_subscription(
     payload: SubscriptionPayload,
     db: Session = Depends(get_db),
-    _admin: CurrentAdmin = Depends(require_admin),
+    _member: CurrentMember = Depends(require_member),
 ) -> None:
     """Web Push 구독 저장(idempotent). 동일 endpoint는 갱신 처리."""
     notif_svc.save_subscription(
@@ -61,7 +66,7 @@ class UnsubscribePayload(BaseModel):
 def delete_subscription(
     payload: UnsubscribePayload,
     db: Session = Depends(get_db),
-    _admin: CurrentAdmin = Depends(require_admin),
+    _member: CurrentMember = Depends(require_member),
 ) -> None:
     notif_svc.delete_subscription(db, endpoint=str(payload.endpoint))
 

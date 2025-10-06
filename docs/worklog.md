@@ -133,3 +133,7 @@
 - README 상단에 영어 요약 및 quickstart를 병기해 국제 협업 대비
 - `.github/copilot-instructions.md`를 추가하여 AI 코딩 에이전트용 가이드를 정리
 - `docs/architecture.md`를 신설하고 에이전트 지침 문서에 교차 링크를 추가
+
+
+## 2025-10-07
+- M3 phase-2 착수: 구독 엔드포인트를 멤버 세션 가드로 전환(임시로 admin 세션을 멤버로 간주), 401/422 테스트 추가, CTA UX 개선.
