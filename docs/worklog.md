@@ -14,6 +14,7 @@
  - Web: 간단 토스트(ToastProvider) 추가, 게시글/행사 생성 및 RSVP 액션 성공/에러 피드백 연결.
  - 테스트 확장(성공 경로): 목록 200 검증, /rsvps 생성 201 스모크.
  - Dev: VS Code 디버그 설정 추가(`.vscode/launch.json`) — API(SQLite/Postgres), Web 단일/복합 실행 지원.
+ - Repo: .gitignore 정리 — `.env`/`.env.*` 무시, 단 `.env.example`은 명시적으로 추적.
 # Worklog
 
 ## 2025-10-05

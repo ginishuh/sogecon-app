@@ -10,6 +10,8 @@ coverage/
 apps/web/tsconfig.tsbuildinfo
 .env
 .env.*
+!.env.example
+# 예시 파일은 추적(문서/기본값 공유)
 *.sqlite3
 .DS_Store
 apps/api/migrations/__pycache__/
