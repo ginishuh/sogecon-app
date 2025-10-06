@@ -1,5 +1,11 @@
 ## 2025-10-06
 
+
+- M2 착수: 세션 인증/권한 + RSVP v2
+  - API: SessionMiddleware 추가, `/auth`(login/logout/me) 라우터, `admin_users` 마이그레이션, `RSVP.created_at` 추가
+  - 권한: `require_admin` 의존성으로 posts/events/members 생성 라우트 보호
+  - RSVP v2: `cancel` 시 대기열 최상위 1인 자동 승급(트랜잭션)
+  - 테스트: 로그인 성공/실패, 보호 라우트 401/201 스모크 추가
 - M2 브랜치/PR 초안: 세션 인증/권한 + RSVP v2 계획 문서 추가(docs/m2_plan.md)
 ## 2025-10-06
 

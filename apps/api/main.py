@@ -6,13 +6,14 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from .config import get_settings
 from .errors import ApiError
 from .ratelimit import create_limiter
-from .routers import events, members, posts, rsvps
+from .routers import auth, events, members, posts, rsvps
 
 settings = get_settings()
 
@@ -24,6 +25,15 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+# Session cookies (for admin auth). Dev uses HTTP; prod should set https-only.
+cookie_secure = settings.app_env == "prod"
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.jwt_secret,
+    same_site="lax",
+    https_only=cookie_secure,
 )
 
 
@@ -94,3 +104,4 @@ app.include_router(members.router)
 app.include_router(posts.router)
 app.include_router(events.router)
 app.include_router(rsvps.router)
+app.include_router(auth.router)

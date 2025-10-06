@@ -67,7 +67,23 @@ def upsert_rsvp_status(
         rsvp = rsvps_repo.create_rsvp(db, payload)
     else:
         # 타입체커 호환을 위해 setattr 사용
-        setattr(rsvp, "status", _normalize_status(status, rsvp, cap_int))
+        new_status = _normalize_status(status, rsvp, cap_int)
+        setattr(rsvp, "status", new_status)
         db.commit()
         db.refresh(rsvp)
+        # RSVP v2: cancel 시 대기열 최상위 1인을 going으로 승급
+        if new_status == models.RSVPStatus.CANCEL:
+            candidate = (
+                db.query(models.RSVP)
+                .filter(
+                    models.RSVP.event_id == event_id,
+                    models.RSVP.status == models.RSVPStatus.WAITLIST,
+                )
+                .order_by(models.RSVP.created_at.asc())
+                .first()
+            )
+            if candidate is not None:
+                setattr(candidate, "status", models.RSVPStatus.GOING)
+                db.commit()
+                db.refresh(candidate)
     return rsvp

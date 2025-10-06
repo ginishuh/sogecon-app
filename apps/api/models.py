@@ -4,6 +4,7 @@ import enum
 
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.sql import func
 
 Base = declarative_base()
 
@@ -85,6 +86,20 @@ class RSVP(Base):
         primary_key=True,
     )
     status = Column(Enum(RSVPStatus), nullable=False, default=RSVPStatus.GOING)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
 
     member = relationship("Member", back_populates="rsvps")
     event = relationship("Event", back_populates="rsvps")
+
+
+class AdminUser(Base):
+    __tablename__ = "admin_users"
+
+    id = Column(Integer, primary_key=True)
+    email = Column(String(255), nullable=False, unique=True, index=True)
+    password_hash = Column(String(255), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
