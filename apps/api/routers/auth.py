@@ -45,12 +45,16 @@ def require_admin(req: Request) -> CurrentAdmin:
     return admin
 
 
-@limiter_login.limit("5/minute")
 @router.post("/login")
 def login(
     payload: LoginPayload, request: Request, db: Session = Depends(get_db)
 ) -> dict[str, str]:
     bcrypt = __import__("bcrypt")  # 런타임 임포트로 훅 환경 의존성 문제 최소화
+
+    # 로그인 시도 레이트리밋(5/min/IP)
+    # 데코레이터 대신 함수 내부에서 체크하여 타입체커 경고를 회피
+    checker = limiter_login.limit("5/minute")
+    checker(lambda req: None)(request)
 
     user = db.query(AdminUser).filter(AdminUser.email == payload.email).first()
     if user is None:

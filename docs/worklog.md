@@ -14,7 +14,7 @@
   - 기존 테스트 정렬: 성공/에러 케이스에서 보호 라우트 호출 전에 admin_login 적용
   - Web: /login 페이지 추가, useAuth 훅/헤더 로그인·로그아웃 UI, 보호 라우트 가드(posts/new, events/new)
   - Web: 세션 쿠키 사용을 위해 apiFetch에 credentials: 'include' 적용
-  - API: /auth 로그인 시도 레이트리밋(5/min/IP) 적용
+  - API: /auth 로그인 시도 레이트리밋(5/min/IP) 적용(함수 내부 체크 방식)
   - 테스트: RSVP v2 승급(취소→대기열 최상위 going) 회귀 테스트 추가
   - 문서: architecture.md에 인증/권한/RSVP v2 정책 반영
   - 훅 보강: pre-push가 requirements 변경 시 pip install을 수행해 의존성 누락으로 인한 실패 방지
