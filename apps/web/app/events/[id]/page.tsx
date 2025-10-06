@@ -7,6 +7,7 @@ import { getEvent, type Event, upsertEventRsvp, type RSVPLiteral } from '../../.
 import { getRsvp, type RSVP } from '../../../services/rsvps';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
+import { useToast } from '../../../components/toast';
 
 export default function EventDetailPage() {
   const params = useParams<{ id: string }>();
@@ -48,6 +49,7 @@ export default function EventDetailPage() {
 
 function RsvpPanel({ eventId }: { eventId: number }) {
   const qc = useQueryClient();
+  const { show } = useToast();
   const [memberId, setMemberId] = useState<number | ''>('' as const);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,13 +65,17 @@ function RsvpPanel({ eventId }: { eventId: number }) {
     onSuccess: async () => {
       setMessage('RSVP가 저장되었습니다.');
       setError(null);
+      show('RSVP가 저장되었습니다.', { type: 'success' });
       await qc.invalidateQueries({ queryKey: ['rsvp', eventId, memberId] });
     },
     onError: (e: unknown) => {
       if (e instanceof ApiError) {
-        setError(apiErrorToMessage(e.code, e.message));
+        const msg = apiErrorToMessage(e.code, e.message);
+        setError(msg);
+        show(msg, { type: 'error' });
       } else {
         setError('알 수 없는 오류');
+        show('알 수 없는 오류', { type: 'error' });
       }
       setMessage(null);
     }

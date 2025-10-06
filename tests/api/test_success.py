@@ -74,3 +74,31 @@ def test_rsvp_capacity_v1_enforces_waitlist(client: TestClient) -> None:
     )
     assert r2.status_code == HTTPStatus.CREATED
     assert r2.json()["status"] == "waitlist"
+
+
+def test_list_endpoints_ok(client: TestClient) -> None:
+    assert client.get("/members/?limit=5").status_code == HTTPStatus.OK
+    assert client.get("/posts/?limit=5").status_code == HTTPStatus.OK
+    assert client.get("/events/?limit=5").status_code == HTTPStatus.OK
+
+
+def test_rsvp_create_success(client: TestClient) -> None:
+    m = client.post(
+        "/members/",
+        json={"email": "c@example.com", "name": "C", "cohort": 2025},
+    ).json()
+    e = client.post(
+        "/events/",
+        json={
+            "title": "RSVP",
+            "starts_at": "2030-05-01T09:00:00Z",
+            "ends_at": "2030-05-01T10:00:00Z",
+            "location": "Seoul",
+            "capacity": 10,
+        },
+    ).json()
+    res = client.post(
+        "/rsvps/",
+        json={"member_id": m["id"], "event_id": e["id"], "status": "going"},
+    )
+    assert res.status_code == HTTPStatus.CREATED

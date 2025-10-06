@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { createEvent } from '../../../services/events';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
+import { useToast } from '../../../components/toast';
 
 export default function NewEventPage() {
   const [title, setTitle] = useState('');
@@ -15,6 +16,7 @@ export default function NewEventPage() {
   const [endsAt, setEndsAt] = useState('');
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { show } = useToast();
 
   const mutate = useMutation({
     mutationFn: () =>
@@ -26,11 +28,18 @@ export default function NewEventPage() {
         ends_at: new Date(endsAt).toISOString()
       }),
     onSuccess: () => {
+      show('행사가 생성되었습니다.', { type: 'success' });
       router.push(`/events`);
     },
     onError: (e: unknown) => {
-      if (e instanceof ApiError) setError(apiErrorToMessage(e.code, e.message));
-      else setError('알 수 없는 오류');
+      if (e instanceof ApiError) {
+        const msg = apiErrorToMessage(e.code, e.message);
+        setError(msg);
+        show(msg, { type: 'error' });
+      } else {
+        setError('알 수 없는 오류');
+        show('알 수 없는 오류', { type: 'error' });
+      }
     }
   });
 
@@ -74,4 +83,3 @@ export default function NewEventPage() {
     </section>
   );
 }
-

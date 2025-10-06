@@ -11,6 +11,8 @@
  - Web(M1-1 시작): react-query 도입(QueryClientProvider), 이벤트 목록 CSR→react-query 전환, 이벤트 상세 페이지(/events/[id]) + RSVP 액션(going/waitlist/cancel), API 오류 코드→UX 매핑 유틸 추가.
  - API: RSVP capacity v1 적용(going 요청 시 정원 초과면 waitlist로 저장).
    - pyright 타입 오류 추가 수정: SQLAlchemy 인스턴스 속성 안전 추출로 경고 제거.
+ - Web: 간단 토스트(ToastProvider) 추가, 게시글/행사 생성 및 RSVP 액션 성공/에러 피드백 연결.
+ - 테스트 확장(성공 경로): 목록 200 검증, /rsvps 생성 201 스모크.
 # Worklog
 
 ## 2025-10-05

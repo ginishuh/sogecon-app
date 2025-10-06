@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { createPost } from '../../../services/posts';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
+import { useToast } from '../../../components/toast';
 
 export default function NewPostPage() {
   const [authorId, setAuthorId] = useState<number | ''>('' as const);
@@ -13,15 +14,23 @@ export default function NewPostPage() {
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { show } = useToast();
 
   const mutate = useMutation({
     mutationFn: () => createPost({ author_id: Number(authorId), title, content }),
     onSuccess: () => {
+      show('게시글이 생성되었습니다.', { type: 'success' });
       router.push(`/posts`);
     },
     onError: (e: unknown) => {
-      if (e instanceof ApiError) setError(apiErrorToMessage(e.code, e.message));
-      else setError('알 수 없는 오류');
+      if (e instanceof ApiError) {
+        const msg = apiErrorToMessage(e.code, e.message);
+        setError(msg);
+        show(msg, { type: 'error' });
+      } else {
+        setError('알 수 없는 오류');
+        show('알 수 없는 오류', { type: 'error' });
+      }
     }
   });
 
