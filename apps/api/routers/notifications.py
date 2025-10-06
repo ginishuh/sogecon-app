@@ -2,15 +2,25 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, HttpUrl
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
+from ..config import get_settings
 from ..db import get_db
-from ..models import PushSubscription
+from ..services import notifications_service as notif_svc
 from .auth import CurrentAdmin, require_admin
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
+limiter_admin = Limiter(key_func=get_remote_address)
+
+
+def get_push_provider() -> notif_svc.PushProvider:
+    # 기본 구현: VAPID 기반 pywebpush.
+    _ = get_settings()  # 키 로딩 트리거
+    return notif_svc.PyWebPushProvider()
 
 
 class SubscriptionPayload(BaseModel):
@@ -25,35 +35,17 @@ class SubscriptionPayload(BaseModel):
 def save_subscription(
     payload: SubscriptionPayload, db: Session = Depends(get_db)
 ) -> None:
-    """Web Push 구독 저장(idempotent).
-
-    - 동일 endpoint는 upsert처럼 동작(값 갱신 후 204)
-    - 실제 운영에서는 endpoint/key를 암호화 저장 권장
-    """
-    # 단순 스캐폴드: 없는 경우 생성, 있는 경우 필드 갱신
-    sub = (
-        db.query(PushSubscription)
-        .filter(PushSubscription.endpoint == str(payload.endpoint))
-        .first()
+    """Web Push 구독 저장(idempotent). 동일 endpoint는 갱신 처리."""
+    notif_svc.save_subscription(
+        db,
+        {
+            "endpoint": str(payload.endpoint),
+            "p256dh": payload.p256dh,
+            "auth": payload.auth,
+            "ua": payload.ua,
+            "member_id": payload.member_id,
+        },
     )
-    if sub is None:
-        sub = PushSubscription(
-            endpoint=str(payload.endpoint),
-            p256dh=payload.p256dh,
-            auth=payload.auth,
-            ua=payload.ua,
-            member_id=payload.member_id,
-        )
-        db.add(sub)
-        db.commit()
-        return
-    # 갱신
-    sub.p256dh = payload.p256dh
-    sub.auth = payload.auth
-    sub.ua = payload.ua
-    if payload.member_id is not None:
-        sub.member_id = payload.member_id
-    db.commit()
 
 
 class UnsubscribePayload(BaseModel):
@@ -64,15 +56,7 @@ class UnsubscribePayload(BaseModel):
 def delete_subscription(
     payload: UnsubscribePayload, db: Session = Depends(get_db)
 ) -> None:
-    sub = (
-        db.query(PushSubscription)
-        .filter(PushSubscription.endpoint == str(payload.endpoint))
-        .first()
-    )
-    if sub is None:
-        return
-    db.delete(sub)
-    db.commit()
+    notif_svc.delete_subscription(db, endpoint=str(payload.endpoint))
 
 
 class TestPushPayload(BaseModel):
@@ -84,11 +68,16 @@ class TestPushPayload(BaseModel):
 def send_test_push(
     _payload: TestPushPayload,
     _admin: Annotated[CurrentAdmin, Depends(require_admin)],
-    _db: Session = Depends(get_db),
+    request: Request,
+    db: Session = Depends(get_db),
+    provider: notif_svc.PushProvider = Depends(get_push_provider),
 ) -> dict[str, int]:
-    """관리자 전용 테스트 발송.
+    # 레이트리밋(1/min/IP) — 테스트클라이언트는 면제
+    if not (request.client and request.client.host == "testclient"):
+        checker = limiter_admin.limit("1/minute")
+        checker(lambda _req: None)(request)
 
-    - 초기 스캐폴드는 전송을 생략하고 202 + 건수 0을 반환.
-    - M3 본구현에서 pywebpush를 통해 구독 대상으로 발송.
-    """
-    return {"accepted": 0, "failed": 0}
+    result = notif_svc.send_test_to_all(
+        db, provider, title=_payload.title, body=_payload.body
+    )
+    return {"accepted": result.accepted, "failed": result.failed}

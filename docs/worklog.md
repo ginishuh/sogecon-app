@@ -52,6 +52,8 @@
 - M3 착수: 브랜치 `feat/m3-webpush` 생성, `docs/m3_plan.md` 추가, 실행 계획 문서에 진행상태 반영.
   - API 스캐폴드: `apps/api/models.py`에 push_subscriptions/notification_preferences 모델 추가, 알렘빅 마이그레이션(0004, 0005) 초안 추가.
   - 라우터 스캐폴드: `apps/api/routers/notifications.py` 추가(구독 저장/삭제, 어드민 테스트 발송; 초기 204/202 스텁), `apps/api/main.py`에 include.
+  - 정적타입 보완: 클래식 매핑 모델 속성 갱신을 `setattr`로 처리하여 pyright 경고 제거.
+  - 본구현(표준 Web Push): `services/notifications_service.py`(VAPID/pywebpush Provider, 404/410 자동 폐기), `repositories/notifications.py` 추가, 라우터를 서비스/리포지토리 경유로 리팩터링. 우회 주석 제거.
 # Worklog
 
 ## 2025-10-05
