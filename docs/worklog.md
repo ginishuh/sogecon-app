@@ -42,12 +42,14 @@
  - Dev DB 포트: Docker Postgres 개발 기본 포트를 5433으로 전환(ports: "5433:5432"), .env.example/launch.json 동기화.
  - Pytest DB 스위치: 기본 SQLite, `TEST_DB=pg` 설정 시 `TEST_DB_URL`(또는 `DATABASE_URL`)로 Postgres 테스트 지원(안전가드 포함).
  - 테스트 전용 DB: docker-compose에 `postgres_test`(5434) 추가, Make 타깃(`db-test-up`), VS Code 런치(Pytest PG) 동기화.
- - 리뷰 반영(P1):
+- 리뷰 반영(P1):
   - API: RSVP capacity 계산 시 기존 참석자 제외(재요청으로 인한 부당 강등 방지).
     - pyright 호환 보완: 기존 상태 비교 시 enum 캐스팅으로 타입 안정화.
   - Web: apiFetch에서 Problem Details code를 보존(에러 코드→UX 매핑 동작 보장).
   - 보안: bandit(B101) 지적된 assert 제거 — 이벤트 용량 검사는 사전 조회한 capacity로 처리.
     - 타입: capacity는 `cast(int, event.capacity)`로 지정하여 pyright 오류 해소.
+
+- M3 착수: 브랜치 `feat/m3-webpush` 생성, `docs/m3_plan.md` 추가, 실행 계획 문서에 진행상태 반영.
 # Worklog
 
 ## 2025-10-05

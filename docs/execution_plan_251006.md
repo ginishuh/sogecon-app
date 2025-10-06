@@ -46,7 +46,7 @@
   - [x] bandit B101 제거(unsafe assert 미사용)
 - 완료 기준: 관리자 로그인 후에만 생성 가능, 대기열 승급 동작, 20+ 테스트, CI 그린
 
-### M3: PWA/Web Push 채널
+### M3: PWA/Web Push 채널 — 진행 시작(`feat/m3-webpush` 브랜치, docs/m3_plan.md)
 - API: 구독 저장/삭제/테스트 발송(pywebpush+VAPID), 404/410 자동 폐기
 - DB: push_subscription/notification_preference 테이블
 - Web: 권한 온보딩 CTA, subscribe/unsubscribe, SW push/notificationclick
@@ -72,4 +72,3 @@
 - SSOT: `docs/architecture.md`, `docs/agents_base.md`
 - 계획서: `docs/m1_plan.md`, `docs/m2_plan.md`
 - 관련 PR: M1(#2), M2(#3)
-
