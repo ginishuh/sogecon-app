@@ -58,7 +58,7 @@ def upsert_rsvp_status(
         return models.RSVPStatus.GOING
 
     rsvp = db.get(models.RSVP, (member_id, event_id))
-    cap_int = int(event_obj.capacity)
+    cap_int = cast(int, event_obj.capacity)
     if rsvp is None:
         final_status = _normalize_status(status, None, cap_int)
         payload = schemas.RSVPCreate(
