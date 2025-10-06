@@ -70,6 +70,7 @@
   - API: FastAPI 의존성 타입 시그니처 보완 및 레이트리밋 래퍼를 Protocol로 엄격화(pyright 경고 제거).
   - API: Protocol 반환 타입을 직접 Callable로 명시하여 pyright "unknown"/"invalid type form" 오류 제거.
   - Git hygiene: `.api-dev.pid`, `.web-dev.pid`, `logs/`를 `.gitignore`에 추가하고 추적 해제(동기화 잡음 제거).
+  - API: 구독 저장 로직에서 클라이언트 member_id 입력 참조 제거(pyright 오류 수정, 서버 신뢰 경로만 사용).
 # Worklog
 
 ## 2025-10-05

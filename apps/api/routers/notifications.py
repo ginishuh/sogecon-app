@@ -48,7 +48,7 @@ def save_subscription(
             "p256dh": payload.p256dh,
             "auth": payload.auth,
             "ua": payload.ua,
-            "member_id": payload.member_id,
+            "member_id": None,
         },
     )
 
