@@ -63,6 +63,7 @@
   - 타입 보완: 로그 DTO 변환 시 pyright 캐스팅으로 Column 타입 경고 제거.
   - pyright: Column truthiness 경고 회피를 위해 isinstance 기반 변환 적용.
   - Web(Admin): /admin/notifications에 요약(활성 구독/성공/실패)과 최근 발송 로그 테이블 추가, 새로고침 버튼.
+  - Web: `lib/api.ts`의 `apiFetch`를 헬퍼 분리로 복잡도 10 이하 리팩터링(ESLint complexity 통과).
 # Worklog
 
 ## 2025-10-05
