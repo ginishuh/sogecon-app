@@ -7,8 +7,12 @@ import { createEvent } from '../../../services/events';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
 import { useToast } from '../../../components/toast';
+import { useAuth } from '../../../hooks/useAuth';
+import { usePathname } from 'next/navigation';
 
 export default function NewEventPage() {
+  const { status } = useAuth();
+  const pathname = usePathname();
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [capacity, setCapacity] = useState<number | ''>('' as const);
@@ -45,6 +49,17 @@ export default function NewEventPage() {
 
   const disabled =
     mutate.isPending || !title || !location || typeof capacity !== 'number' || !startsAt || !endsAt;
+
+  if (status === 'unauthorized') {
+    return (
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">행사 생성</h2>
+        <p className="text-sm text-slate-600">
+          이 페이지는 관리자만 접근할 수 있습니다. <a className="underline" href={`/login?next=${pathname}`}>로그인</a> 후 이용해주세요.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-4">

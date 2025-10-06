@@ -10,6 +10,8 @@
   - 세션 타입 안전화: 세션 dict를 런타임 검사·cast하여 pyright 경고 제거
   - 테스트 보강: admin_login 픽스처로 보호 라우트 생성 흐름 업데이트
   - 기존 테스트 정렬: 성공/에러 케이스에서 보호 라우트 호출 전에 admin_login 적용
+  - Web: /login 페이지 추가, useAuth 훅/헤더 로그인·로그아웃 UI, 보호 라우트 가드(posts/new, events/new)
+  - Web: 세션 쿠키 사용을 위해 apiFetch에 credentials: 'include' 적용
   - 훅 보강: pre-push가 requirements 변경 시 pip install을 수행해 의존성 누락으로 인한 실패 방지
 - M2 브랜치/PR 초안: 세션 인증/권한 + RSVP v2 계획 문서 추가(docs/m2_plan.md)
 ## 2025-10-06
