@@ -2,13 +2,22 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import type { Route } from 'next';
+import { Suspense, useState } from 'react';
 import { login } from '../../services/auth';
 import { useToast } from '../../components/toast';
 import { ApiError } from '../../lib/api';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<section className="mx-auto max-w-sm"><p>로그인 폼을 불러오는 중…</p></section>}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { show } = useToast();
@@ -22,7 +31,8 @@ export default function LoginPage() {
     onSuccess: async () => {
       await invalidate();
       show('로그인되었습니다.', { type: 'success' });
-      router.replace(next);
+      const dest = typeof next === 'string' && next.startsWith('/') ? (next as Route) : ('/' as Route);
+      router.replace(dest);
     },
     onError: (e: unknown) => {
       const msg = e instanceof ApiError ? '로그인 실패' : '알 수 없는 오류';
@@ -56,4 +66,3 @@ export default function LoginPage() {
     </section>
   );
 }
-
