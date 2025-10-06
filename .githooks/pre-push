@@ -48,11 +48,15 @@ if [ "$devlog_present" = false ]; then
 fi
 
 python_changed=false
+req_changed=false
 web_changed=false
 schemas_changed=false
 for file in "${FILES[@]}"; do
   if [[ "$file" == *.py ]]; then
     python_changed=true
+  fi
+  if [[ "$file" == apps/api/requirements.txt || "$file" == apps/api/requirements-dev.txt ]]; then
+    req_changed=true
   fi
   if [[ "$file" == apps/web/* ]] && [[ "$file" =~ \.(ts|tsx|js|jsx)$ ]]; then
     web_changed=true
@@ -77,6 +81,12 @@ if [ "$python_changed" = true ]; then
     "$PY_BIN" -m pyright --project pyrightconfig.json
   else
     echo "[hooks] Warning: pyright not available; skipping type check"
+  fi
+
+  # If requirements changed, install to local venv before running tests
+  if [ "$req_changed" = true ]; then
+    echo "[hooks] Installing updated Python dependencies (requirements changed)"
+    "$PY_BIN" -m pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
   fi
 
   # Run pytest if tests are present
