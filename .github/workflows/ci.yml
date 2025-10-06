@@ -54,6 +54,12 @@ jobs:
         run: ruff check apps/api
       - name: Type check
         run: python -m pyright --project pyrightconfig.json
+      - name: Pytest collect guard
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: python ops/ci/pytest_guard.py
+      - name: Run tests
+        run: pytest -q
       - name: Security scan (bandit)
         run: bandit -r apps/api -x apps/api/migrations -q
       - name: Dependency audit (pip-audit)
