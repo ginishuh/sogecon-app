@@ -1,6 +1,8 @@
 ## 2025-10-06
 
 
+- 문서: M1 계획서 추가(docs/m1_plan.md) — 범위/체크리스트/테스트/의사결정 요약
+ - 문서: 실행 계획(로드맵) 추가(docs/execution_plan_251006.md) — 현재 상태/가드/갭/마일스톤/작업 순서 정리
 - M2 착수: 세션 인증/권한 + RSVP v2
   - API: SessionMiddleware 추가, `/auth`(login/logout/me) 라우터, `admin_users` 마이그레이션, `RSVP.created_at` 추가
   - 권한: `require_admin` 의존성으로 posts/events/members 생성 라우트 보호
