@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 from collections.abc import Generator
 from pathlib import Path
 
@@ -9,15 +8,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-# Ensure project root on sys.path
-ROOT = Path(__file__).resolve().parents[2]
-
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from apps.api import models  # noqa: E402
-from apps.api.db import get_db  # noqa: E402
-from apps.api.main import app  # noqa: E402
+from apps.api import models
+from apps.api.db import get_db
+from apps.api.main import app
 
 
 @pytest.fixture()
