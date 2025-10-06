@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import cast
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -46,7 +47,7 @@ def upsert_rsvp_status(
         ).scalar_one()
         event_obj = db.get(models.Event, event_id)
         assert event_obj is not None
-        capacity_int: int = int(event_obj.capacity)
+        capacity_int: int = cast(int, event_obj.capacity)
         if int(going_count) >= capacity_int:
             return models.RSVPStatus.WAITLIST
         return models.RSVPStatus.GOING
