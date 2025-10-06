@@ -8,6 +8,7 @@
   - 테스트: 로그인 성공/실패, 보호 라우트 401/201 스모크 추가
   - 타입/훅 대응: bcrypt는 라우트 내부 임포트로 전환, `require_admin` 반환 타입을 의존성 시그니처에 명시
   - 세션 타입 안전화: 세션 dict를 런타임 검사·cast하여 pyright 경고 제거
+  - 테스트 보강: admin_login 픽스처로 보호 라우트 생성 흐름 업데이트
   - 훅 보강: pre-push가 requirements 변경 시 pip install을 수행해 의존성 누락으로 인한 실패 방지
 - M2 브랜치/PR 초안: 세션 인증/권한 + RSVP v2 계획 문서 추가(docs/m2_plan.md)
 ## 2025-10-06

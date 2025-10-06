@@ -5,7 +5,8 @@ from http import HTTPStatus
 from fastapi.testclient import TestClient
 
 
-def test_create_post_and_get(client: TestClient) -> None:
+def test_create_post_and_get(admin_login: TestClient) -> None:
+    client = admin_login
     m = client.post(
         "/members/",
         json={"email": "author@example.com", "name": "Author", "cohort": 2025},
@@ -26,7 +27,8 @@ def test_create_post_and_get(client: TestClient) -> None:
     assert data["title"] == "Hello"
 
 
-def test_create_event_and_get(client: TestClient) -> None:
+def test_create_event_and_get(admin_login: TestClient) -> None:
+    client = admin_login
     e = client.post(
         "/events/",
         json={
@@ -42,7 +44,8 @@ def test_create_event_and_get(client: TestClient) -> None:
     assert res.json()["title"] == "Small"
 
 
-def test_rsvp_capacity_v1_enforces_waitlist(client: TestClient) -> None:
+def test_rsvp_capacity_v1_enforces_waitlist(admin_login: TestClient) -> None:
+    client = admin_login
     # capacity 1인 이벤트에 2명이 going을 시도하면 2번째는 waitlist
     e = client.post(
         "/events/",
@@ -76,7 +79,8 @@ def test_rsvp_capacity_v1_enforces_waitlist(client: TestClient) -> None:
     assert r2.json()["status"] == "waitlist"
 
 
-def test_rsvp_going_reassertion_keeps_status(client: TestClient) -> None:
+def test_rsvp_going_reassertion_keeps_status(admin_login: TestClient) -> None:
+    client = admin_login
     # capacity 1: 첫 참석자가 going을 재요청해도 waitlist로 강등되지 않아야 한다
     e = client.post(
         "/events/",
@@ -113,7 +117,8 @@ def test_list_endpoints_ok(client: TestClient) -> None:
     assert client.get("/events/?limit=5").status_code == HTTPStatus.OK
 
 
-def test_rsvp_create_success(client: TestClient) -> None:
+def test_rsvp_create_success(admin_login: TestClient) -> None:
+    client = admin_login
     m = client.post(
         "/members/",
         json={"email": "c@example.com", "name": "C", "cohort": 2025},

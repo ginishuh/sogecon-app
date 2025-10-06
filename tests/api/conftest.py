@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import os
 from collections.abc import Generator
+from http import HTTPStatus
 from pathlib import Path
 
 import pytest
+from bcrypt import gensalt, hashpw  # 테스트 전용(최상위 임포트)
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
@@ -66,3 +68,37 @@ def client(tmp_path: Path) -> Generator[TestClient, None, None]:
     # cleanup
     app.dependency_overrides.pop(get_db, None)
     models.Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture()
+def admin_login(client: TestClient) -> TestClient:
+    """관리자 계정 시드 후 로그인한 클라이언트를 반환."""
+    # 기존 세션에서 바로 시도
+    res = client.post(
+        "/auth/login", json={"email": "__seed__@example.com", "password": "__seed__"}
+    )
+    if res.status_code == HTTPStatus.OK:
+        return client
+
+    # 세션 팩토리로 직접 시드
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found for admin seeding")
+    gen = override()
+    db: Session = next(gen)
+    try:
+        pwd = hashpw(b"__seed__", gensalt()).decode()
+        admin = models.AdminUser(email="__seed__@example.com", password_hash=pwd)
+        db.add(admin)
+        db.commit()
+    finally:
+        db.close()
+        try:
+            gen.close()
+        except Exception:
+            pass
+
+    client.post(
+        "/auth/login", json={"email": "__seed__@example.com", "password": "__seed__"}
+    )
+    return client

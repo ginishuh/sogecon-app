@@ -14,7 +14,8 @@ def test_member_not_found_returns_problem_details(client: TestClient) -> None:
     assert "detail" in data
 
 
-def test_member_create_conflict_code(client: TestClient) -> None:
+def test_member_create_conflict_code(admin_login: TestClient) -> None:
+    client = admin_login
     payload = {"email": "user@example.com", "name": "User", "cohort": 2025}
     res1 = client.post("/members/", json=payload)
     assert res1.status_code == HTTPStatus.CREATED
