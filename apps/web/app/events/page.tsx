@@ -1,36 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import { listEvents, type Event } from '../../services/events';
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: events, isLoading, isError } = useQuery<Event[]>({
+    queryKey: ['events', 20, 0],
+    queryFn: () => listEvents({ limit: 20 })
+  });
 
-  useEffect(() => {
-    const run = async () => {
-      try {
-        const data = await listEvents({ limit: 20 });
-        setEvents(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '알 수 없는 오류');
-      } finally {
-        setLoading(false);
-      }
-    };
-    void run();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return <p>행사를 불러오는 중입니다…</p>;
   }
 
-  if (error) {
-    return <p className="text-red-600">행사를 불러오지 못했습니다: {error}</p>;
+  if (isError) {
+    return <p className="text-red-600">행사를 불러오지 못했습니다.</p>;
   }
 
-  if (events.length === 0) {
+  if (!events || events.length === 0) {
     return <p>등록된 행사가 아직 없습니다.</p>;
   }
 
@@ -40,7 +28,9 @@ export default function EventsPage() {
       <ul className="space-y-3">
         {events.map((event) => (
           <li key={event.id} className="rounded border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 className="font-semibold">{event.title}</h3>
+            <h3 className="font-semibold">
+              <Link href={`/events/${event.id}`}>{event.title}</Link>
+            </h3>
             <p className="mt-1 text-sm text-slate-700">장소: {event.location}</p>
             <p className="mt-1 text-sm text-slate-700">
               일정: {new Date(event.starts_at).toLocaleString()} ~ {new Date(event.ends_at).toLocaleString()}

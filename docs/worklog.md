@@ -8,6 +8,23 @@
  - CI: gitleaks 액션에 `GITHUB_TOKEN` 주입 및 `permissions: pull-requests: read` 설정(PR 스캔 실패 수정).
  - 테스트 확장: 404(post/event/rsvp), 409(rsvp_exists), 이벤트 RSVP upsert(생성/업데이트), 잘못된 enum→422 케이스 추가.
  - CI 파이프라인: Python 잡에 Pytest Guard + pytest 실행 단계 추가.
+ - Web(M1-1 시작): react-query 도입(QueryClientProvider), 이벤트 목록 CSR→react-query 전환, 이벤트 상세 페이지(/events/[id]) + RSVP 액션(going/waitlist/cancel), API 오류 코드→UX 매핑 유틸 추가.
+ - API: RSVP capacity v1 적용(going 요청 시 정원 초과면 waitlist로 저장).
+   - pyright 타입 오류 추가 수정: SQLAlchemy 인스턴스 속성 안전 추출로 경고 제거.
+ - Web: 간단 토스트(ToastProvider) 추가, 게시글/행사 생성 및 RSVP 액션 성공/에러 피드백 연결.
+ - 테스트 확장(성공 경로): 목록 200 검증, /rsvps 생성 201 스모크.
+ - Dev: VS Code 디버그 설정 추가(`.vscode/launch.json`) — API(SQLite/Postgres), Web 단일/복합 실행 지원.
+ - Repo: .gitignore 정리 — `.env`/`.env.*` 무시, 단 `.env.example`은 명시적으로 추적.
+ - 환경 예시(.env.example) 정리 — SQLite 기본값, Postgres 옵션 주석, NEXT_PUBLIC_WEB_API_BASE로 웹 변수 통일, 한국어 주석 보강.
+ - Dev DB 포트: Docker Postgres 개발 기본 포트를 5433으로 전환(ports: "5433:5432"), .env.example/launch.json 동기화.
+ - Pytest DB 스위치: 기본 SQLite, `TEST_DB=pg` 설정 시 `TEST_DB_URL`(또는 `DATABASE_URL`)로 Postgres 테스트 지원(안전가드 포함).
+ - 테스트 전용 DB: docker-compose에 `postgres_test`(5434) 추가, Make 타깃(`db-test-up`), VS Code 런치(Pytest PG) 동기화.
+ - 리뷰 반영(P1):
+  - API: RSVP capacity 계산 시 기존 참석자 제외(재요청으로 인한 부당 강등 방지).
+    - pyright 호환 보완: 기존 상태 비교 시 enum 캐스팅으로 타입 안정화.
+  - Web: apiFetch에서 Problem Details code를 보존(에러 코드→UX 매핑 동작 보장).
+  - 보안: bandit(B101) 지적된 assert 제거 — 이벤트 용량 검사는 사전 조회한 capacity로 처리.
+    - 타입: capacity는 `cast(int, event.capacity)`로 지정하여 pyright 오류 해소.
 # Worklog
 
 ## 2025-10-05

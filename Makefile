@@ -1,4 +1,4 @@
-.PHONY: venv api-install db-up db-down api-dev web-dev schema-gen test-api info-venv
+.PHONY: venv api-install db-up db-down db-test-up api-dev web-dev schema-gen test-api info-venv
 
 # Detect active virtualenv; fallback to project-local .venv
 VENV_DIR ?= $(if $(VIRTUAL_ENV),$(VIRTUAL_ENV),.venv)
@@ -16,10 +16,13 @@ api-install:
 	"$(VENV_BIN)/pip" install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
 
 db-up:
-	docker compose -f infra/docker-compose.dev.yml up -d
+	docker compose -f infra/docker-compose.dev.yml up -d postgres postgres_test
 
 db-down:
 	docker compose -f infra/docker-compose.dev.yml down
+
+db-test-up:
+	docker compose -f infra/docker-compose.dev.yml up -d postgres_test
 
 api-dev:
 	@if [ ! -x "$(VENV_BIN)/uvicorn" ]; then \

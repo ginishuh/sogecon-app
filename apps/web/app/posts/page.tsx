@@ -1,36 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { listPosts, type Post } from '../../services/posts';
 
 export default function PostsPage() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: posts, isLoading, isError } = useQuery<Post[]>({
+    queryKey: ['posts', 20, 0],
+    queryFn: () => listPosts({ limit: 20 })
+  });
 
-  useEffect(() => {
-    const run = async () => {
-      try {
-        const data = await listPosts({ limit: 20 });
-        setPosts(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '알 수 없는 오류');
-      } finally {
-        setLoading(false);
-      }
-    };
-    void run();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return <p>게시글을 불러오는 중입니다…</p>;
   }
 
-  if (error) {
-    return <p className="text-red-600">게시글을 불러오지 못했습니다: {error}</p>;
+  if (isError) {
+    return <p className="text-red-600">게시글을 불러오지 못했습니다.</p>;
   }
 
-  if (posts.length === 0) {
+  if (!posts || posts.length === 0) {
     return <p>게시글이 아직 없습니다.</p>;
   }
 
