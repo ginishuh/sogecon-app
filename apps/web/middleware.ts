@@ -8,9 +8,10 @@ export function middleware(req: NextRequest) {
     const url = req.nextUrl;
     const isFlight = url.searchParams.has('__flight__');
     const accept = req.headers.get('accept') || '';
-    // 진단 목적: 요청에 힌트를 추가하여 서버/클라이언트에서 식별 가능하도록 함(로그 사용 없음)
     if (isFlight || accept.includes('text/x-component')) {
-      req.headers.set('x-rsc-flight', '1');
+      const headers = new Headers(req.headers);
+      headers.set('x-rsc-flight', '1');
+      return NextResponse.next({ request: { headers } });
     }
   }
   return NextResponse.next();

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from http import HTTPStatus
+from typing import Any
 
 from fastapi.testclient import TestClient
 
+from apps.api import models
 from apps.api.main import app
 from apps.api.routers import notifications as router_mod
 from apps.api.services.notifications_service import PushProvider
@@ -43,7 +45,9 @@ class _DummyProvider(PushProvider):
         self._i = 0
         self._fail_every = fail_every
 
-    def send(self, sub, payload):  # type: ignore[override]
+    def send(
+        self, sub: models.PushSubscription, payload: dict[str, Any]
+    ) -> tuple[bool, int | None]:
         self._i += 1
         if self._fail_every and self._i % self._fail_every == 0:
             return (False, 410)

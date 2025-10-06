@@ -114,6 +114,7 @@
 - Hooks: pre-push에서 `logs/*`, `*.log`, `*.pid`, `.next/`, `node_modules/` 등 히스토리 상의 잡파일 무시하도록 필터링 추가.
 - API: WebPush provider 예외 범위 축소 — `except Exception` 제거, `ValueError|TypeError|RuntimeError|RequestException`만 처리(가드 준수).
 - API: RSVP 취소 시 승급 로직 트랜잭션 강화 — SAVEPOINT(begin_nested)로 후보 조회+승급을 한 단위로 처리하고, Postgres에서는 `SELECT … FOR UPDATE SKIP LOCKED` 적용(경합 완화). 복잡도 초과 방지를 위해 헬퍼로 분리.
+- 리뷰 대응 추가: 테스트 더미 공급자 타입 시그니처 보강(# type: ignore 제거), Next.js 미들웨어에서 불변 헤더 직접 수정 문제 수정(Headers 복제 후 전달), 0001 마이그레이션을 SQLite 호환으로 조정(dialect 분기).
 
 ## 2025-09-28
 - .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거
