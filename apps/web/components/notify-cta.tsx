@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from './toast';
+import { ApiError } from '../lib/api';
 import { ensureServiceWorker, getCurrentSubscription, subscribePush, unsubscribePush } from '../lib/push';
 import { deleteSubscription, saveSubscription } from '../services/notifications';
 
@@ -47,7 +48,7 @@ export function NotifyCTA() {
       setSubscribed(true);
       toast.show('알림 구독이 활성화되었습니다.', { type: 'success' });
     } catch (e) {
-      const msg = e instanceof Error && /401/.test(e.message)
+      const msg = e instanceof ApiError && e.status === 401
         ? '로그인 후 다시 시도하세요.'
         : '구독 중 오류가 발생했습니다.';
       toast.show(msg, { type: 'error' });
@@ -66,7 +67,7 @@ export function NotifyCTA() {
       setSubscribed(false);
       toast.show('알림 구독을 해지했습니다.', { type: 'success' });
     } catch (e) {
-      const msg = e instanceof Error && /401/.test(e.message)
+      const msg = e instanceof ApiError && e.status === 401
         ? '로그인 후 다시 시도하세요.'
         : '해지 중 오류가 발생했습니다.';
       toast.show(msg, { type: 'error' });

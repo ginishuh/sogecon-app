@@ -54,32 +54,34 @@ async def test_admin_send_rate_limit_429(admin_login: TestClient) -> None:
             return (True, 201)
 
     app.dependency_overrides[router_mod.get_push_provider] = lambda: _DummyProvider()
+    try:
+        # Use httpx ASGITransport to set a non-test client IP so rate limit applies
+        transport = httpx.ASGITransport(app=app, client=("1.2.3.4", 55555))
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://local"
+        ) as hc:
+            # login
+            rc_login = await hc.post(
+                "/auth/login",
+                json={"email": "__seed__@example.com", "password": "__seed__"},
+            )
+            assert rc_login.status_code == HTTPStatus.OK
 
-    # Use httpx ASGITransport to set a non-test client IP so rate limit applies
-    transport = httpx.ASGITransport(app=app, client=("1.2.3.4", 55555))
-    async with httpx.AsyncClient(transport=transport, base_url="http://local") as hc:
-        # login
-        rc_login = await hc.post(
-            "/auth/login",
-            json={"email": "__seed__@example.com", "password": "__seed__"},
-        )
-        assert rc_login.status_code == HTTPStatus.OK
+            # register a subscription under this session
+            rs = await hc.post(
+                "/notifications/subscriptions",
+                json={
+                    "endpoint": "https://example.com/ep/rl",
+                    "p256dh": "k",
+                    "auth": "a",
+                },
+            )
+            assert rs.status_code == HTTPStatus.NO_CONTENT
 
-        # register a subscription under this session
-        rs = await hc.post(
-            "/notifications/subscriptions",
-            json={
-                "endpoint": "https://example.com/ep/rl",
-                "p256dh": "k",
-                "auth": "a",
-            },
-        )
-        assert rs.status_code == HTTPStatus.NO_CONTENT
-
-        payload = {"title": "t", "body": "b"}
-        r1 = await hc.post("/notifications/admin/notifications/test", json=payload)
-        r2 = await hc.post("/notifications/admin/notifications/test", json=payload)
-        assert r1.status_code == HTTPStatus.ACCEPTED
-        assert r2.status_code == HTTPStatus.TOO_MANY_REQUESTS
-
-    app.dependency_overrides.pop(router_mod.get_push_provider, None)
+            payload = {"title": "t", "body": "b"}
+            r1 = await hc.post("/notifications/admin/notifications/test", json=payload)
+            r2 = await hc.post("/notifications/admin/notifications/test", json=payload)
+            assert r1.status_code == HTTPStatus.ACCEPTED
+            assert r2.status_code == HTTPStatus.TOO_MANY_REQUESTS
+    finally:
+        app.dependency_overrides.pop(router_mod.get_push_provider, None)
