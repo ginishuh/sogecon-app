@@ -56,6 +56,20 @@
       },
       "skipFiles": ["<node_internals>/**"],
       "console": "integratedTerminal"
+    },
+    {
+      "name": "Tests: Pytest (PG test DB)",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["-q"],
+      "env": {
+        "TEST_DB": "pg",
+        "TEST_DB_URL": "postgresql+psycopg://app:devpass@localhost:5434/appdb_test"
+      },
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true
     }
   ],
   "compounds": [
