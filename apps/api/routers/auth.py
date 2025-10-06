@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
@@ -24,9 +25,13 @@ class CurrentAdmin:
 
 
 def _get_admin_session(req: Request) -> CurrentAdmin | None:
-    data = req.session.get("admin")
-    if isinstance(data, dict) and "id" in data and "email" in data:
-        return CurrentAdmin(id=int(data["id"]), email=str(data["email"]))
+    raw: Any = req.session.get("admin")
+    data = cast("dict[str, object] | None", raw)
+    if isinstance(data, dict):
+        _id = data.get("id")
+        _email = data.get("email")
+        if (isinstance(_id, (int, str))) and isinstance(_email, str):
+            return CurrentAdmin(id=int(_id), email=_email)
     return None
 
 
