@@ -5,7 +5,6 @@ export type SubscriptionPayload = {
   p256dh: string;
   auth: string;
   ua?: string;
-  member_id?: number | null;
 };
 
 export async function saveSubscription(payload: SubscriptionPayload): Promise<void> {

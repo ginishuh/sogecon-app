@@ -21,7 +21,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <ServiceWorkerRegister />
+        {/* Dev에서 SW가 RSC 스트림을 끊는 것을 피하기 위해 prod/NEXT_PUBLIC_ENABLE_SW=1 에서만 렌더 */}
+        {(process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_SW === '1') && (
+          <ServiceWorkerRegister />
+        )}
         <Providers>
         <header className="flex flex-col gap-2 border-b border-slate-200 pb-4">
           <h1 className="text-2xl font-semibold text-brand-primary">Alumni Web App</h1>

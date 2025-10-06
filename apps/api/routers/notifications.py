@@ -32,7 +32,6 @@ class SubscriptionPayload(BaseModel):
     p256dh: str
     auth: str
     ua: str | None = None
-    member_id: int | None = None
 
 
 @router.post("/subscriptions", status_code=204)
