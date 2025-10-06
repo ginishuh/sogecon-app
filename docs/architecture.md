@@ -103,6 +103,13 @@
 - 예약/대량 발송: APScheduler 혹은 별도 워커 프로세스에서 Web Push를 큐잉 처리. 재시도/TTL/배치 크기 제어.
 - 키 관리: VAPID 공개/비공개 키 쌍을 `.env`로 주입(`VAPID_PUBLIC_KEY`,`VAPID_PRIVATE_KEY`,`VAPID_SUBJECT`). 키 순환 시 롤링 기간 동안 구독 재발급 유도.
 
+### 로컬 개발 환경(확정 사항)
+- API: 로컬 uvicorn(`make api-dev`, 포트 3001). DB만 Docker Compose 사용.
+- DB: `infra/docker-compose.dev.yml` — 기본 포트 dev `5433`, test `5434`.
+  - 포트 충돌 시 `infra/.env`의 `DB_DEV_PORT`, `DB_TEST_PORT`로 오버라이드.
+  - `.env`의 `DATABASE_URL`이 실제 포트와 일치해야 함.
+- CORS: `CORS_ORIGINS`는 JSON 배열 문자열로 관리.
+
 ### 운영 가드레일
 - 레이트리밋: 구독 등록/삭제, 발송 API에 IP·계정별 제한.
 - 옵트인/옵트아웃: `NotificationPreference(member_id, channel='webpush', topic, enabled)` 모델로 토픽 단위 제어.

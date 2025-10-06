@@ -1,0 +1,7 @@
+INFO:     Will watch for changes in these directories: ['/home/ginis/segecon-app']
+INFO:     Uvicorn running on http://127.0.0.1:3001 (Press CTRL+C to quit)
+INFO:     Started reloader process [629619] using WatchFiles
+INFO:     Started server process [629625]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:38948 - "GET /healthz HTTP/1.1" 200 OK

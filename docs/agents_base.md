@@ -78,3 +78,20 @@ Do NOT disable linters or type checkers globally or per file.
 
 ## Edit Policy
 - Propose changes in a PR that updates BOTH `agents_base.md` and `agents_base_kr.md`, then reference the change in AGENTS.md/CLAUDE.md.
+
+## Dev Environment & Envs (2025‑10‑06)
+- API runs locally with uvicorn; PostgreSQL runs via Docker Compose.
+  - Start/stop DBs: `make db-up` / `make db-down`.
+  - Default ports: dev `5433`, test `5434`. Override via `infra/.env`:
+    - `DB_DEV_PORT` (default `5433`), `DB_TEST_PORT` (default `5434`).
+  - Ensure `.env` `DATABASE_URL` uses the selected dev port.
+- CORS config: `CORS_ORIGINS` must be a JSON array string (e.g., `["http://localhost:3000"]`).
+- Web Push choice: Standard Web Push (VAPID) — FCM not used at this stage.
+  - `.env`: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
+  - `apps/web/.env.local`: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`.
+  - Never commit secrets; keep `*.example` files updated.
+- Privacy & ops for Web Push
+  - Server logs store only SHA‑256 hash + last 16 chars of endpoints.
+  - Subscriptions returning 404/410 are auto‑invalidated.
+  - Admin test: `POST /admin/notifications/test` payload `{ title, body, url? }`.
+  - Admin UI: `/admin/notifications` shows test form, recent logs, and summary.
