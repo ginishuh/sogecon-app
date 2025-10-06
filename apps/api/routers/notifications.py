@@ -106,14 +106,17 @@ def get_send_logs(
     rows = logs_repo.list_recent(db, limit=min(max(limit, 1), 200))
     out: list[SendLogRead] = []
     for r in rows:
+        created_any: Any = r.created_at
+        created_s = created_any.isoformat() if isinstance(created_any, datetime) else ""
+        ok_any: Any = r.ok
+        code_any: Any = r.status_code
+        tail_any: Any = r.endpoint_tail
         out.append(
             SendLogRead(
-                created_at=(
-                    cast(datetime, r.created_at).isoformat() if r.created_at else ""
-                ),
-                ok=bool(cast(int, r.ok)),
-                status_code=cast(int | None, r.status_code),
-                endpoint_tail=cast(str | None, r.endpoint_tail),
+                created_at=created_s,
+                ok=bool(ok_any),
+                status_code=(int(code_any) if isinstance(code_any, int) else None),
+                endpoint_tail=(str(tail_any) if isinstance(tail_any, str) else None),
             )
         )
     return out
