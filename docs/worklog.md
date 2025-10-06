@@ -17,6 +17,7 @@
  - Repo: .gitignore 정리 — `.env`/`.env.*` 무시, 단 `.env.example`은 명시적으로 추적.
  - 환경 예시(.env.example) 정리 — SQLite 기본값, Postgres 옵션 주석, NEXT_PUBLIC_WEB_API_BASE로 웹 변수 통일, 한국어 주석 보강.
  - Dev DB 포트: Docker Postgres 개발 기본 포트를 5433으로 전환(ports: "5433:5432"), .env.example/launch.json 동기화.
+ - Pytest DB 스위치: 기본 SQLite, `TEST_DB=pg` 설정 시 `TEST_DB_URL`(또는 `DATABASE_URL`)로 Postgres 테스트 지원(안전가드 포함).
 # Worklog
 
 ## 2025-10-05
