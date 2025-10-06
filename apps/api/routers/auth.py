@@ -57,7 +57,7 @@ def login(
         return None
 
     # slowapi의 데코레이터 반환 타입은 정의되어 있지 않아 Any로 캐스팅
-    checker = cast(Any, limiter_login.limit("5/minute"))
+    checker = cast(Any, limiter_login).limit("5/minute")
     checker(_noop)(request)
 
     user = db.query(AdminUser).filter(AdminUser.email == payload.email).first()
