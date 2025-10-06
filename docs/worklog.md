@@ -112,6 +112,8 @@
 - Web: favicon 404 노이즈 제거(임시 204 라우트 추가).
 - Makefile: `api-*/web-*` 백그라운드 태스크와 `dev-up|down|status` 추가, 로그/ PID 분리.
 - Hooks: pre-push에서 `logs/*`, `*.log`, `*.pid`, `.next/`, `node_modules/` 등 히스토리 상의 잡파일 무시하도록 필터링 추가.
+- API: WebPush provider 예외 범위 축소 — `except Exception` 제거, `ValueError|TypeError|RuntimeError|RequestException`만 처리(가드 준수).
+- API: RSVP 취소 시 승급 로직 트랜잭션 강화 — SAVEPOINT(begin_nested)로 후보 조회+승급을 한 단위로 처리하고, Postgres에서는 `SELECT … FOR UPDATE SKIP LOCKED` 적용(경합 완화). 복잡도 초과 방지를 위해 헬퍼로 분리.
 
 ## 2025-09-28
 - .gitignore에 mypy/ruff 캐시 폴더를 추가해 불필요한 상태 변화를 제거

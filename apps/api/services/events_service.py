@@ -24,6 +24,32 @@ def create_event(db: Session, payload: schemas.EventCreate) -> models.Event:
     return events_repo.create_event(db, payload)
 
 
+def _promote_waitlist_candidate(db: Session, event_id: int) -> None:
+    """대기열 최상위 1인을 going으로 승급(경합 완화 포함)."""
+    candidate = None
+    # 별도 SAVEPOINT에서 승급 처리(경합 감소, 중첩 트랜잭션 안전)
+    with db.begin_nested():
+        q = (
+            db.query(models.RSVP)
+            .filter(
+                models.RSVP.event_id == event_id,
+                models.RSVP.status == models.RSVPStatus.WAITLIST,
+            )
+            .order_by(models.RSVP.created_at.asc())
+        )
+        try:
+            # 비지원 백엔드(SQLite)에서는 with_for_update가 무시됨 → 안전
+            candidate = q.with_for_update(skip_locked=True).first()
+        except Exception:  # pragma: no cover - dialects without for_update
+            candidate = q.first()
+        if candidate is not None:
+            setattr(candidate, "status", models.RSVPStatus.GOING)
+            # flush는 컨텍스트 종료 시 수행
+    if candidate is not None:
+        db.commit()
+        db.refresh(candidate)
+
+
 def upsert_rsvp_status(
     db: Session, *, event_id: int, member_id: int, status: schemas.RSVPLiteral
 ) -> models.RSVP:
@@ -73,17 +99,6 @@ def upsert_rsvp_status(
         db.refresh(rsvp)
         # RSVP v2: cancel 시 대기열 최상위 1인을 going으로 승급
         if new_status == models.RSVPStatus.CANCEL:
-            candidate = (
-                db.query(models.RSVP)
-                .filter(
-                    models.RSVP.event_id == event_id,
-                    models.RSVP.status == models.RSVPStatus.WAITLIST,
-                )
-                .order_by(models.RSVP.created_at.asc())
-                .first()
-            )
-            if candidate is not None:
-                setattr(candidate, "status", models.RSVPStatus.GOING)
-                db.commit()
-                db.refresh(candidate)
+            # Postgres: SKIP LOCKED로 경쟁 중복 승급 방지
+            _promote_waitlist_candidate(db, event_id)
     return rsvp

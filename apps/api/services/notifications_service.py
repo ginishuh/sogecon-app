@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol, cast
 
 from pywebpush import WebPushException, webpush
+from requests.exceptions import RequestException
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
@@ -52,8 +53,8 @@ class PyWebPushProvider:
         except WebPushException as exc:
             status = getattr(getattr(exc, "response", None), "status_code", None)
             return (False, int(status) if status is not None else None)
-        except Exception:
-            # Treat unexpected errors as send failures so caller can log and continue
+        except (ValueError, TypeError, RuntimeError, RequestException):
+            # Treat config/transport failures as send failures so caller can log
             return (False, None)
 
 
