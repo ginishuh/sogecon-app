@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 import time
 from collections.abc import Callable
@@ -94,9 +95,9 @@ def contact(
             backup = logs_dir / "support.log.1"
             if backup.exists():
                 backup.unlink()
-            log_path.rename(backup)
-    except Exception:
-        pass
+            log_path.replace(backup)
+    except (OSError, PermissionError) as e:
+        logging.getLogger(__name__).warning("support.log rotation failed: %s", e)
     prev = (
         log_path.read_text(encoding="utf-8", errors="ignore")
         if log_path.exists()
