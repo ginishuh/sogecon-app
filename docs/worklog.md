@@ -175,4 +175,5 @@
 - Web: favicon 제공(app/icon.svg)으로 /favicon.ico 404 제거.
 - Web: /directory 검색·필터 디바운스(400ms) + URL 자동 동기화 적용.
 - Docs: 에이전트 베이스 PR 템플릿 사용 규칙 확인(영/국문 베이스와 AGENTS.md 정합성 점검).
- - API: support 티켓 저장용 TypedDict 필수/선택 키 명시(NotRequired)로 pyright 오류 해소.
+- API: support 티켓 저장용 TypedDict 필수/선택 키 명시(NotRequired)로 pyright 오류 해소.
+ - Web: Next typedRoutes와 호환되도록 router.replace에 안전한 `Route` 캐스팅 적용.

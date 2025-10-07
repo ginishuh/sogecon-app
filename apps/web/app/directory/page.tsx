@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import type { Route } from 'next';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { listMembers, countMembers } from '../../services/members';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -153,9 +154,10 @@ export default function DirectoryPage() {
     // 현재 URL과 동일하면 불필요한 replace를 생략
     if (typeof window !== 'undefined') {
       const current = window.location.pathname + window.location.search;
-      if (current !== target) router.replace(target);
+      // 동적 쿼리 문자열 조합: '/directory' 기준이므로 안전한 경로
+      if (current !== target) router.replace(target as Route);
     } else {
-      router.replace(target);
+      router.replace(target as Route);
     }
   }, [qDeb, cohortDeb, majorDeb, router]);
 
