@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+import time
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -14,6 +16,11 @@ from ..routers.auth import CurrentMember, require_member
 
 router = APIRouter(prefix="/support", tags=["support"]) 
 limiter = Limiter(key_func=get_remote_address)
+
+# 최근 중복/쿨다운 체크(간단 메모리)
+_recent: dict[str, tuple[float, str]] = {}
+_COOLDOWN_SEC = 60.0
+_BLOCKLIST = re.compile(r"(viagra|casino|loan|bet|bitcoin|crypto|porn)", re.I)
 
 
 class ContactPayload(BaseModel):
@@ -40,9 +47,23 @@ def contact(
         checker = limiter_typed.limit("1/minute")
         checker(lambda r: None)(request)
 
-    # 봇/스팸: honeypot 필드가 채워져 있으면 드롭
-    if payload.hp:
+    # 봇/스팸: honeypot 또는 키워드 차단 → 드롭(accepted)
+    if payload.hp or _BLOCKLIST.search(payload.subject) or _BLOCKLIST.search(
+        payload.body
+    ):
         return {"status": "accepted"}
+
+    # 최근 동일 사용자(또는 세션 IP) 중복/쿨다운 드롭
+    ident = (request.client.host if request.client else "") + "|" + (
+        _m.email if hasattr(_m, "email") else ""
+    )
+    h = f"{payload.subject}\n{payload.body}"
+    now = time.monotonic()
+    t_prev, h_prev = _recent.get(ident, (0.0, ""))
+    if h_prev == h and (now - t_prev) < _COOLDOWN_SEC:
+        _recent[ident] = (now, h)
+        return {"status": "accepted"}
+    _recent[ident] = (now, h)
 
     # 개발 단계: 파일 로그로 보관(간단 로테이션)
     logs_dir = Path("logs")

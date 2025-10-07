@@ -36,3 +36,11 @@ def test_directory_filters(admin_login: TestClient) -> None:
     assert q3.status_code == HTTPStatus.OK
     data3 = q3.json()
     assert any(x['email']=='alice@example.com' for x in data3)
+
+    # pagination: limit/offset
+    p1 = client.get('/members/?limit=1&offset=0')
+    p2 = client.get('/members/?limit=1&offset=1')
+    assert p1.status_code == HTTPStatus.OK and p2.status_code == HTTPStatus.OK
+    d1, d2 = p1.json(), p2.json()
+    assert isinstance(d1, list) and isinstance(d2, list)
+    assert d1 and d2 and d1[0]['email'] != d2[0]['email']

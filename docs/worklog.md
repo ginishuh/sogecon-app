@@ -167,4 +167,6 @@
 - 보정: profile 라우터 임포트 정렬(ruff) 및 pyright 캐스팅 보완.
 - C v0: /members 필터(q/cohort/major) 추가(기본 private 제외). Web /directory 목록 연동(react-query).
 - A-4: /support/contact 입력 검증(min/max), honeypot, 1MiB 로그 로테이션. 429/422 테스트 추가. 전체 31 테스트 통과.
- - 마무리: 디렉터리/문의 경로 린트·타입 보완 및 문서 갱신.
+- 마무리: 디렉터리/문의 경로 린트·타입 보완 및 문서 갱신.
+ - 디렉터리: useInfiniteQuery 기반 무한스크롤(더 불러오기) 추가.
+ - 문의: 키워드 스팸 드롭 및 60초 중복 쿨다운.

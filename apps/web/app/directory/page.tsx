@@ -1,16 +1,27 @@
 "use client";
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { listMembers, type Member } from '../../services/members';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { listMembers } from '../../services/members';
 
 export default function DirectoryPage() {
   const [q, setQ] = useState('');
   const [cohort, setCohort] = useState<string>('');
   const [major, setMajor] = useState('');
-  const query = useQuery<Member[]>({
+  const pageSize = 10;
+  const query = useInfiniteQuery({
     queryKey: ['directory', q, cohort, major],
-    queryFn: () => listMembers({ q, cohort: cohort ? Number(cohort) : undefined, major }),
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) =>
+      listMembers({
+        q,
+        cohort: cohort ? Number(cohort) : undefined,
+        major,
+        limit: pageSize,
+        offset: pageParam as number,
+      }),
+    getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+      lastPage.length < pageSize ? undefined : (lastPageParam as number) + pageSize,
   });
 
   return (
@@ -38,7 +49,7 @@ export default function DirectoryPage() {
               </tr>
             </thead>
             <tbody>
-              {(query.data ?? []).map((m) => (
+              {(query.data?.pages.flatMap((p) => p) ?? []).map((m) => (
                 <tr key={m.id} className="border-b last:border-0">
                   <td className="p-2">{m.name}</td>
                   <td className="p-2 font-mono text-xs">{m.email}</td>
@@ -49,6 +60,17 @@ export default function DirectoryPage() {
               ))}
             </tbody>
           </table>
+          <div className="mt-3">
+            {query.hasNextPage ? (
+              <button
+                onClick={() => query.fetchNextPage()}
+                disabled={query.isFetchingNextPage}
+                className="rounded border px-3 py-2 text-sm"
+              >더 불러오기</button>
+            ) : (
+              <span className="text-xs text-slate-500">더 이상 결과가 없습니다.</span>
+            )}
+          </div>
         </div>
       )}
     </div>
