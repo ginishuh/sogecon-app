@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
@@ -9,12 +9,12 @@ from sqlalchemy.orm import Session
 from ..models_support import SupportTicket
 
 
-class TicketCreate(TypedDict, total=False):
-    member_email: str | None
+class TicketCreate(TypedDict):
     subject: str
     body: str
-    contact: str | None
-    client_ip: str | None
+    member_email: NotRequired[str | None]
+    contact: NotRequired[str | None]
+    client_ip: NotRequired[str | None]
 
 
 def create_ticket(db: Session, data: TicketCreate) -> SupportTicket:
