@@ -71,6 +71,7 @@ export default function AdminNotificationsPage() {
         ) : stats.data ? (
           <div className="text-sm text-slate-800">
             활성 구독: <b>{stats.data.active_subscriptions}</b> · 최근 성공: <b className="text-emerald-700">{stats.data.recent_accepted}</b> · 최근 실패: <b className="text-red-700">{stats.data.recent_failed}</b>
+            <span className="ml-3 text-xs text-slate-500">암호화: {stats.data.encryption_enabled ? 'ON' : 'OFF'}</span>
           </div>
         ) : null}
       </div>
