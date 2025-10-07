@@ -8,6 +8,7 @@ import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
 import { useToast } from '../../../components/toast';
 import { useAuth } from '../../../hooks/useAuth';
+import { RequireAdmin } from '../../../components/require-admin';
 import { usePathname } from 'next/navigation';
 
 export default function NewPostPage() {
@@ -50,6 +51,12 @@ export default function NewPostPage() {
   }
 
   return (
+    <RequireAdmin fallback={
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">게시글 작성</h2>
+        <p className="text-sm text-slate-600">관리자 전용입니다.</p>
+      </section>
+    }>
     <section className="space-y-4">
       <h2 className="text-xl font-semibold">게시글 작성</h2>
       <div className="space-y-3">
@@ -80,5 +87,6 @@ export default function NewPostPage() {
         {error && <p className="text-red-700 text-sm">{error}</p>}
       </div>
     </section>
+    </RequireAdmin>
   );
 }
