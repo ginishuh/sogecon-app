@@ -158,4 +158,5 @@
 - 마이그레이션: 0008 endpoint_hash backfill의 MetaData.bind 사용 제거(pyright 경고 해소).
 - 마이그레이션: 0009 endpoint_hash NOT NULL 전환(누락분 백필 후 제약 강화).
 - 보안/안정성: crypto_utils.decrypt_str가 키 불일치/손상 시 예외 대신 원문 반환으로 안전 실패(크래시 방지). 테스트 추가.
- - 의존성: pip-audit 경고 해소 위해 cryptography 44.0.1로 상향(43.0.1 → 44.0.1).
+- 의존성: pip-audit 경고 해소 위해 cryptography 44.0.1로 상향(43.0.1 → 44.0.1).
+ - ABC Phase 1: 활성화/비번변경/문의 기본 라우트 추가 및 테스트. 문의는 파일 로그로 수집(레이트리밋 1/min/IP). 총 28 테스트 통과.
