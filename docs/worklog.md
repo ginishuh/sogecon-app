@@ -187,4 +187,5 @@
  - Fix: ok 필드 bool 변환을 정수 비교로 교체(pyright reportGeneralTypeIssues 해소).
 - Fix: 통계 계산 제너레이터 → 루프 재작성(SQLAlchemy InstrumentedAttribute 비교 시 pyright 오진 회피).
 - Test: invalid endpoint 422, stats range 파라미터 반환 검증 추가(총 33 통과).
- - Ops: re-key 스크립트(ops/rekey_push_kek.py) 추가 및 KEK 로테이션 절차 문서화.
+- Ops: re-key 스크립트(ops/rekey_push_kek.py) 추가 및 KEK 로테이션 절차 문서화.
+ - Test: 동시성 레이트리밋 케이스 추가(동시 2요청 중 최소 1건 429 보장). 전체 34 테스트 통과.
