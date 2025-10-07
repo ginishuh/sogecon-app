@@ -42,3 +42,10 @@ export async function getSendLogs(limit = 50): Promise<SendLog[]> {
 export async function getNotificationStats(): Promise<NotificationStats> {
   return apiFetch<NotificationStats>('/notifications/admin/notifications/stats');
 }
+
+export async function pruneSendLogs(olderThanDays: number): Promise<{ deleted: number }> {
+  return apiFetch<{ deleted: number }>(
+    '/notifications/admin/notifications/prune-logs',
+    { method: 'POST', body: JSON.stringify({ older_than_days: olderThanDays }) }
+  );
+}

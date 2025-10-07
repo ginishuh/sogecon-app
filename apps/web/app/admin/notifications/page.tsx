@@ -6,7 +6,7 @@ import { RequireAdmin } from '../../../components/require-admin';
 import { useToast } from '../../../components/toast';
 import { apiFetch } from '../../../lib/api';
 import { useQuery } from '@tanstack/react-query';
-import { getNotificationStats, getSendLogs, type SendLog } from '../../../services/notifications';
+import { getNotificationStats, getSendLogs, pruneSendLogs, type SendLog } from '../../../services/notifications';
 
 export default function AdminNotificationsPage() {
   const { status } = useAuth();
@@ -15,8 +15,10 @@ export default function AdminNotificationsPage() {
   const [body, setBody] = useState('웹 푸시 경로 연결 확인');
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);
+  const [logLimit, setLogLimit] = useState(50);
+  const [pruneDays, setPruneDays] = useState(30);
   const stats = useQuery({ queryKey: ['notify','stats'], queryFn: getNotificationStats, staleTime: 10_000 });
-  const logs = useQuery<SendLog[]>({ queryKey: ['notify','logs'], queryFn: () => getSendLogs(50), staleTime: 10_000 });
+  const logs = useQuery<SendLog[]>({ queryKey: ['notify','logs', logLimit], queryFn: () => getSendLogs(logLimit), staleTime: 10_000 });
 
   if (status !== 'authorized') {
     return <div className="p-4 text-sm text-slate-600">관리자 로그인이 필요합니다.</div>;
@@ -33,6 +35,19 @@ export default function AdminNotificationsPage() {
       toast.show(`발송 요청 완료: 성공 ${res.accepted}, 실패 ${res.failed}`, { type: 'success' });
     } catch {
       toast.show('발송 중 오류가 발생했습니다.', { type: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onPrune = async () => {
+    setBusy(true);
+    try {
+      const res = await pruneSendLogs(pruneDays);
+      toast.show(`오래된 로그 ${res.deleted}건 삭제`, { type: 'success' });
+      await logs.refetch();
+    } catch {
+      toast.show('로그 정리 중 오류가 발생했습니다.', { type: 'error' });
     } finally {
       setBusy(false);
     }
@@ -71,13 +86,52 @@ export default function AdminNotificationsPage() {
         ) : stats.data ? (
           <div className="text-sm text-slate-800">
             활성 구독: <b>{stats.data.active_subscriptions}</b> · 최근 성공: <b className="text-emerald-700">{stats.data.recent_accepted}</b> · 최근 실패: <b className="text-red-700">{stats.data.recent_failed}</b>
-            <span className="ml-3 text-xs text-slate-500">암호화: {stats.data.encryption_enabled ? 'ON' : 'OFF'}</span>
+            <span
+              className={
+                `ml-3 inline-flex items-center rounded px-2 py-0.5 text-xs ${
+                  stats.data.encryption_enabled ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200'
+                }`
+              }
+              title="구독 at-rest 암호화 상태"
+            >암호화 {stats.data.encryption_enabled ? 'ON' : 'OFF'}</span>
           </div>
         ) : null}
       </div>
 
+      <div className="mb-6">
+        <h3 className="mb-2 text-lg font-medium">로그 정리</h3>
+        <div className="flex items-center gap-2 text-sm">
+          <label className="text-sm">
+            보관 기간(일)
+            <input
+              type="number"
+              min={1}
+              className="ml-2 w-24 rounded border px-2 py-1"
+              value={pruneDays}
+              onChange={(e) => setPruneDays(Math.max(1, parseInt(e.target.value || '1', 10)))}
+            />
+          </label>
+          <button
+            disabled={busy}
+            onClick={onPrune}
+            className="rounded border px-3 py-1.5 text-sm disabled:opacity-50"
+          >오래된 로그 삭제</button>
+        </div>
+      </div>
+
       <div>
         <h3 className="mb-2 text-lg font-medium">최근 발송 로그</h3>
+        <div className="mb-2 flex items-center gap-2 text-xs text-slate-600">
+          <label className="flex items-center gap-1">표시 개수
+            <select
+              className="rounded border px-2 py-1"
+              value={logLimit}
+              onChange={(e) => setLogLimit(parseInt(e.target.value, 10))}
+            >
+              {[20, 50, 100, 200].map(v => <option key={v} value={v}>{v}</option>)}
+            </select>
+          </label>
+        </div>
         {logs.isLoading ? (
           <div className="text-sm text-slate-500">로딩 중…</div>
         ) : logs.isError ? (
