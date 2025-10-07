@@ -17,6 +17,9 @@ class MemberBase(BaseModel):
     major: str | None = None
     roles: str = "member"
     visibility: VisibilityLiteral = "all"
+    birth_date: str | None = None  # 'YYYY-MM-DD'
+    birth_lunar: bool | None = None
+    phone: str | None = None
 
 
 class MemberCreate(MemberBase):
@@ -40,6 +43,9 @@ class MemberUpdate(BaseModel):
     name: str | None = None
     major: str | None = None
     visibility: VisibilityLiteral | None = None
+    birth_date: str | None = None
+    birth_lunar: bool | None = None
+    phone: str | None = None
 
 
 class MemberListFilters(TypedDict, total=False):

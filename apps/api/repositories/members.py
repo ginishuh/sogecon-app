@@ -88,6 +88,15 @@ def update_member_profile(
     if data.visibility is not None:
         setattr(member, "visibility", models.Visibility(data.visibility))
         changed = True
+    if data.birth_date is not None:
+        setattr(member, "birth_date", data.birth_date)
+        changed = True
+    if data.birth_lunar is not None:
+        setattr(member, "birth_lunar", bool(data.birth_lunar))
+        changed = True
+    if data.phone is not None:
+        setattr(member, "phone", data.phone)
+        changed = True
     if changed:
         db.commit()
         db.refresh(member)

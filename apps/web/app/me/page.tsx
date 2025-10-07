@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { apiFetch } from '../../lib/api';
 import { useToast } from '../../components/toast';
 
-type MemberRead = { id: number; email: string; name: string; cohort: number; major?: string | null; roles: string; visibility: 'all'|'cohort'|'private' };
+type MemberRead = { id: number; email: string; name: string; cohort: number; major?: string | null; roles: string; visibility: 'all'|'cohort'|'private'; birth_date?: string | null; birth_lunar?: boolean | null; phone?: string | null };
 
 export default function MePage() {
   const { status } = useAuth();
@@ -58,6 +58,16 @@ export default function MePage() {
               <option value="cohort">기수 한정</option>
               <option value="private">비공개</option>
             </select>
+          </label>
+          <label>생일(표시용)
+            <input className="mt-1 w-full rounded border px-3 py-2" placeholder="YYYY-MM-DD" value={me.birth_date ?? ''} onChange={(e) => setMe({ ...me, birth_date: e.target.value })} />
+          </label>
+          <label className="inline-flex items-center gap-2">
+            <input type="checkbox" checked={!!me.birth_lunar} onChange={(e) => setMe({ ...me, birth_lunar: e.target.checked })} />
+            음력 여부
+          </label>
+          <label>연락처(선택)
+            <input className="mt-1 w-full rounded border px-3 py-2" value={me.phone ?? ''} onChange={(e) => setMe({ ...me, phone: e.target.value })} />
           </label>
           <button disabled={busy} className="rounded bg-emerald-600 px-4 py-2 text-white disabled:opacity-50">저장</button>
         </form>
