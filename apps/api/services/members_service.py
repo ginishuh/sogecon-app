@@ -22,6 +22,12 @@ def list_members(
     )
 
 
+def count_members(
+    db: Session, *, filters: schemas.MemberListFilters | None = None
+) -> int:
+    return members_repo.count_members(db, filters=filters)
+
+
 def get_member(db: Session, member_id: int) -> models.Member:
     return members_repo.get_member(db, member_id)
 

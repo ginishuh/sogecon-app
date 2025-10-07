@@ -11,10 +11,13 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from sqlalchemy.orm import Session
 
-from ..routers.auth import CurrentMember, require_member
+from ..db import get_db
+from ..repositories import support_tickets as tickets_repo
+from ..routers.auth import CurrentAdmin, CurrentMember, require_admin, require_member
 
-router = APIRouter(prefix="/support", tags=["support"]) 
+router = APIRouter(prefix="/support", tags=["support"])
 limiter = Limiter(key_func=get_remote_address)
 
 # 최근 중복/쿨다운 체크(간단 메모리)
@@ -35,6 +38,7 @@ def contact(
     payload: ContactPayload,
     request: Request,
     _m: CurrentMember = Depends(require_member),
+    db: Session = Depends(get_db),
 ) -> dict[str, str]:
     # 레이트리밋(1/min/IP) — 테스트클라이언트 면제
     if not (request.client and request.client.host == "testclient"):
@@ -65,6 +69,18 @@ def contact(
         return {"status": "accepted"}
     _recent[ident] = (now, h)
 
+    # DB 티켓 저장
+    tickets_repo.create_ticket(
+        db,
+        {
+            "member_email": (getattr(_m, "email", None) if _m else None),
+            "subject": payload.subject,
+            "body": payload.body,
+            "contact": payload.contact,
+            "client_ip": (request.client.host if request.client else None),
+        },
+    )
+
     # 개발 단계: 파일 로그로 보관(간단 로테이션)
     logs_dir = Path("logs")
     logs_dir.mkdir(parents=True, exist_ok=True)
@@ -88,3 +104,31 @@ def contact(
     )
     log_path.write_text(prev + line, encoding="utf-8")
     return {"status": "accepted"}
+
+
+class TicketRead(BaseModel):
+    created_at: str
+    member_email: str | None
+    subject: str
+    contact: str | None
+    client_ip: str | None
+
+
+@router.get("/admin/tickets", response_model=list[TicketRead])
+def list_tickets(
+    _admin: CurrentAdmin = Depends(require_admin),
+    db: Session = Depends(get_db),
+    limit: int = 50,
+) -> list[TicketRead]:
+    rows = tickets_repo.list_recent(db, limit=min(max(limit, 1), 200))
+    out: list[TicketRead] = []
+    for r in rows:
+        created = getattr(r, 'created_at', None)
+        out.append(TicketRead(
+            created_at=(created.isoformat() if created else ''),
+            member_email=getattr(r, 'member_email', None),
+            subject=getattr(r, 'subject', ''),
+            contact=getattr(r, 'contact', None),
+            client_ip=getattr(r, 'client_ip', None),
+        ))
+    return out

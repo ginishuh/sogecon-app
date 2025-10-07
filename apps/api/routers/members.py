@@ -37,6 +37,25 @@ def list_members(
     return [schemas.MemberRead.model_validate(member) for member in members]
 
 
+class MemberCount(BaseModel):
+    count: int
+
+
+@router.get("/count", response_model=MemberCount)
+def count_members(
+    params: MemberListParams = Depends(), db: Session = Depends(get_db)
+) -> MemberCount:
+    filters: schemas.MemberListFilters = {}
+    if params.q:
+        filters['q'] = params.q
+    if params.cohort is not None:
+        filters['cohort'] = int(params.cohort)
+    if params.major:
+        filters['major'] = params.major
+    c = members_service.count_members(db, filters=filters)
+    return MemberCount(count=c)
+
+
 @router.get("/{member_id}", response_model=schemas.MemberRead)
 def get_member(member_id: int, db: Session = Depends(get_db)) -> schemas.MemberRead:
     member = members_service.get_member(db, member_id)

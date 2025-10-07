@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -45,6 +45,31 @@ def list_members(
         stmt = stmt.where(and_(*conds))
     stmt = stmt.offset(offset).limit(limit)
     return db.execute(stmt).scalars().all()
+
+
+def count_members(
+    db: Session, *, filters: schemas.MemberListFilters | None = None
+) -> int:
+    stmt = select(func.count()).select_from(models.Member)
+    conds: list[ColumnElement[bool]] = []
+    f = filters or {}
+    qv = f.get('q')
+    if qv:
+        like = f"%{qv}%"
+        conds.append(
+            or_(models.Member.name.ilike(like), models.Member.email.ilike(like))
+        )
+    coh = f.get('cohort')
+    if coh is not None:
+        conds.append(models.Member.cohort == int(coh))
+    maj = f.get('major')
+    if maj:
+        conds.append(models.Member.major.ilike(f"%{maj}%"))
+    if f.get('exclude_private', True):
+        conds.append(models.Member.visibility != models.Visibility.PRIVATE)
+    if conds:
+        stmt = stmt.where(and_(*conds))
+    return int(db.execute(stmt).scalar() or 0)
 
 
 def get_member(db: Session, member_id: int) -> models.Member:

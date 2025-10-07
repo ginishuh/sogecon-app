@@ -171,3 +171,7 @@
 - 디렉터리: useInfiniteQuery 기반 무한스크롤(더 불러오기) 추가.
 - 문의: 키워드 스팸 드롭 및 60초 중복 쿨다운.
  - B v1 확장: members에 birth_date/birth_lunar/phone 컬럼 추가(0010), /me 폼 입력 연동.
+
+- Web: favicon 제공(app/icon.svg)으로 /favicon.ico 404 제거.
+- Web: /directory 검색·필터 디바운스(400ms) + URL 자동 동기화 적용.
+- Docs: 에이전트 베이스 PR 템플릿 사용 규칙 확인(영/국문 베이스와 AGENTS.md 정합성 점검).

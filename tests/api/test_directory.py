@@ -44,3 +44,8 @@ def test_directory_filters(admin_login: TestClient) -> None:
     d1, d2 = p1.json(), p2.json()
     assert isinstance(d1, list) and isinstance(d2, list)
     assert d1 and d2 and d1[0]['email'] != d2[0]['email']
+
+    # count endpoint
+    c = client.get('/members/count?q=bo')
+    assert c.status_code == HTTPStatus.OK
+    assert c.json().get('count', 0) >= 1
