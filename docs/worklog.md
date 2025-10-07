@@ -163,4 +163,5 @@
 - ABC Phase 1: 타입/린트 보완(pyright OK), itsdangerous 토큰 기반 활성화 경로 안정화.
 - Web: /activate, /settings/password, /support/contact, /me, /directory 스케폴드 및 폼/토스트 연결. next build OK.
 - B v1: /me GET/PUT(이름/전공/공개범위) API 추가, Web 편집 폼 연동.
- - 테스트: /me GET/PUT 프로필 업데이트 케이스 추가.
+- 테스트: /me GET/PUT 프로필 업데이트 케이스 추가.
+ - 보정: profile 라우터 임포트 정렬(ruff) 및 pyright 캐스팅 보완.
