@@ -178,4 +178,5 @@
 - API: support 티켓 저장용 TypedDict 필수/선택 키 명시(NotRequired)로 pyright 오류 해소.
  - Web: Next typedRoutes와 호환되도록 router.replace에 안전한 `Route` 캐스팅 적용.
  - Web: /directory 페이지에 Suspense 래퍼 추가(useSearchParams 규칙 준수). 프로덕션 빌드 오류 해결.
- - API: bandit(B110) 대응 — support 로그 로테이션에서 광범위 예외 대신 (OSError, PermissionError)만 포착하고 경고 로그 남김.
+- API: bandit(B110) 대응 — support 로그 로테이션에서 광범위 예외 대신 (OSError, PermissionError)만 포착하고 경고 로그 남김.
+ - Docs: M3 Push Polish 세부 계획 추가(`docs/m3_push_polish_plan_251007.md`), `docs/plan_251007.md` 다음 단계 섹션 갱신.
