@@ -3,8 +3,9 @@ from __future__ import annotations
 import hashlib
 from collections.abc import Sequence
 
-from sqlalchemy import desc, select
+from sqlalchemy import desc, select, text
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 
 from .. import models
 
@@ -40,3 +41,30 @@ def list_recent(
         .limit(limit)
     )
     return db.execute(stmt).scalars().all()
+
+
+def prune_older_than_days(db: Session, *, days: int) -> int:
+    cutoff = func.now() - func.make_interval(0, 0, 0, days)
+    # SQLite fallback: use datetime('now', '-N days') when dialect lacks make_interval
+    try:
+        q = db.query(models.NotificationSendLog).filter(
+            models.NotificationSendLog.created_at < cutoff
+        )
+        count = q.count()
+        q.delete()
+        db.commit()
+        return int(count)
+    except Exception:
+        # Fallback for SQLite
+        stmt = text(
+            "DELETE FROM notification_send_logs "
+            "WHERE created_at < datetime('now', :delta)"
+        )
+        res = db.execute(stmt, {"delta": f"-{days} days"})
+        db.commit()
+        # SQLAlchemy Result may not expose rowcount in all dialects; treat unknown as 0
+        try:
+            n = int(getattr(res, "rowcount", 0) or 0)
+        except Exception:
+            n = 0
+        return n

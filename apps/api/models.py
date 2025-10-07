@@ -126,6 +126,7 @@ class PushSubscription(Base):
         nullable=True,
     )
     endpoint = Column(String(512), unique=True, index=True, nullable=False)
+    endpoint_hash = Column(String(64), unique=True, index=True, nullable=False)
     p256dh = Column(String(255), nullable=False)
     auth = Column(String(255), nullable=False)
     ua = Column(String(255), nullable=True)

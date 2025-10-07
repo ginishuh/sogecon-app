@@ -140,6 +140,7 @@ class NotificationStats(BaseModel):
     active_subscriptions: int
     recent_accepted: int
     recent_failed: int
+    encryption_enabled: bool
 
 
 @router.get("/admin/notifications/stats")
@@ -151,6 +152,24 @@ def get_stats(
     logs = logs_repo.list_recent(db, limit=200)
     accepted = sum(1 for r in logs if bool(r.ok))
     failed = sum(1 for r in logs if not bool(r.ok))
+    settings = get_settings()
     return NotificationStats(
-        active_subscriptions=len(subs), recent_accepted=accepted, recent_failed=failed
+        active_subscriptions=len(subs),
+        recent_accepted=accepted,
+        recent_failed=failed,
+        encryption_enabled=bool(settings.push_encrypt_at_rest),
     )
+
+
+class PruneLogsPayload(BaseModel):
+    older_than_days: int = 30
+
+
+@router.post("/admin/notifications/prune-logs")
+def prune_logs(
+    payload: PruneLogsPayload,
+    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    db: Session = Depends(get_db),
+) -> dict[str, int]:
+    n = logs_repo.prune_older_than_days(db, days=max(1, int(payload.older_than_days)))
+    return {"deleted": n}

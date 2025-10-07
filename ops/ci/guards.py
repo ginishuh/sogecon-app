@@ -49,6 +49,7 @@ EXCLUDE_DIRS = {
     ROOT / ".venv",
     ROOT / "node_modules",
     ROOT / "apps/web/.next",
+    ROOT / "packages/schemas",  # Generated OpenAPI types
 }
 
 # Exclude this guard script from scanning to avoid false positives

@@ -20,6 +20,11 @@
   - 문서: architecture.md에 인증/권한/RSVP v2 정책 반영
   - 훅 보강: pre-push가 requirements 변경 시 pip install을 수행해 의존성 누락으로 인한 실패 방지
 - M2 브랜치/PR 초안: 세션 인증/권한 + RSVP v2 계획 문서 추가(docs/m2_plan.md)
+
+## 2025-10-07
+
+- M3-4: prune-logs/guard 추가, 암호화·통계 완료. 마이그레이션 린트 수정, 스키마 재생성(encryption_enabled), repo guards에 packages/schemas 제외.
+
 ## 2025-10-06
 
 
@@ -146,3 +151,11 @@
 - Web: RequireMember 가드 추가 및 로그인 모드(localStorage) 기억.
 - Web: RequireAdmin/RequireMember 가드 도입, 관리자 UI 링크와 페이지 보호. 로그인 모드 저장.
 - Web: admin notifications 페이지를 RequireAdmin으로 보호.
+- Web Push: 구독 at-rest 암호화(옵션, AES-GCM) 추가. endpoint_hash로 결정적 조회. 통계에 encryption 플래그 포함.
+- Web Push: 관리자 prune-logs 엔드포인트 추가 및 테스트.
+ - 테스트/유틸: 설정 캐시 재적용 유틸(`reset_settings_cache`) 추가 및 암호화 스모크 테스트 도입.
+- 문서/환경: `.env.example`에 `PUSH_ENCRYPT_AT_REST`, `PUSH_KEK` 예시 추가. Admin Notifications에 암호화 ON/OFF 표시.
+- 마이그레이션: 0008 endpoint_hash backfill의 MetaData.bind 사용 제거(pyright 경고 해소).
+- 마이그레이션: 0009 endpoint_hash NOT NULL 전환(누락분 백필 후 제약 강화).
+- 보안/안정성: crypto_utils.decrypt_str가 키 불일치/손상 시 예외 대신 원문 반환으로 안전 실패(크래시 방지). 테스트 추가.
+ - 의존성: pip-audit 경고 해소 위해 cryptography 44.0.1로 상향(43.0.1 → 44.0.1).

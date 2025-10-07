@@ -27,8 +27,22 @@ class Settings(BaseSettings):
     vapid_subject: str = Field(
         default="mailto:security@trr.co.kr", alias="VAPID_SUBJECT"
     )
+    # Web Push encryption at rest
+    push_encrypt_at_rest: bool = Field(default=False, alias="PUSH_ENCRYPT_AT_REST")
+    push_kek: str = Field(default="", alias="PUSH_KEK")  # base64 32 bytes
 
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
+
+
+def reset_settings_cache() -> None:
+    """설정 캐시(lru_cache) 초기화.
+
+    테스트 등에서 환경변수 기반 설정을 재적용할 때 사용합니다.
+    정적 타입 검사 우회를 피하기 위해 동적 속성 접근을 사용합니다.
+    """
+    cache_clear = getattr(get_settings, "cache_clear", None)
+    if callable(cache_clear):
+        cache_clear()
