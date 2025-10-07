@@ -4,6 +4,7 @@ from collections.abc import Sequence
 
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.elements import ColumnElement
 
 from .. import models, schemas
 from ..errors import NotFoundError
@@ -24,7 +25,7 @@ def list_members(
     - exclude_private: visibility=PRIVATE을 기본 제외
     """
     stmt = select(models.Member)
-    conds: list = []
+    conds: list[ColumnElement[bool]] = []
     f = filters or {}
     qv = f.get('q')
     if qv:

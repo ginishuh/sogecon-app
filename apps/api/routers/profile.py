@@ -5,10 +5,10 @@ from typing import cast
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from apps.api import schemas
-from apps.api.db import get_db
-from apps.api.routers.auth import CurrentMember, require_member
-from apps.api.services import members_service
+from .. import schemas
+from ..db import get_db
+from ..services import members_service
+from .auth import CurrentMember, require_member
 
 router = APIRouter(prefix="/me", tags=["me"]) 
 
