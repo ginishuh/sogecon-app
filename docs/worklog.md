@@ -141,3 +141,4 @@
 - 429 테스트 추가(관리 발송 레이트리밋) — httpx.AsyncClient+ASGITransport로 client IP 설정, slowapi 파라미터명 수정(request).
 - 테스트 정리 강화: 429 테스트에서 provider override를 try/finally로 복구. Web CTA는 ApiError.status로 401 판별.
 - 멤버 인증 추가: MemberAuth 모델/마이그레이션, /auth/member(login/logout/me), require_member 실제 세션 사용. 테스트는 member 세션으로 구독 경로 검증.
+- Web: 로그인 페이지에 멤버/관리자 토글 추가, 세션 훅이 멤버/관리자 자동 판별, 헤더 로그아웃 통합.

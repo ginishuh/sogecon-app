@@ -2,13 +2,13 @@
 
 import { useMutation } from '@tanstack/react-query';
 import Link from 'next/link';
-import { logout } from '../services/auth';
+import { logoutAll } from '../services/auth';
 import { useAuth } from '../hooks/useAuth';
 
 export function HeaderAuth() {
   const { status, data, invalidate } = useAuth();
   const mut = useMutation({
-    mutationFn: logout,
+    mutationFn: logoutAll,
     onSuccess: () => invalidate()
   });
 
@@ -25,4 +25,3 @@ export function HeaderAuth() {
     </div>
   );
 }
-
