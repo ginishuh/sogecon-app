@@ -7,6 +7,8 @@ import { ServiceWorkerRegister } from './sw-register';
 import { Providers } from './providers';
 import { HeaderAuth } from '../components/header-auth';
 import { NotifyCTA } from '../components/notify-cta';
+import { RequireMember } from '../components/require-member';
+import { RequireAdmin } from '../components/require-admin';
 
 export const metadata: Metadata = {
   title: 'Alumni Web App',
@@ -33,13 +35,17 @@ export default function RootLayout({
               <Link href="/">홈</Link>
               <Link href="/posts">게시글</Link>
               <Link href="/events">행사</Link>
-              <Link href="/admin/notifications">알림(Admin)</Link>
-              <span className="ml-4 text-slate-400">│</span>
-              <Link href="/posts/new">게시글 작성</Link>
-              <Link href="/events/new">행사 생성</Link>
+              <RequireAdmin>
+                <Link href="/admin/notifications">알림(Admin)</Link>
+                <span className="ml-4 text-slate-400">│</span>
+                <Link href="/posts/new">게시글 작성</Link>
+                <Link href="/events/new">행사 생성</Link>
+              </RequireAdmin>
             </nav>
             <div className="flex items-center gap-3">
-              <NotifyCTA />
+              <RequireMember>
+                <NotifyCTA />
+              </RequireMember>
               <HeaderAuth />
             </div>
           </div>

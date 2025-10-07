@@ -1,14 +1,13 @@
 "use client";
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { me, type Me } from '../services/auth';
-import { ApiError } from '../lib/api';
+import { getSession, type Session } from '../services/auth';
 
 export function useAuth() {
   const qc = useQueryClient();
-  const query = useQuery<Me>({
+  const query = useQuery<Session>({
     queryKey: ['auth', 'me'],
-    queryFn: me,
+    queryFn: getSession,
     retry: false
   });
 
@@ -20,4 +19,3 @@ export function useAuth() {
 
   return { ...query, status, invalidate: () => qc.invalidateQueries({ queryKey: ['auth', 'me'] }) };
 }
-
