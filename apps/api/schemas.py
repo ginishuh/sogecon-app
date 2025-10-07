@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
-from typing import Literal
+from typing import Literal, TypedDict
 
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
@@ -40,6 +40,13 @@ class MemberUpdate(BaseModel):
     name: str | None = None
     major: str | None = None
     visibility: VisibilityLiteral | None = None
+
+
+class MemberListFilters(TypedDict, total=False):
+    q: str
+    cohort: int
+    major: str
+    exclude_private: bool
 
 
 class PostBase(BaseModel):

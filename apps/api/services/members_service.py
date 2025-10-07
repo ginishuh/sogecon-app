@@ -10,8 +10,16 @@ from ..errors import AlreadyExistsError
 from ..repositories import members as members_repo
 
 
-def list_members(db: Session, *, limit: int, offset: int) -> Sequence[models.Member]:
-    return members_repo.list_members(db, limit=limit, offset=offset)
+def list_members(
+    db: Session,
+    *,
+    limit: int,
+    offset: int,
+    filters: schemas.MemberListFilters | None = None,
+) -> Sequence[models.Member]:
+    return members_repo.list_members(
+        db, limit=limit, offset=offset, filters=filters
+    )
 
 
 def get_member(db: Session, member_id: int) -> models.Member:

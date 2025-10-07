@@ -2,19 +2,47 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..errors import NotFoundError
 
 
-def list_members(db: Session, *, limit: int, offset: int) -> Sequence[models.Member]:
-    """회원 목록 조회.
+def list_members(
+    db: Session,
+    *,
+    limit: int,
+    offset: int,
+    filters: schemas.MemberListFilters | None = None,
+) -> Sequence[models.Member]:
+    """회원 목록 조회(기본 필터 지원).
 
-    - 정렬 조건은 향후 요구에 따라 추가.
+    - q: 이름/이메일 부분 일치
+    - cohort: 기수 정확히 일치
+    - major: 전공 부분 일치
+    - exclude_private: visibility=PRIVATE을 기본 제외
     """
-    stmt = select(models.Member).offset(offset).limit(limit)
+    stmt = select(models.Member)
+    conds: list = []
+    f = filters or {}
+    qv = f.get('q')
+    if qv:
+        like = f"%{qv}%"
+        conds.append(
+            or_(models.Member.name.ilike(like), models.Member.email.ilike(like))
+        )
+    coh = f.get('cohort')
+    if coh is not None:
+        conds.append(models.Member.cohort == int(coh))
+    maj = f.get('major')
+    if maj:
+        conds.append(models.Member.major.ilike(f"%{maj}%"))
+    if f.get('exclude_private', True):
+        conds.append(models.Member.visibility != models.Visibility.PRIVATE)
+    if conds:
+        stmt = stmt.where(and_(*conds))
+    stmt = stmt.offset(offset).limit(limit)
     return db.execute(stmt).scalars().all()
 
 

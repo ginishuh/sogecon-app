@@ -47,9 +47,13 @@ def test_member_activate_invalid_token_401(client: TestClient) -> None:
 def test_support_contact_rate_limit(admin_login: TestClient) -> None:
     # use admin_login to bypass member-login flow (compat)
     client = admin_login
-    res1 = client.post("/support/contact", json={"subject": "s", "body": "b"})
+    res1 = client.post(
+        "/support/contact", json={"subject": "hello", "body": "message long enough"}
+    )
     assert res1.status_code in (HTTPStatus.ACCEPTED, HTTPStatus.OK)
     # second immediate call may hit rate-limit unless testclient IP exemption applies
     # Note: to force 429 here we'd use ASGITransport with a non-test IP.
-    res2 = client.post("/support/contact", json={"subject": "s2", "body": "b2"})
+    res2 = client.post(
+        "/support/contact", json={"subject": "hello2", "body": "message long enough 2"}
+    )
     assert res2.status_code in (HTTPStatus.ACCEPTED, HTTPStatus.TOO_MANY_REQUESTS)
