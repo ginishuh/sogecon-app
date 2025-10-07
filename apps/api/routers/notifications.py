@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from typing import Annotated, Protocol, cast
 
@@ -25,6 +25,9 @@ from apps.api.services import notifications_service as notif_svc
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 limiter_admin = Limiter(key_func=get_remote_address)
+
+# pyright/ruff 호환 UTC 타임존 (timezone.utc 대체)
+UTC_TZ = timezone(timedelta(0))
 
 
 def get_push_provider() -> notif_svc.PushProvider:
@@ -163,21 +166,22 @@ def get_stats(
         if r == "24h"
         else (timedelta(days=7) if r == "7d" else timedelta(days=30))
     )
-    cutoff = datetime.now(datetime.UTC) - delta
+    cutoff = datetime.now(UTC_TZ) - delta
 
     subs = subs_repo.list_active_subscriptions(db)
     logs = logs_repo.list_since(db, cutoff=cutoff)
-    accepted = sum(1 for rlog in logs if bool(rlog.ok))
-    failed = sum(1 for rlog in logs if not bool(rlog.ok))
+    accepted = sum(1 for rlog in logs if bool(cast(int, rlog.ok)))
+    failed = sum(1 for rlog in logs if not bool(cast(int, rlog.ok)))
     f404 = sum(
         1
         for rlog in logs
-        if not bool(rlog.ok) and rlog.status_code == int(HTTPStatus.NOT_FOUND)
+        if not bool(cast(int, rlog.ok))
+        and rlog.status_code == int(HTTPStatus.NOT_FOUND)
     )
     f410 = sum(
         1
         for rlog in logs
-        if not bool(rlog.ok) and rlog.status_code == int(HTTPStatus.GONE)
+        if not bool(cast(int, rlog.ok)) and rlog.status_code == int(HTTPStatus.GONE)
     )
     fother = failed - (f404 + f410)
     settings = get_settings()
@@ -205,5 +209,5 @@ def prune_logs(
 ) -> dict[str, int | str]:
     days = max(1, int(payload.older_than_days))
     n = logs_repo.prune_older_than_days(db, days=days)
-    before = datetime.now(datetime.UTC) - timedelta(days=days)
+    before = datetime.now(UTC_TZ) - timedelta(days=days)
     return {"deleted": n, "before": before.isoformat(), "older_than_days": days}

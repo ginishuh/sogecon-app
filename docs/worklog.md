@@ -183,3 +183,4 @@
 - Web: admin notifications에 prune-logs UI 및 암호화 상태 배지 추가, 로그 표시 개수 선택 지원.
  - API: notifications 통계(range=24h/7d/30d) 및 실패 분포(404/410/기타) 추가.
  - Web: admin notifications 요약에 기간 필터/실패 분포 표시, prune 응답의 기준시각(before) 토스트 출력.
+ - Fix: pyright 호환(UTC alias→timezone.utc, ok 필드 캐스팅) 적용.
