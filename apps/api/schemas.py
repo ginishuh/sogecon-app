@@ -36,6 +36,12 @@ class MemberRead(MemberBase):
         return v
 
 
+class MemberUpdate(BaseModel):
+    name: str | None = None
+    major: str | None = None
+    visibility: VisibilityLiteral | None = None
+
+
 class PostBase(BaseModel):
     title: str
     content: str

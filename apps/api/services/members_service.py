@@ -26,3 +26,13 @@ def create_member(db: Session, payload: schemas.MemberCreate) -> models.Member:
     if exists.scalars().first() is not None:
         raise AlreadyExistsError(code="member_exists", detail="Email already in use")
     return members_repo.create_member(db, payload)
+
+
+def get_member_by_email(db: Session, email: str) -> models.Member:
+    return members_repo.get_member_by_email(db, email)
+
+
+def update_member_profile(
+    db: Session, *, member_id: int, data: schemas.MemberUpdate
+) -> models.Member:
+    return members_repo.update_member_profile(db, member_id=member_id, data=data)

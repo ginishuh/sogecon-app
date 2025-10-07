@@ -13,7 +13,16 @@ from starlette.types import ASGIApp
 from .config import get_settings
 from .errors import ApiError
 from .ratelimit import create_limiter
-from .routers import auth, events, members, notifications, posts, rsvps, support
+from .routers import (
+    auth,
+    events,
+    members,
+    notifications,
+    posts,
+    profile,
+    rsvps,
+    support,
+)
 
 settings = get_settings()
 
@@ -107,3 +116,4 @@ app.include_router(rsvps.router)
 app.include_router(auth.router)
 app.include_router(notifications.router)
 app.include_router(support.router)
+app.include_router(profile.router)

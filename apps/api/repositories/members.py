@@ -34,3 +34,32 @@ def create_member(db: Session, payload: schemas.MemberCreate) -> models.Member:
     db.commit()
     db.refresh(member)
     return member
+
+
+def get_member_by_email(db: Session, email: str) -> models.Member:
+    row = db.query(models.Member).filter(models.Member.email == email).first()
+    if row is None:
+        raise NotFoundError(code="member_not_found", detail="Member not found")
+    return row
+
+
+def update_member_profile(
+    db: Session, *, member_id: int, data: schemas.MemberUpdate
+) -> models.Member:
+    member = db.get(models.Member, member_id)
+    if member is None:
+        raise NotFoundError(code="member_not_found", detail="Member not found")
+    changed = False
+    if data.name is not None:
+        setattr(member, "name", data.name)
+        changed = True
+    if data.major is not None:
+        setattr(member, "major", data.major)
+        changed = True
+    if data.visibility is not None:
+        setattr(member, "visibility", models.Visibility(data.visibility))
+        changed = True
+    if changed:
+        db.commit()
+        db.refresh(member)
+    return member

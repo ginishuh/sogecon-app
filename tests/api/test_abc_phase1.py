@@ -28,6 +28,16 @@ def test_member_activate_and_login(client: TestClient) -> None:
     )
     assert res2.status_code == HTTPStatus.OK
 
+    # profile get/put
+    me = client.get('/me/')
+    assert me.status_code == HTTPStatus.OK
+    data = me.json()
+    assert 'email' in data and data['email'] == 'abc1@example.com'
+    upd = client.put('/me/', json={'name': 'Renamed', 'visibility': 'cohort'})
+    assert upd.status_code == HTTPStatus.OK
+    data2 = upd.json()
+    assert data2['name'] == 'Renamed'
+
 
 def test_member_activate_invalid_token_401(client: TestClient) -> None:
     res = client.post("/auth/member/activate", json={"token": "bad", "password": "pw"})
