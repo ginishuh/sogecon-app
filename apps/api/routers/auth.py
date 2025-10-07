@@ -4,11 +4,13 @@ from dataclasses import dataclass
 from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from itsdangerous import URLSafeSerializer
 from pydantic import BaseModel, EmailStr
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
+from ..config import get_settings
 from ..db import get_db
 from ..models import AdminUser, Member, MemberAuth
 
@@ -100,6 +102,110 @@ def member_logout(request: Request) -> None:
 @router.get("/member/me")
 def member_me(m: CurrentMember = Depends(require_member)) -> dict[str, str]:
     return {"email": m.email}
+
+
+class MemberActivatePayload(BaseModel):
+    token: str
+    password: str
+
+
+@router.post("/member/activate")
+def member_activate(
+    payload: MemberActivatePayload, request: Request, db: Session = Depends(get_db)
+) -> dict[str, str]:
+    """멤버 활성화: 서명 토큰 검증 후 Member/MemberAuth를 생성 또는 갱신.
+
+    토큰 페이로드 예: {"email": "user@example.com", "name": "User", "cohort": 1}
+    개발 단계에서는 itsdangerous 서명 토큰을 사용한다.
+    """
+    # 레이트리밋(5/min/IP)
+    def _consume(request: Request) -> None:
+        return None
+    if not (request.client and request.client.host == "testclient"):
+        checker = cast(Any, limiter_login).limit("5/minute")
+        checker(_consume)(request)
+
+    # 토큰 검증
+    settings = get_settings()
+    try:
+        s = URLSafeSerializer(settings.jwt_secret, salt="member-activate")
+        data_raw: Any = s.loads(payload.token)
+    except Exception as err:
+        raise HTTPException(status_code=401, detail="invalid_token") from err
+
+    if not isinstance(data_raw, dict):
+        raise HTTPException(status_code=422, detail="invalid_payload")
+    data = cast(dict[str, object], data_raw)
+    email_obj: object = data.get("email")
+    name_obj: object = data.get("name")
+    cohort_obj: object = data.get("cohort")
+    if not isinstance(email_obj, str) or not email_obj:
+        raise HTTPException(status_code=422, detail="invalid_payload")
+
+    # 멤버 조회/생성
+    member = db.query(Member).filter(Member.email == email_obj).first()
+    if member is None:
+        member = Member(
+            email=email_obj,
+            name=(name_obj if isinstance(name_obj, str) and name_obj else "Member"),
+            cohort=int(cohort_obj) if isinstance(cohort_obj, int) else 1,
+            major=None,
+            roles="member",
+        )
+        db.add(member)
+        db.commit()
+        db.refresh(member)
+
+    # 자격 생성/갱신
+    bcrypt = __import__("bcrypt")
+    pwd_hash = bcrypt.hashpw(payload.password.encode(), bcrypt.gensalt()).decode()
+    auth_row = db.query(MemberAuth).filter(MemberAuth.email == member.email).first()
+    if auth_row is None:
+        db.add(
+            MemberAuth(
+                member_id=member.id, email=member.email, password_hash=pwd_hash
+            )
+        )
+    else:
+        setattr(auth_row, "password_hash", pwd_hash)
+    db.commit()
+
+    # 세션 로그인 처리
+    request.session["member"] = {"email": member.email, "id": member.id}
+    return {"ok": "true"}
+
+
+class ChangePasswordPayload(BaseModel):
+    current_password: str
+    new_password: str
+
+
+@router.post("/member/change-password")
+def change_password(
+    payload: ChangePasswordPayload,
+    request: Request,
+    db: Session = Depends(get_db),
+    m: CurrentMember = Depends(require_member),
+) -> dict[str, str]:
+    # 레이트리밋(5/min/IP)
+    def _consume(request: Request) -> None:
+        return None
+    if not (request.client and request.client.host == "testclient"):
+        checker = cast(Any, limiter_login).limit("5/minute")
+        checker(_consume)(request)
+
+    bcrypt = __import__("bcrypt")
+    auth_row = db.query(MemberAuth).filter(MemberAuth.email == m.email).first()
+    if auth_row is None:
+        raise HTTPException(status_code=401, detail="unauthorized")
+    if not bcrypt.checkpw(
+        payload.current_password.encode(), auth_row.password_hash.encode()
+    ):
+        raise HTTPException(status_code=401, detail="login_failed")
+    new_hash = bcrypt.hashpw(payload.new_password.encode(), bcrypt.gensalt()).decode()
+    setattr(auth_row, "password_hash", new_hash)
+    db.commit()
+    return {"ok": "true"}
 
 
 @router.post("/login")

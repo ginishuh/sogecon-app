@@ -41,6 +41,10 @@ class Member(Base):
     major = Column(String(255), nullable=True)
     roles = Column(String(255), nullable=False, default="member")
     visibility = Column(Enum(Visibility), nullable=False, default=Visibility.ALL)
+    # B v1 확장: 표시용 생일(양/음) + 연락처(간단 문자열)
+    birth_date = Column(String(10), nullable=True)  # 'YYYY-MM-DD'
+    birth_lunar = Column(Boolean, nullable=True)
+    phone = Column(String(64), nullable=True)
 
     posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
     rsvps = relationship("RSVP", back_populates="member", cascade="all, delete-orphan")

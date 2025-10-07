@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
-from typing import Literal
+from typing import Literal, TypedDict
 
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
@@ -17,6 +17,9 @@ class MemberBase(BaseModel):
     major: str | None = None
     roles: str = "member"
     visibility: VisibilityLiteral = "all"
+    birth_date: str | None = None  # 'YYYY-MM-DD'
+    birth_lunar: bool | None = None
+    phone: str | None = None
 
 
 class MemberCreate(MemberBase):
@@ -34,6 +37,22 @@ class MemberRead(MemberBase):
         if isinstance(v, enum.Enum):
             return v.value
         return v
+
+
+class MemberUpdate(BaseModel):
+    name: str | None = None
+    major: str | None = None
+    visibility: VisibilityLiteral | None = None
+    birth_date: str | None = None
+    birth_lunar: bool | None = None
+    phone: str | None = None
+
+
+class MemberListFilters(TypedDict, total=False):
+    q: str
+    cohort: int
+    major: str
+    exclude_private: bool
 
 
 class PostBase(BaseModel):

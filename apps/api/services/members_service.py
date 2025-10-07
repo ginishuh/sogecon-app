@@ -10,8 +10,22 @@ from ..errors import AlreadyExistsError
 from ..repositories import members as members_repo
 
 
-def list_members(db: Session, *, limit: int, offset: int) -> Sequence[models.Member]:
-    return members_repo.list_members(db, limit=limit, offset=offset)
+def list_members(
+    db: Session,
+    *,
+    limit: int,
+    offset: int,
+    filters: schemas.MemberListFilters | None = None,
+) -> Sequence[models.Member]:
+    return members_repo.list_members(
+        db, limit=limit, offset=offset, filters=filters
+    )
+
+
+def count_members(
+    db: Session, *, filters: schemas.MemberListFilters | None = None
+) -> int:
+    return members_repo.count_members(db, filters=filters)
 
 
 def get_member(db: Session, member_id: int) -> models.Member:
@@ -26,3 +40,13 @@ def create_member(db: Session, payload: schemas.MemberCreate) -> models.Member:
     if exists.scalars().first() is not None:
         raise AlreadyExistsError(code="member_exists", detail="Email already in use")
     return members_repo.create_member(db, payload)
+
+
+def get_member_by_email(db: Session, email: str) -> models.Member:
+    return members_repo.get_member_by_email(db, email)
+
+
+def update_member_profile(
+    db: Session, *, member_id: int, data: schemas.MemberUpdate
+) -> models.Member:
+    return members_repo.update_member_profile(db, member_id=member_id, data=data)

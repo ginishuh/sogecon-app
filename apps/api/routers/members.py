@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from .. import schemas
@@ -11,14 +12,48 @@ from .auth import CurrentAdmin, require_admin
 router = APIRouter(prefix="/members", tags=["members"])
 
 
+class MemberListParams(BaseModel):
+    limit: int = Field(10, ge=1, le=100)
+    offset: int = Field(0, ge=0)
+    q: str | None = None
+    cohort: int | None = None
+    major: str | None = None
+
+
 @router.get("/", response_model=list[schemas.MemberRead])
 def list_members(
-    limit: int = Query(10, ge=1, le=100),
-    offset: int = Query(0, ge=0),
-    db: Session = Depends(get_db),
+    params: MemberListParams = Depends(), db: Session = Depends(get_db)
 ) -> list[schemas.MemberRead]:
-    members = members_service.list_members(db, limit=limit, offset=offset)
+    filters: schemas.MemberListFilters = {}
+    if params.q:
+        filters['q'] = params.q
+    if params.cohort is not None:
+        filters['cohort'] = int(params.cohort)
+    if params.major:
+        filters['major'] = params.major
+    members = members_service.list_members(
+        db, limit=params.limit, offset=params.offset, filters=filters
+    )
     return [schemas.MemberRead.model_validate(member) for member in members]
+
+
+class MemberCount(BaseModel):
+    count: int
+
+
+@router.get("/count", response_model=MemberCount)
+def count_members(
+    params: MemberListParams = Depends(), db: Session = Depends(get_db)
+) -> MemberCount:
+    filters: schemas.MemberListFilters = {}
+    if params.q:
+        filters['q'] = params.q
+    if params.cohort is not None:
+        filters['cohort'] = int(params.cohort)
+    if params.major:
+        filters['major'] = params.major
+    c = members_service.count_members(db, filters=filters)
+    return MemberCount(count=c)
 
 
 @router.get("/{member_id}", response_model=schemas.MemberRead)

@@ -158,4 +158,24 @@
 - 마이그레이션: 0008 endpoint_hash backfill의 MetaData.bind 사용 제거(pyright 경고 해소).
 - 마이그레이션: 0009 endpoint_hash NOT NULL 전환(누락분 백필 후 제약 강화).
 - 보안/안정성: crypto_utils.decrypt_str가 키 불일치/손상 시 예외 대신 원문 반환으로 안전 실패(크래시 방지). 테스트 추가.
- - 의존성: pip-audit 경고 해소 위해 cryptography 44.0.1로 상향(43.0.1 → 44.0.1).
+- 의존성: pip-audit 경고 해소 위해 cryptography 44.0.1로 상향(43.0.1 → 44.0.1).
+- ABC Phase 1: 활성화/비번변경/문의 기본 라우트 추가 및 테스트. 문의는 파일 로그로 수집(레이트리밋 1/min/IP). 총 28 테스트 통과.
+- ABC Phase 1: 타입/린트 보완(pyright OK), itsdangerous 토큰 기반 활성화 경로 안정화.
+- Web: /activate, /settings/password, /support/contact, /me, /directory 스케폴드 및 폼/토스트 연결. next build OK.
+- B v1: /me GET/PUT(이름/전공/공개범위) API 추가, Web 편집 폼 연동.
+- 테스트: /me GET/PUT 프로필 업데이트 케이스 추가.
+- 보정: profile 라우터 임포트 정렬(ruff) 및 pyright 캐스팅 보완.
+- C v0: /members 필터(q/cohort/major) 추가(기본 private 제외). Web /directory 목록 연동(react-query).
+- A-4: /support/contact 입력 검증(min/max), honeypot, 1MiB 로그 로테이션. 429/422 테스트 추가. 전체 31 테스트 통과.
+- 마무리: 디렉터리/문의 경로 린트·타입 보완 및 문서 갱신.
+- 디렉터리: useInfiniteQuery 기반 무한스크롤(더 불러오기) 추가.
+- 문의: 키워드 스팸 드롭 및 60초 중복 쿨다운.
+ - B v1 확장: members에 birth_date/birth_lunar/phone 컬럼 추가(0010), /me 폼 입력 연동.
+
+- Web: favicon 제공(app/icon.svg)으로 /favicon.ico 404 제거.
+- Web: /directory 검색·필터 디바운스(400ms) + URL 자동 동기화 적용.
+- Docs: 에이전트 베이스 PR 템플릿 사용 규칙 확인(영/국문 베이스와 AGENTS.md 정합성 점검).
+- API: support 티켓 저장용 TypedDict 필수/선택 키 명시(NotRequired)로 pyright 오류 해소.
+ - Web: Next typedRoutes와 호환되도록 router.replace에 안전한 `Route` 캐스팅 적용.
+ - Web: /directory 페이지에 Suspense 래퍼 추가(useSearchParams 규칙 준수). 프로덕션 빌드 오류 해결.
+ - API: bandit(B110) 대응 — support 로그 로테이션에서 광범위 예외 대신 (OSError, PermissionError)만 포착하고 경고 로그 남김.
