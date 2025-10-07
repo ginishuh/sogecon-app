@@ -30,8 +30,6 @@ def contact(
 ) -> dict[str, str]:
     # 레이트리밋(1/min/IP) — 테스트클라이언트 면제
     if not (request.client and request.client.host == "testclient"):
-        def _consume(request: Request) -> None:
-            return None
         class _LimiterProto(Protocol):
             def limit(
                 self, limit_value: str

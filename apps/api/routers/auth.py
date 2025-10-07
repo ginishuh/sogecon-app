@@ -135,19 +135,20 @@ def member_activate(
 
     if not isinstance(data_raw, dict):
         raise HTTPException(status_code=422, detail="invalid_payload")
-    email = data_raw.get("email")
-    name = data_raw.get("name")
-    cohort = data_raw.get("cohort")
-    if not isinstance(email, str) or not email:
+    data = cast(dict[str, object], data_raw)
+    email_obj: object = data.get("email")
+    name_obj: object = data.get("name")
+    cohort_obj: object = data.get("cohort")
+    if not isinstance(email_obj, str) or not email_obj:
         raise HTTPException(status_code=422, detail="invalid_payload")
 
     # 멤버 조회/생성
-    member = db.query(Member).filter(Member.email == email).first()
+    member = db.query(Member).filter(Member.email == email_obj).first()
     if member is None:
         member = Member(
-            email=email,
-            name=(str(name) if isinstance(name, str) and name else "Member"),
-            cohort=int(cohort) if isinstance(cohort, int) else 1,
+            email=email_obj,
+            name=(name_obj if isinstance(name_obj, str) and name_obj else "Member"),
+            cohort=int(cohort_obj) if isinstance(cohort_obj, int) else 1,
             major=None,
             roles="member",
         )

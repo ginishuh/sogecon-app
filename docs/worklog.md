@@ -160,4 +160,5 @@
 - 보안/안정성: crypto_utils.decrypt_str가 키 불일치/손상 시 예외 대신 원문 반환으로 안전 실패(크래시 방지). 테스트 추가.
 - 의존성: pip-audit 경고 해소 위해 cryptography 44.0.1로 상향(43.0.1 → 44.0.1).
 - ABC Phase 1: 활성화/비번변경/문의 기본 라우트 추가 및 테스트. 문의는 파일 로그로 수집(레이트리밋 1/min/IP). 총 28 테스트 통과.
- - ABC Phase 1: 타입/린트 보완(pyright OK), itsdangerous 토큰 기반 활성화 경로 안정화.
+- ABC Phase 1: 타입/린트 보완(pyright OK), itsdangerous 토큰 기반 활성화 경로 안정화.
+ - Web: /activate, /settings/password, /support/contact, /me, /directory 스케폴드 및 폼/토스트 연결. next build OK.
