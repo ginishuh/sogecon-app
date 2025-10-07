@@ -156,4 +156,5 @@
  - 테스트/유틸: 설정 캐시 재적용 유틸(`reset_settings_cache`) 추가 및 암호화 스모크 테스트 도입.
 - 문서/환경: `.env.example`에 `PUSH_ENCRYPT_AT_REST`, `PUSH_KEK` 예시 추가. Admin Notifications에 암호화 ON/OFF 표시.
 - 마이그레이션: 0008 endpoint_hash backfill의 MetaData.bind 사용 제거(pyright 경고 해소).
- - 마이그레이션: 0009 endpoint_hash NOT NULL 전환(누락분 백필 후 제약 강화).
+- 마이그레이션: 0009 endpoint_hash NOT NULL 전환(누락분 백필 후 제약 강화).
+ - 보안/안정성: crypto_utils.decrypt_str가 키 불일치/손상 시 예외 대신 원문 반환으로 안전 실패(크래시 방지). 테스트 추가.
