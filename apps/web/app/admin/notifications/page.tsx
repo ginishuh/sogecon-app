@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
+import { RequireAdmin } from '../../../components/require-admin';
 import { useToast } from '../../../components/toast';
 import { apiFetch } from '../../../lib/api';
 import { useQuery } from '@tanstack/react-query';
@@ -38,6 +39,7 @@ export default function AdminNotificationsPage() {
   };
 
   return (
+    <RequireAdmin fallback={<div className="p-4 text-sm text-slate-600">관리자 전용입니다.</div>}>
     <div className="p-6">
       <h2 className="mb-4 text-xl font-semibold">테스트 알림 발송(Admin)</h2>
       <div className="mb-6 flex max-w-xl flex-col gap-3">
@@ -105,5 +107,6 @@ export default function AdminNotificationsPage() {
         )}
       </div>
     </div>
+    </RequireAdmin>
   );
 }

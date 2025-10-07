@@ -145,3 +145,4 @@
 - Web: 헤더에 역할 배지(멤버/관리자) 추가, 로그인 페이지 안내 문구 추가.
 - Web: RequireMember 가드 추가 및 로그인 모드(localStorage) 기억.
 - Web: RequireAdmin/RequireMember 가드 도입, 관리자 UI 링크와 페이지 보호. 로그인 모드 저장.
+- Web: admin notifications 페이지를 RequireAdmin으로 보호.
