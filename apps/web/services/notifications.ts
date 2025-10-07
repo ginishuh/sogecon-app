@@ -32,6 +32,7 @@ export type NotificationStats = {
   active_subscriptions: number;
   recent_accepted: number;
   recent_failed: number;
+  encryption_enabled: boolean;
 };
 
 export async function getSendLogs(limit = 50): Promise<SendLog[]> {

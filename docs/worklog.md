@@ -20,6 +20,11 @@
   - 문서: architecture.md에 인증/권한/RSVP v2 정책 반영
   - 훅 보강: pre-push가 requirements 변경 시 pip install을 수행해 의존성 누락으로 인한 실패 방지
 - M2 브랜치/PR 초안: 세션 인증/권한 + RSVP v2 계획 문서 추가(docs/m2_plan.md)
+
+## 2025-10-07
+
+- M3-4: prune-logs/guard 추가, 암호화·통계 완료. 마이그레이션 린트 수정, 스키마 재생성(encryption_enabled), repo guards에 packages/schemas 제외.
+
 ## 2025-10-06
 
 

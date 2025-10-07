@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import hashlib
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "0008_subscription_endpoint_hash"
 down_revision = "0007_member_auth"
@@ -44,5 +43,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_push_subscriptions_endpoint_hash", table_name="push_subscriptions")
+    op.drop_index(
+        "ix_push_subscriptions_endpoint_hash", table_name="push_subscriptions"
+    )
     op.drop_column("push_subscriptions", "endpoint_hash")

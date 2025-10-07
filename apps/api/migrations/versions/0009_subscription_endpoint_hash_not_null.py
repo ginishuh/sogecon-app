@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import hashlib
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "0009_subscription_endpoint_hash_not_null"
 down_revision = "0008_subscription_endpoint_hash"
