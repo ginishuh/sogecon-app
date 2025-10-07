@@ -8,6 +8,7 @@ import { login, memberLogin } from '../../services/auth';
 import { useToast } from '../../components/toast';
 import { ApiError } from '../../lib/api';
 import { useAuth } from '../../hooks/useAuth';
+import { useEffect } from 'react';
 
 export default function LoginPage() {
   return (
@@ -21,6 +22,18 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState<'member'|'admin'>('member');
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('loginMode');
+      if (saved === 'admin' || saved === 'member') setMode(saved);
+    } catch {}
+  }, []);
+
+  const setModePersist = (m: 'member'|'admin') => {
+    setMode(m);
+    try { localStorage.setItem('loginMode', m); } catch {}
+  };
   const { show } = useToast();
   const router = useRouter();
   const params = useSearchParams();
@@ -46,11 +59,11 @@ function LoginForm() {
       <div className="flex items-center gap-2 text-sm">
         <button
           className={`rounded px-3 py-1 ${mode==='member'?'bg-slate-900 text-white':'border'}`}
-          onClick={() => setMode('member')}
+          onClick={() => setModePersist('member')}
         >멤버 로그인</button>
         <button
           className={`rounded px-3 py-1 ${mode==='admin'?'bg-slate-900 text-white':'border'}`}
-          onClick={() => setMode('admin')}
+          onClick={() => setModePersist('admin')}
         >관리자 로그인</button>
       </div>
       <p className="text-xs text-slate-500">

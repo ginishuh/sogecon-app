@@ -7,6 +7,7 @@ import { ServiceWorkerRegister } from './sw-register';
 import { Providers } from './providers';
 import { HeaderAuth } from '../components/header-auth';
 import { NotifyCTA } from '../components/notify-cta';
+import { RequireMember } from '../components/require-member';
 
 export const metadata: Metadata = {
   title: 'Alumni Web App',
@@ -39,7 +40,9 @@ export default function RootLayout({
               <Link href="/events/new">행사 생성</Link>
             </nav>
             <div className="flex items-center gap-3">
-              <NotifyCTA />
+              <RequireMember>
+                <NotifyCTA />
+              </RequireMember>
               <HeaderAuth />
             </div>
           </div>

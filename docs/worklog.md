@@ -143,3 +143,4 @@
 - 멤버 인증 추가: MemberAuth 모델/마이그레이션, /auth/member(login/logout/me), require_member 실제 세션 사용. 테스트는 member 세션으로 구독 경로 검증.
 - Web: 로그인 페이지에 멤버/관리자 토글 추가, 세션 훅이 멤버/관리자 자동 판별, 헤더 로그아웃 통합.
 - Web: 헤더에 역할 배지(멤버/관리자) 추가, 로그인 페이지 안내 문구 추가.
+- Web: RequireMember 가드 추가 및 로그인 모드(localStorage) 기억.
