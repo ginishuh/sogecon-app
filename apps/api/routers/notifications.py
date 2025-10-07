@@ -170,18 +170,18 @@ def get_stats(
 
     subs = subs_repo.list_active_subscriptions(db)
     logs = logs_repo.list_since(db, cutoff=cutoff)
-    accepted = sum(1 for rlog in logs if bool(cast(int, rlog.ok)))
-    failed = sum(1 for rlog in logs if not bool(cast(int, rlog.ok)))
+    accepted = sum(1 for rlog in logs if int(cast(int, rlog.ok)) != 0)
+    failed = sum(1 for rlog in logs if int(cast(int, rlog.ok)) == 0)
     f404 = sum(
         1
         for rlog in logs
-        if not bool(cast(int, rlog.ok))
+        if int(cast(int, rlog.ok)) == 0
         and rlog.status_code == int(HTTPStatus.NOT_FOUND)
     )
     f410 = sum(
         1
         for rlog in logs
-        if not bool(cast(int, rlog.ok)) and rlog.status_code == int(HTTPStatus.GONE)
+        if int(cast(int, rlog.ok)) == 0 and rlog.status_code == int(HTTPStatus.GONE)
     )
     fother = failed - (f404 + f410)
     settings = get_settings()
