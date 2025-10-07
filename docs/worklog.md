@@ -180,4 +180,6 @@
  - Web: /directory 페이지에 Suspense 래퍼 추가(useSearchParams 규칙 준수). 프로덕션 빌드 오류 해결.
 - API: bandit(B110) 대응 — support 로그 로테이션에서 광범위 예외 대신 (OSError, PermissionError)만 포착하고 경고 로그 남김.
 - Docs: M3 Push Polish 세부 계획 추가(`docs/m3_push_polish_plan_251007.md`), `docs/plan_251007.md` 다음 단계 섹션 갱신.
- - Web: admin notifications에 prune-logs UI 및 암호화 상태 배지 추가, 로그 표시 개수 선택 지원.
+- Web: admin notifications에 prune-logs UI 및 암호화 상태 배지 추가, 로그 표시 개수 선택 지원.
+ - API: notifications 통계(range=24h/7d/30d) 및 실패 분포(404/410/기타) 추가.
+ - Web: admin notifications 요약에 기간 필터/실패 분포 표시, prune 응답의 기준시각(before) 토스트 출력.

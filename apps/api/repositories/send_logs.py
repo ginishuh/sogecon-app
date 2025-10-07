@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Sequence
+from datetime import datetime
 
 from sqlalchemy import desc, select, text
 from sqlalchemy.orm import Session
@@ -39,6 +40,21 @@ def list_recent(
         select(models.NotificationSendLog)
         .order_by(desc(models.NotificationSendLog.created_at))
         .limit(limit)
+    )
+    return db.execute(stmt).scalars().all()
+
+
+def list_since(
+    db: Session, *, cutoff: datetime
+) -> Sequence[models.NotificationSendLog]:
+    """Return logs created at or after the given cutoff.
+
+    Uses a straight timestamp comparison to be dialect-agnostic (SQLite/Postgres).
+    """
+    stmt = (
+        select(models.NotificationSendLog)
+        .where(models.NotificationSendLog.created_at >= cutoff)
+        .order_by(desc(models.NotificationSendLog.created_at))
     )
     return db.execute(stmt).scalars().all()
 

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timedelta
+from http import HTTPStatus
 from typing import Annotated, Protocol, cast
 
 from fastapi import APIRouter, Depends, Request
@@ -141,23 +142,54 @@ class NotificationStats(BaseModel):
     recent_accepted: int
     recent_failed: int
     encryption_enabled: bool
+    range: str | None = None
+    failed_404: int | None = None
+    failed_410: int | None = None
+    failed_other: int | None = None
 
 
 @router.get("/admin/notifications/stats")
 def get_stats(
     _admin: Annotated[CurrentAdmin, Depends(require_admin)],
     db: Session = Depends(get_db),
+    range: str = "7d",
 ) -> NotificationStats:
+    # 범위 파싱: 24h | 7d | 30d (기본 7d)
+    r = (range or "").lower()
+    if r not in ("24h", "7d", "30d"):
+        r = "7d"
+    delta = (
+        timedelta(hours=24)
+        if r == "24h"
+        else (timedelta(days=7) if r == "7d" else timedelta(days=30))
+    )
+    cutoff = datetime.now(datetime.UTC) - delta
+
     subs = subs_repo.list_active_subscriptions(db)
-    logs = logs_repo.list_recent(db, limit=200)
-    accepted = sum(1 for r in logs if bool(r.ok))
-    failed = sum(1 for r in logs if not bool(r.ok))
+    logs = logs_repo.list_since(db, cutoff=cutoff)
+    accepted = sum(1 for rlog in logs if bool(rlog.ok))
+    failed = sum(1 for rlog in logs if not bool(rlog.ok))
+    f404 = sum(
+        1
+        for rlog in logs
+        if not bool(rlog.ok) and rlog.status_code == int(HTTPStatus.NOT_FOUND)
+    )
+    f410 = sum(
+        1
+        for rlog in logs
+        if not bool(rlog.ok) and rlog.status_code == int(HTTPStatus.GONE)
+    )
+    fother = failed - (f404 + f410)
     settings = get_settings()
     return NotificationStats(
         active_subscriptions=len(subs),
         recent_accepted=accepted,
         recent_failed=failed,
         encryption_enabled=bool(settings.push_encrypt_at_rest),
+        range=r,
+        failed_404=f404,
+        failed_410=f410,
+        failed_other=fother,
     )
 
 
@@ -170,6 +202,8 @@ def prune_logs(
     payload: PruneLogsPayload,
     _admin: Annotated[CurrentAdmin, Depends(require_admin)],
     db: Session = Depends(get_db),
-) -> dict[str, int]:
-    n = logs_repo.prune_older_than_days(db, days=max(1, int(payload.older_than_days)))
-    return {"deleted": n}
+) -> dict[str, int | str]:
+    days = max(1, int(payload.older_than_days))
+    n = logs_repo.prune_older_than_days(db, days=days)
+    before = datetime.now(datetime.UTC) - timedelta(days=days)
+    return {"deleted": n, "before": before.isoformat(), "older_than_days": days}
