@@ -170,19 +170,21 @@ def get_stats(
 
     subs = subs_repo.list_active_subscriptions(db)
     logs = logs_repo.list_since(db, cutoff=cutoff)
-    accepted = sum(1 for rlog in logs if int(cast(int, rlog.ok)) != 0)
-    failed = sum(1 for rlog in logs if int(cast(int, rlog.ok)) == 0)
-    f404 = sum(
-        1
-        for rlog in logs
-        if int(cast(int, rlog.ok)) == 0
-        and rlog.status_code == int(HTTPStatus.NOT_FOUND)
-    )
-    f410 = sum(
-        1
-        for rlog in logs
-        if int(cast(int, rlog.ok)) == 0 and rlog.status_code == int(HTTPStatus.GONE)
-    )
+    accepted = 0
+    failed = 0
+    f404 = 0
+    f410 = 0
+    for rlog in logs:
+        ok_v = int(cast(int, getattr(rlog, "ok", 0)))
+        sc = cast(int | None, getattr(rlog, "status_code", None))
+        if ok_v != 0:
+            accepted += 1
+        else:
+            failed += 1
+            if sc == int(HTTPStatus.NOT_FOUND):
+                f404 += 1
+            elif sc == int(HTTPStatus.GONE):
+                f410 += 1
     fother = failed - (f404 + f410)
     settings = get_settings()
     return NotificationStats(

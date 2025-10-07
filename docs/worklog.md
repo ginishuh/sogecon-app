@@ -185,3 +185,4 @@
  - Web: admin notifications 요약에 기간 필터/실패 분포 표시, prune 응답의 기준시각(before) 토스트 출력.
  - Fix: pyright 호환(UTC alias→timezone.utc, ok 필드 캐스팅) 적용.
  - Fix: ok 필드 bool 변환을 정수 비교로 교체(pyright reportGeneralTypeIssues 해소).
+ - Fix: 통계 계산 제너레이터 → 루프 재작성(SQLAlchemy InstrumentedAttribute 비교 시 pyright 오진 회피).
