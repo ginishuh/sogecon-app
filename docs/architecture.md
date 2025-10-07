@@ -5,9 +5,10 @@
 
 ## 시스템 전반 개요
 - **사용자 대상 웹 서비스**: 서강대학교 경제대학원 총동문회 회원이 공지, 이벤트, RSVP를 관리하는 포털.
+  - SSOT(목적/IA): `docs/Project_overview.md` — 본 아키텍처는 해당 문서의 범위를 단계적으로 구현한다.
 - **프런트엔드 (`apps/web`)**: Next.js(App Router) 기반의 SSR/SSG 혼합 아키텍처. Tailwind CSS, PWA 설정을 포함하며 한국어 UI를 기본값으로 제공한다. 모바일 웹 우선(모바일 퍼스트)로 반응형을 설계한다.
 - **백엔드 API (`apps/api`)**: FastAPI + SQLAlchemy 조합으로 RESTful API를 제공한다. Pydantic 스키마(`schemas.py`)가 요청/응답 검증과 문서화를 담당한다.
-  - 인증/권한(개발 단계): 세션 쿠키 기반 관리자 로그인(/auth), 생성/수정/삭제 라우트는 `require_admin`으로 보호한다. 쿠키는 HttpOnly + SameSite=Lax(개발), 운영에서는 Secure 적용.
+  - 인증/권한(개발 단계): 세션 쿠키 기반 관리자(/auth) + 멤버(/auth/member) 로그인 제공. 작성/관리 라우트는 `require_admin`, 구독 저장/삭제는 `require_member`로 보호. 쿠키는 HttpOnly + SameSite=Lax(개발), 운영에서는 Secure 적용.
 - **데이터 스토어**: 개발 기본값은 SQLite(`sqlite:///./dev.sqlite3`), 운영 전환 시 PostgreSQL 16( `infra/docker-compose.dev.yml` 참조 )을 사용한다. ORM 레벨에서 두 엔진 모두 호환되도록 설계했다.
 - **스키마 공유 (`packages/schemas`)**: FastAPI에서 생성한 `openapi.json`을 TypeScript DTO로 변환하여 프런트엔드에서 타입 안정성을 확보한다.
 
@@ -121,5 +122,18 @@
 - 프런트 키 배포: VAPID 공개키를 빌드 타임/런타임 노출(환경변수 → 페이지 데이터 주입)하고, 비공개키는 서버 전용으로 보관.
 - Admin UI: `/admin/notifications`에서 테스트 알림(제목/본문/URL) 발송 요청 가능.
 
+
+## 정합성(SSOT 대비)
+`docs/Project_overview.md`의 IA/흐름을 기준으로 현재 스코프를 다음과 같이 매핑한다.
+
+| 영역 | 구현 상태 |
+| --- | --- |
+| 인증/계정(A-1) | 로그인(관리자/멤버) 완료, 회원활성화/비번변경/문의는 후속 |
+| 내 정보(B) | 데이터 모델만 초안(Member); 화면/편집은 후속 |
+| 수첩(C) | 미착수(검색/필터/상세 포함) |
+| 소식(D) | 게시글(공지 대용) CRUD/목록/상세 완료(초판) |
+| 소개(E) | 미착수(정적 페이지 계획) |
+| 커뮤니티(F) | 행사 목록/상세/생성 + RSVP 완료(초판), 게시판은 후속 |
+| 알림 | Web Push 구독/테스트 발송/로그/통계 완료, at-rest 암호화/정리 제공 |
 
 이 문서는 스케폴드 이후 아키텍처 변경 사항이 생길 때마다 함께 업데이트하며, 변경 내역은 해당 날짜의 `docs/dev_log_YYMMDD.md`에 링크한다.
