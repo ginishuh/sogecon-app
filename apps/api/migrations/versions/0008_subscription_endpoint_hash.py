@@ -32,7 +32,6 @@ def upgrade() -> None:
     # backfill hashes
     bind = op.get_bind()
     meta = sa.MetaData()
-    meta.bind = bind
     t = sa.Table("push_subscriptions", meta, autoload_with=bind)
     rows = bind.execute(sa.select(t.c.id, t.c.endpoint)).fetchall()
     for rid, endpoint in rows:
@@ -47,4 +46,3 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index("ix_push_subscriptions_endpoint_hash", table_name="push_subscriptions")
     op.drop_column("push_subscriptions", "endpoint_hash")
-
