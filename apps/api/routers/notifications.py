@@ -159,3 +159,17 @@ def get_stats(
         recent_failed=failed,
         encryption_enabled=bool(settings.push_encrypt_at_rest),
     )
+
+
+class PruneLogsPayload(BaseModel):
+    older_than_days: int = 30
+
+
+@router.post("/admin/notifications/prune-logs")
+def prune_logs(
+    payload: PruneLogsPayload,
+    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    db: Session = Depends(get_db),
+) -> dict[str, int]:
+    n = logs_repo.prune_older_than_days(db, days=max(1, int(payload.older_than_days)))
+    return {"deleted": n}
