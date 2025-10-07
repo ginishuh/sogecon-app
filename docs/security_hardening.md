@@ -31,7 +31,35 @@
 - 비밀 관리: `.env`는 로컬 전용, 운영은 시크릿 매니저 사용(KMS 암호화, 버전/교체 정책)
 - 로깅/감사: 요청 ID/사용자 ID/행위/리소스/성공 여부 기록. 민감 데이터 마스킹
  - 세션 보안: 운영에서 세션 쿠키 Secure + SameSite=Strict 권장, 로그인 시도 레이트리밋(5/min/IP)
- - 키 관리: PUSH_KEK는 시크릿 매니저 관리(KMS 암호화), 주기적 회전(더블 키 + 롤링 기간), 폐기 절차 수립
+- 키 관리: PUSH_KEK는 시크릿 매니저 관리(KMS 암호화), 주기적 회전(더블 키 + 롤링 기간), 폐기 절차 수립
+
+### Web Push KEK 로테이션 절차(무중단 지향)
+
+목표: at-rest 암호화 키(KEK)를 정기적으로 교체하되, 데이터 무결성과 가용성을 보장.
+
+사전 준비
+- 비상 복구: 전체 DB 스냅샷 백업(스키마/데이터), 애플리케이션 이미지 버전 태깅
+- 시크릿: `REKEY_OLD_PUSH_KEK`, `REKEY_NEW_PUSH_KEK`(base64-encoded 16/24/32B) 발급·검증
+- 점검: 운영이 `PUSH_ENCRYPT_AT_REST=true`인지 확인
+
+단계별 수행
+1) 유지보수 창 공지(짧은 창 권장; 쓰기 중단이 어려우면 구독 경로만 일시 차단)
+2) 앱은 기존 설정 유지(PUSH_KEK=old). 서버는 정상 서비스 지속
+3) 재암호화 수행(op):
+   - 명령:
+     - 드라이런: `REKEY_OLD_PUSH_KEK=... REKEY_NEW_PUSH_KEK=... python -m ops.rekey_push_kek --dry-run`
+     - 실제 실행: `REKEY_OLD_PUSH_KEK=... REKEY_NEW_PUSH_KEK=... python -m ops.rekey_push_kek`
+   - 동작: `push_subscriptions`의 `endpoint/p256dh/auth`를 새 KEK로 재암호화. `endpoint_hash`는 평문 기준이므로 변경 없음
+   - 성공 기준: 업데이트 건수=총 행수(이미 신규 키로 암호화된 행은 건너뜀)
+4) 앱 전환: 환경변수 `PUSH_KEK`를 NEW로 교체 후 롤링 재시작
+5) 검증: Admin UI에서 테스트 발송(최근 실패/성공·분포 확인). 이상 없으면 유지보수 종료
+6) 폐기: OLD 키 파기·감사로그 기록
+
+주의/한계
+- 앱은 런타임에서 단일 KEK만 사용하므로 재암호화 완료 후에만 `PUSH_KEK` 전환 권장
+- 실패 시 즉시 백업에서 복구(드라이런 결과와 실제 실행 로그를 보관)
+- 로그에는 endpoint 해시/말미만 남고 전체값은 기록되지 않음(프라이버시)
+
 
 ## 검토 체크리스트
 - [ ] CI가 우회 주석/600줄 초과를 정확히 차단하는가

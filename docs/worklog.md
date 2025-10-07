@@ -186,4 +186,5 @@
  - Fix: pyright 호환(UTC alias→timezone.utc, ok 필드 캐스팅) 적용.
  - Fix: ok 필드 bool 변환을 정수 비교로 교체(pyright reportGeneralTypeIssues 해소).
 - Fix: 통계 계산 제너레이터 → 루프 재작성(SQLAlchemy InstrumentedAttribute 비교 시 pyright 오진 회피).
- - Test: invalid endpoint 422, stats range 파라미터 반환 검증 추가(총 33 통과).
+- Test: invalid endpoint 422, stats range 파라미터 반환 검증 추가(총 33 통과).
+ - Ops: re-key 스크립트(ops/rekey_push_kek.py) 추가 및 KEK 로테이션 절차 문서화.
