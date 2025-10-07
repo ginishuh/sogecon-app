@@ -146,3 +146,4 @@
 - Web: RequireMember 가드 추가 및 로그인 모드(localStorage) 기억.
 - Web: RequireAdmin/RequireMember 가드 도입, 관리자 UI 링크와 페이지 보호. 로그인 모드 저장.
 - Web: admin notifications 페이지를 RequireAdmin으로 보호.
+- Web Push: 구독 at-rest 암호화(옵션, AES-GCM) 추가. endpoint_hash로 결정적 조회. 통계에 encryption 플래그 포함.

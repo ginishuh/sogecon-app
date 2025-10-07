@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     vapid_subject: str = Field(
         default="mailto:security@trr.co.kr", alias="VAPID_SUBJECT"
     )
+    # Web Push encryption at rest
+    push_encrypt_at_rest: bool = Field(default=False, alias="PUSH_ENCRYPT_AT_REST")
+    push_kek: str = Field(default="", alias="PUSH_KEK")  # base64 32 bytes
 
 
 @lru_cache(maxsize=1)

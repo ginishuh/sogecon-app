@@ -10,6 +10,7 @@ from requests.exceptions import RequestException
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
+from ..crypto_utils import decrypt_str
 from ..models import PushSubscription
 from ..repositories import notifications as repo
 from ..repositories import send_logs
@@ -31,9 +32,12 @@ class PyWebPushProvider:
     def send(
         self, sub: PushSubscription, payload: dict[str, Any]
     ) -> tuple[bool, int | None]:
+        endpoint = decrypt_str(cast(str, sub.endpoint))
+        p256dh = decrypt_str(cast(str, sub.p256dh))
+        auth = decrypt_str(cast(str, sub.auth))
         subscription_info = {
-            "endpoint": sub.endpoint,
-            "keys": {"p256dh": sub.p256dh, "auth": sub.auth},
+            "endpoint": endpoint,
+            "keys": {"p256dh": p256dh, "auth": auth},
         }
         vapid = {
             "vapid_private_key": self._settings.vapid_private_key,
@@ -84,6 +88,7 @@ def send_test_to_all(
     accepted = 0
     failed = 0
     for sub in subs:
+        endpoint_plain = decrypt_str(cast(str, sub.endpoint))
         ok, status = provider.send(
             sub, {"title": title, "body": body, **({"url": url} if url else {})}
         )
@@ -92,9 +97,7 @@ def send_test_to_all(
         else:
             failed += 1
             if status in (404, 410):
-                repo.remove_by_endpoint(db, endpoint=cast(str, sub.endpoint))
+                repo.remove_by_endpoint(db, endpoint=endpoint_plain)
         # 발송 로그(민감정보 해시 보관)
-        send_logs.create_log(
-            db, endpoint=cast(str, sub.endpoint), ok=ok, status_code=status
-        )
+        send_logs.create_log(db, endpoint=endpoint_plain, ok=ok, status_code=status)
     return SendResult(accepted=accepted, failed=failed)

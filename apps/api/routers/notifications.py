@@ -140,6 +140,7 @@ class NotificationStats(BaseModel):
     active_subscriptions: int
     recent_accepted: int
     recent_failed: int
+    encryption_enabled: bool
 
 
 @router.get("/admin/notifications/stats")
@@ -151,6 +152,10 @@ def get_stats(
     logs = logs_repo.list_recent(db, limit=200)
     accepted = sum(1 for r in logs if bool(r.ok))
     failed = sum(1 for r in logs if not bool(r.ok))
+    settings = get_settings()
     return NotificationStats(
-        active_subscriptions=len(subs), recent_accepted=accepted, recent_failed=failed
+        active_subscriptions=len(subs),
+        recent_accepted=accepted,
+        recent_failed=failed,
+        encryption_enabled=bool(settings.push_encrypt_at_rest),
     )
