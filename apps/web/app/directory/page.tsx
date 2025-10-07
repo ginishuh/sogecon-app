@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import type { Route } from 'next';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { listMembers, countMembers } from '../../services/members';
@@ -98,7 +98,7 @@ function DirectoryBody({
   );
 }
 
-export default function DirectoryPage() {
+function DirectoryPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const [q, setQ] = useState(sp.get('q') ?? '');
@@ -177,5 +177,13 @@ export default function DirectoryPage() {
         fetchNext={() => query.fetchNextPage()}
       />
     </div>
+  );
+}
+
+export default function DirectoryPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-slate-500">로딩 중…</div>}>
+      <DirectoryPageInner />
+    </Suspense>
   );
 }
