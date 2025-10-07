@@ -18,6 +18,9 @@ export function HeaderAuth() {
   }
   return (
     <div className="flex items-center gap-2 text-sm text-slate-600">
+      <span className="rounded bg-slate-200 px-2 py-0.5 text-xs">
+        {data?.kind === 'admin' ? '관리자' : '멤버'}
+      </span>
       <span>{data?.email}</span>
       <button className="underline" onClick={() => mut.mutate()} disabled={mut.isPending}>
         로그아웃

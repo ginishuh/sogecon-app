@@ -53,6 +53,9 @@ function LoginForm() {
           onClick={() => setMode('admin')}
         >관리자 로그인</button>
       </div>
+      <p className="text-xs text-slate-500">
+        멤버 로그인: 구독/알림 등 일반 기능 이용. 관리자 로그인: 생성/관리 기능 접근.
+      </p>
       <label className="block text-sm">
         이메일
         <input className="mt-1 w-full rounded border px-2 py-1" value={email} onChange={(e) => setEmail(e.currentTarget.value)} />
