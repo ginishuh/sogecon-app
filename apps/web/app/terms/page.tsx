@@ -174,7 +174,8 @@ export default function TermsPage() {
       </div>
 
       <footer className="rounded-2xl bg-brand-surface px-6 py-6 text-xs uppercase tracking-widest text-neutral-muted md:py-8">
-        문서 버전: 2025-10-08 · 시행일: 2025-10-15
+        <p>문서 버전: 2025-10-08 · 시행일: 2025-10-15</p>
+        <p className="mt-2 text-neutral-muted/80">시행일: 2025-10-15 · 개정일: 2025-10-08</p>
       </footer>
     </div>
   );

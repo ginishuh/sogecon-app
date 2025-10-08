@@ -218,5 +218,6 @@
 - Web: 스킵 링크·main 포커스·포커스 링 등 접근성 보정.
 - CI: Lighthouse runs=3으로 상향해 점수 변동성 완화.
 - Test: members 정렬(recent/cohort_desc) API 테스트 추가.
+- Docs: 개인정보/약관에 시행일·개정일 표기 추가.
 - API: 디렉터리 정렬 도우미 타입 힌트 보완.
 - API: members updated_at/cohort+name 인덱스 및 마이그레이션 추가.
