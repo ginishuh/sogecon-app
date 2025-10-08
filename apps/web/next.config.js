@@ -34,6 +34,16 @@ const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
 ];
 
+const remoteDomainsEnv = (process.env.NEXT_PUBLIC_IMAGE_DOMAINS || '')
+  .split(',')
+  .map((d) => d.trim())
+  .filter(Boolean);
+
+const imageRemotePatterns = [
+  { protocol: 'http', hostname: 'localhost', port: '3001' },
+  ...remoteDomainsEnv.map((hostname) => ({ protocol: 'https', hostname })),
+];
+
 const nextConfig = {
   poweredByHeader: false,
   // Ensure Next resolves configs within this workspace (monorepo safe)
@@ -48,6 +58,9 @@ const nextConfig = {
   },
   // Next 15+: typedRoutes at top-level
   typedRoutes: true,
+  images: {
+    remotePatterns: imageRemotePatterns,
+  },
 };
 
 module.exports = nextConfig;
