@@ -216,5 +216,6 @@
 - Web: 디렉터리 정렬·필터 확장 및 URL 동기화 테스트 보강.
 - Web: 전역 SEO 메타데이터·OG·sitemap·robots 최종 갱신 및 기본 OG 이미지 교체.
 - Web: 스킵 링크·main 포커스·포커스 링 등 접근성 보정.
+- CI: Lighthouse runs=3으로 상향해 점수 변동성 완화.
 - API: 디렉터리 정렬 도우미 타입 힌트 보완.
 - API: members updated_at/cohort+name 인덱스 및 마이그레이션 추가.

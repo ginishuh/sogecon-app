@@ -54,7 +54,7 @@ jobs:
             http://localhost:3000/about/history
           uploadArtifacts: true
           temporaryPublicStorage: true
-          runs: 1
+          runs: 3
           configPath: ''
           # Assert category minimums: Perf/A11y ≥ 0.90
           assertions: >-
@@ -62,4 +62,3 @@ jobs:
               "categories:performance": ["error", {"minScore": 0.90}],
               "categories:accessibility": ["error", {"minScore": 0.90}]
             }
-
