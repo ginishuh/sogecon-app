@@ -204,3 +204,4 @@
 - Web: 디렉터리 URL 동기화/무한스크롤/접근성 구성 및 vitest URL 동기화 테스트 추가.
 - Build: `scripts/export_openapi.py` 추가로 FastAPI에서 직접 OpenAPI를 추출, `pnpm -C packages/schemas gen` 자동화 및 웹 타입 참조( schemas 패키지 ) 연결.
 - Fix: 아바타 이미지 검증/압축 로직 타입 보완 및 URL 생성(computed_field) 안정화.
+- Web: PWA 오프라인 스켈레톤(`/offline` 페이지, SW 네비게이션 fallback)으로 홈/디렉터리 최소 안내 복구 처리.
