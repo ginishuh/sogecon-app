@@ -17,12 +17,22 @@ export default function NewPostPage() {
   const [authorId, setAuthorId] = useState<number | ''>('' as const);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [category, setCategory] = useState<'notice'|'news'>('notice');
+  const [pinned, setPinned] = useState(false);
+  const [coverImage, setCoverImage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { show } = useToast();
 
   const mutate = useMutation({
-    mutationFn: () => createPost({ author_id: Number(authorId), title, content }),
+    mutationFn: () => createPost({
+      author_id: Number(authorId),
+      title,
+      content,
+      category,
+      pinned,
+      cover_image: coverImage || undefined,
+    }),
     onSuccess: () => {
       show('게시글이 생성되었습니다.', { type: 'success' });
       router.push(`/posts`);
@@ -76,6 +86,21 @@ export default function NewPostPage() {
         <label className="block text-sm">
           내용
           <textarea className="mt-1 w-full rounded border px-2 py-1" rows={6} value={content} onChange={(e) => setContent(e.currentTarget.value)} />
+        </label>
+        <label className="block text-sm">
+          카테고리
+          <select className="mt-1 rounded border px-2 py-1" value={category} onChange={(e) => setCategory(e.currentTarget.value as 'notice'|'news')}>
+            <option value="notice">공지</option>
+            <option value="news">소식</option>
+          </select>
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={pinned} onChange={(e) => setPinned(e.currentTarget.checked)} />
+          상단 고정(PIN)
+        </label>
+        <label className="block text-sm">
+          커버 이미지 URL
+          <input className="mt-1 w-full rounded border px-2 py-1" value={coverImage} onChange={(e) => setCoverImage(e.currentTarget.value)} />
         </label>
         <button
           className="rounded bg-slate-900 px-3 py-1 text-white disabled:opacity-50"

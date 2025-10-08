@@ -85,3 +85,16 @@ async def test_admin_send_rate_limit_429(admin_login: TestClient) -> None:
             assert r2.status_code == HTTPStatus.TOO_MANY_REQUESTS
     finally:
         app.dependency_overrides.pop(router_mod.get_push_provider, None)
+
+
+def test_subscription_invalid_endpoint_422(member_login: TestClient) -> None:
+    client = member_login
+    res = client.post(
+        "/notifications/subscriptions",
+        json={
+            "endpoint": "not-a-url",
+            "p256dh": "k",
+            "auth": "a",
+        },
+    )
+    assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY

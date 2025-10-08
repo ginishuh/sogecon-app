@@ -9,10 +9,14 @@ from .. import models, schemas
 from ..errors import NotFoundError
 
 
-def list_posts(db: Session, *, limit: int, offset: int) -> Sequence[models.Post]:
+def list_posts(
+    db: Session, *, limit: int, offset: int, category: str | None = None
+) -> Sequence[models.Post]:
+    stmt = select(models.Post)
+    if category:
+        stmt = stmt.where(models.Post.category == category)
     stmt = (
-        select(models.Post)
-        .order_by(desc(models.Post.published_at))
+        stmt.order_by(desc(models.Post.pinned), desc(models.Post.published_at))
         .offset(offset)
         .limit(limit)
     )

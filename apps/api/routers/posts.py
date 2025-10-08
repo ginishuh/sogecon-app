@@ -15,9 +15,10 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 def list_posts(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    category: str | None = Query(None),
     db: Session = Depends(get_db),
 ) -> list[schemas.PostRead]:
-    posts = posts_service.list_posts(db, limit=limit, offset=offset)
+    posts = posts_service.list_posts(db, limit=limit, offset=offset, category=category)
     return [schemas.PostRead.model_validate(post) for post in posts]
 
 

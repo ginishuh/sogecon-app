@@ -9,8 +9,10 @@ from ..repositories import members as members_repo
 from ..repositories import posts as posts_repo
 
 
-def list_posts(db: Session, *, limit: int, offset: int) -> Sequence[models.Post]:
-    return posts_repo.list_posts(db, limit=limit, offset=offset)
+def list_posts(
+    db: Session, *, limit: int, offset: int, category: str | None = None
+) -> Sequence[models.Post]:
+    return posts_repo.list_posts(db, limit=limit, offset=offset, category=category)
 
 
 def get_post(db: Session, post_id: int) -> models.Post:

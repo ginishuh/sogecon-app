@@ -33,12 +33,23 @@ export type NotificationStats = {
   recent_accepted: number;
   recent_failed: number;
   encryption_enabled: boolean;
+  range?: '24h'|'7d'|'30d';
+  failed_404?: number;
+  failed_410?: number;
+  failed_other?: number;
 };
 
 export async function getSendLogs(limit = 50): Promise<SendLog[]> {
   return apiFetch<SendLog[]>(`/notifications/admin/notifications/logs?limit=${limit}`);
 }
 
-export async function getNotificationStats(): Promise<NotificationStats> {
-  return apiFetch<NotificationStats>('/notifications/admin/notifications/stats');
+export async function getNotificationStats(range: '24h'|'7d'|'30d' = '7d'): Promise<NotificationStats> {
+  return apiFetch<NotificationStats>(`/notifications/admin/notifications/stats?range=${range}`);
+}
+
+export async function pruneSendLogs(olderThanDays: number): Promise<{ deleted: number; before?: string; older_than_days?: number }> {
+  return apiFetch<{ deleted: number; before?: string; older_than_days?: number }>(
+    '/notifications/admin/notifications/prune-logs',
+    { method: 'POST', body: JSON.stringify({ older_than_days: olderThanDays }) }
+  );
 }

@@ -49,7 +49,10 @@ PUSH_KEK=  # base64-encoded 16/24/32-byte key (recommend 32B)
   - res: `{ accepted: number, failed: number }`
 - `POST /admin/notifications/prune-logs` (운영자)
   - req: `{ older_than_days?: number }` (기본 30)
-  - res: `{ deleted: number }`
+  - res: `{ deleted: number, before: string, older_than_days: number }`
+- `GET /admin/notifications/stats` (운영자)
+  - query: `?range=24h|7d|30d` (기본 7d)
+  - res: `{ active_subscriptions, recent_accepted, recent_failed, encryption_enabled, range, failed_404?, failed_410?, failed_other? }`
 
 ## 프런트엔드 구현 절차
 1. 매니페스트에 아이콘(192/512)과 `display: 'standalone'`, `start_url` 정의.
@@ -58,6 +61,7 @@ PUSH_KEK=  # base64-encoded 16/24/32-byte key (recommend 32B)
 4. 권한이 `denied`이면 재시도 버튼/가이드(브라우저 설정 열기)를 제공.
 5. 서비스워커 `push` 이벤트에서 `showNotification(title, { body, icon, data: { url, tag } })` 처리. `notificationclick`에서 `clients.openWindow(data.url ?? '/')`.
 6. 개발환경에서는 SW를 기본 비활성(dev RSC 안정화). 필요 시 `NEXT_PUBLIC_ENABLE_SW=1`로 강제 등록.
+7. Admin UI(`/admin/notifications`): 테스트 발송·요약(기간 필터)·최근 로그·로그 정리(prune) 제공.
 
 ## 백엔드 구현 절차
 1. `pywebpush`(또는 동등 라이브러리)로 VAPID 서명 발송 구현.

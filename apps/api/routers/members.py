@@ -18,6 +18,9 @@ class MemberListParams(BaseModel):
     q: str | None = None
     cohort: int | None = None
     major: str | None = None
+    company: str | None = None
+    industry: str | None = None
+    region: str | None = None
 
 
 @router.get("/", response_model=list[schemas.MemberRead])
@@ -31,6 +34,12 @@ def list_members(
         filters['cohort'] = int(params.cohort)
     if params.major:
         filters['major'] = params.major
+    if params.company:
+        filters['company'] = params.company
+    if params.industry:
+        filters['industry'] = params.industry
+    if params.region:
+        filters['region'] = params.region
     members = members_service.list_members(
         db, limit=params.limit, offset=params.offset, filters=filters
     )
@@ -52,6 +61,12 @@ def count_members(
         filters['cohort'] = int(params.cohort)
     if params.major:
         filters['major'] = params.major
+    if params.company:
+        filters['company'] = params.company
+    if params.industry:
+        filters['industry'] = params.industry
+    if params.region:
+        filters['region'] = params.region
     c = members_service.count_members(db, filters=filters)
     return MemberCount(count=c)
 

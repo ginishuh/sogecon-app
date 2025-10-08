@@ -20,6 +20,13 @@ class MemberBase(BaseModel):
     birth_date: str | None = None  # 'YYYY-MM-DD'
     birth_lunar: bool | None = None
     phone: str | None = None
+    company: str | None = None
+    department: str | None = None
+    job_title: str | None = None
+    company_phone: str | None = None
+    addr_personal: str | None = None
+    addr_company: str | None = None
+    industry: str | None = None
 
 
 class MemberCreate(MemberBase):
@@ -46,12 +53,22 @@ class MemberUpdate(BaseModel):
     birth_date: str | None = None
     birth_lunar: bool | None = None
     phone: str | None = None
+    company: str | None = None
+    department: str | None = None
+    job_title: str | None = None
+    company_phone: str | None = None
+    addr_personal: str | None = None
+    addr_company: str | None = None
+    industry: str | None = None
 
 
 class MemberListFilters(TypedDict, total=False):
     q: str
     cohort: int
     major: str
+    company: str
+    industry: str
+    region: str
     exclude_private: bool
 
 
@@ -59,6 +76,9 @@ class PostBase(BaseModel):
     title: str
     content: str
     published_at: datetime | None = None
+    category: str | None = None
+    pinned: bool = False
+    cover_image: str | None = None
 
 
 class PostCreate(PostBase):

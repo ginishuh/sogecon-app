@@ -178,4 +178,22 @@
 - API: support 티켓 저장용 TypedDict 필수/선택 키 명시(NotRequired)로 pyright 오류 해소.
  - Web: Next typedRoutes와 호환되도록 router.replace에 안전한 `Route` 캐스팅 적용.
  - Web: /directory 페이지에 Suspense 래퍼 추가(useSearchParams 규칙 준수). 프로덕션 빌드 오류 해결.
- - API: bandit(B110) 대응 — support 로그 로테이션에서 광범위 예외 대신 (OSError, PermissionError)만 포착하고 경고 로그 남김.
+- API: bandit(B110) 대응 — support 로그 로테이션에서 광범위 예외 대신 (OSError, PermissionError)만 포착하고 경고 로그 남김.
+- Docs: M3 Push Polish 세부 계획 추가(`docs/m3_push_polish_plan_251007.md`), `docs/plan_251007.md` 다음 단계 섹션 갱신.
+- Web: admin notifications에 prune-logs UI 및 암호화 상태 배지 추가, 로그 표시 개수 선택 지원.
+ - API: notifications 통계(range=24h/7d/30d) 및 실패 분포(404/410/기타) 추가.
+ - Web: admin notifications 요약에 기간 필터/실패 분포 표시, prune 응답의 기준시각(before) 토스트 출력.
+ - Fix: pyright 호환(UTC alias→timezone.utc, ok 필드 캐스팅) 적용.
+ - Fix: ok 필드 bool 변환을 정수 비교로 교체(pyright reportGeneralTypeIssues 해소).
+- Fix: 통계 계산 제너레이터 → 루프 재작성(SQLAlchemy InstrumentedAttribute 비교 시 pyright 오진 회피).
+- Test: invalid endpoint 422, stats range 파라미터 반환 검증 추가(총 33 통과).
+- Ops: re-key 스크립트(ops/rekey_push_kek.py) 추가 및 KEK 로테이션 절차 문서화.
+- Test: 동시성 레이트리밋 케이스 추가(동시 2요청 중 최소 1건 429 보장). 전체 34 테스트 통과.
+- API: /me 프로필 확장 — 회사/부서/직급/회사전화/개인·직장주소/업종 필드 추가 및 업데이트 지원. 테스트 36 통과.
+- API/Web: 수첩 필터 확장(industry/company/region) — 목록/카운트 필터 및 /directory UI 입력·URL 동기화 추가. 테스트 37 통과.
+- API: posts에 category/pinned/cover_image 필드 추가, 목록 category 필터 및 pinned 우선 정렬. 테스트 38 통과.
+- Web: vitest+RTL 도입, PostCard 스냅샷/렌더 테스트 추가, 공지/소식 카드 UI(카테고리 탭/핀 배지/썸네일) 적용.
+- Web: 게시글 작성 폼에 category/pinned/cover_image 입력 연결.
+- Web: 고정 공지 섹션 분리(splitPinned), pinned 3개 제한/공지 더보기, next/image + remotePatterns(`NEXT_PUBLIC_IMAGE_DOMAINS`) 구성, /posts/[id] 상세 페이지 추가.
+- Web: vitest 3.2.4로 상향(GHSA-9crc-q9x8-hgqq 대응).
+- DB: 0012_member_post_extra_fields 마이그레이션 추가(회원 확장 필드/게시글 category/pinned/cover 컬럼 생성).
