@@ -49,4 +49,16 @@ def get_member_by_email(db: Session, email: str) -> models.Member:
 def update_member_profile(
     db: Session, *, member_id: int, data: schemas.MemberUpdate
 ) -> models.Member:
-    return members_repo.update_member_profile(db, member_id=member_id, data=data)
+    raw_payload = data.model_dump(exclude_unset=True)
+    if not raw_payload:
+        return members_repo.update_member_profile(
+            db, member_id=member_id, data=data
+        )
+    sanitized_data: dict[str, object] = {
+        key: value.strip() if isinstance(value, str) else value
+        for key, value in raw_payload.items()
+    }
+    sanitized = data.model_copy(update=sanitized_data)
+    return members_repo.update_member_profile(
+        db, member_id=member_id, data=sanitized
+    )

@@ -1,13 +1,29 @@
 from __future__ import annotations
 
 import enum
+import re
 from datetime import datetime
 from typing import Literal, TypedDict
 
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    ValidationInfo,
+    field_validator,
+)
 
 VisibilityLiteral = Literal["all", "cohort", "private"]
 RSVPLiteral = Literal["going", "waitlist", "cancel"]
+
+_PHONE_PATTERN = re.compile(r'^[0-9+\-\s]{7,20}$')
+_TEXT_LIMITS: dict[str, tuple[int, int, str]] = {
+    "department": (1, 80, "부서"),
+    "job_title": (1, 80, "직함"),
+    "addr_personal": (1, 200, "개인 주소"),
+    "addr_company": (1, 200, "회사 주소"),
+    "industry": (1, 60, "업종"),
+}
 
 
 class MemberBase(BaseModel):
@@ -60,6 +76,40 @@ class MemberUpdate(BaseModel):
     addr_personal: str | None = None
     addr_company: str | None = None
     industry: str | None = None
+
+    @field_validator("phone", "company_phone")
+    @classmethod
+    def _validate_phone(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        trimmed = value.strip()
+        if not _PHONE_PATTERN.fullmatch(trimmed):
+            raise ValueError("전화번호는 숫자, +, -, 공백으로만 7~20자 입력해주세요.")
+        return trimmed
+
+    @field_validator(
+        "department",
+        "job_title",
+        "addr_personal",
+        "addr_company",
+        "industry",
+    )
+    @classmethod
+    def _validate_text_length(
+        cls, value: str | None, info: ValidationInfo
+    ) -> str | None:
+        if value is None:
+            return None
+        trimmed = value.strip()
+        field_name = info.field_name or ""
+        limits: tuple[int, int, str] | None = _TEXT_LIMITS.get(field_name)
+        if limits is None:
+            return trimmed
+        min_len, max_len, label = limits
+        length = len(trimmed)
+        if length < min_len or length > max_len:
+            raise ValueError(f"{label}은 {min_len}~{max_len}자 이내로 입력해주세요.")
+        return trimmed
 
 
 class MemberListFilters(TypedDict, total=False):
