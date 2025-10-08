@@ -201,3 +201,4 @@
 - Web: B v2 프로필 폼에 동기 검증/에러 맵핑, 공개 범위 안내 카피(접근성 라벨)와 vitest 검증을 추가.
 - API: `/me/avatar` 업로드 경로 추가(512px 리사이즈, 100KB 압축, media static 서빙) 및 `avatar_path` 칼럼/pytest 추가.
 - Web: 프로필 사진 업로드 UI·미리보기, FormData 지원, `/me` 페이지 토스트/접근성 문구 보강.
+- Fix: 아바타 이미지 검증/압축 로직 타입 보완 및 URL 생성(computed_field) 안정화.

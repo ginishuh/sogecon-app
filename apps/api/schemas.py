@@ -9,9 +9,10 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     EmailStr,
+    Field,
     ValidationInfo,
+    computed_field,
     field_validator,
-    model_validator,
 )
 
 from .config import get_settings
@@ -62,7 +63,7 @@ class MemberCreate(MemberBase):
 
 class MemberRead(MemberBase):
     id: int
-    avatar_url: str | None = None
+    avatar_path: str | None = Field(default=None, exclude=True)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -73,22 +74,9 @@ class MemberRead(MemberBase):
             return v.value
         return v
 
-    @model_validator(mode="before")
-    @classmethod
-    def _inject_avatar_url(cls, data: object) -> object:
-        if data is None:
-            return data
-        if isinstance(data, dict):
-            avatar_path = data.get("avatar_path")
-            if avatar_path and not data.get("avatar_url"):
-                new_data = dict(data)
-                new_data["avatar_url"] = _avatar_url_from_path(avatar_path)
-                return new_data
-            return data
-        avatar_path = getattr(data, "avatar_path", None)
-        if avatar_path:
-            setattr(data, "avatar_url", _avatar_url_from_path(avatar_path))
-        return data
+    @computed_field(return_type=str | None)
+    def avatar_url(self) -> str | None:
+        return _avatar_url_from_path(self.avatar_path)
 
 
 class MemberUpdate(BaseModel):

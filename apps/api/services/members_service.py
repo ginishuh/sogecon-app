@@ -185,7 +185,7 @@ def update_member_avatar(
 
     member = members_repo.get_member(db, member_id)
     previous_path = getattr(member, "avatar_path", None)
-    member.avatar_path = relative_path
+    setattr(member, "avatar_path", relative_path)
     db.commit()
     db.refresh(member)
 
