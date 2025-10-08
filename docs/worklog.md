@@ -196,3 +196,4 @@
 - Web: 게시글 작성 폼에 category/pinned/cover_image 입력 연결.
 - Web: 고정 공지 섹션 분리(splitPinned), pinned 3개 제한/공지 더보기, next/image + remotePatterns(`NEXT_PUBLIC_IMAGE_DOMAINS`) 구성, /posts/[id] 상세 페이지 추가.
 - Web: vitest 3.2.4로 상향(GHSA-9crc-q9x8-hgqq 대응).
+- DB: 0012_member_post_extra_fields 마이그레이션 추가(회원 확장 필드/게시글 category/pinned/cover 컬럼 생성).
