@@ -2,7 +2,19 @@ import type { MetadataRoute } from 'next';
 
 import { siteConfig } from '../lib/site';
 
-const staticPaths = ['/', '/about/greeting', '/about/org', '/about/history', '/posts', '/events', '/offline'];
+const staticPaths = [
+  '/',
+  '/about/greeting',
+  '/about/org',
+  '/about/history',
+  '/directory',
+  '/faq',
+  '/privacy',
+  '/terms',
+  '/posts',
+  '/events',
+  '/offline'
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteConfig.url.replace(/\/$/, '');
@@ -10,7 +22,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return staticPaths.map((path) => ({
     url: `${base}${path === '/' ? '' : path}`,
     lastModified: now,
-    changeFrequency: path === '/' ? 'weekly' : 'monthly',
+    changeFrequency:
+      path === '/'
+        ? 'weekly'
+        : ['/posts', '/events', '/directory'].includes(path)
+          ? 'weekly'
+          : ['/faq', '/privacy', '/terms'].includes(path)
+            ? 'yearly'
+            : 'monthly',
     priority: path === '/' ? 1 : 0.6
   }));
 }

@@ -214,3 +214,4 @@
 - Web: FAQ/Privacy/Terms 정적 페이지 추가 및 헤더 내비 확장.
 - API: members 정렬·필터 파라미터 확장 및 타임스탬프 컬럼 추가.
 - Web: 디렉터리 정렬·필터 확장 및 URL 동기화 테스트 보강.
+- Web: 전역 SEO 메타데이터·OG·sitemap·robots 최종 갱신 및 기본 OG 이미지 교체.
