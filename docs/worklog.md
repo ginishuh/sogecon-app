@@ -209,3 +209,4 @@
  - 타입: `pywebpush` 로컬 타입 스텁(`typings/pywebpush/__init__.pyi`) 추가로 pyright 경고(reportMissingTypeStubs) 제거.
 - Web: 소개 3페이지 · 홈 히어로/카드 · SEO/메타/Analytics · 접근성 토큰을 1차 적용하고 vitest/빌드까지 검증.
 - CI: Lighthouse 워크플로 추가(.github/workflows/lighthouse.yml) — PR마다 Perf/A11y ≥ 0.90 검증.
+- Web: 소개 3페이지 실카피·이미지 설명 최종 반영, vitest 스냅샷 갱신.

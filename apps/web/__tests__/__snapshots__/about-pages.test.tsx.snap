@@ -26,7 +26,7 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
         <p
           class="about-hero__description"
         >
-          총원우회 16대 회장 김서강입니다. 서로 다른 경험을 가진 동문이 마음껏 도전하고 성장할 수 있도록, 든든한 동반자가 되겠습니다.
+          총원우회 16대 회장 김서강입니다. 2025년 웹 서비스 런치와 함께, 동문 누구나 쉽게 소식을 접하고 의견을 나눌 수 있는 열린 커뮤니티를 만들겠습니다.
         </p>
       </div>
       <div
@@ -55,10 +55,10 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
           동문이 함께 만드는 미래
         </h2>
         <p>
-          총원우회는 지난 30여 년 동안 끊임없는 교류와 협력으로 성장해 왔습니다. 올해는 디지털 전환과 온·오프라인 행사를 통해 전국의 동문이 언제든지 연결될 수 있는 기반을 마련하는 데 집중하고자 합니다.
+          지난 30년 동안 총원우회는 서로의 지식과 경험을 나누며 성장해 왔습니다. 이제는 모바일과 웹 어디서나 같은 정보를 볼 수 있도록 디지털 전환을 완성해, 멀리 떨어진 동문도 실시간으로 소식을 접할 수 있는 환경을 구축하고 있습니다.
         </p>
         <p>
-          동문 여러분 한 분, 한 분이 주인공입니다. 총원우회 활동을 통해 쌓인 경험과 지식을 나누어 각자의 커리어와 삶이 더 단단해질 수 있도록 함께하겠습니다.
+          2025년에는 정기총회와 산업별 라운드테이블, ESG 프로젝트를 아우르는 ‘공유 달력’을 운영해 참여 동선을 단순화할 예정입니다. 동문 여러분 한 분, 한 분의 제안이 정책과 프로그램으로 이어지도록 의견 수렴 창구도 상시로 열어 두겠습니다.
         </p>
       </div>
       <figure
@@ -101,10 +101,10 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
           <h3
             class="about-section__card-title"
           >
-            연결과 협력
+            디지털 허브 완성
           </h3>
           <p>
-            세대와 기수를 넘나드는 연결을 촉진하고, 선후배가 함께 배우는 교류의 장을 만드는 것이 최우선입니다.
+            2025년 하반기 웹 런치를 통해 언제 어디서든 행사·공지·디렉터리를 확인할 수 있는 원스톱 허브를 완성하겠습니다.
           </p>
         </li>
         <li
@@ -113,10 +113,10 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
           <h3
             class="about-section__card-title"
           >
-            지속 가능한 성장
+            투명한 재정과 보고
           </h3>
           <p>
-            총원우회의 재정·인적 자원을 투명하게 관리하고, 구성원의 성장을 지원하는 프로그램을 꾸준히 확장하겠습니다.
+            회비·기금 집행 내역을 분기별 리포트와 데이터 대시보드로 공개하고, 회원 질문에 48시간 이내 응답하는 체계를 유지하겠습니다.
           </p>
         </li>
         <li
@@ -125,10 +125,10 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
           <h3
             class="about-section__card-title"
           >
-            사회적 책임
+            함께 성장하는 커뮤니티
           </h3>
           <p>
-            지역사회와 학교 발전에 기여하고, 동문 지식의 선순환을 위해 사회공헌 프로젝트를 준비하고 있습니다.
+            현직·동문 멘토링과 산업별 라운드테이블을 정례화해 기수와 세대를 아우르는 실질적인 성장을 지원하겠습니다.
           </p>
         </li>
       </ul>
@@ -163,7 +163,7 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
         <p
           class="about-hero__description"
         >
-          총원우회는 1994년 창립 이후 30년 동안 동문 교류와 사회 공헌을 이어왔습니다. 연혁과 역대 회장단의 주요 활동을 한눈에 정리했습니다.
+          총원우회는 1994년 창립 이후 30년 넘게 동문 교류와 사회 공헌을 이어왔습니다. 연혁과 역대 회장단의 주요 활동을 한눈에 정리했습니다.
         </p>
       </div>
       <div
@@ -192,7 +192,7 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
           주요 연혁
         </h2>
         <p>
-          동문회의 발자취를 간략히 정리했습니다. 더 자세한 기록은 연간 사업 보고서와 자료실을 통해 열람할 수 있습니다.
+          동문회의 발자취를 간략히 정리했습니다. 연간 사업 보고서와 자료실에서 더 자세한 기록을 확인할 수 있으며, 2025년부터는 주요 지표를 데이터 보드로 시각화해 제공할 예정입니다.
         </p>
       </div>
       <ol
@@ -220,7 +220,7 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
               총원우회 창립
             </h3>
             <p>
-              초기 4개 기수가 연합하여 총원우회를 창립하고, 서강대학교 경제대학원 동문 네트워크의 초석을 다졌습니다.
+              첫 4개 기수가 연합해 총원우회를 창립하고, 서강대학교 경제대학원 동문 네트워크의 기반을 마련했습니다.
             </p>
           </div>
         </li>
@@ -245,7 +245,7 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
               장학기금 조성
             </h3>
             <p>
-              동문 기부로 장학기금을 조성해 재학 중인 후배를 지원하기 시작했습니다. 현재는 연 10명 내외에게 장학금을 지급합니다.
+              동문 기부로 장학기금을 조성해 재학생 후배 지원을 시작했습니다. 현재는 연간 12명에게 장학금을 지급합니다.
             </p>
           </div>
         </li>
@@ -270,7 +270,7 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
               디지털 커뮤니티 전환
             </h3>
             <p>
-              회원 포털과 모바일 알림 시스템을 구축하여 행사 신청, 회비 납부, 커뮤니티 운영을 온라인으로 전환했습니다.
+              회원 포털과 모바일 알림 시스템을 도입해 행사 신청, 회비 납부, 커뮤니티 운영을 온라인으로 전환했습니다.
             </p>
           </div>
         </li>
@@ -287,15 +287,40 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
             <span
               class="about-timeline__year"
             >
-              2024
+              2022
             </span>
             <h3
               class="about-timeline__title"
             >
-              ESG 프로젝트 론칭
+              데이터 거버넌스 강화
             </h3>
             <p>
-              지역사회 연계 사회공헌 활동을 본격화하고, ESG 위원회를 신설했습니다.
+              회원 데이터 거버넌스 정책과 접근 로그 감사를 도입해 개인정보 보호와 투명한 데이터 사용 체계를 구축했습니다.
+            </p>
+          </div>
+        </li>
+        <li
+          class="about-timeline__item"
+        >
+          <div
+            aria-hidden="true"
+            class="about-timeline__marker"
+          />
+          <div
+            class="about-timeline__content"
+          >
+            <span
+              class="about-timeline__year"
+            >
+              2025
+            </span>
+            <h3
+              class="about-timeline__title"
+            >
+              공식 웹 런치
+            </h3>
+            <p>
+              웹·모바일 통합 경험을 제공하는 공식 웹을 오픈하고, 디렉터리/공지/행사/소개를 한 번에 연결하도록 개편했습니다.
             </p>
           </div>
         </li>
@@ -375,7 +400,7 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
                 주요 과제
               </dt>
               <dd>
-                코로나 대응 온라인 프로그램 확대
+                비대면 운영 체계 확립, 온라인 세미나 확대
               </dd>
             </div>
           </dl>
@@ -409,6 +434,35 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
             </div>
           </dl>
         </li>
+        <li
+          class="about-section__card"
+        >
+          <h3
+            class="about-section__card-title"
+          >
+            16대 회장 김서강
+          </h3>
+          <dl
+            class="about-section__dl"
+          >
+            <div>
+              <dt>
+                활동 기간
+              </dt>
+              <dd>
+                2024 - 2025
+              </dd>
+            </div>
+            <div>
+              <dt>
+                주요 과제
+              </dt>
+              <dd>
+                웹 런치, 데이터 투명성, 산업별 라운드테이블 상시화
+              </dd>
+            </div>
+          </dl>
+        </li>
       </ul>
     </section>
     <section
@@ -425,10 +479,10 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
           자료실 미리보기
         </h2>
         <p>
-          연간 사업 보고서, 회계 감사 보고, 총회 의사록 등은 로그인한 회원에게 순차적으로 열람 권한을 제공할 예정입니다. 정식 오픈 전까지는 주요 항목만 요약으로 제공합니다.
+          연간 사업 보고서, 회계 감사 보고, 총회 의사록 등은 로그인한 회원에게 순차적으로 열람 권한을 제공할 예정입니다. 정식 오픈 전까지는 핵심 항목만 요약으로 제공하며, 열람 신청이 많은 문서는 우선 공개합니다.
         </p>
         <p>
-          의견이나 추가 요청이 있다면 사무국으로 알려 주세요. 자료 공개 범위와 형식을 함께 논의하겠습니다.
+          자료 공개 범위에 대한 의견은 언제든 사무국으로 전해주세요. 공개 시기와 형식을 구성원과 함께 결정하겠습니다.
         </p>
       </div>
       <figure
@@ -474,7 +528,7 @@ exports[`About static pages > renders organization page with contact list 1`] = 
         <p
           class="about-hero__description"
         >
-          총원우회는 회장단과 집행부, 자문위원, 감사단이 분담하여 운영합니다. 각 조직은 분기별 운영 성과를 보고하고, 모든 문서는 회원에게 투명하게 공개합니다.
+          총원우회는 회장단, 집행부, 감사단, 자문위원으로 구성되어 각자의 책임을 분담합니다. 모든 회의록과 결산 자료는 회원 전용 아카이브에 공개합니다.
         </p>
       </div>
       <div
@@ -503,10 +557,10 @@ exports[`About static pages > renders organization page with contact list 1`] = 
           회장단과 집행부
         </h2>
         <p>
-          회장단은 회장, 수석부회장, 부회장단, 감사단으로 구성됩니다. 회장단은 전략 방향과 연간 사업계획을 수립하고, 집행부는 이를 실행하며 회원과의 접점을 관리합니다.
+          회장단은 회장, 수석부회장, 부회장단, 감사단으로 구성되어 전략 방향과 연간 사업계획을 수립합니다. 집행부는 실행 조직으로서 각 분과의 목표를 조정하고, 회원 접점을 통해 수집된 피드백을 정리해 회장단에 보고합니다.
         </p>
         <p>
-          각 분과는 최소 2인 이상으로 구성되어 상호 견제와 협업 체계를 유지합니다. 주요 안건은 월 1회 열리는 운영위원회에서 논의 후 공지합니다.
+          모든 분과는 담당자를 두 명 이상 배치해 견제와 협업 구조를 유지하며, 주요 안건은 월 1회 열리는 운영위원회에서 논의 후 공지합니다. 분기별로 공개하는 리포트에는 KPI 달성 현황과 다음 분기 계획이 포함됩니다.
         </p>
       </div>
       <figure
@@ -536,7 +590,7 @@ exports[`About static pages > renders organization page with contact list 1`] = 
           분과별 주요 역할
         </h2>
         <p>
-          모든 분과는 연초에 정량 목표와 예산 사용 계획을 공지하며, 분기별로 성과와 지출 내역을 보고합니다. 문서는 회원 전용 게시판에서 열람할 수 있습니다.
+          각 분과는 연초에 정량 목표와 예산 사용 계획을 공지하고, 분기별 성과와 지출 내역을 대시보드와 PDF 리포트로 공유합니다. 주요 지표는 KPI 보드에서 실시간으로 확인할 수 있습니다.
         </p>
       </div>
       <ul
@@ -552,7 +606,7 @@ exports[`About static pages > renders organization page with contact list 1`] = 
             집행위원회
           </h3>
           <p>
-            정기 모임 기획, 예산 집행, 대외 협력 등 총원우회의 일상 운영을 관리합니다. 분기별 운영 리포트를 공개합니다.
+            연간 사업계획과 예산을 수립하고, 회칙/규정 개정 절차를 관리합니다. 모든 안건과 지출은 분기 총회에서 공개합니다.
           </p>
         </li>
         <li
@@ -564,7 +618,7 @@ exports[`About static pages > renders organization page with contact list 1`] = 
             기획분과
           </h3>
           <p>
-            신규 프로그램과 동문 대상 강연, 산업별 소모임을 기획합니다. 올해는 금융·테크·문화 영역을 우선으로 진행합니다.
+            산업별 네트워킹, ESG 프로젝트, 장학사업 등 신규 프로그램을 설계합니다. 2025년에는 금융·테크·공공 분야 협업을 우선 추진합니다.
           </p>
         </li>
         <li
@@ -576,7 +630,19 @@ exports[`About static pages > renders organization page with contact list 1`] = 
             회원분과
           </h3>
           <p>
-            회원 데이터베이스 정비, 입회/재등록 지원, 회원복지 프로그램을 운영합니다. 개인정보 보호와 접근성 정책을 준수합니다.
+            회원 데이터베이스 정비와 입회/재등록 지원, 복지 프로그램 운영을 담당합니다. 개인정보 보호와 접근성 가이드를 준수해 서비스 품질을 유지합니다.
+          </p>
+        </li>
+        <li
+          class="about-section__card"
+        >
+          <h3
+            class="about-section__card-title"
+          >
+            소통분과
+          </h3>
+          <p>
+            뉴스레터·SNS·홈페이지 업데이트를 통합 관리하고, 문의 대응 SLA(48시간)를 모니터링합니다. 내·외부 커뮤니케이션 일정을 조율합니다.
           </p>
         </li>
       </ul>
@@ -614,6 +680,20 @@ exports[`About static pages > renders organization page with contact list 1`] = 
             class="about-contact-list__description"
           >
             office@sogang-econ-alumni.kr
+          </dd>
+        </div>
+        <div
+          class="about-contact-list__item"
+        >
+          <dt
+            class="about-contact-list__term"
+          >
+            대표 전화
+          </dt>
+          <dd
+            class="about-contact-list__description"
+          >
+            02-715-1234 (ARS 2번: 행사/협업)
           </dd>
         </div>
         <div
