@@ -28,6 +28,9 @@ export async function createPost(payload: {
   title: string;
   content: string;
   published_at?: string | null;
+  category?: string | null;
+  pinned?: boolean;
+  cover_image?: string | null;
 }): Promise<Post> {
   return apiFetch<Post>(`/posts/`, { method: 'POST', body: JSON.stringify(payload) });
 }
