@@ -10,6 +10,9 @@ jobs:
   lhci:
     name: Web Lighthouse (Perf/A11y)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -71,13 +74,24 @@ jobs:
           LHCI_LINKS: ${{ steps.lhci.outputs.links }}
         with:
           script: |
-            const links = (process.env.LHCI_LINKS || '').trim();
-            const body = links
-              ? `Lighthouse reports (temporary):\n${links.split('\n').map(l => `- ${l}`).join('\n')}`
-              : 'Lighthouse completed (no links output).';
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body,
-            });
+            const linksRaw = (process.env.LHCI_LINKS || '').trim();
+            let body = 'Lighthouse completed (no links output).';
+            if (linksRaw) {
+              try {
+                const parsed = JSON.parse(linksRaw);
+                const lines = Object.entries(parsed).map(([k,v]) => `- ${k}: ${v}`);
+                body = `Lighthouse reports (temporary):\n${lines.join('\n')}`;
+              } catch {
+                body = `Lighthouse reports (raw):\n${linksRaw.split('\n').map(l => `- ${l}`).join('\n')}`;
+              }
+            }
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            } catch (e) {
+              core.warning(`Skipping LH report comment: ${e.message}`);
+            }
