@@ -70,6 +70,9 @@ describe('SiteHeader navigation', () => {
     expect(within(mobileNav).getByRole('link', { name: '회장 인사말' })).toHaveAttribute('href', '/about/greeting');
     expect(within(mobileNav).getByRole('link', { name: '조직도' })).toHaveAttribute('href', '/about/org');
     expect(within(mobileNav).getByRole('link', { name: '역대 회장단' })).toHaveAttribute('href', '/about/history');
+    expect(within(mobileNav).getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq');
+    expect(within(mobileNav).getByRole('link', { name: '개인정보 처리방침' })).toHaveAttribute('href', '/privacy');
+    expect(within(mobileNav).getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
   });
 
   it('marks navigation landmarks for desktop layout', () => {
@@ -77,5 +80,6 @@ describe('SiteHeader navigation', () => {
     expect(screen.getByLabelText('주 메뉴')).toBeInTheDocument();
     const toggleButton = screen.getByLabelText('전체 메뉴 열기');
     expect(toggleButton).toHaveAttribute('aria-controls', 'primary-navigation');
+    expect(within(screen.getByLabelText('주 메뉴')).getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq');
   });
 });

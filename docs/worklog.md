@@ -211,3 +211,4 @@
 - CI: Lighthouse 워크플로 추가(.github/workflows/lighthouse.yml) — PR마다 Perf/A11y ≥ 0.90 검증.
 - Web: 소개 3페이지 실카피·이미지 설명 최종 반영, vitest 스냅샷 갱신.
 - Web: 홈 히어로 카피·배너 이미지·디자인 토큰 최종 조정.
+- Web: FAQ/Privacy/Terms 정적 페이지 추가 및 헤더 내비 확장.

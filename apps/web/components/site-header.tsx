@@ -26,6 +26,12 @@ const ABOUT_LINKS: LinkItem[] = [
   { href: '/about/history', label: '역대 회장단' }
 ];
 
+const SUPPORT_LINKS: LinkItem[] = [
+  { href: '/faq', label: 'FAQ' },
+  { href: '/privacy', label: '개인정보 처리방침' },
+  { href: '/terms', label: '이용약관' }
+];
+
 const ADMIN_LINKS: LinkItem[] = [
   { href: '/admin/notifications', label: '알림(Admin)' },
   { href: '/posts/new', label: '게시글 작성' },
@@ -95,6 +101,20 @@ export function SiteHeader() {
                   ))}
                 </ul>
               </div>
+              <div aria-label="고객 지원" className="flex flex-col gap-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-muted">
+                  고객 지원
+                </span>
+                <ul className="flex flex-col gap-2">
+                  {SUPPORT_LINKS.map((link) => (
+                    <li key={link.href}>
+                      <Link className="transition hover:text-brand-primary" href={link.href}>
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <RequireAdmin>
                 <div aria-label="관리자 메뉴" className="flex flex-col gap-2">
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-muted">
@@ -143,6 +163,22 @@ export function SiteHeader() {
             <h2 className="text-xs font-semibold uppercase text-neutral-muted">총원우회 소개</h2>
             <ul className="grid gap-2">
               {ABOUT_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    className="block rounded-md px-3 py-2 hover:bg-brand-surface hover:text-brand-primary"
+                    href={link.href}
+                    onClick={closeMenu}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section aria-label="고객 지원 링크" className="space-y-2">
+            <h2 className="text-xs font-semibold uppercase text-neutral-muted">고객 지원</h2>
+            <ul className="grid gap-2">
+              {SUPPORT_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
                     className="block rounded-md px-3 py-2 hover:bg-brand-surface hover:text-brand-primary"
