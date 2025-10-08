@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -21,6 +23,8 @@ class MemberListParams(BaseModel):
     company: str | None = None
     industry: str | None = None
     region: str | None = None
+    job_title: str | None = None
+    sort: Literal["recent", "cohort_desc", "cohort_asc", "name"] = "recent"
 
 
 @router.get("/", response_model=list[schemas.MemberRead])
@@ -40,6 +44,10 @@ def list_members(
         filters['industry'] = params.industry
     if params.region:
         filters['region'] = params.region
+    if params.job_title:
+        filters['job_title'] = params.job_title
+    if params.sort:
+        filters['sort'] = params.sort
     members = members_service.list_members(
         db, limit=params.limit, offset=params.offset, filters=filters
     )
@@ -67,6 +75,8 @@ def count_members(
         filters['industry'] = params.industry
     if params.region:
         filters['region'] = params.region
+    if params.job_title:
+        filters['job_title'] = params.job_title
     c = members_service.count_members(db, filters=filters)
     return MemberCount(count=c)
 

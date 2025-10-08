@@ -54,6 +54,18 @@ class Member(Base):
     addr_company = Column(String(255), nullable=True)
     industry = Column(String(255), nullable=True)
     avatar_path = Column(String(255), nullable=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        server_onupdate=func.now(),
+        onupdate=func.now(),
+    )
 
     posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
     rsvps = relationship("RSVP", back_populates="member", cascade="all, delete-orphan")
