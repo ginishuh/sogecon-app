@@ -53,6 +53,7 @@ class Member(Base):
     addr_personal = Column(String(255), nullable=True)
     addr_company = Column(String(255), nullable=True)
     industry = Column(String(255), nullable=True)
+    avatar_path = Column(String(255), nullable=True)
 
     posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
     rsvps = relationship("RSVP", back_populates="member", cascade="all, delete-orphan")

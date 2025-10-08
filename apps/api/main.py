@@ -1,7 +1,9 @@
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -43,6 +45,14 @@ app.add_middleware(
     secret_key=settings.jwt_secret,
     same_site="lax",
     https_only=cookie_secure,
+)
+
+media_root = Path(settings.media_root)
+media_root.mkdir(parents=True, exist_ok=True)
+app.mount(
+    settings.media_url_base,
+    StaticFiles(directory=str(media_root)),
+    name="media",
 )
 
 

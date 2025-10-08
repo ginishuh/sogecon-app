@@ -197,3 +197,13 @@
 - Web: 고정 공지 섹션 분리(splitPinned), pinned 3개 제한/공지 더보기, next/image + remotePatterns(`NEXT_PUBLIC_IMAGE_DOMAINS`) 구성, /posts/[id] 상세 페이지 추가.
 - Web: vitest 3.2.4로 상향(GHSA-9crc-q9x8-hgqq 대응).
 - DB: 0012_member_post_extra_fields 마이그레이션 추가(회원 확장 필드/게시글 category/pinned/cover 컬럼 생성).
+- API: B v2 프로필 검증 강화(phone·company_phone 형식, 부서/직함/주소/업종 길이 검사, 서비스 계층 문자열 trim 재검증) 및 422 테스트 추가.
+- Web: B v2 프로필 폼에 동기 검증/에러 맵핑, 공개 범위 안내 카피(접근성 라벨)와 vitest 검증을 추가.
+- API: `/me/avatar` 업로드 경로 추가(512px 리사이즈, 100KB 압축, media static 서빙) 및 `avatar_path` 칼럼/pytest 추가.
+- Web: 프로필 사진 업로드 UI·미리보기, FormData 지원, `/me` 페이지 토스트/접근성 문구 보강.
+- Web: 디렉터리 URL 동기화/무한스크롤/접근성 구성 및 vitest URL 동기화 테스트 추가.
+- Build: `scripts/export_openapi.py` 추가로 FastAPI에서 직접 OpenAPI를 추출, `pnpm -C packages/schemas gen` 자동화 및 웹 타입 참조( schemas 패키지 ) 연결.
+- Fix: 아바타 이미지 검증/압축 로직 타입 보완 및 URL 생성(computed_field) 안정화.
+- Web: PWA 오프라인 스켈레톤(`/offline` 페이지, SW 네비게이션 fallback)으로 홈/디렉터리 최소 안내 복구 처리.
+ - Fix: Alembic `0013_member_avatar.py` 헤더/문자열 이스케이프 수정(compileall SyntaxError 해결).
+ - 타입: `pywebpush` 로컬 타입 스텁(`typings/pywebpush/__init__.pyi`) 추가로 pyright 경고(reportMissingTypeStubs) 제거.

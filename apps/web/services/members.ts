@@ -1,6 +1,7 @@
+import type { components } from 'schemas';
 import { apiFetch } from '../lib/api';
 
-export type Member = { id: number; email: string; name: string; cohort: number; major?: string | null; roles: string; visibility: 'all'|'cohort'|'private' };
+export type Member = components['schemas']['MemberRead'];
 
 export async function listMembers(params: { q?: string; cohort?: number; major?: string; company?: string; industry?: string; region?: string; limit?: number; offset?: number } = {}): Promise<Member[]> {
   const usp = new URLSearchParams();

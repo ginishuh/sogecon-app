@@ -3,6 +3,7 @@
 > Important — Non‑SSOT
 > - This document is NOT a Single Source of Truth.
 > - Canonical agent rules: `docs/agents_base.md` (EN), `docs/agents_base_kr.md` (KR).
+> - Update (2025‑10‑08): Plan‑only PRs are prohibited; PRs with plan docs must implement the full plan before Ready for Review/merge. See `docs/agents_base.md` → “Planning Docs in PRs”.
 > - 본 문서는 SSOT가 아닙니다. 규칙 변경은 베이스 문서에서 먼저 수행하세요.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. It is governed by the English base `docs/agents_base.md` (Korean mirror: `docs/agents_base_kr.md`). In case of conflict, the base prevails.
