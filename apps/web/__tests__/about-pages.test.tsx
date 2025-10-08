@@ -36,6 +36,7 @@ describe('About static pages', () => {
     const { asFragment } = render(<GreetingPage />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('회장 인사말');
     expect(screen.getByLabelText('총원우회 비전 다이어그램')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '디지털 허브 완성' })).toBeInTheDocument();
     expect(screen.getByRole('list', { name: '총원우회 운영 원칙 목록' })).toBeInTheDocument();
     expect(asFragment()).toMatchSnapshot();
   });
@@ -44,13 +45,16 @@ describe('About static pages', () => {
     const { asFragment } = render(<OrgPage />);
     expect(screen.getByRole('heading', { name: '분과별 주요 역할' })).toBeInTheDocument();
     expect(screen.getByLabelText('사무국 연락처 정보')).toBeInTheDocument();
+    expect(screen.getByText('소통분과')).toBeInTheDocument();
+    expect(screen.getByText('대표 전화')).toBeInTheDocument();
     expect(asFragment()).toMatchSnapshot();
   });
 
   it('renders history page timeline and archive', () => {
     const { asFragment } = render(<HistoryPage />);
     expect(screen.getByRole('list', { name: '총원우회 주요 연혁' })).toBeInTheDocument();
-    expect(screen.getByAltText('자료실 서가를 묘사한 일러스트')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '공식 웹 런치' })).toBeInTheDocument();
+    expect(screen.getByText('16대 회장 김서강')).toBeInTheDocument();
     expect(asFragment()).toMatchSnapshot();
   });
 });
@@ -66,6 +70,9 @@ describe('SiteHeader navigation', () => {
     expect(within(mobileNav).getByRole('link', { name: '회장 인사말' })).toHaveAttribute('href', '/about/greeting');
     expect(within(mobileNav).getByRole('link', { name: '조직도' })).toHaveAttribute('href', '/about/org');
     expect(within(mobileNav).getByRole('link', { name: '역대 회장단' })).toHaveAttribute('href', '/about/history');
+    expect(within(mobileNav).getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq');
+    expect(within(mobileNav).getByRole('link', { name: '개인정보 처리방침' })).toHaveAttribute('href', '/privacy');
+    expect(within(mobileNav).getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
   });
 
   it('marks navigation landmarks for desktop layout', () => {
@@ -73,5 +80,6 @@ describe('SiteHeader navigation', () => {
     expect(screen.getByLabelText('주 메뉴')).toBeInTheDocument();
     const toggleButton = screen.getByLabelText('전체 메뉴 열기');
     expect(toggleButton).toHaveAttribute('aria-controls', 'primary-navigation');
+    expect(within(screen.getByLabelText('주 메뉴')).getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq');
   });
 });

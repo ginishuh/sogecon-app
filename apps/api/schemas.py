@@ -137,6 +137,8 @@ class MemberListFilters(TypedDict, total=False):
     industry: str
     region: str
     exclude_private: bool
+    job_title: str
+    sort: str
 
 
 class PostBase(BaseModel):

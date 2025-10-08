@@ -13,18 +13,18 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
         <span
           class="home-hero__eyebrow"
         >
-          웹 런치 프리뷰
+          2025 웹 런치
         </span>
         <h1
           class="home-hero__title"
           id="home-hero"
         >
-          총원우회 활동을 한눈에, 어디서든 함께
+          한 번의 로그인으로 동문 네트워크 전체를
         </h1>
         <p
           class="home-hero__description"
         >
-          홈 화면에서 행사 일정, 공지, 소개 페이지까지 바로 연결됩니다. 모바일에서도 동일한 경험을 제공하며, 푸시 알림과 회원 전용 기능은 곧 이어집니다.
+          공지, 행사, 디렉터리, 소개 페이지를 하나의 홈에서 연결했습니다. 모바일에서도 동일한 경험을 제공하며, 2025년 4분기부터는 푸시 알림과 회원 전용 기능을 순차적으로 공개합니다.
         </p>
         <div
           aria-label="주요 행동"
@@ -33,15 +33,15 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
         >
           <a
             class="home-hero__cta"
-            href="/events"
+            href="/directory"
           >
-            다가오는 행사 보기
+            동문 디렉터리 열기
           </a>
           <a
             class="home-hero__secondary"
-            href="/posts"
+            href="/faq"
           >
-            최신 공지 확인
+            자주 묻는 질문
           </a>
         </div>
         <dl
@@ -57,7 +57,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
             <dd
               class="font-semibold text-neutral-ink"
             >
-              10월 정기총회 · 10월 25일(토) 14:00
+              정기총회 & 런치 데이 · 10월 25일(토) 14:00
             </dd>
           </div>
           <div>
@@ -69,7 +69,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
             <dd
               class="font-semibold text-neutral-ink"
             >
-              10월 5일 운영위원회 결과 요약
+              FAQ/정책 문서 최종본 · 10월 8일 게시
             </dd>
           </div>
         </dl>
@@ -78,10 +78,10 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
         class="home-hero__image"
       >
         <img
-          alt="총원우회 홈 영웅 이미지"
+          alt="웹 런치를 기념하는 총원우회 일러스트"
           class="h-auto w-full rounded-2xl object-cover shadow-soft"
           height="360"
-          src="/images/home/hero.svg"
+          src="/images/home/hero-launch.svg"
           width="480"
         />
       </div>
@@ -127,7 +127,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
           <dd
             class="mt-2 text-xl font-semibold text-neutral-ink"
           >
-            1,248명
+            1,286명
           </dd>
         </div>
         <div
@@ -141,7 +141,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
           <dd
             class="mt-2 text-xl font-semibold text-neutral-ink"
           >
-            12건 예정
+            17건 진행
           </dd>
         </div>
         <div
@@ -155,7 +155,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
           <dd
             class="mt-2 text-xl font-semibold text-neutral-ink"
           >
-            ₩186,000,000
+            ₩196,500,000
           </dd>
         </div>
         <div
@@ -164,12 +164,12 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
           <dt
             class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
           >
-            커뮤니티 모임
+            운영 프로젝트 팀
           </dt>
           <dd
             class="mt-2 text-xl font-semibold text-neutral-ink"
           >
-            24개 운영
+            8개 준비
           </dd>
         </div>
       </dl>
@@ -205,32 +205,32 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
         class="home-card-grid"
       >
         <a
-          aria-label="공지 · 11월 운영위원회 요약"
+          aria-label="디렉터리 · 동문 디렉터리 베타 공개"
           class="home-card"
-          href="/posts"
+          href="/directory"
         >
           <div>
             <span
               class="text-xs font-semibold uppercase tracking-widest text-brand-primary"
             >
-              공지
+              디렉터리
             </span>
             <h3
               class="home-card__title"
             >
-              11월 운영위원회 요약
+              동문 디렉터리 베타 공개
             </h3>
             <p
               class="home-card__description"
             >
-              회칙 개정 초안, 신규 멤버십 혜택, ESG 프로젝트 착수 현황을 요약했습니다.
+              검색, 기수/업종 필터, 정렬 기능까지 포함된 디렉터리를 웹에서 바로 이용하세요.
             </p>
           </div>
           <div
             class="home-card__meta"
           >
             <span>
-              게시: 2025-10-05
+              실시간 업데이트 중
             </span>
             <span>
               자세히
@@ -238,7 +238,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
           </div>
         </a>
         <a
-          aria-label="행사 · 2025 정기총회 & 홈커밍"
+          aria-label="행사 · 2025 정기총회 & 런치 데이"
           class="home-card"
           href="/events"
         >
@@ -251,12 +251,12 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
             <h3
               class="home-card__title"
             >
-              2025 정기총회 & 홈커밍
+              2025 정기총회 & 런치 데이
             </h3>
             <p
               class="home-card__description"
             >
-              10월 25일 토요일, 서강대학교 다산관에서 열리는 정기총회에 참여 신청하세요.
+              10월 25일 토요일, 다산관에서 열리는 오프라인+온라인 통합 런치 이벤트에 참여 신청하세요.
             </p>
           </div>
           <div
@@ -271,32 +271,32 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
           </div>
         </a>
         <a
-          aria-label="소개 · 16대 회장단 인사말"
+          aria-label="가이드 · 웹 런치 FAQ 12선"
           class="home-card"
-          href="/about/greeting"
+          href="/faq"
         >
           <div>
             <span
               class="text-xs font-semibold uppercase tracking-widest text-brand-primary"
             >
-              소개
+              가이드
             </span>
             <h3
               class="home-card__title"
             >
-              16대 회장단 인사말
+              웹 런치 FAQ 12선
             </h3>
             <p
               class="home-card__description"
             >
-              새로운 회장단이 준비한 비전과 3대 핵심 추진 과제를 먼저 만나보세요.
+              로그인, 접근 권한, 개인정보 처리 방침 개편 내용을 Q&A 형식으로 정리했습니다.
             </p>
           </div>
           <div
             class="home-card__meta"
           >
             <span>
-              총원우회 소개 바로가기
+              업데이트: 2025-10-08
             </span>
             <span>
               자세히

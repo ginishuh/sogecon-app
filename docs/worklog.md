@@ -209,3 +209,18 @@
  - 타입: `pywebpush` 로컬 타입 스텁(`typings/pywebpush/__init__.pyi`) 추가로 pyright 경고(reportMissingTypeStubs) 제거.
 - Web: 소개 3페이지 · 홈 히어로/카드 · SEO/메타/Analytics · 접근성 토큰을 1차 적용하고 vitest/빌드까지 검증.
 - CI: Lighthouse 워크플로 추가(.github/workflows/lighthouse.yml) — PR마다 Perf/A11y ≥ 0.90 검증.
+ - Test: next/image를 테스트에서 img로 mock하되 priority/placeholder 등 비DOM prop 제거(경고 제거).
+- CI: Lighthouse 실행 후 리포트 링크를 PR 코멘트로 자동 첨부(actions/github-script).
+ - CI: Lighthouse 워크플로 권한/예외 처리 보강(permissions.pull-requests=write, 권한 부족 시 warning 처리).
+- Web: 소개 3페이지 실카피·이미지 설명 최종 반영, vitest 스냅샷 갱신.
+- Web: 홈 히어로 카피·배너 이미지·디자인 토큰 최종 조정.
+- Web: FAQ/Privacy/Terms 정적 페이지 추가 및 헤더 내비 확장.
+- API: members 정렬·필터 파라미터 확장 및 타임스탬프 컬럼 추가.
+- Web: 디렉터리 정렬·필터 확장 및 URL 동기화 테스트 보강.
+- Web: 전역 SEO 메타데이터·OG·sitemap·robots 최종 갱신 및 기본 OG 이미지 교체.
+- Web: 스킵 링크·main 포커스·포커스 링 등 접근성 보정.
+- CI: Lighthouse runs=3으로 상향해 점수 변동성 완화.
+- Test: members 정렬(recent/cohort_desc) API 테스트 추가.
+- Docs: 개인정보/약관에 시행일·개정일 표기 추가.
+- API: 디렉터리 정렬 도우미 타입 힌트 보완.
+- API: members updated_at/cohort+name 인덱스 및 마이그레이션 추가.

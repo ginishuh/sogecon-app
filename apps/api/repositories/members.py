@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Any
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
@@ -8,6 +9,62 @@ from sqlalchemy.sql.elements import ColumnElement
 
 from .. import models, schemas
 from ..errors import NotFoundError
+
+
+def _build_member_conditions(
+    filters: schemas.MemberListFilters,
+) -> list[ColumnElement[bool]]:
+    conds: list[ColumnElement[bool]] = []
+    qv = filters.get('q')
+    if qv:
+        like = f"%{qv}%"
+        conds.append(
+            or_(models.Member.name.ilike(like), models.Member.email.ilike(like))
+        )
+
+    cohort = filters.get('cohort')
+    if cohort is not None:
+        conds.append(models.Member.cohort == int(cohort))
+
+    for key, column in (
+        ('major', models.Member.major),
+        ('company', models.Member.company),
+        ('industry', models.Member.industry),
+    ):
+        value = filters.get(key)
+        if value:
+            conds.append(column.ilike(f"%{value}%"))
+
+    region = filters.get('region')
+    if region:
+        like = f"%{region}%"
+        conds.append(
+            or_(
+                models.Member.addr_personal.ilike(like),
+                models.Member.addr_company.ilike(like),
+            )
+        )
+
+    job_title = filters.get('job_title')
+    if job_title:
+        conds.append(models.Member.job_title.ilike(f"%{job_title}%"))
+
+    if filters.get('exclude_private', True):
+        conds.append(models.Member.visibility != models.Visibility.PRIVATE)
+    return conds
+
+
+def _order_columns(sort_value: str | None) -> list[ColumnElement[Any]]:
+    mapping: dict[str, list[ColumnElement[Any]]] = {
+        'cohort_desc': [models.Member.cohort.desc(), models.Member.name.asc()],
+        'cohort_asc': [models.Member.cohort.asc(), models.Member.name.asc()],
+        'name': [models.Member.name.asc()],
+        'recent': [models.Member.updated_at.desc(), models.Member.name.asc()],
+    }
+    if not sort_value:
+        return mapping['recent']
+    key = sort_value.lower()
+    return mapping.get(key, mapping['recent'])
 
 
 def list_members(
@@ -25,39 +82,11 @@ def list_members(
     - exclude_private: visibility=PRIVATE을 기본 제외
     """
     stmt = select(models.Member)
-    conds: list[ColumnElement[bool]] = []
     f = filters or {}
-    qv = f.get('q')
-    if qv:
-        like = f"%{qv}%"
-        conds.append(
-            or_(models.Member.name.ilike(like), models.Member.email.ilike(like))
-        )
-    coh = f.get('cohort')
-    if coh is not None:
-        conds.append(models.Member.cohort == int(coh))
-    maj = f.get('major')
-    if maj:
-        conds.append(models.Member.major.ilike(f"%{maj}%"))
-    comp = f.get('company')
-    if comp:
-        conds.append(models.Member.company.ilike(f"%{comp}%"))
-    ind = f.get('industry')
-    if ind:
-        conds.append(models.Member.industry.ilike(f"%{ind}%"))
-    region = f.get('region')
-    if region:
-        like = f"%{region}%"
-        conds.append(
-            or_(
-                models.Member.addr_personal.ilike(like),
-                models.Member.addr_company.ilike(like),
-            )
-        )
-    if f.get('exclude_private', True):
-        conds.append(models.Member.visibility != models.Visibility.PRIVATE)
+    conds = _build_member_conditions(f)
     if conds:
         stmt = stmt.where(and_(*conds))
+    stmt = stmt.order_by(*_order_columns(f.get('sort')))
     stmt = stmt.offset(offset).limit(limit)
     return db.execute(stmt).scalars().all()
 
@@ -66,37 +95,8 @@ def count_members(
     db: Session, *, filters: schemas.MemberListFilters | None = None
 ) -> int:
     stmt = select(func.count()).select_from(models.Member)
-    conds: list[ColumnElement[bool]] = []
     f = filters or {}
-    qv = f.get('q')
-    if qv:
-        like = f"%{qv}%"
-        conds.append(
-            or_(models.Member.name.ilike(like), models.Member.email.ilike(like))
-        )
-    coh = f.get('cohort')
-    if coh is not None:
-        conds.append(models.Member.cohort == int(coh))
-    maj = f.get('major')
-    if maj:
-        conds.append(models.Member.major.ilike(f"%{maj}%"))
-    comp = f.get('company')
-    if comp:
-        conds.append(models.Member.company.ilike(f"%{comp}%"))
-    ind = f.get('industry')
-    if ind:
-        conds.append(models.Member.industry.ilike(f"%{ind}%"))
-    region = f.get('region')
-    if region:
-        like = f"%{region}%"
-        conds.append(
-            or_(
-                models.Member.addr_personal.ilike(like),
-                models.Member.addr_company.ilike(like),
-            )
-        )
-    if f.get('exclude_private', True):
-        conds.append(models.Member.visibility != models.Visibility.PRIVATE)
+    conds = _build_member_conditions(f)
     if conds:
         stmt = stmt.where(and_(*conds))
     return int(db.execute(stmt).scalar() or 0)
