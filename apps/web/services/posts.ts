@@ -9,12 +9,16 @@ export type Post = {
   content: string;
   published_at: string | null;
   author_id: number;
+  category?: string | null;
+  pinned?: boolean;
+  cover_image?: string | null;
 };
 
-export async function listPosts(params: { limit?: number; offset?: number } = {}): Promise<Post[]> {
+export async function listPosts(params: { limit?: number; offset?: number; category?: string } = {}): Promise<Post[]> {
   const q = new URLSearchParams();
   if (params.limit != null) q.set('limit', String(params.limit));
   if (params.offset != null) q.set('offset', String(params.offset));
+  if (params.category) q.set('category', params.category);
   const qs = q.toString();
   return apiFetch<Post[]>(`/posts${qs ? `?${qs}` : ''}`);
 }

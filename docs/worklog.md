@@ -191,4 +191,5 @@
 - Test: 동시성 레이트리밋 케이스 추가(동시 2요청 중 최소 1건 429 보장). 전체 34 테스트 통과.
 - API: /me 프로필 확장 — 회사/부서/직급/회사전화/개인·직장주소/업종 필드 추가 및 업데이트 지원. 테스트 36 통과.
 - API/Web: 수첩 필터 확장(industry/company/region) — 목록/카운트 필터 및 /directory UI 입력·URL 동기화 추가. 테스트 37 통과.
- - API: posts에 category/pinned/cover_image 필드 추가, 목록 category 필터 및 pinned 우선 정렬. 테스트 38 통과.
+- API: posts에 category/pinned/cover_image 필드 추가, 목록 category 필터 및 pinned 우선 정렬. 테스트 38 통과.
+ - Web: vitest+RTL 도입, PostCard 스냅샷/렌더 테스트 추가, 공지/소식 카드 UI(카테고리 탭/핀 배지/썸네일) 적용.

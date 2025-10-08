@@ -2,11 +2,14 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { listPosts, type Post } from '../../services/posts';
+import { PostCard } from '../../components/post-card';
+import { useState } from 'react';
 
 export default function PostsPage() {
+  const [category, setCategory] = useState<'all'|'notice'|'news'>('all');
   const { data: posts, isLoading, isError } = useQuery<Post[]>({
-    queryKey: ['posts', 20, 0],
-    queryFn: () => listPosts({ limit: 20 })
+    queryKey: ['posts', 20, 0, category],
+    queryFn: () => listPosts({ limit: 20, category: category === 'all' ? undefined : category })
   });
 
   if (isLoading) {
@@ -23,15 +26,23 @@ export default function PostsPage() {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-xl font-semibold">게시글</h2>
+      <h2 className="text-xl font-semibold">공지/소식</h2>
+      <div className="flex items-center gap-2 text-sm">
+        <button onClick={() => setCategory('all')} className={`rounded px-2 py-1 ${category==='all'?'bg-slate-900 text-white':'border'}`}>전체</button>
+        <button onClick={() => setCategory('notice')} className={`rounded px-2 py-1 ${category==='notice'?'bg-slate-900 text-white':'border'}`}>공지</button>
+        <button onClick={() => setCategory('news')} className={`rounded px-2 py-1 ${category==='news'?'bg-slate-900 text-white':'border'}`}>소식</button>
+      </div>
       <ul className="space-y-3">
         {posts.map((post) => (
-          <li key={post.id} className="rounded border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 className="font-semibold">{post.title}</h3>
-            <p className="mt-1 text-sm text-slate-700">{post.content}</p>
-            <p className="mt-2 text-xs text-slate-500">
-              게시일: {post.published_at ? new Date(post.published_at).toLocaleString() : '미정'}
-            </p>
+          <li key={post.id}>
+            <PostCard
+              title={post.title}
+              content={post.content}
+              category={post.category}
+              pinned={post.pinned}
+              cover_image={post.cover_image}
+              published_at={post.published_at}
+            />
           </li>
         ))}
       </ul>
