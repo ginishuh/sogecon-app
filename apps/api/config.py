@@ -31,6 +31,15 @@ class Settings(BaseSettings):
     push_encrypt_at_rest: bool = Field(default=False, alias="PUSH_ENCRYPT_AT_REST")
     push_kek: str = Field(default="", alias="PUSH_KEK")  # base64 32 bytes
 
+    # Media/Uploads
+    media_root: str = Field(default="uploads", alias="MEDIA_ROOT")
+    media_url_base: str = Field(default="/media", alias="MEDIA_URL_BASE")
+    avatar_max_bytes: int = Field(default=100_000, alias="AVATAR_MAX_BYTES")
+    avatar_max_upload_bytes: int = Field(
+        default=2_000_000, alias="AVATAR_MAX_UPLOAD_BYTES"
+    )
+    avatar_max_pixels: int = Field(default=512, alias="AVATAR_MAX_PIXELS")
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

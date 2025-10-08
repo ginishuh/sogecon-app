@@ -18,6 +18,7 @@ def test_me_profile_has_new_fields_defaults(member_login: TestClient) -> None:
         "addr_personal",
         "addr_company",
         "industry",
+        "avatar_url",
     ):
         assert k in data
         assert data[k] is None
@@ -44,4 +45,3 @@ def test_me_update_new_fields_roundtrip(member_login: TestClient) -> None:
     data2 = res2.json()
     for k, v in payload.items():
         assert data2.get(k) == v
-

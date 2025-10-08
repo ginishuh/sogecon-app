@@ -11,7 +11,10 @@ from pydantic import (
     EmailStr,
     ValidationInfo,
     field_validator,
+    model_validator,
 )
+
+from .config import get_settings
 
 VisibilityLiteral = Literal["all", "cohort", "private"]
 RSVPLiteral = Literal["going", "waitlist", "cancel"]
@@ -24,6 +27,14 @@ _TEXT_LIMITS: dict[str, tuple[int, int, str]] = {
     "addr_company": (1, 200, "회사 주소"),
     "industry": (1, 60, "업종"),
 }
+
+
+def _avatar_url_from_path(path: str | None) -> str | None:
+    if not path:
+        return None
+    settings = get_settings()
+    base = settings.media_url_base.rstrip('/')
+    return f"{base}/{path.lstrip('/')}"
 
 
 class MemberBase(BaseModel):
@@ -51,6 +62,7 @@ class MemberCreate(MemberBase):
 
 class MemberRead(MemberBase):
     id: int
+    avatar_url: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -60,6 +72,23 @@ class MemberRead(MemberBase):
         if isinstance(v, enum.Enum):
             return v.value
         return v
+
+    @model_validator(mode="before")
+    @classmethod
+    def _inject_avatar_url(cls, data: object) -> object:
+        if data is None:
+            return data
+        if isinstance(data, dict):
+            avatar_path = data.get("avatar_path")
+            if avatar_path and not data.get("avatar_url"):
+                new_data = dict(data)
+                new_data["avatar_url"] = _avatar_url_from_path(avatar_path)
+                return new_data
+            return data
+        avatar_path = getattr(data, "avatar_path", None)
+        if avatar_path:
+            setattr(data, "avatar_url", _avatar_url_from_path(avatar_path))
+        return data
 
 
 class MemberUpdate(BaseModel):
