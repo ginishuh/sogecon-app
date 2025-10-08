@@ -61,6 +61,11 @@ Do NOT disable linters or type checkers globally or per file.
 - Non-doc changes must update `docs/worklog.md`; pushes must include the current `docs/dev_log_YYMMDD.md` entry.
  - PRs must use the repository PR template `.github/pull_request_template.md`. In Draft, fill only the top sections; before marking Ready for Review, complete all checklists in the template.
 
+### Planning Docs in PRs
+- Plan-only PRs are prohibited. Do not open a PR that only adds a plan document.
+- If a PR includes a plan document (e.g., `docs/plan_YYMMDD.md`, `docs/mN_plan.md`, `docs/execution_plan_*.md`), that PR must implement the entire plan scope within the same PR before it is marked Ready for Review or merged. Draft is allowed during implementation, but merging without the code is not.
+- PR titles/descriptions must reflect the implementation scope (not just “add plan”).
+
 ## Language & Communication
 - Primary language: Korean for all internal documentation and code comments across this repository.
 - Code comments: write comments in Korean by default. Use English for identifiers (variables, functions, types); Korean domain terms are acceptable when they improve clarity.
