@@ -96,6 +96,9 @@
 - 서비스 워커: `apps/web/public/sw.js`(또는 `next-pwa` 커스텀 SW) — `push`, `notificationclick`, `install`, `activate` 핸들러 포함.
 - 구독 등록 UI: `apps/web/app/sw-register.tsx` — 권한 요청(`Notification.requestPermission`), 서비스워커 등록, `PushManager.subscribe`로 엔드포인트·키 수집 후 API로 전송.
 - 권한 UX: 최초 진입에서 즉시 요청하지 않고, 대시보드 온보딩 단계에서 맥락(행사 알림 등)을 설명 후 요청.
+- 소개 라우트: `/about/greeting`, `/about/org`, `/about/history` 정적 페이지를 추가했다. 공통 히어로 컴포넌트 + 카드형 섹션(`about-hero`, `about-section`)으로 구성하고, 더미 카피/플레이스홀더 이미지는 OG 자산 확정 전까지 임시 제공한다.
+- 홈 개편: `/` 히어로·지표·카드 그리드에 브랜드 색상/간격/타이포 토큰을 적용(`tailwind.config.ts` 확장 + `globals.css` 컴포넌트 레이어). CTA 버튼은 와이드 포커스 링, 모바일 햄버거 내비는 `aria-expanded`/`aria-controls`를 제공한다.
+- SEO/Analytics: `app/layout.tsx` 전역 `metadata` 템플릿과 `Analytics` 스니펫(환경변수 `NEXT_PUBLIC_ANALYTICS_ID` 플래그), `app/sitemap.ts`, `app/robots.ts`를 추가했다. 기본 도메인은 `NEXT_PUBLIC_SITE_URL`로 오버라이드할 수 있다.
 
 ### 백엔드 구성 (`apps/api`)
 - 구독 저장 엔드포인트: `POST /notifications/subscriptions` — 바디에 `endpoint`, `keys.p256dh`, `keys.auth`, `ua`, `member_id`(서버에서 식별) 저장. 테이블 예: `push_subscription(id, member_id, endpoint, p256dh, auth, ua, created_at, last_seen_at, revoked_at)`.
@@ -132,8 +135,37 @@
 | 내 정보(B) | 데이터 모델만 초안(Member); 화면/편집은 후속 |
 | 수첩(C) | 미착수(검색/필터/상세 포함) |
 | 소식(D) | 게시글(공지 대용) CRUD/목록/상세 완료(초판) |
-| 소개(E) | 미착수(정적 페이지 계획) |
+| 소개(E) | 회장 인사/조직/연혁 정적 페이지 1차 반영, 내비 연동 완료 |
 | 커뮤니티(F) | 행사 목록/상세/생성 + RSVP 완료(초판), 게시판은 후속 |
 | 알림 | Web Push 구독/테스트 발송/로그/통계 완료, at-rest 암호화/정리 제공 |
 
 이 문서는 스케폴드 이후 아키텍처 변경 사항이 생길 때마다 함께 업데이트하며, 변경 내역은 해당 날짜의 `docs/dev_log_YYMMDD.md`에 링크한다.
+
+---
+
+## 프로필(B v2) 검증 규칙 및 아바타 정책 (2025‑10‑08)
+
+- 검증 규칙(서버·웹 동기화)
+  - phone, company_phone: 숫자/`+`/`-`/공백 허용, 길이 7–20자
+  - department, job_title: 1–80자
+  - addr_personal, addr_company: 1–200자
+  - industry: 1–60자(초기 자유 입력; 표준 목록은 후속)
+  - 실패 시 422 + Problem Details(code 유지)
+- 아바타 저장 정책
+  - 업로드 제한: 최대 100KB, 512px 리사이즈, JPEG 기본(원본 PNG 허용)
+  - 경로: `MEDIA_ROOT`(기본 `uploads`)/`MEDIA_URL_BASE`(기본 `/media`) 하위에 member별 디렉터리 분리
+  - 보안: 확장자/콘텐츠 타입 검사, Exif 제거, 임시 파일 즉시 삭제
+  - 교체/삭제: 교체 시 기존 파일 삭제, 삭제 API는 `avatar_path`를 `NULL`로 갱신하고 파일 제거
+
+## 디렉터리(C v1) URL 동기화·SSR/캐시 정책 (2025‑10‑08)
+
+- 상태↔URL 동기화: `q, cohort, major, company, industry, region, page`
+- 디바운스: 입력 400ms, 필터 변경 시 `page=1`로 리셋
+- SSR/캐시: 목록은 CSR + 캐싱(react-query), count는 쿼리 스트링을 키로 메모화
+- 접근성: 포커스 이동/ARIA 레이블, 키보드 내비 지원
+
+## 운영화(M4) 가드 (초안)
+
+- CSP(프로덕션): 기본 `default-src 'self'; img-src 'self' https: data:;` 등 단계적 강화
+- 레이트리밋 분리: 로그인/발송/문의 경로별 정책 분리, 운영 값은 `.env` 대신 시크릿/설정 서버로 관리
+- 구조화 로그: `code`, `request_id` 포함, 실패 비율/지연 지표 대시보드 구성

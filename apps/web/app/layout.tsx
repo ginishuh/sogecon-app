@@ -1,18 +1,60 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { ServiceWorkerRegister } from './sw-register';
 import { Providers } from './providers';
-import { HeaderAuth } from '../components/header-auth';
-import { NotifyCTA } from '../components/notify-cta';
-import { RequireMember } from '../components/require-member';
-import { RequireAdmin } from '../components/require-admin';
+import { SiteHeader } from '../components/site-header';
+import { Analytics } from '../components/analytics';
+import { siteConfig, ogImage } from '../lib/site';
+
+const metadataUrl = new URL(siteConfig.url);
+const ogImageUrl = new URL(ogImage.path, siteConfig.url);
 
 export const metadata: Metadata = {
-  title: 'Alumni Web App',
-  description: 'Public alumni app scaffold built with Next.js'
+  metadataBase: metadataUrl,
+  title: {
+    default: `${siteConfig.name}`,
+    template: `%s | ${siteConfig.name}`
+  },
+  description: siteConfig.description,
+  keywords: ['총원우회', '서강대학교', '경제대학원', '동문회', '행사'],
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    siteName: siteConfig.name,
+    title: siteConfig.name,
+    description: siteConfig.description,
+    url: siteConfig.url,
+    images: [
+      {
+        url: ogImageUrl.toString(),
+        width: 1200,
+        height: 630,
+        alt: ogImage.alt
+      }
+    ]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [ogImageUrl.toString()]
+  },
+  alternates: {
+    canonical: siteConfig.url,
+    languages: {
+      ko: siteConfig.url
+    }
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true
+    }
+  }
 };
 
 export default function RootLayout({
@@ -28,32 +70,17 @@ export default function RootLayout({
           <ServiceWorkerRegister />
         )}
         <Providers>
-        <header className="flex flex-col gap-2 border-b border-slate-200 pb-4">
-          <h1 className="text-2xl font-semibold text-brand-primary">Alumni Web App</h1>
-          <div className="flex items-center justify-between text-sm">
-            <nav className="flex gap-4">
-              <Link href="/">홈</Link>
-              <Link href="/posts">게시글</Link>
-              <Link href="/events">행사</Link>
-              <RequireAdmin>
-                <Link href="/admin/notifications">알림(Admin)</Link>
-                <span className="ml-4 text-slate-400">│</span>
-                <Link href="/posts/new">게시글 작성</Link>
-                <Link href="/events/new">행사 생성</Link>
-              </RequireAdmin>
-            </nav>
-            <div className="flex items-center gap-3">
-              <RequireMember>
-                <NotifyCTA />
-              </RequireMember>
-              <HeaderAuth />
-            </div>
-          </div>
-        </header>
-        <main>{children}</main>
-        <footer className="mt-auto pt-8 text-xs text-slate-500">
-          Public alumni app scaffold — local use only for now.
-        </footer>
+          <Analytics />
+          <a className="skip-link" href="#main-content">
+            본문 바로가기
+          </a>
+          <SiteHeader />
+          <main id="main-content" role="main">
+            {children}
+          </main>
+          <footer className="site-footer">
+            Public alumni app scaffold — local use only for now.
+          </footer>
         </Providers>
       </body>
     </html>
