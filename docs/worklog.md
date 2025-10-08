@@ -202,4 +202,5 @@
 - API: `/me/avatar` 업로드 경로 추가(512px 리사이즈, 100KB 압축, media static 서빙) 및 `avatar_path` 칼럼/pytest 추가.
 - Web: 프로필 사진 업로드 UI·미리보기, FormData 지원, `/me` 페이지 토스트/접근성 문구 보강.
 - Web: 디렉터리 URL 동기화/무한스크롤/접근성 구성 및 vitest URL 동기화 테스트 추가.
+- Build: `scripts/export_openapi.py` 추가로 FastAPI에서 직접 OpenAPI를 추출, `pnpm -C packages/schemas gen` 자동화 및 웹 타입 참조( schemas 패키지 ) 연결.
 - Fix: 아바타 이미지 검증/압축 로직 타입 보완 및 URL 생성(computed_field) 안정화.

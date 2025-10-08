@@ -1,6 +1,7 @@
 "use client";
 
 import Image from 'next/image';
+import type { components } from 'schemas';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { API_BASE, ApiError, apiFetch } from '../../lib/api';
@@ -13,30 +14,11 @@ import {
   validateProfileForm,
 } from './validation';
 
-type MemberRead = {
-  id: number;
-  email: string;
-  name: string;
-  cohort: number;
-  major: string | null;
-  roles: string;
-  visibility: ProfileVisibility;
-  birth_date: string | null;
-  birth_lunar: boolean | null;
-  phone: string | null;
-  company: string | null;
-  department: string | null;
-  job_title: string | null;
-  company_phone: string | null;
-  addr_personal: string | null;
-  addr_company: string | null;
-  industry: string | null;
-  avatar_url: string | null;
-};
+type MemberDto = components['schemas']['MemberRead'];
 
-const asDisplayString = (value: string | null): string => value ?? '';
+const asDisplayString = (value: string | null | undefined): string => value ?? '';
 
-const toFormState = (member: MemberRead): ProfileForm => ({
+const toFormState = (member: MemberDto): ProfileForm => ({
   name: member.name,
   major: asDisplayString(member.major),
   visibility: member.visibility,
@@ -185,7 +167,7 @@ function VisibilityField({
   );
 }
 
-function ProfileSummary({ profile }: { profile: MemberRead }) {
+function ProfileSummary({ profile }: { profile: MemberDto }) {
   return (
     <dl className="rounded border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
       <div className="flex justify-between">
@@ -306,7 +288,7 @@ function AvatarUploader({ avatarUrl, uploading, onUpload }: AvatarUploaderProps)
 
 type ProfileFormSectionProps = {
   draft: ProfileForm;
-  profile: MemberRead;
+  profile: MemberDto;
   errors: ProfileErrors;
   busy: boolean;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
@@ -415,7 +397,7 @@ function ProfileFormSection({
 export default function MePage() {
   const { status } = useAuth();
   const toast = useToast();
-  const [me, setMe] = useState<MemberRead | null>(null);
+  const [me, setMe] = useState<MemberDto | null>(null);
   const [form, setForm] = useState<ProfileForm | null>(null);
   const [errors, setErrors] = useState<ProfileErrors>({});
   const [busy, setBusy] = useState(false);
@@ -433,7 +415,7 @@ export default function MePage() {
     }
     void (async () => {
       try {
-        const data = await apiFetch<MemberRead>('/me/');
+        const data = await apiFetch<MemberDto>('/me/');
         if (cancelled) return;
         setMe(data);
         setForm(toFormState(data));
@@ -479,7 +461,7 @@ export default function MePage() {
     setBusy(true);
     try {
       const payload = buildProfilePayload(form);
-      const updated = await apiFetch<MemberRead>('/me/', {
+      const updated = await apiFetch<MemberDto>('/me/', {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
@@ -526,7 +508,7 @@ export default function MePage() {
     try {
       const formData = new FormData();
       formData.append('avatar', file);
-      const updated = await apiFetch<MemberRead>('/me/avatar', {
+      const updated = await apiFetch<MemberDto>('/me/avatar', {
         method: 'POST',
         body: formData,
       });
@@ -567,7 +549,7 @@ export default function MePage() {
     body = <p className="text-sm text-slate-600">정보를 불러오는 중…</p>;
   } else {
     const draft = form as ProfileForm;
-    const profile = me as MemberRead;
+    const profile = me as MemberDto;
     body = (
       <div className="flex flex-col gap-6">
         <AvatarUploader
