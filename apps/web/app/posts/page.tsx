@@ -3,7 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { listPosts, type Post } from '../../services/posts';
 import { PostCard } from '../../components/post-card';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { splitPinned } from '../../lib/posts';
 
 export default function PostsPage() {
   const [category, setCategory] = useState<'all'|'notice'|'news'>('all');
@@ -11,6 +12,7 @@ export default function PostsPage() {
     queryKey: ['posts', 20, 0, category],
     queryFn: () => listPosts({ limit: 20, category: category === 'all' ? undefined : category })
   });
+  const { pinned, regular } = useMemo(() => splitPinned(posts ?? []), [posts]);
 
   if (isLoading) {
     return <p>게시글을 불러오는 중입니다…</p>;
@@ -32,8 +34,27 @@ export default function PostsPage() {
         <button onClick={() => setCategory('notice')} className={`rounded px-2 py-1 ${category==='notice'?'bg-slate-900 text-white':'border'}`}>공지</button>
         <button onClick={() => setCategory('news')} className={`rounded px-2 py-1 ${category==='news'?'bg-slate-900 text-white':'border'}`}>소식</button>
       </div>
+      {pinned.length > 0 ? (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-amber-700">고정된 공지</h3>
+          <ul className="space-y-3">
+            {pinned.map((post) => (
+              <li key={`pinned-${post.id}`}>
+                <PostCard
+                  title={post.title}
+                  content={post.content}
+                  category={post.category}
+                  pinned={post.pinned}
+                  cover_image={post.cover_image}
+                  published_at={post.published_at}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <ul className="space-y-3">
-        {posts.map((post) => (
+        {regular.map((post) => (
           <li key={post.id}>
             <PostCard
               title={post.title}

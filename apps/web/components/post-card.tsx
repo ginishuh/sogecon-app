@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import React from 'react';
 
 export type PostCardProps = {
@@ -13,7 +14,7 @@ export function PostCard({ title, content, category, pinned, cover_image, publis
   return (
     <article className="flex gap-3 rounded border border-slate-200 bg-white p-4 shadow-sm">
       {cover_image ? (
-        <img src={cover_image} alt="cover" className="h-16 w-16 rounded object-cover" />
+        <Image src={cover_image} alt="cover" width={64} height={64} className="h-16 w-16 rounded object-cover" unoptimized />
       ) : null}
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2">
@@ -31,4 +32,3 @@ export function PostCard({ title, content, category, pinned, cover_image, publis
     </article>
   );
 }
-
