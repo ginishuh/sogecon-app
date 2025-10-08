@@ -1,0 +1,65 @@
+name: lighthouse
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  lhci:
+    name: Web Lighthouse (Perf/A11y)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.17.1
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install deps (web)
+        run: pnpm -C apps/web install
+
+      - name: Build (web)
+        run: pnpm -C apps/web build
+
+      - name: Start server
+        run: pnpm -C apps/web start &
+
+      - name: Wait for server
+        run: |
+          for i in {1..60}; do
+            if curl -sSf http://localhost:3000 >/dev/null; then echo ready; exit 0; fi
+            sleep 2
+          done
+          echo "server did not start" && exit 1
+
+      - name: Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: |
+            http://localhost:3000/
+            http://localhost:3000/about/greeting
+            http://localhost:3000/about/org
+            http://localhost:3000/about/history
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          runs: 1
+          configPath: ''
+          # Assert category minimums: Perf/A11y ≥ 0.90
+          assertions: >-
+            {
+              "categories:performance": ["error", {"minScore": 0.90}],
+              "categories:accessibility": ["error", {"minScore": 0.90}]
+            }
+

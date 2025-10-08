@@ -208,3 +208,4 @@
  - Fix: Alembic `0013_member_avatar.py` 헤더/문자열 이스케이프 수정(compileall SyntaxError 해결).
  - 타입: `pywebpush` 로컬 타입 스텁(`typings/pywebpush/__init__.pyi`) 추가로 pyright 경고(reportMissingTypeStubs) 제거.
 - Web: 소개 3페이지 · 홈 히어로/카드 · SEO/메타/Analytics · 접근성 토큰을 1차 적용하고 vitest/빌드까지 검증.
+- CI: Lighthouse 워크플로 추가(.github/workflows/lighthouse.yml) — PR마다 Perf/A11y ≥ 0.90 검증.
