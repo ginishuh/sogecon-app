@@ -5,12 +5,14 @@ import type { Route } from 'next';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { listMembers, countMembers } from '../../services/members';
+import { listMembers, countMembers, type MemberListSort } from '../../services/members';
 
 const PAGE_SIZE = 10;
 const DEBOUNCE_MS = 350;
 
-type FilterKeys = 'q' | 'cohort' | 'major' | 'company' | 'industry' | 'region';
+type TextFilterKeys = 'q' | 'cohort' | 'major' | 'company' | 'industry' | 'region' | 'jobTitle';
+
+type SortOption = MemberListSort;
 
 type FilterState = {
   q: string;
@@ -19,6 +21,8 @@ type FilterState = {
   company: string;
   industry: string;
   region: string;
+  jobTitle: string;
+  sort: SortOption;
   page: number;
 };
 
@@ -29,11 +33,13 @@ const DEFAULT_FILTERS: FilterState = {
   company: '',
   industry: '',
   region: '',
+  jobTitle: '',
+  sort: 'recent',
   page: 0,
 };
 
 const FILTER_FIELDS: Array<{
-  key: FilterKeys;
+  key: TextFilterKeys;
   label: string;
   placeholder: string;
   inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
@@ -44,7 +50,15 @@ const FILTER_FIELDS: Array<{
   { key: 'company', label: '회사', placeholder: '회사명' },
   { key: 'industry', label: '업종', placeholder: '업종' },
   { key: 'region', label: '지역', placeholder: '주소/지역' },
+  { key: 'jobTitle', label: '직함', placeholder: '직함' },
 ];
+
+const SORT_LABELS: Record<SortOption, string> = {
+  recent: '최근 업데이트 순',
+  cohort_desc: '기수 높은 순',
+  cohort_asc: '기수 낮은 순',
+  name: '이름순 (가나다)'
+};
 
 function clampPage(value: number): number {
   if (Number.isNaN(value) || value < 0) return 0;
@@ -54,6 +68,10 @@ function clampPage(value: number): number {
 
 function readFilters(params: URLSearchParams): FilterState {
   const pageParam = params.get('page');
+  const sortParam = params.get('sort');
+  const allowedSorts: SortOption[] = ['recent', 'cohort_desc', 'cohort_asc', 'name'];
+  const isAllowedSort = (value: string | null): value is SortOption =>
+    Boolean(value && allowedSorts.includes(value as SortOption));
   return {
     q: params.get('q') ?? '',
     cohort: params.get('cohort') ?? '',
@@ -61,18 +79,29 @@ function readFilters(params: URLSearchParams): FilterState {
     company: params.get('company') ?? '',
     industry: params.get('industry') ?? '',
     region: params.get('region') ?? '',
+     jobTitle: params.get('job_title') ?? '',
+     sort: isAllowedSort(sortParam) ? (sortParam as SortOption) : 'recent',
     page: pageParam ? clampPage(Number(pageParam)) : 0,
   };
 }
 
 function buildUrl(filters: FilterState): string {
   const usp = new URLSearchParams();
-  if (filters.q) usp.set('q', filters.q);
-  if (filters.cohort) usp.set('cohort', filters.cohort);
-  if (filters.major) usp.set('major', filters.major);
-  if (filters.company) usp.set('company', filters.company);
-  if (filters.industry) usp.set('industry', filters.industry);
-  if (filters.region) usp.set('region', filters.region);
+  const stringParams: Record<string, string> = {
+    q: filters.q,
+    cohort: filters.cohort,
+    major: filters.major,
+    company: filters.company,
+    industry: filters.industry,
+    region: filters.region,
+    job_title: filters.jobTitle,
+  };
+  Object.entries(stringParams).forEach(([key, value]) => {
+    if (value) {
+      usp.set(key, value);
+    }
+  });
+  if (filters.sort !== 'recent') usp.set('sort', filters.sort);
   if (filters.page > 0) usp.set('page', String(filters.page));
   const qs = usp.toString();
   return `/directory${qs ? `?${qs}` : ''}`;
@@ -89,13 +118,14 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 
 type DirectoryFiltersProps = {
   value: FilterState;
-  onChange: (key: FilterKeys, next: string) => void;
+  onChange: (key: TextFilterKeys, next: string) => void;
   onReset: () => void;
+  onSortChange: (next: SortOption) => void;
 };
 
-function DirectoryFilters({ value, onChange, onReset }: DirectoryFiltersProps) {
+function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryFiltersProps) {
   return (
-    <fieldset className="mb-4 flex flex-wrap gap-3" aria-label="디렉터리 검색 필터">
+    <fieldset className="mb-4 flex flex-wrap items-end gap-3" aria-label="디렉터리 검색 필터">
       {FILTER_FIELDS.map(({ key, label, placeholder, inputMode }) => (
         <label key={key} className="flex flex-col text-xs text-slate-600">
           <span className="mb-1 font-medium text-slate-700">{label}</span>
@@ -109,10 +139,25 @@ function DirectoryFilters({ value, onChange, onReset }: DirectoryFiltersProps) {
           />
         </label>
       ))}
+      <label className="flex flex-col text-xs text-slate-600">
+        <span className="mb-1 font-medium text-slate-700">정렬</span>
+        <select
+          className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+          value={value.sort}
+          onChange={(event) => onSortChange(event.target.value as SortOption)}
+          aria-label="정렬 옵션"
+        >
+          {Object.entries(SORT_LABELS).map(([key, label]) => (
+            <option key={key} value={key}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </label>
       <button
         type="button"
         onClick={onReset}
-        className="self-end rounded border border-slate-300 px-3 py-2 text-sm text-slate-600 transition hover:border-emerald-500 hover:text-emerald-600"
+        className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-600 transition hover:border-emerald-500 hover:text-emerald-600"
       >
         필터 초기화
       </button>
@@ -150,12 +195,14 @@ function DirectoryResults({
   hasNext,
   isLoadingMore,
   sentinelRef,
+  sortLabel,
 }: {
   items: Awaited<ReturnType<typeof listMembers>>;
   onLoadMore: () => void;
   hasNext: boolean;
   isLoadingMore: boolean;
   sentinelRef: React.MutableRefObject<HTMLDivElement | null>;
+  sortLabel: string;
 }) {
   if (items.length === 0) {
     return <EmptyState />;
@@ -165,6 +212,7 @@ function DirectoryResults({
     <div className="space-y-4">
       <div className="overflow-x-auto">
         <table className="min-w-[640px] table-fixed border-collapse text-left text-sm">
+          <caption className="sr-only">동문 목록 — {sortLabel}</caption>
           <thead>
             <tr className="border-b bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <th className="p-2" scope="col">
@@ -256,7 +304,7 @@ function DirectoryPageInner() {
   }, [debouncedFilters, filtersFromUrl, router]);
 
   const updateFilter = useCallback(
-    (key: FilterKeys, nextValue: string) => {
+    (key: TextFilterKeys, nextValue: string) => {
       setFilters((prev) => {
         if (prev[key] === nextValue) return prev;
         const next: FilterState = {
@@ -270,7 +318,24 @@ function DirectoryPageInner() {
     []
   );
 
-  const resetFilters = useCallback(() => setFilters(DEFAULT_FILTERS), []);
+  const updateSort = useCallback((nextSort: SortOption) => {
+    setFilters((prev) => {
+      if (prev.sort === nextSort) return prev;
+      return {
+        ...prev,
+        sort: nextSort,
+        page: 0,
+      };
+    });
+  }, []);
+
+  const resetFilters = useCallback(
+    () =>
+      setFilters(() => ({
+        ...DEFAULT_FILTERS,
+      })),
+    []
+  );
 
   const setPage = useCallback(
     (page: number) => {
@@ -291,9 +356,11 @@ function DirectoryPageInner() {
       company: debouncedFilters.company || undefined,
       industry: debouncedFilters.industry || undefined,
       region: debouncedFilters.region || undefined,
+      jobTitle: debouncedFilters.jobTitle || undefined,
     }),
     [debouncedFilters]
   );
+  const sortOption = debouncedFilters.sort;
 
   const membersQuery = useInfiniteQuery({
     queryKey: [
@@ -304,11 +371,14 @@ function DirectoryPageInner() {
       filtersForQuery.company,
       filtersForQuery.industry,
       filtersForQuery.region,
+      filtersForQuery.jobTitle,
+      sortOption,
     ],
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
       listMembers({
         ...filtersForQuery,
+        sort: sortOption,
         limit: PAGE_SIZE,
         offset: pageParam as number,
       }),
@@ -325,6 +395,7 @@ function DirectoryPageInner() {
       filtersForQuery.company,
       filtersForQuery.industry,
       filtersForQuery.region,
+      filtersForQuery.jobTitle,
     ],
     queryFn: () =>
       countMembers({
@@ -334,6 +405,7 @@ function DirectoryPageInner() {
         company: filtersForQuery.company,
         industry: filtersForQuery.industry,
         region: filtersForQuery.region,
+        jobTitle: filtersForQuery.jobTitle,
       }),
   });
 
@@ -393,6 +465,7 @@ function DirectoryPageInner() {
         value={filters}
         onChange={updateFilter}
         onReset={resetFilters}
+        onSortChange={updateSort}
       />
 
       <section className="space-y-3" aria-live="polite">
@@ -412,6 +485,7 @@ function DirectoryPageInner() {
             hasNext={Boolean(membersQuery.hasNextPage)}
             isLoadingMore={membersQuery.isFetchingNextPage}
             sentinelRef={sentinelRef}
+            sortLabel={SORT_LABELS[sortOption]}
           />
         )}
       </section>
