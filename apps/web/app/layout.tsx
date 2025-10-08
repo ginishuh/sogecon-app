@@ -71,20 +71,20 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
+        <a className="skip-link" href="#main-content">
+          본문 바로가기
+        </a>
         {/* Dev에서 SW가 RSC 스트림을 끊는 것을 피하기 위해 prod/NEXT_PUBLIC_ENABLE_SW=1 에서만 렌더 */}
         {(process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_SW === '1') && (
           <ServiceWorkerRegister />
         )}
         <Providers>
           <Analytics />
-          <a className="skip-link" href="#main-content">
-            본문 바로가기
-          </a>
           <SiteHeader />
-          <main id="main-content" role="main">
+          <main id="main-content" role="main" tabIndex={-1}>
             {children}
           </main>
-          <footer className="site-footer">
+          <footer className="site-footer" role="contentinfo">
             Public alumni app scaffold — local use only for now.
           </footer>
         </Providers>

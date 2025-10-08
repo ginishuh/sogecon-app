@@ -37,6 +37,10 @@ main {
   gap: 4rem;
 }
 
+main:focus {
+  outline: none;
+}
+
 @media (min-width: 768px) {
   main {
     padding: 4rem 2.5rem 5rem;
@@ -54,13 +58,19 @@ a:focus-visible {
   text-decoration: underline;
 }
 
+button:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(244, 162, 89, 0.55);
+}
+
 .skip-link {
   position: absolute;
   top: 1rem;
   left: 1.5rem;
   padding: 0.75rem 1.5rem;
   border-radius: 9999px;
-  background: #8a1e2d;
+  background: var(--brand-primary);
   color: #ffffff;
   transform: translateY(-200%);
   transition: transform 150ms ease;
@@ -70,7 +80,7 @@ a:focus-visible {
 .skip-link:focus {
   transform: translateY(0);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(247, 178, 103, 0.6);
+  box-shadow: 0 0 0 4px rgba(244, 162, 89, 0.55);
 }
 
 .site-footer {
