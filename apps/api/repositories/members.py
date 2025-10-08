@@ -103,26 +103,16 @@ def update_member_profile(
     member = db.get(models.Member, member_id)
     if member is None:
         raise NotFoundError(code="member_not_found", detail="Member not found")
-    changed = False
-    if data.name is not None:
-        setattr(member, "name", data.name)
-        changed = True
-    if data.major is not None:
-        setattr(member, "major", data.major)
-        changed = True
-    if data.visibility is not None:
-        setattr(member, "visibility", models.Visibility(data.visibility))
-        changed = True
-    if data.birth_date is not None:
-        setattr(member, "birth_date", data.birth_date)
-        changed = True
-    if data.birth_lunar is not None:
-        setattr(member, "birth_lunar", bool(data.birth_lunar))
-        changed = True
-    if data.phone is not None:
-        setattr(member, "phone", data.phone)
-        changed = True
-    if changed:
+
+    updates = data.model_dump(exclude_unset=True)
+    if "visibility" in updates and updates["visibility"] is not None:
+        updates["visibility"] = models.Visibility(updates["visibility"])  # normalize
+    if "birth_lunar" in updates and updates["birth_lunar"] is not None:
+        updates["birth_lunar"] = bool(updates["birth_lunar"])  # explicit cast
+
+    if updates:
+        for k, v in updates.items():
+            setattr(member, k, v)
         db.commit()
         db.refresh(member)
     return member

@@ -45,6 +45,14 @@ class Member(Base):
     birth_date = Column(String(10), nullable=True)  # 'YYYY-MM-DD'
     birth_lunar = Column(Boolean, nullable=True)
     phone = Column(String(64), nullable=True)
+    # B v1 확장 필드(표시/연락/소속/주소/업종)
+    company = Column(String(255), nullable=True)
+    department = Column(String(255), nullable=True)
+    job_title = Column(String(255), nullable=True)
+    company_phone = Column(String(64), nullable=True)
+    addr_personal = Column(String(255), nullable=True)
+    addr_company = Column(String(255), nullable=True)
+    industry = Column(String(255), nullable=True)
 
     posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
     rsvps = relationship("RSVP", back_populates="member", cascade="all, delete-orphan")

@@ -20,6 +20,13 @@ class MemberBase(BaseModel):
     birth_date: str | None = None  # 'YYYY-MM-DD'
     birth_lunar: bool | None = None
     phone: str | None = None
+    company: str | None = None
+    department: str | None = None
+    job_title: str | None = None
+    company_phone: str | None = None
+    addr_personal: str | None = None
+    addr_company: str | None = None
+    industry: str | None = None
 
 
 class MemberCreate(MemberBase):
@@ -46,6 +53,13 @@ class MemberUpdate(BaseModel):
     birth_date: str | None = None
     birth_lunar: bool | None = None
     phone: str | None = None
+    company: str | None = None
+    department: str | None = None
+    job_title: str | None = None
+    company_phone: str | None = None
+    addr_personal: str | None = None
+    addr_company: str | None = None
+    industry: str | None = None
 
 
 class MemberListFilters(TypedDict, total=False):
