@@ -71,6 +71,10 @@ class Member(Base):
     rsvps = relationship("RSVP", back_populates="member", cascade="all, delete-orphan")
 
 
+Index("ix_members_updated_at", Member.updated_at)
+Index("ix_members_cohort_name", Member.cohort, Member.name)
+
+
 class Post(Base):
     __tablename__ = "posts"
 
