@@ -207,3 +207,4 @@
 - Web: PWA 오프라인 스켈레톤(`/offline` 페이지, SW 네비게이션 fallback)으로 홈/디렉터리 최소 안내 복구 처리.
  - Fix: Alembic `0013_member_avatar.py` 헤더/문자열 이스케이프 수정(compileall SyntaxError 해결).
  - 타입: `pywebpush` 로컬 타입 스텁(`typings/pywebpush/__init__.pyi`) 추가로 pyright 경고(reportMissingTypeStubs) 제거.
+- Web: 소개 3페이지 · 홈 히어로/카드 · SEO/메타/Analytics · 접근성 토큰을 1차 적용하고 vitest/빌드까지 검증.

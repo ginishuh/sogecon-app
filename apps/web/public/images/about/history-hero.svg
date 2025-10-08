@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="총원우회 타임라인">
+  <rect width="640" height="480" fill="#f6f2eb"/>
+  <g stroke="#8a1e2d" stroke-width="18" stroke-linecap="round" fill="none">
+    <path d="M80 120c80 0 80 80 160 80s80-80 160-80 80 80 160 80"/>
+    <path d="M80 280c80 0 80 80 160 80s80-80 160-80 80 80 160 80"/>
+  </g>
+  <g fill="#8a1e2d">
+    <circle cx="160" cy="200" r="22"/>
+    <circle cx="320" cy="200" r="22"/>
+    <circle cx="480" cy="200" r="22"/>
+    <circle cx="160" cy="360" r="22"/>
+    <circle cx="320" cy="360" r="22"/>
+    <circle cx="480" cy="360" r="22"/>
+  </g>
+  <text x="50%" y="72%" text-anchor="middle" font-family="Arial, sans-serif" font-size="40" fill="#8a1e2d">
+    30 YEARS OF CONNECTION
+  </text>
+</svg>

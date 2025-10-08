@@ -4,16 +4,265 @@
 
 :root {
   color-scheme: light;
+  --surface-background: #f2eee8;
+  --surface-card: #ffffff;
+  --surface-muted: #f9f5f1;
+  --text-primary: #1f242d;
+  --text-muted: #5d6673;
+  --border-soft: #d8d3cc;
+  --focus-ring: #f7b267;
 }
 
 body {
-  @apply bg-slate-100 text-slate-900 min-h-screen;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--surface-background);
+  color: var(--text-primary);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
 }
 
 main {
-  @apply max-w-3xl mx-auto px-6 py-10 flex flex-col gap-8;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 72rem;
+  padding: 3rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+}
+
+@media (min-width: 768px) {
+  main {
+    padding: 4rem 2.5rem 5rem;
+  }
 }
 
 a {
-  @apply text-brand-primary hover:underline;
+  color: #8a1e2d;
+  transition: color 150ms ease;
+  text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+  text-decoration: underline;
+}
+
+.skip-link {
+  position: absolute;
+  top: 1rem;
+  left: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  background: #8a1e2d;
+  color: #ffffff;
+  transform: translateY(-200%);
+  transition: transform 150ms ease;
+  z-index: 50;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(247, 178, 103, 0.6);
+}
+
+.site-footer {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 72rem;
+  padding: 2rem 1.5rem 3rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .site-footer {
+    padding: 2rem 2.5rem 4rem;
+  }
+}
+
+@layer components {
+  .about-page {
+    @apply flex flex-col gap-16;
+  }
+
+  .about-hero {
+    @apply grid gap-8 rounded-3xl bg-white px-6 py-10 shadow-soft md:grid-cols-[1.3fr_1fr] md:px-10;
+  }
+
+  .about-hero__text {
+    @apply flex flex-col gap-4;
+  }
+
+  .about-hero__eyebrow {
+    @apply text-xs font-semibold uppercase tracking-widest text-neutral-muted;
+  }
+
+  .about-hero__title {
+    @apply font-heading text-display-xl text-brand-primary;
+  }
+
+  .about-hero__description {
+    @apply text-lg text-neutral-muted;
+  }
+
+  .about-hero__image {
+    @apply flex items-center justify-center;
+  }
+
+  .about-section {
+    @apply grid gap-8 rounded-3xl bg-white px-6 py-10 shadow-sm md:grid-cols-[1.1fr_0.9fr] md:px-10;
+  }
+
+  .about-section--stacked {
+    @apply flex flex-col gap-10 bg-brand-surface shadow-none;
+  }
+
+  .about-section--timeline {
+    @apply bg-white;
+  }
+
+  .about-section--highlight {
+    @apply bg-white shadow-soft;
+  }
+
+  .about-section__content {
+    @apply flex flex-col gap-4 text-base leading-7 text-neutral-muted;
+  }
+
+  .about-section__heading {
+    @apply font-heading text-2xl font-semibold text-brand-primary md:text-3xl;
+  }
+
+  .about-section__figure {
+    @apply flex items-center justify-center;
+  }
+
+  .about-section__list {
+    @apply grid gap-6 md:grid-cols-3;
+  }
+
+  .about-section__card {
+    @apply flex h-full flex-col gap-3 rounded-2xl border border-neutral-border bg-white p-6 shadow-sm;
+  }
+
+  .about-section__card-title {
+    @apply font-heading text-lg font-semibold text-brand-primary;
+  }
+
+  .about-section__dl {
+    @apply mt-2 flex flex-col gap-2 text-sm;
+  }
+
+  .about-section__dl dt {
+    @apply text-xs font-medium uppercase tracking-wide text-neutral-muted;
+  }
+
+  .about-section__dl dd {
+    @apply text-neutral-ink;
+  }
+
+  .about-section__card p {
+    @apply text-sm text-neutral-muted;
+  }
+
+  .about-timeline {
+    @apply relative flex flex-col gap-10;
+  }
+
+  .about-timeline::before {
+    @apply absolute left-3 top-0 h-full w-0.5 bg-neutral-border content-[''];
+  }
+
+  .about-timeline__item {
+    @apply relative flex gap-5 pl-8;
+  }
+
+  .about-timeline__marker {
+    @apply absolute left-[-3px] top-1.5 h-4 w-4 rounded-full border-4 border-brand-primary bg-white;
+  }
+
+  .about-timeline__content {
+    @apply flex flex-col gap-1 rounded-xl bg-white p-5 shadow-sm;
+  }
+
+  .about-timeline__year {
+    @apply text-xs font-semibold uppercase tracking-wider text-brand-primary;
+  }
+
+  .about-timeline__title {
+    @apply font-heading text-lg font-semibold text-neutral-ink;
+  }
+
+  .about-contact-list {
+    @apply grid gap-4 md:grid-cols-3;
+  }
+
+  .about-contact-list__item {
+    @apply rounded-xl border border-neutral-border bg-white p-5 shadow-sm;
+  }
+
+  .about-contact-list__term {
+    @apply text-xs font-semibold uppercase tracking-widest text-neutral-muted;
+  }
+
+  .about-contact-list__description {
+    @apply mt-1 text-sm text-neutral-ink;
+  }
+
+  .home-hero {
+    @apply grid gap-10 rounded-3xl bg-white px-6 py-12 shadow-soft md:grid-cols-[1.2fr_1fr] md:px-12;
+  }
+
+  .home-hero__eyebrow {
+    @apply text-xs font-semibold uppercase tracking-widest text-neutral-muted;
+  }
+
+  .home-hero__title {
+    @apply font-heading text-display-xl text-brand-primary md:text-display-2xl;
+  }
+
+  .home-hero__description {
+    @apply text-base leading-7 text-neutral-muted;
+  }
+
+  .home-hero__actions {
+    @apply mt-6 flex flex-wrap gap-3;
+  }
+
+  .home-hero__cta {
+    @apply inline-flex items-center justify-center rounded-full bg-brand-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-primaryDark focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-accent;
+  }
+
+  .home-hero__secondary {
+    @apply inline-flex items-center justify-center rounded-full border border-neutral-border px-6 py-3 text-sm font-semibold text-neutral-ink transition hover:border-brand-primary hover:text-brand-primary focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-accent;
+  }
+
+  .home-hero__image {
+    @apply hidden self-center rounded-3xl bg-brand-surface p-4 shadow-sm md:block;
+  }
+
+  .home-card-grid {
+    @apply grid gap-6 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .home-card {
+    @apply flex h-full flex-col justify-between rounded-2xl border border-neutral-border bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-soft focus-within:ring-4 focus-within:ring-brand-accent;
+  }
+
+  .home-card__title {
+    @apply font-heading text-xl font-semibold text-neutral-ink;
+  }
+
+  .home-card__description {
+    @apply mt-3 text-sm text-neutral-muted;
+  }
+
+  .home-card__meta {
+    @apply mt-6 flex items-center justify-between text-xs uppercase tracking-widest text-neutral-muted;
+  }
 }

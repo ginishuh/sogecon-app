@@ -1,0 +1,57 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SEO metadata configuration > declares title template and open graph baseline 1`] = `
+{
+  "alternates": {
+    "canonical": "https://alumni.sogang-econ.kr",
+    "languages": {
+      "ko": "https://alumni.sogang-econ.kr",
+    },
+  },
+  "description": "서강대학교 경제대학원 총원우회 공지, 행사, 소개를 통합 제공하는 공식 웹 서비스입니다.",
+  "keywords": [
+    "총원우회",
+    "서강대학교",
+    "경제대학원",
+    "동문회",
+    "행사",
+  ],
+  "metadataBase": "https://alumni.sogang-econ.kr/",
+  "openGraph": {
+    "description": "서강대학교 경제대학원 총원우회 공지, 행사, 소개를 통합 제공하는 공식 웹 서비스입니다.",
+    "images": [
+      {
+        "alt": "서강대 경제대학원 총원우회 대표 이미지",
+        "height": 630,
+        "url": "https://alumni.sogang-econ.kr/images/og/default-og.svg",
+        "width": 1200,
+      },
+    ],
+    "locale": "ko_KR",
+    "siteName": "서강대 경제대학원 총원우회",
+    "title": "서강대 경제대학원 총원우회",
+    "type": "website",
+    "url": "https://alumni.sogang-econ.kr",
+  },
+  "robots": {
+    "follow": true,
+    "googleBot": {
+      "follow": true,
+      "index": true,
+    },
+    "index": true,
+  },
+  "title": {
+    "default": "서강대 경제대학원 총원우회",
+    "template": "%s | 서강대 경제대학원 총원우회",
+  },
+  "twitter": {
+    "card": "summary_large_image",
+    "description": "서강대학교 경제대학원 총원우회 공지, 행사, 소개를 통합 제공하는 공식 웹 서비스입니다.",
+    "images": [
+      "https://alumni.sogang-econ.kr/images/og/default-og.svg",
+    ],
+    "title": "서강대 경제대학원 총원우회",
+  },
+}
+`;

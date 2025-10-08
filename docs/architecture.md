@@ -96,6 +96,9 @@
 - 서비스 워커: `apps/web/public/sw.js`(또는 `next-pwa` 커스텀 SW) — `push`, `notificationclick`, `install`, `activate` 핸들러 포함.
 - 구독 등록 UI: `apps/web/app/sw-register.tsx` — 권한 요청(`Notification.requestPermission`), 서비스워커 등록, `PushManager.subscribe`로 엔드포인트·키 수집 후 API로 전송.
 - 권한 UX: 최초 진입에서 즉시 요청하지 않고, 대시보드 온보딩 단계에서 맥락(행사 알림 등)을 설명 후 요청.
+- 소개 라우트: `/about/greeting`, `/about/org`, `/about/history` 정적 페이지를 추가했다. 공통 히어로 컴포넌트 + 카드형 섹션(`about-hero`, `about-section`)으로 구성하고, 더미 카피/플레이스홀더 이미지는 OG 자산 확정 전까지 임시 제공한다.
+- 홈 개편: `/` 히어로·지표·카드 그리드에 브랜드 색상/간격/타이포 토큰을 적용(`tailwind.config.ts` 확장 + `globals.css` 컴포넌트 레이어). CTA 버튼은 와이드 포커스 링, 모바일 햄버거 내비는 `aria-expanded`/`aria-controls`를 제공한다.
+- SEO/Analytics: `app/layout.tsx` 전역 `metadata` 템플릿과 `Analytics` 스니펫(환경변수 `NEXT_PUBLIC_ANALYTICS_ID` 플래그), `app/sitemap.ts`, `app/robots.ts`를 추가했다. 기본 도메인은 `NEXT_PUBLIC_SITE_URL`로 오버라이드할 수 있다.
 
 ### 백엔드 구성 (`apps/api`)
 - 구독 저장 엔드포인트: `POST /notifications/subscriptions` — 바디에 `endpoint`, `keys.p256dh`, `keys.auth`, `ua`, `member_id`(서버에서 식별) 저장. 테이블 예: `push_subscription(id, member_id, endpoint, p256dh, auth, ua, created_at, last_seen_at, revoked_at)`.
@@ -132,7 +135,7 @@
 | 내 정보(B) | 데이터 모델만 초안(Member); 화면/편집은 후속 |
 | 수첩(C) | 미착수(검색/필터/상세 포함) |
 | 소식(D) | 게시글(공지 대용) CRUD/목록/상세 완료(초판) |
-| 소개(E) | 미착수(정적 페이지 계획) |
+| 소개(E) | 회장 인사/조직/연혁 정적 페이지 1차 반영, 내비 연동 완료 |
 | 커뮤니티(F) | 행사 목록/상세/생성 + RSVP 완료(초판), 게시판은 후속 |
 | 알림 | Web Push 구독/테스트 발송/로그/통계 완료, at-rest 암호화/정리 제공 |
 
