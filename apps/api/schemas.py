@@ -66,6 +66,9 @@ class MemberListFilters(TypedDict, total=False):
     q: str
     cohort: int
     major: str
+    company: str
+    industry: str
+    region: str
     exclude_private: bool
 
 

@@ -189,4 +189,5 @@
 - Test: invalid endpoint 422, stats range 파라미터 반환 검증 추가(총 33 통과).
 - Ops: re-key 스크립트(ops/rekey_push_kek.py) 추가 및 KEK 로테이션 절차 문서화.
 - Test: 동시성 레이트리밋 케이스 추가(동시 2요청 중 최소 1건 429 보장). 전체 34 테스트 통과.
- - API: /me 프로필 확장 — 회사/부서/직급/회사전화/개인·직장주소/업종 필드 추가 및 업데이트 지원. 테스트 36 통과.
+- API: /me 프로필 확장 — 회사/부서/직급/회사전화/개인·직장주소/업종 필드 추가 및 업데이트 지원. 테스트 36 통과.
+ - API/Web: 수첩 필터 확장(industry/company/region) — 목록/카운트 필터 및 /directory UI 입력·URL 동기화 추가. 테스트 37 통과.

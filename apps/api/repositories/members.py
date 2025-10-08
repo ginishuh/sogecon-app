@@ -39,6 +39,21 @@ def list_members(
     maj = f.get('major')
     if maj:
         conds.append(models.Member.major.ilike(f"%{maj}%"))
+    comp = f.get('company')
+    if comp:
+        conds.append(models.Member.company.ilike(f"%{comp}%"))
+    ind = f.get('industry')
+    if ind:
+        conds.append(models.Member.industry.ilike(f"%{ind}%"))
+    region = f.get('region')
+    if region:
+        like = f"%{region}%"
+        conds.append(
+            or_(
+                models.Member.addr_personal.ilike(like),
+                models.Member.addr_company.ilike(like),
+            )
+        )
     if f.get('exclude_private', True):
         conds.append(models.Member.visibility != models.Visibility.PRIVATE)
     if conds:
@@ -65,6 +80,21 @@ def count_members(
     maj = f.get('major')
     if maj:
         conds.append(models.Member.major.ilike(f"%{maj}%"))
+    comp = f.get('company')
+    if comp:
+        conds.append(models.Member.company.ilike(f"%{comp}%"))
+    ind = f.get('industry')
+    if ind:
+        conds.append(models.Member.industry.ilike(f"%{ind}%"))
+    region = f.get('region')
+    if region:
+        like = f"%{region}%"
+        conds.append(
+            or_(
+                models.Member.addr_personal.ilike(like),
+                models.Member.addr_company.ilike(like),
+            )
+        )
     if f.get('exclude_private', True):
         conds.append(models.Member.visibility != models.Visibility.PRIVATE)
     if conds:
