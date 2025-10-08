@@ -200,3 +200,4 @@
 - API: B v2 프로필 검증 강화(phone·company_phone 형식, 부서/직함/주소/업종 길이 검사, 서비스 계층 문자열 trim 재검증) 및 422 테스트 추가.
 - Web: B v2 프로필 폼에 동기 검증/에러 맵핑, 공개 범위 안내 카피(접근성 라벨)와 vitest 검증을 추가.
 - API: `/me/avatar` 업로드 경로 추가(512px 리사이즈, 100KB 압축, media static 서빙) 및 `avatar_path` 칼럼/pytest 추가.
+- Web: 프로필 사진 업로드 UI·미리보기, FormData 지원, `/me` 페이지 토스트/접근성 문구 보강.

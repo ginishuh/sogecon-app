@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from 'react';
+import Image from 'next/image';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { ApiError, apiFetch } from '../../lib/api';
+import { API_BASE, ApiError, apiFetch } from '../../lib/api';
 import { useToast } from '../../components/toast';
 import {
   buildProfilePayload,
@@ -30,6 +31,7 @@ type MemberRead = {
   addr_personal: string | null;
   addr_company: string | null;
   industry: string | null;
+  avatar_url: string | null;
 };
 
 const asDisplayString = (value: string | null): string => value ?? '';
@@ -56,6 +58,8 @@ const textareaClass =
   'mt-1 w-full rounded border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200';
 
 const fieldErrorId = (field: keyof ProfileForm) => `profile-${field}-error`;
+
+const MAX_UPLOAD_BYTES = 2_000_000;
 
 type StringField = Exclude<keyof ProfileForm, 'birth_lunar' | 'visibility'>;
 
@@ -215,6 +219,91 @@ function FormErrorMessage({
   );
 }
 
+type AvatarUploaderProps = {
+  avatarUrl: string | null;
+  uploading: boolean;
+  onUpload: (file: File) => Promise<void>;
+};
+
+function AvatarUploader({ avatarUrl, uploading, onUpload }: AvatarUploaderProps) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const handleButtonClick = () => {
+    inputRef.current?.click();
+  };
+
+  const handleInputChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    const input = event.target;
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+    void (async () => {
+      try {
+        await onUpload(file);
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+        setPreviewUrl(null);
+        input.value = '';
+      }
+    })();
+  };
+
+  return (
+    <section aria-label="프로필 사진" className="flex items-start gap-4">
+      <div className="relative h-20 w-20 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+        {previewUrl ? (
+          <Image
+            src={previewUrl}
+            alt="선택한 프로필 사진 미리보기"
+            fill
+            unoptimized
+            sizes="80px"
+            className="object-cover"
+          />
+        ) : avatarUrl ? (
+          <Image
+            src={`${API_BASE}${avatarUrl}`}
+            alt="현재 프로필 사진"
+            fill
+            unoptimized
+            sizes="80px"
+            className="object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
+            사진 없음
+          </div>
+        )}
+        {uploading ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 text-xs text-emerald-600">
+            업로드 중…
+          </div>
+        ) : null}
+      </div>
+      <div className="flex flex-col gap-1 text-xs text-slate-600">
+        <button
+          type="button"
+          onClick={handleButtonClick}
+          disabled={uploading}
+          className="w-fit rounded border border-emerald-600 px-3 py-1 text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {uploading ? '업로드 중…' : '이미지 선택'}
+        </button>
+        <p>최대 512px · 100KB · JPG/PNG/WEBP</p>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleInputChange}
+        />
+      </div>
+    </section>
+  );
+}
+
 type ProfileFormSectionProps = {
   draft: ProfileForm;
   profile: MemberRead;
@@ -330,6 +419,7 @@ export default function MePage() {
   const [form, setForm] = useState<ProfileForm | null>(null);
   const [errors, setErrors] = useState<ProfileErrors>({});
   const [busy, setBusy] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -423,6 +513,41 @@ export default function MePage() {
     }
   };
 
+  const onAvatarUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.show('이미지 파일만 업로드할 수 있습니다.', { type: 'error' });
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast.show('이미지 파일 크기가 너무 큽니다. (최대 2MB)', { type: 'error' });
+      return;
+    }
+    setAvatarUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      const updated = await apiFetch<MemberRead>('/me/avatar', {
+        method: 'POST',
+        body: formData,
+      });
+      setMe(updated);
+      setForm(toFormState(updated));
+      setErrors((prev) => {
+        if (!prev.form) return prev;
+        const rest = { ...prev };
+        delete rest.form;
+        return rest;
+      });
+      toast.show('프로필 사진이 업데이트되었습니다.', { type: 'success' });
+    } catch (error) {
+      const message =
+        error instanceof ApiError ? error.message : '이미지 업로드 중 오류가 발생했습니다.';
+      toast.show(message, { type: 'error' });
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
   const visibilityHelpId = 'profile-visibility-help';
   const formErrorId = 'profile-form-error';
 
@@ -444,16 +569,23 @@ export default function MePage() {
     const draft = form as ProfileForm;
     const profile = me as MemberRead;
     body = (
-      <ProfileFormSection
-        draft={draft}
-        profile={profile}
-        errors={errors}
-        busy={busy}
-        onSubmit={onSave}
-        onChange={handleChange}
-        visibilityHelpId={visibilityHelpId}
-        formErrorId={formErrorId}
-      />
+      <div className="flex flex-col gap-6">
+        <AvatarUploader
+          avatarUrl={profile.avatar_url}
+          uploading={avatarUploading}
+          onUpload={onAvatarUpload}
+        />
+        <ProfileFormSection
+          draft={draft}
+          profile={profile}
+          errors={errors}
+          busy={busy}
+          onSubmit={onSave}
+          onChange={handleChange}
+          visibilityHelpId={visibilityHelpId}
+          formErrorId={formErrorId}
+        />
+      </div>
     );
   }
 
