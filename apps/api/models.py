@@ -71,6 +71,11 @@ class Post(Base):
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
     published_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    category = Column(String(64), nullable=True, index=True)  # 'notice' | 'news' | ...
+    pinned = Column(
+        Boolean, nullable=False, default=False, server_default="0", index=True
+    )
+    cover_image = Column(String(512), nullable=True)
 
     author = relationship("Member", back_populates="posts")
 

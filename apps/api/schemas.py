@@ -76,6 +76,9 @@ class PostBase(BaseModel):
     title: str
     content: str
     published_at: datetime | None = None
+    category: str | None = None
+    pinned: bool = False
+    cover_image: str | None = None
 
 
 class PostCreate(PostBase):
