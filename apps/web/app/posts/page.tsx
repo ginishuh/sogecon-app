@@ -5,6 +5,7 @@ import { listPosts, type Post } from '../../services/posts';
 import { PostCard } from '../../components/post-card';
 import { useMemo, useState } from 'react';
 import { splitPinned } from '../../lib/posts';
+import Link from 'next/link';
 
 function PinnedList({ posts, limit, onViewAll }: { posts: Post[]; limit: number; onViewAll: () => void }) {
   const toShow = posts.slice(0, limit);
@@ -16,14 +17,16 @@ function PinnedList({ posts, limit, onViewAll }: { posts: Post[]; limit: number;
       <ul className="space-y-3">
         {toShow.map((post) => (
           <li key={`pinned-${post.id}`}>
-            <PostCard
-              title={post.title}
-              content={post.content}
-              category={post.category}
-              pinned={post.pinned}
-              cover_image={post.cover_image}
-              published_at={post.published_at}
-            />
+            <Link href={`/posts/${post.id}`} className="block">
+              <PostCard
+                title={post.title}
+                content={post.content}
+                category={post.category}
+                pinned={post.pinned}
+                cover_image={post.cover_image}
+                published_at={post.published_at}
+              />
+            </Link>
           </li>
         ))}
       </ul>
@@ -60,14 +63,16 @@ function PostsList({ posts, category, setCategory }: { posts: Post[]; category: 
       <ul className="space-y-3">
         {regular.map((post) => (
           <li key={post.id}>
-            <PostCard
-              title={post.title}
-              content={post.content}
-              category={post.category}
-              pinned={post.pinned}
-              cover_image={post.cover_image}
-              published_at={post.published_at}
-            />
+            <Link href={`/posts/${post.id}`} className="block">
+              <PostCard
+                title={post.title}
+                content={post.content}
+                category={post.category}
+                pinned={post.pinned}
+                cover_image={post.cover_image}
+                published_at={post.published_at}
+              />
+            </Link>
           </li>
         ))}
       </ul>

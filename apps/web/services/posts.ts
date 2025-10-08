@@ -23,6 +23,10 @@ export async function listPosts(params: { limit?: number; offset?: number; categ
   return apiFetch<Post[]>(`/posts${qs ? `?${qs}` : ''}`);
 }
 
+export async function getPost(id: number): Promise<Post> {
+  return apiFetch<Post>(`/posts/${id}`);
+}
+
 export async function createPost(payload: {
   author_id: number;
   title: string;
