@@ -137,3 +137,32 @@
 | 알림 | Web Push 구독/테스트 발송/로그/통계 완료, at-rest 암호화/정리 제공 |
 
 이 문서는 스케폴드 이후 아키텍처 변경 사항이 생길 때마다 함께 업데이트하며, 변경 내역은 해당 날짜의 `docs/dev_log_YYMMDD.md`에 링크한다.
+
+---
+
+## 프로필(B v2) 검증 규칙 및 아바타 정책 (2025‑10‑08)
+
+- 검증 규칙(서버·웹 동기화)
+  - phone, company_phone: 숫자/`+`/`-`/공백 허용, 길이 7–20자
+  - department, job_title: 1–80자
+  - addr_personal, addr_company: 1–200자
+  - industry: 1–60자(초기 자유 입력; 표준 목록은 후속)
+  - 실패 시 422 + Problem Details(code 유지)
+- 아바타 저장 정책
+  - 업로드 제한: 최대 100KB, 512px 리사이즈, JPEG 기본(원본 PNG 허용)
+  - 경로: `MEDIA_ROOT`(기본 `uploads`)/`MEDIA_URL_BASE`(기본 `/media`) 하위에 member별 디렉터리 분리
+  - 보안: 확장자/콘텐츠 타입 검사, Exif 제거, 임시 파일 즉시 삭제
+  - 교체/삭제: 교체 시 기존 파일 삭제, 삭제 API는 `avatar_path`를 `NULL`로 갱신하고 파일 제거
+
+## 디렉터리(C v1) URL 동기화·SSR/캐시 정책 (2025‑10‑08)
+
+- 상태↔URL 동기화: `q, cohort, major, company, industry, region, page`
+- 디바운스: 입력 400ms, 필터 변경 시 `page=1`로 리셋
+- SSR/캐시: 목록은 CSR + 캐싱(react-query), count는 쿼리 스트링을 키로 메모화
+- 접근성: 포커스 이동/ARIA 레이블, 키보드 내비 지원
+
+## 운영화(M4) 가드 (초안)
+
+- CSP(프로덕션): 기본 `default-src 'self'; img-src 'self' https: data:;` 등 단계적 강화
+- 레이트리밋 분리: 로그인/발송/문의 경로별 정책 분리, 운영 값은 `.env` 대신 시크릿/설정 서버로 관리
+- 구조화 로그: `code`, `request_id` 포함, 실패 비율/지연 지표 대시보드 구성
