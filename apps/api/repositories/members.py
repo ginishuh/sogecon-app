@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Any
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
@@ -53,8 +54,8 @@ def _build_member_conditions(
     return conds
 
 
-def _order_columns(sort_value: str | None) -> list[ColumnElement[object]]:
-    mapping: dict[str, list[ColumnElement[object]]] = {
+def _order_columns(sort_value: str | None) -> list[ColumnElement[Any]]:
+    mapping: dict[str, list[ColumnElement[Any]]] = {
         'cohort_desc': [models.Member.cohort.desc(), models.Member.name.asc()],
         'cohort_asc': [models.Member.cohort.asc(), models.Member.name.asc()],
         'name': [models.Member.name.asc()],
