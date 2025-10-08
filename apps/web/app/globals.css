@@ -4,19 +4,22 @@
 
 :root {
   color-scheme: light;
-  --surface-background: #f2eee8;
+  --surface-background: #f8f4ed;
   --surface-card: #ffffff;
-  --surface-muted: #f9f5f1;
+  --surface-muted: #fdf8f2;
   --text-primary: #1f242d;
-  --text-muted: #5d6673;
-  --border-soft: #d8d3cc;
-  --focus-ring: #f7b267;
+  --text-muted: #626b79;
+  --border-soft: #e3d7cf;
+  --focus-ring: #f4a259;
+  --brand-primary: #8a1e2d;
+  --brand-primary-dark: #6c1722;
+  --brand-accent: #f4a259;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  background: var(--surface-background);
+  background: linear-gradient(180deg, rgba(248, 244, 237, 1) 0%, rgba(252, 248, 242, 1) 100%);
   color: var(--text-primary);
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.6;
@@ -41,7 +44,7 @@ main {
 }
 
 a {
-  color: #8a1e2d;
+  color: var(--brand-primary);
   transition: color 150ms ease;
   text-decoration: none;
 }
@@ -215,7 +218,7 @@ a:focus-visible {
   }
 
   .home-hero {
-    @apply grid gap-10 rounded-3xl bg-white px-6 py-12 shadow-soft md:grid-cols-[1.2fr_1fr] md:px-12;
+    @apply grid gap-10 rounded-3xl bg-white/95 px-6 py-12 shadow-soft md:grid-cols-[1.2fr_1fr] md:px-12;
   }
 
   .home-hero__eyebrow {
