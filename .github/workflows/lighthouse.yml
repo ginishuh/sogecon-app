@@ -62,6 +62,7 @@ jobs:
           temporaryPublicStorage: true
           runs: 3
           configPath: ''
+          budgetPath: './lighthouse-budget.json'
           # Assert category minimums: Perf/A11y ≥ 0.90
           assertions: >-
             {

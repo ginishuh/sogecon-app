@@ -9,10 +9,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
-from apps.api.main import app  # type: ignore  # noqa: E402
-
-
 def main() -> None:
+    from apps.api.main import app
+
     openapi_data = app.openapi()
     output_path = ROOT / "packages" / "schemas" / "openapi.json"
     output_path.write_text(json.dumps(openapi_data, indent=2), encoding="utf-8")

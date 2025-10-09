@@ -1,120 +1,18 @@
 "use client";
 
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { Route } from 'next';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { Suspense, type ReactNode } from 'react';
 
-import { listMembers, countMembers, type MemberListSort } from '../../services/members';
-
-const PAGE_SIZE = 10;
-const DEBOUNCE_MS = 350;
-
-type TextFilterKeys = 'q' | 'cohort' | 'major' | 'company' | 'industry' | 'region' | 'jobTitle';
-
-type SortOption = MemberListSort;
-
-type FilterState = {
-  q: string;
-  cohort: string;
-  major: string;
-  company: string;
-  industry: string;
-  region: string;
-  jobTitle: string;
-  sort: SortOption;
-  page: number;
-};
-
-const DEFAULT_FILTERS: FilterState = {
-  q: '',
-  cohort: '',
-  major: '',
-  company: '',
-  industry: '',
-  region: '',
-  jobTitle: '',
-  sort: 'recent',
-  page: 0,
-};
-
-const FILTER_FIELDS: Array<{
-  key: TextFilterKeys;
-  label: string;
-  placeholder: string;
-  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
-}> = [
-  { key: 'q', label: '검색어', placeholder: '이름/이메일 검색', inputMode: 'search' },
-  { key: 'cohort', label: '기수', placeholder: '예: 12', inputMode: 'numeric' },
-  { key: 'major', label: '전공', placeholder: '전공' },
-  { key: 'company', label: '회사', placeholder: '회사명' },
-  { key: 'industry', label: '업종', placeholder: '업종' },
-  { key: 'region', label: '지역', placeholder: '주소/지역' },
-  { key: 'jobTitle', label: '직함', placeholder: '직함' },
-];
-
-const SORT_LABELS: Record<SortOption, string> = {
-  recent: '최근 업데이트 순',
-  cohort_desc: '기수 높은 순',
-  cohort_asc: '기수 낮은 순',
-  name: '이름순 (가나다)'
-};
-
-function clampPage(value: number): number {
-  if (Number.isNaN(value) || value < 0) return 0;
-  if (!Number.isFinite(value)) return 0;
-  return Math.floor(value);
-}
-
-function readFilters(params: URLSearchParams): FilterState {
-  const pageParam = params.get('page');
-  const sortParam = params.get('sort');
-  const allowedSorts: SortOption[] = ['recent', 'cohort_desc', 'cohort_asc', 'name'];
-  const isAllowedSort = (value: string | null): value is SortOption =>
-    Boolean(value && allowedSorts.includes(value as SortOption));
-  return {
-    q: params.get('q') ?? '',
-    cohort: params.get('cohort') ?? '',
-    major: params.get('major') ?? '',
-    company: params.get('company') ?? '',
-    industry: params.get('industry') ?? '',
-    region: params.get('region') ?? '',
-     jobTitle: params.get('job_title') ?? '',
-     sort: isAllowedSort(sortParam) ? (sortParam as SortOption) : 'recent',
-    page: pageParam ? clampPage(Number(pageParam)) : 0,
-  };
-}
-
-function buildUrl(filters: FilterState): string {
-  const usp = new URLSearchParams();
-  const stringParams: Record<string, string> = {
-    q: filters.q,
-    cohort: filters.cohort,
-    major: filters.major,
-    company: filters.company,
-    industry: filters.industry,
-    region: filters.region,
-    job_title: filters.jobTitle,
-  };
-  Object.entries(stringParams).forEach(([key, value]) => {
-    if (value) {
-      usp.set(key, value);
-    }
-  });
-  if (filters.sort !== 'recent') usp.set('sort', filters.sort);
-  if (filters.page > 0) usp.set('page', String(filters.page));
-  const qs = usp.toString();
-  return `/directory${qs ? `?${qs}` : ''}`;
-}
-
-function useDebouncedValue<T>(value: T, delay: number): T {
-  const [debounced, setDebounced] = useState<T>(value);
-  useEffect(() => {
-    const handle = window.setTimeout(() => setDebounced(value), delay);
-    return () => window.clearTimeout(handle);
-  }, [value, delay]);
-  return debounced;
-}
+import {
+  FILTER_FIELDS,
+  SORT_LABELS,
+  type FilterState,
+  type SortOption,
+  type TextFilterKeys,
+  type MemberListPage,
+  useDirectoryQueries,
+  useDirectoryUrlSync,
+  useInfiniteLoader,
+} from './state';
 
 type DirectoryFiltersProps = {
   value: FilterState;
@@ -196,13 +94,15 @@ function DirectoryResults({
   isLoadingMore,
   sentinelRef,
   sortLabel,
+  loadMoreLabel,
 }: {
-  items: Awaited<ReturnType<typeof listMembers>>;
+  items: MemberListPage;
   onLoadMore: () => void;
   hasNext: boolean;
   isLoadingMore: boolean;
   sentinelRef: React.MutableRefObject<HTMLDivElement | null>;
   sortLabel: string;
+  loadMoreLabel: string;
 }) {
   if (items.length === 0) {
     return <EmptyState />;
@@ -261,7 +161,7 @@ function DirectoryResults({
             disabled={isLoadingMore}
             className="rounded border border-emerald-500 px-4 py-2 text-sm text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
           >
-            {isLoadingMore ? '불러오는 중…' : '더 불러오기'}
+            {isLoadingMore ? '불러오는 중…' : loadMoreLabel}
           </button>
         ) : (
           <span className="text-xs text-slate-500">더 이상 결과가 없습니다.</span>
@@ -272,185 +172,39 @@ function DirectoryResults({
 }
 
 function DirectoryPageInner() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const searchParamsKey = searchParams.toString();
-  const filtersFromUrl = useMemo(
-    () => readFilters(new URLSearchParams(searchParamsKey)),
-    [searchParamsKey]
-  );
-  const [filters, setFilters] = useState<FilterState>(filtersFromUrl);
-  const lastSyncedParamsRef = useRef<string>(searchParamsKey);
+  const {
+    filters,
+    debouncedFilters,
+    updateFilter,
+    updateSort,
+    resetFilters,
+    setPage,
+    sharePath,
+    copied,
+    copyShareLink,
+  } = useDirectoryUrlSync();
 
-  useEffect(() => {
-    if (lastSyncedParamsRef.current === searchParamsKey) {
-      return;
-    }
-    lastSyncedParamsRef.current = searchParamsKey;
-    setFilters(filtersFromUrl);
-  }, [filtersFromUrl, searchParamsKey]);
+  const {
+    membersQuery,
+    visibleItems,
+    totalLabel,
+    displayedCount,
+    currentPage,
+    totalPages,
+    loadMoreLabel,
+    sortOption,
+  } = useDirectoryQueries(debouncedFilters);
 
-  const debouncedFilters = useDebouncedValue(filters, DEBOUNCE_MS);
-
-  useEffect(() => {
-    const currentUrl = buildUrl(filtersFromUrl);
-    const targetUrl = buildUrl(debouncedFilters);
-    if (currentUrl === targetUrl) {
-      return;
-    }
-    const targetQuery = targetUrl.split('?')[1] ?? '';
-    lastSyncedParamsRef.current = targetQuery;
-    router.replace(targetUrl as Route, { scroll: false });
-  }, [debouncedFilters, filtersFromUrl, router]);
-
-  const updateFilter = useCallback(
-    (key: TextFilterKeys, nextValue: string) => {
-      setFilters((prev) => {
-        if (prev[key] === nextValue) return prev;
-        const next: FilterState = {
-          ...prev,
-          [key]: nextValue,
-          page: 0,
-        };
-        return next;
-      });
-    },
-    []
+  const { handleLoadMore, sentinelRef } = useInfiniteLoader(
+    membersQuery,
+    debouncedFilters.page,
+    setPage
   );
 
-  const updateSort = useCallback((nextSort: SortOption) => {
-    setFilters((prev) => {
-      if (prev.sort === nextSort) return prev;
-      return {
-        ...prev,
-        sort: nextSort,
-        page: 0,
-      };
-    });
-  }, []);
-
-  const resetFilters = useCallback(
-    () =>
-      setFilters(() => ({
-        ...DEFAULT_FILTERS,
-      })),
-    []
-  );
-
-  const setPage = useCallback(
-    (page: number) => {
-      setFilters((prev) => {
-        const nextPage = clampPage(page);
-        if (prev.page === nextPage) return prev;
-        return { ...prev, page: nextPage };
-      });
-    },
-    []
-  );
-
-  const filtersForQuery = useMemo(
-    () => ({
-      q: debouncedFilters.q || undefined,
-      cohort: debouncedFilters.cohort ? Number(debouncedFilters.cohort) : undefined,
-      major: debouncedFilters.major || undefined,
-      company: debouncedFilters.company || undefined,
-      industry: debouncedFilters.industry || undefined,
-      region: debouncedFilters.region || undefined,
-      jobTitle: debouncedFilters.jobTitle || undefined,
-    }),
-    [debouncedFilters]
-  );
-  const sortOption = debouncedFilters.sort;
-
-  const membersQuery = useInfiniteQuery({
-    queryKey: [
-      'directory',
-      filtersForQuery.q,
-      filtersForQuery.cohort,
-      filtersForQuery.major,
-      filtersForQuery.company,
-      filtersForQuery.industry,
-      filtersForQuery.region,
-      filtersForQuery.jobTitle,
-      sortOption,
-    ],
-    initialPageParam: 0,
-    queryFn: ({ pageParam }) =>
-      listMembers({
-        ...filtersForQuery,
-        sort: sortOption,
-        limit: PAGE_SIZE,
-        offset: pageParam as number,
-      }),
-    getNextPageParam: (lastPage, _pages, lastPageParam) =>
-      lastPage.length < PAGE_SIZE ? undefined : ((lastPageParam as number) + PAGE_SIZE),
-  });
-
-  const totalQuery = useQuery({
-    queryKey: [
-      'directory-total',
-      filtersForQuery.q,
-      filtersForQuery.cohort,
-      filtersForQuery.major,
-      filtersForQuery.company,
-      filtersForQuery.industry,
-      filtersForQuery.region,
-      filtersForQuery.jobTitle,
-    ],
-    queryFn: () =>
-      countMembers({
-        q: filtersForQuery.q,
-        cohort: filtersForQuery.cohort,
-        major: filtersForQuery.major,
-        company: filtersForQuery.company,
-        industry: filtersForQuery.industry,
-        region: filtersForQuery.region,
-        jobTitle: filtersForQuery.jobTitle,
-      }),
-  });
-
-  const desiredPageCount = debouncedFilters.page + 1;
-  const loadedPages = membersQuery.data?.pages.length ?? 0;
-  useEffect(() => {
-    if (membersQuery.status !== 'success') return;
-    if (membersQuery.isFetchingNextPage) return;
-    if (!membersQuery.hasNextPage) return;
-    if (loadedPages >= desiredPageCount) return;
-    void membersQuery.fetchNextPage();
-  }, [desiredPageCount, loadedPages, membersQuery]);
-
-  const visibleItems = useMemo(() => {
-    const pages = membersQuery.data?.pages ?? [];
-    const limit = Math.min(desiredPageCount, pages.length);
-    return pages.slice(0, limit).flat();
-  }, [membersQuery.data, desiredPageCount]);
-
-  const handleLoadMore = useCallback(() => {
-    if (!membersQuery.hasNextPage || membersQuery.isFetchingNextPage) return;
-    setPage(debouncedFilters.page + 1);
-    void membersQuery.fetchNextPage();
-  }, [debouncedFilters.page, membersQuery, setPage]);
-
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const target = sentinelRef.current;
-    if (!target) return;
-    if (!membersQuery.hasNextPage) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            handleLoadMore();
-          }
-        });
-      },
-      { rootMargin: '240px 0px' }
-    );
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [handleLoadMore, membersQuery.hasNextPage]);
+  const isLoadingMembers = membersQuery.isPending;
+  const membersError = membersQuery.isError;
+  const isLoadingMore = membersQuery.isFetchingNextPage;
+  const hasNextPage = Boolean(membersQuery.hasNextPage);
 
   return (
     <div className="space-y-4 p-6">
@@ -469,23 +223,36 @@ function DirectoryPageInner() {
       />
 
       <section className="space-y-3" aria-live="polite">
-        <p className="text-sm text-slate-600">
-          총{' '}
-          {totalQuery.isPending ? '…' : totalQuery.isError ? '—' : totalQuery.data?.toLocaleString() ?? '0'}
-          명
-        </p>
-        {membersQuery.isPending ? (
+        <div className="flex flex-col gap-2 text-sm text-slate-600">
+          <p>
+            총 {totalLabel}명 중 {displayedCount.toLocaleString()}명 표시 (페이지 {currentPage}
+            {totalPages ? ` / ${totalPages}` : ''})
+          </p>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <span className="font-medium text-slate-600">공유 링크</span>
+            <code className="rounded bg-slate-100 px-2 py-1">{sharePath}</code>
+            <button
+              type="button"
+              onClick={copyShareLink}
+              className="rounded border border-slate-300 px-2 py-1 text-slate-600 transition hover:bg-slate-100"
+            >
+              {copied ? '복사 완료' : '복사'}
+            </button>
+          </div>
+        </div>
+        {isLoadingMembers ? (
           <LoadingMessage>목록을 불러오는 중입니다…</LoadingMessage>
-        ) : membersQuery.isError ? (
+        ) : membersError ? (
           <ErrorMessage message="목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요." />
         ) : (
           <DirectoryResults
             items={visibleItems}
             onLoadMore={handleLoadMore}
-            hasNext={Boolean(membersQuery.hasNextPage)}
-            isLoadingMore={membersQuery.isFetchingNextPage}
+            hasNext={hasNextPage}
+            isLoadingMore={isLoadingMore}
             sentinelRef={sentinelRef}
             sortLabel={SORT_LABELS[sortOption]}
+            loadMoreLabel={loadMoreLabel}
           />
         )}
       </section>

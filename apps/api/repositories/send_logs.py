@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from datetime import datetime
 
 from sqlalchemy import desc, select, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
@@ -70,7 +71,7 @@ def prune_older_than_days(db: Session, *, days: int) -> int:
         q.delete()
         db.commit()
         return int(count)
-    except Exception:
+    except (NotImplementedError, SQLAlchemyError):
         # Fallback for SQLite
         stmt = text(
             "DELETE FROM notification_send_logs "
@@ -81,6 +82,6 @@ def prune_older_than_days(db: Session, *, days: int) -> int:
         # SQLAlchemy Result may not expose rowcount in all dialects; treat unknown as 0
         try:
             n = int(getattr(res, "rowcount", 0) or 0)
-        except Exception:
+        except (TypeError, ValueError):
             n = 0
         return n

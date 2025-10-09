@@ -29,6 +29,7 @@
 
 ### 2) 가드 불가 타입 및 위험 캐스트 금지
 - TypeScript: `any`, 이중 캐스트(`as unknown as T`), 과도한 non-null(`!`) 금지. `unknown`+내로잉, 판별 유니온, 생성된 DTO 사용.
+  - 집행: ESLint `@typescript-eslint/no-explicit-any:error`, `@typescript-eslint/ban-ts-comment`(설명 포함 `@ts-expect-error`만 허용), `no-unsafe-*` 규칙 묶음 적용. TSConfig는 `strict`와 함께 `useUnknownInCatchVariables:true`, `noUncheckedIndexedAccess:true`를 활성화합니다.
 - Python: `Any`, `dict[str, Any]`, `list[Any]`, 광범위 `object` 지양. Pydantic 모델/TypedDict/제네릭 명시 사용.
 
 ### 3) 복잡도·스파게티 방지
@@ -43,7 +44,10 @@
   - Web: UI 컴포넌트 → hooks/services → API client. 공용 클라이언트가 있을 때 컴포넌트 직접 fetch 금지.
 
 ### 5) 예외 처리/로깅
-- Python: `except:`/`except Exception:` 금지(구체 예외로 제한). 침묵 처리 금지.
+- Python: `except:`/`except Exception:` 금지(구체 예외로 제한), 침묵 처리 금지.
+  - 집행: CI에서 Ruff `BLE001`(broad-except), `E722`(bare except)를 활성화합니다. 정리/해제는 `try/finally`로 처리하세요.
+  - 면제(최소화): 같은 줄 한 줄만 허용하며 규칙 ID/이유/이슈 링크/제거 기한을 반드시 기입합니다(예: `# noqa: BLE001 - 사유; see #123, remove by 2025-11-01`). 파일/블록 단위 억제는 금지.
+  - 경계층 예외: 프로세스 경계(예: ASGI 미들웨어 루프)에서는 가급적 광범위 포착을 피하고, 불가피할 경우 로깅 후 즉시 재전파하며 한 줄 면제 주석을 붙입니다.
 - TS: `no-floating-promises` 준수(거부 누락 금지).
 
 ### 6) 알림·프라이버시(Web Push)

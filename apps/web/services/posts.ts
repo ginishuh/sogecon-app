@@ -27,14 +27,16 @@ export async function getPost(id: number): Promise<Post> {
   return apiFetch<Post>(`/posts/${id}`);
 }
 
-export async function createPost(payload: {
-  author_id: number;
+export type CreatePostPayload = {
+  author_id?: number;
   title: string;
   content: string;
   published_at?: string | null;
   category?: string | null;
   pinned?: boolean;
   cover_image?: string | null;
-}): Promise<Post> {
+};
+
+export async function createPost(payload: CreatePostPayload): Promise<Post> {
   return apiFetch<Post>(`/posts/`, { method: 'POST', body: JSON.stringify(payload) });
 }

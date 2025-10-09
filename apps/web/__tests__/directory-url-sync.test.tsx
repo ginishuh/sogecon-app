@@ -136,7 +136,7 @@ describe('DirectoryPage URL 동기화', () => {
 
     await waitFor(() => expect(listMembersMock).toHaveBeenCalledTimes(1));
 
-    const loadMoreButton = await screen.findByRole('button', { name: '더 불러오기' });
+    const loadMoreButton = await screen.findByRole('button', { name: /더 불러오기/ });
     fireEvent.click(loadMoreButton);
 
     await waitFor(() => {

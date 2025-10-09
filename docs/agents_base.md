@@ -29,6 +29,7 @@ Do NOT disable linters or type checkers globally or per file.
 
 ### 2) Ban “unguardable” types and unsafe casts
 - TypeScript: `any`, double-casts (`as unknown as T`), pervasive non-null assertions (`!`) are forbidden. Prefer `unknown` + explicit narrowing, discriminated unions, and generated DTO types.
+  - Enforcement: ESLint `@typescript-eslint/no-explicit-any:error`, `@typescript-eslint/ban-ts-comment` (allow only `@ts-expect-error` with description), and the `no-unsafe-*` rule set. TSConfig must enable `strict`, `useUnknownInCatchVariables:true`, `noUncheckedIndexedAccess:true`.
 - Python: Avoid `Any`, `dict[str, Any]`, `list[Any]`, and broad `object` for domain data. Use Pydantic models, TypedDict, or explicit generics.
 
 ### 3) Complexity & Spaghetti-code guards
@@ -43,7 +44,10 @@ Do NOT disable linters or type checkers globally or per file.
   - Web: UI components → hooks/services → API client. Components must not hardcode fetch logic when shared clients exist.
 
 ### 5) Error handling and logging
-- Python: No bare `except:` or `except Exception:`—catch specific exceptions. Never silently ignore errors.
+- Python: No bare `except:` or `except Exception:` — catch specific exceptions. Never silently ignore errors.
+  - Enforcement: Ruff `BLE001` (broad-except) and `E722` (bare except) are enabled in CI. Use precise exceptions or `try/finally` for cleanup.
+  - Narrow waivers: only allow a one-line inline waiver with explicit rule ID and rationale, plus a linked issue and removal date (e.g., `# noqa: BLE001 - reason; see #123, remove by 2025-11-01`). File‑ or block‑level waivers are forbidden.
+  - Boundary-only allowance: in process boundaries (e.g., ASGI middleware loop), prefer `try/finally`. If a broad catch is unavoidable for fail-safe logging, immediately re-raise after logging and add the inline waiver as above.
 - TS: Always handle promise rejections (`no-floating-promises`).
 
 ### 6) Notifications & Privacy (Web Push)

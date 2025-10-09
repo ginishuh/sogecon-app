@@ -3,10 +3,8 @@ from __future__ import annotations
 import logging
 import re
 import time
-from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Protocol, cast
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
@@ -14,12 +12,18 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
+from ..config import get_settings
 from ..db import get_db
+from ..ratelimit import consume_limit
 from ..repositories import support_tickets as tickets_repo
 from ..routers.auth import CurrentAdmin, CurrentMember, require_admin, require_member
 
 router = APIRouter(prefix="/support", tags=["support"])
 limiter = Limiter(key_func=get_remote_address)
+
+
+def _is_test_client(request: Request) -> bool:
+    return bool(request.client and request.client.host == "testclient")
 
 # 최근 중복/쿨다운 체크(간단 메모리)
 _recent: dict[str, tuple[float, str]] = {}
@@ -41,16 +45,8 @@ def contact(
     _m: CurrentMember = Depends(require_member),
     db: Session = Depends(get_db),
 ) -> dict[str, str]:
-    # 레이트리밋(1/min/IP) — 테스트클라이언트 면제
-    if not (request.client and request.client.host == "testclient"):
-        class _LimiterProto(Protocol):
-            def limit(
-                self, limit_value: str
-            ) -> Callable[[Callable[[Request], None]], Callable[[Request], None]]:
-                ...
-        limiter_typed: _LimiterProto = cast(_LimiterProto, limiter)
-        checker = limiter_typed.limit("1/minute")
-        checker(lambda r: None)(request)
+    if not _is_test_client(request):
+        consume_limit(limiter, request, get_settings().rate_limit_support)
 
     # 봇/스팸: honeypot 또는 키워드 차단 → 드롭(accepted)
     if payload.hp or _BLOCKLIST.search(payload.subject) or _BLOCKLIST.search(

@@ -49,6 +49,7 @@ Do NOT disable linters or type checkers globally or per file.
 
 ### 2) Ban “unguardable” types and unsafe casts
 - TypeScript: `any`, double-casts (`as unknown as T`), pervasive non-null assertions (`!`) are forbidden. Prefer `unknown` + explicit narrowing, discriminated unions, and generated DTO types.
+  - Enforcement: `@typescript-eslint/no-explicit-any:error`, `@typescript-eslint/ban-ts-comment` (only `@ts-expect-error` with description), `no-unsafe-*`. TS must be `strict` with `useUnknownInCatchVariables:true`, `noUncheckedIndexedAccess:true`.
 - Python: Avoid `Any`, `dict[str, Any]`, `list[Any]`, and broad `object` for domain data. Use Pydantic models, TypedDict, or explicit generics.
 
 ### 3) Complexity & Spaghetti-code guards
@@ -64,6 +65,7 @@ Do NOT disable linters or type checkers globally or per file.
 
 ### 5) Error handling and logging
 - Python: No bare `except:` or `except Exception:`—catch specific exceptions. Never silently ignore errors.
+  - Enforcement: Ruff `BLE001`/`E722` in CI. Use `try/finally` for cleanup; if broad catch is unavoidable at boundaries, log then re-raise, with one-line waiver incl. rule ID, rationale, issue link, removal date.
 - TS: Always handle promise rejections (`no-floating-promises`).
 
 ### 6) Notifications & Privacy (Web Push)

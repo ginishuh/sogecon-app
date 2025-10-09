@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import secrets
 import time
+from collections import OrderedDict
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -18,6 +19,12 @@ from ..repositories import members as members_repo
 _ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP"}
 _INITIAL_JPEG_QUALITY = 85
 _MIN_JPEG_QUALITY = 50
+
+_MEMBER_COUNT_CACHE_TTL = 30.0
+_MEMBER_COUNT_CACHE_MAX = 64
+_member_count_cache: OrderedDict[
+    tuple[tuple[str, str], ...], tuple[float, int]
+] = OrderedDict()
 
 
 def _load_and_normalize_image(file_bytes: bytes) -> Image.Image:
@@ -103,7 +110,35 @@ def list_members(
 def count_members(
     db: Session, *, filters: schemas.MemberListFilters | None = None
 ) -> int:
-    return members_repo.count_members(db, filters=filters)
+    def _normalize_value(value: object) -> str:
+        if isinstance(value, bool):
+            return "1" if value else "0"
+        return str(value)
+
+    key: tuple[tuple[str, str], ...]
+    if not filters:
+        key = tuple()
+    else:
+        items = [
+            (k, _normalize_value(v))
+            for k, v in filters.items()
+            if v is not None
+        ]
+        items.sort()
+        key = tuple(items)
+
+    now = time.time()
+    cached = _member_count_cache.get(key)
+    if cached and (now - cached[0]) < _MEMBER_COUNT_CACHE_TTL:
+        _member_count_cache.move_to_end(key, last=True)
+        return cached[1]
+
+    count = members_repo.count_members(db, filters=filters)
+    _member_count_cache[key] = (now, count)
+    _member_count_cache.move_to_end(key, last=True)
+    if len(_member_count_cache) > _MEMBER_COUNT_CACHE_MAX:
+        _member_count_cache.popitem(last=False)
+    return count
 
 
 def get_member(db: Session, member_id: int) -> models.Member:
