@@ -232,3 +232,5 @@
 - API/Web/CI: RequestContextMiddleware broad-except 제거, Sentry 오류 전송 보강, with_for_update 예외 범위 축소, DTO 재생성 및 가드/테스트/빌드 검증.
 - CI/API: repo guard broad-except 예외를 OSError로 축소하고 export_openapi 지연 import/타입 힌트 정리.
 - Test/API: 게시판 레이트리밋 테스트의 broad-except 제거 및 suppress 컨텍스트 적용.
+ - Web: DS v1 Phase 1 — 토큰/글로벌 스타일/공통 UI(버튼·입력·셀렉트·텍스트에어리어·배지·카드·탭) 추가, vitest 스냅샷/상호작용 및 빌드·가드 그린 확인.
+ - Web: DS v1 Phase 1 — 토큰/글로벌 스타일 적용(타이포/포커스 링/링크 상태), Tailwind semantic 토큰 확장.
