@@ -29,6 +29,7 @@ This is the canonical, English “Agents Base” for this repository. All agent-
 ## SSOT
 - This is not a product/system SSOT; it governs agent/editor guidelines only.
 - Repository SSOT docs (authoritative for their domains):
+  - `docs/Project_overview.md` — product vision, IA, north star scope and roadmap.
   - `docs/architecture.md` — system architecture, domain decisions, API surfaces.
   - `docs/pwa_push.md` — PWA/Web Push design and operational flows.
   - `docs/versions.md` — pinned runtimes/toolchain versions (CI‑enforced).

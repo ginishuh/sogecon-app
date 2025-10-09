@@ -9,6 +9,7 @@
 ## SSOT
 - 본 문서는 제품/시스템/도메인 SSOT가 아닙니다. 에이전트/에디터 가이드(품질·행동 규칙)만 관할합니다.
 - 레포의 도메인별 SSOT 문서(각 영역에서 최종 권한):
+  - `docs/Project_overview.md` — 프로젝트 개요/제품 비전, 정보 구조(IA), 범위·로드맵의 기준 문서.
   - `docs/architecture.md` — 시스템 아키텍처, 도메인 결정, API 인터페이스.
   - `docs/pwa_push.md` — PWA/Web Push 설계 및 운영 흐름.
   - `docs/versions.md` — 런타임/툴체인 고정 버전(CI 강제).
