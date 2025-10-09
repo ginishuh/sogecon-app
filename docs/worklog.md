@@ -228,3 +228,4 @@
 - Ops/Web/API: 배포 문서 초안, CSP·레이트리밋 분리, request_id 구조화 로그, 커뮤니티 게시판 스켈레톤, 디렉터리 캐시·공유 링크 UX, DTO 검증 워크플로·Lighthouse budget 추가.
 - feat: Sentry 연동, 커뮤니티 게시판 멤버 작성 플로우, 디렉터리 상태/공유 링크 개선, 배포/보안 문서, DTO CI 잡 추가, 테스트 정비 완료.
 - API/Web/CI: RequestContextMiddleware broad-except 제거, Sentry 오류 전송 보강, with_for_update 예외 범위 축소, DTO 재생성 및 가드/테스트/빌드 검증.
+- CI/API: repo guard broad-except 예외를 OSError로 축소하고 export_openapi 지연 import/타입 힌트 정리.

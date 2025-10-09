@@ -40,7 +40,10 @@ BAN_PATTERNS = {
 
 # Broad-except patterns (python only)
 PY_BROAD_EXCEPT = [
-    (r"except\s+Exception\s*:\s*$", "Broad 'except Exception' is forbidden (use specific exceptions)"),
+    (
+        r"except\s+Exception\s*:\s*$",
+        "Broad 'except Exception' is forbidden (use specific exceptions)",
+    ),
     (r"except\s+BaseException\s*:\s*$", "Broad 'except BaseException' is forbidden"),
     (r"except\s*:\s*$", "Bare 'except' is forbidden"),
 ]
@@ -104,7 +107,7 @@ def check_max_lines(path: Path) -> list[str]:
             return []
     try:
         lines = sum(1 for _ in path.open("r", encoding="utf-8", errors="ignore"))
-    except Exception:
+    except OSError:
         return []
     if lines > MAX_LINES:
         return [f"{path}: exceeds {MAX_LINES} lines ({lines})"]
@@ -125,7 +128,7 @@ def check_ts_any(path: Path) -> list[str]:
         return []
     try:
         text = path.read_text(encoding="utf-8", errors="ignore")
-    except Exception:
+    except OSError:
         return []
     violations: list[str] = []
     patterns = [
