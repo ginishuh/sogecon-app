@@ -8,8 +8,13 @@ on:
 
 jobs:
   verify-dto:
+    # Draft PR에서는 실행하지 않고, main push 또는 Ready for Review 상태에서만 실행
+    if: ${{ github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false) }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    concurrency:
+      group: dto-verify-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
