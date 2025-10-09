@@ -233,4 +233,4 @@
 - CI/API: repo guard broad-except 예외를 OSError로 축소하고 export_openapi 지연 import/타입 힌트 정리.
 - Test/API: 게시판 레이트리밋 테스트의 broad-except 제거 및 suppress 컨텍스트 적용.
  - Web: DS v1 Phase 1 — 토큰/글로벌 스타일/공통 UI(버튼·입력·셀렉트·텍스트에어리어·배지·카드·탭) 추가, vitest 스냅샷/상호작용 및 빌드·가드 그린 확인.
- - Web: DS v1 Phase 1 — 공통 UI 7종(Button/Input/Select/TextArea/Badge/Card/Tabs) 추가(a11y+토큰).
+ - Test(Web): DS v1 Phase 1 — UI 스냅샷(Button/Badge/Card) 및 Tabs 상호작용/폼 aria 연결 테스트 추가.
