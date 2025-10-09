@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import suppress
 from http import HTTPStatus
 
 import httpx
@@ -9,6 +10,7 @@ from fastapi.testclient import TestClient
 from apps.api import models
 from apps.api.db import get_db
 from apps.api.main import app
+from apps.api.routers import posts as posts_router
 
 
 @pytest.fixture()
@@ -23,16 +25,18 @@ def _get_member_id() -> int:
     gen = override()
     db = next(gen)
     try:
-        member = db.query(models.Member).filter(models.Member.email == "member@example.com").first()
+        member = (
+            db.query(models.Member)
+            .filter(models.Member.email == "member@example.com")
+            .first()
+        )
         if member is None:
             raise RuntimeError("member@example.com not seeded")
         return member.id
     finally:
         db.close()
-        try:
+        with suppress(RuntimeError, StopIteration):
             gen.close()
-        except Exception:
-            pass
 
 
 def test_member_can_create_board_post(member_login: TestClient) -> None:
@@ -57,8 +61,6 @@ def test_post_create_requires_auth(client: TestClient) -> None:
 
 @pytest.mark.anyio("asyncio")
 async def test_post_create_rate_limit(member_login: TestClient) -> None:
-    from apps.api.routers import posts as posts_router
-
     posts_router.reset_member_post_limit_cache()
 
     transport = httpx.ASGITransport(app=app, client=("10.20.30.40", 8080))
