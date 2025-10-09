@@ -151,7 +151,7 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
-    author_id: int
+    author_id: int | None = None
 
 
 class PostRead(PostBase):

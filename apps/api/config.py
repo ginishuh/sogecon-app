@@ -13,6 +13,7 @@ class Settings(BaseSettings):
 
     database_url: str = Field(default="sqlite:///./dev.sqlite3", alias="DATABASE_URL")
     app_env: str = Field(default="dev", alias="APP_ENV")
+    release: str = Field(default="", alias="RELEASE")
     jwt_secret: str = Field(default="change-me", alias="JWT_SECRET")
     cors_origins: list[str] = Field(
         default_factory=lambda: ["http://localhost:3000"],
@@ -20,6 +21,17 @@ class Settings(BaseSettings):
     )
     # Rate limiting (SlowAPI) — default per-IP limit
     rate_limit_default: str = Field(default="120/minute", alias="RATE_LIMIT_DEFAULT")
+    rate_limit_login: str = Field(default="5/minute", alias="RATE_LIMIT_LOGIN")
+    rate_limit_notify_test: str = Field(
+        default="1/minute", alias="RATE_LIMIT_NOTIFY_TEST"
+    )
+    rate_limit_support: str = Field(default="1/minute", alias="RATE_LIMIT_SUPPORT")
+    rate_limit_subscribe: str = Field(
+        default="30/minute", alias="RATE_LIMIT_SUBSCRIBE"
+    )
+    rate_limit_post_create: str = Field(
+        default="5/minute", alias="RATE_LIMIT_POST_CREATE"
+    )
 
     # Web Push (VAPID)
     vapid_public_key: str = Field(default="", alias="VAPID_PUBLIC_KEY")
@@ -39,6 +51,18 @@ class Settings(BaseSettings):
         default=2_000_000, alias="AVATAR_MAX_UPLOAD_BYTES"
     )
     avatar_max_pixels: int = Field(default=512, alias="AVATAR_MAX_PIXELS")
+
+    # Observability / Sentry
+    sentry_dsn: str = Field(default="", alias="SENTRY_DSN")
+    sentry_traces_sample_rate: float | None = Field(
+        default=None, alias="SENTRY_TRACES_SAMPLE_RATE"
+    )
+    sentry_profiles_sample_rate: float | None = Field(
+        default=None, alias="SENTRY_PROFILES_SAMPLE_RATE"
+    )
+    sentry_send_default_pii: bool = Field(
+        default=False, alias="SENTRY_SEND_DEFAULT_PII"
+    )
 
 
 @lru_cache(maxsize=1)

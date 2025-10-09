@@ -211,7 +211,8 @@
 - CI: Lighthouse 워크플로 추가(.github/workflows/lighthouse.yml) — PR마다 Perf/A11y ≥ 0.90 검증.
  - Test: next/image를 테스트에서 img로 mock하되 priority/placeholder 등 비DOM prop 제거(경고 제거).
 - CI: Lighthouse 실행 후 리포트 링크를 PR 코멘트로 자동 첨부(actions/github-script).
- - CI: Lighthouse 워크플로 권한/예외 처리 보강(permissions.pull-requests=write, 권한 부족 시 warning 처리).
+- CI: Lighthouse 워크플로 권한/예외 처리 보강(permissions.pull-requests=write, 권한 부족 시 warning 처리).
+ - CI: Lighthouse는 Draft PR에서 실행하지 않도록 job-level 조건 추가(Ready for Review/Push시에만 실행).
 - Web: 소개 3페이지 실카피·이미지 설명 최종 반영, vitest 스냅샷 갱신.
 - Web: 홈 히어로 카피·배너 이미지·디자인 토큰 최종 조정.
 - Web: FAQ/Privacy/Terms 정적 페이지 추가 및 헤더 내비 확장.
@@ -224,3 +225,10 @@
 - Docs: 개인정보/약관에 시행일·개정일 표기 추가.
 - API: 디렉터리 정렬 도우미 타입 힌트 보완.
 - API: members updated_at/cohort+name 인덱스 및 마이그레이션 추가.
+- Ops/Web/API: 배포 문서 초안, CSP·레이트리밋 분리, request_id 구조화 로그, 커뮤니티 게시판 스켈레톤, 디렉터리 캐시·공유 링크 UX, DTO 검증 워크플로·Lighthouse budget 추가.
+- CI: dto-verify 워크플로 Draft PR 스킵 및 concurrency 추가.
+ - CI: dto-verify에서 .venv 고정 경로 의존을 제거하고 runner Python을 사용하도록 `packages/schemas` 스크립트 수정.
+- feat: Sentry 연동, 커뮤니티 게시판 멤버 작성 플로우, 디렉터리 상태/공유 링크 개선, 배포/보안 문서, DTO CI 잡 추가, 테스트 정비 완료.
+- API/Web/CI: RequestContextMiddleware broad-except 제거, Sentry 오류 전송 보강, with_for_update 예외 범위 축소, DTO 재생성 및 가드/테스트/빌드 검증.
+- CI/API: repo guard broad-except 예외를 OSError로 축소하고 export_openapi 지연 import/타입 힌트 정리.
+- Test/API: 게시판 레이트리밋 테스트의 broad-except 제거 및 suppress 컨텍스트 적용.

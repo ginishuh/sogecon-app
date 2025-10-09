@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from itsdangerous import URLSafeSerializer
+from itsdangerous import BadData, BadSignature, URLSafeSerializer
 from pydantic import BaseModel, EmailStr
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -13,9 +13,14 @@ from sqlalchemy.orm import Session
 from ..config import get_settings
 from ..db import get_db
 from ..models import AdminUser, Member, MemberAuth
+from ..ratelimit import consume_limit
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 limiter_login = Limiter(key_func=get_remote_address)
+
+
+def _is_test_client(request: Request) -> bool:
+    return bool(request.client and request.client.host == "testclient")
 
 
 class LoginPayload(BaseModel):
@@ -50,6 +55,7 @@ def require_admin(req: Request) -> CurrentAdmin:
 @dataclass
 class CurrentMember:
     email: str
+    id: int | None = None
 
 
 def require_member(req: Request) -> CurrentMember:
@@ -57,8 +63,10 @@ def require_member(req: Request) -> CurrentMember:
     data = cast("dict[str, object] | None", raw)
     if isinstance(data, dict):
         em = data.get("email")
+        mid = data.get("id")
+        member_id = int(mid) if isinstance(mid, (int, str)) else None
         if isinstance(em, str):
-            return CurrentMember(email=em)
+            return CurrentMember(email=em, id=member_id)
     # 임시 호환: 관리자 세션 보유 시 멤버로 간주(후속 단계에서 제거)
     admin = _get_admin_session(req)
     if admin:
@@ -76,12 +84,8 @@ def member_login(
     payload: MemberLoginPayload, request: Request, db: Session = Depends(get_db)
 ) -> dict[str, str]:
     bcrypt = __import__("bcrypt")
-    # 레이트리밋(5/min/IP)
-    def _consume(request: Request) -> None:
-        return None
-    if not (request.client and request.client.host == "testclient"):
-        checker = cast(Any, limiter_login).limit("5/minute")
-        checker(_consume)(request)
+    if not _is_test_client(request):
+        consume_limit(limiter_login, request, get_settings().rate_limit_login)
 
     # 이메일로 회원과 자격을 조회
     member = db.query(Member).filter(Member.email == payload.email).first()
@@ -118,19 +122,15 @@ def member_activate(
     토큰 페이로드 예: {"email": "user@example.com", "name": "User", "cohort": 1}
     개발 단계에서는 itsdangerous 서명 토큰을 사용한다.
     """
-    # 레이트리밋(5/min/IP)
-    def _consume(request: Request) -> None:
-        return None
-    if not (request.client and request.client.host == "testclient"):
-        checker = cast(Any, limiter_login).limit("5/minute")
-        checker(_consume)(request)
+    settings = get_settings()
+    if not _is_test_client(request):
+        consume_limit(limiter_login, request, settings.rate_limit_login)
 
     # 토큰 검증
-    settings = get_settings()
     try:
         s = URLSafeSerializer(settings.jwt_secret, salt="member-activate")
         data_raw: Any = s.loads(payload.token)
-    except Exception as err:
+    except (BadSignature, BadData) as err:
         raise HTTPException(status_code=401, detail="invalid_token") from err
 
     if not isinstance(data_raw, dict):
@@ -187,12 +187,8 @@ def change_password(
     db: Session = Depends(get_db),
     m: CurrentMember = Depends(require_member),
 ) -> dict[str, str]:
-    # 레이트리밋(5/min/IP)
-    def _consume(request: Request) -> None:
-        return None
-    if not (request.client and request.client.host == "testclient"):
-        checker = cast(Any, limiter_login).limit("5/minute")
-        checker(_consume)(request)
+    if not _is_test_client(request):
+        consume_limit(limiter_login, request, get_settings().rate_limit_login)
 
     bcrypt = __import__("bcrypt")
     auth_row = db.query(MemberAuth).filter(MemberAuth.email == m.email).first()
@@ -214,16 +210,9 @@ def login(
 ) -> dict[str, str]:
     bcrypt = __import__("bcrypt")  # 런타임 임포트로 훅 환경 의존성 문제 최소화
 
-    # 로그인 시도 레이트리밋(5/min/IP)
-    # 데코레이터 대신 함수 내부에서 체크하여 타입체커 경고를 회피
-    def _consume(request: Request) -> None:
-        return None
-
-    # slowapi의 데코레이터 반환 타입은 정의되어 있지 않아 Any로 캐스팅
-    # 테스트 클라이언트는 레이트리밋을 무시(다수 테스트에서 반복 로그인 필요)
-    if not (request.client and request.client.host == "testclient"):
-        checker = cast(Any, limiter_login).limit("5/minute")
-        checker(_consume)(request)
+    # 로그인 시도 레이트리밋(환경설정값 기반)
+    if not _is_test_client(request):
+        consume_limit(limiter_login, request, get_settings().rate_limit_login)
 
     user = db.query(AdminUser).filter(AdminUser.email == payload.email).first()
     if user is None:

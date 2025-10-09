@@ -153,6 +153,38 @@
               ],
               "title": "Region"
             }
+          },
+          {
+            "name": "job_title",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Job Title"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "recent",
+                "cohort_desc",
+                "cohort_asc",
+                "name"
+              ],
+              "type": "string",
+              "default": "recent",
+              "title": "Sort"
+            }
           }
         ],
         "responses": {
@@ -347,6 +379,38 @@
                 }
               ],
               "title": "Region"
+            }
+          },
+          {
+            "name": "job_title",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Job Title"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "recent",
+                "cohort_desc",
+                "cohort_asc",
+                "name"
+              ],
+              "type": "string",
+              "default": "recent",
+              "title": "Sort"
             }
           }
         ],
@@ -2480,15 +2544,21 @@
             "title": "Cover Image"
           },
           "author_id": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Author Id"
           }
         },
         "type": "object",
         "required": [
           "title",
-          "content",
-          "author_id"
+          "content"
         ],
         "title": "PostCreate"
       },

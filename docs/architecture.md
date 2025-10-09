@@ -43,7 +43,7 @@
 
 ## 통신 및 계약
 - **REST 규약**: `/members`, `/posts`, `/events`, `/rsvps` 네임스페이스. JSON 응답, ISO 8601 타임스탬프 사용.
-- **오류 포맷**: FastAPI 기본 `HTTPException` 구조(`{"detail": "..."}`)를 유지. 도메인 오류는 추후 `code` 필드를 확장.
+- **오류 포맷**: API 오류 응답은 축약된 Problem Details(`type`, `status`, `detail`, `code`, `request_id`)를 반환하며 모든 오류 헤더에 `X-Request-Id`를 포함한다. 내부 오류(500)는 `code="internal_error"` 로 통일한다.
   - 인증 에러 코드: `login_failed`, `unauthorized` 등은 Problem Details `detail`/`code`로 제공하여 프런트 매핑이 가능하도록 한다.
 - **스키마 동기화**: `make schema-gen` 실행 → `packages/schemas`에서 TypeScript DTO 갱신 → `apps/web`에서 import. 프런트 작업 전 항상 API 변경분을 반영한다.
 
@@ -136,7 +136,7 @@
 | 수첩(C) | 미착수(검색/필터/상세 포함) |
 | 소식(D) | 게시글(공지 대용) CRUD/목록/상세 완료(초판) |
 | 소개(E) | 회장 인사/조직/연혁 정적 페이지 1차 반영, 내비 연동 완료 |
-| 커뮤니티(F) | 행사 목록/상세/생성 + RSVP 완료(초판), 게시판은 후속 |
+| 커뮤니티(F) | 행사 목록/상세/생성 + RSVP 완료. 게시판 `/board` 스켈레톤은 posts 라우트를 재사용하며, 멤버 전용 작성(레이트리밋 5/minute)과 관리자 공지(핀/발행일) 분리를 지원 |
 | 알림 | Web Push 구독/테스트 발송/로그/통계 완료, at-rest 암호화/정리 제공 |
 
 이 문서는 스케폴드 이후 아키텍처 변경 사항이 생길 때마다 함께 업데이트하며, 변경 내역은 해당 날짜의 `docs/dev_log_YYMMDD.md`에 링크한다.
@@ -168,4 +168,5 @@
 
 - CSP(프로덕션): 기본 `default-src 'self'; img-src 'self' https: data:;` 등 단계적 강화
 - 레이트리밋 분리: 로그인/발송/문의 경로별 정책 분리, 운영 값은 `.env` 대신 시크릿/설정 서버로 관리
-- 구조화 로그: `code`, `request_id` 포함, 실패 비율/지연 지표 대시보드 구성
+- 구조화 로그: `RequestContextMiddleware`가 요청당 `request_id`를 생성해 `X-Request-Id` 헤더로 반환하고, `apps/api/logging_utils.py`의 JSON 라인 로거가 `method/path/status/duration` 필드를 기록한다. 예외 핸들러는 `code`, `request_id`를 포함해 경고/에러 로그를 남기며 `emit_error_event`가 DSN 활성화 시 Sentry에 코드/상태 메타데이터와 `request_id`·`http.method`·`http.path` 태그를 전송한다(민감 값은 제외).
+- 오류 추적: `SENTRY_DSN`이 설정된 환경에서는 Sentry SDK가 활성화되어 `request_id`, `http.method`, `http.path`, `APP_ENV`, `RELEASE` 태그를 자동 부여한다. 기본 샘플링은 트레이스 0.05, 프로파일 0.0이며 환경 변수로 조정한다.

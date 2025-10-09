@@ -7,6 +7,7 @@ exclude = [
 select = [
   "E", "F", "I",           # pycodestyle/pyflakes/isort
   "B",                       # flake8-bugbear
+  "BLE",                     # flake8-blind-except (except Exception/BaseException)
   "C90",                     # mccabe complexity (C901)
   "UP",                      # pyupgrade
   "PL",                      # pylint-inspired

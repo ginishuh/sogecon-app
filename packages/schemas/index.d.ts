@@ -762,7 +762,7 @@ export interface components {
             /** Cover Image */
             cover_image?: string | null;
             /** Author Id */
-            author_id: number;
+            author_id?: number | null;
         };
         /** PostRead */
         PostRead: {
@@ -943,6 +943,8 @@ export interface operations {
                 company?: string | null;
                 industry?: string | null;
                 region?: string | null;
+                job_title?: string | null;
+                sort?: "recent" | "cohort_desc" | "cohort_asc" | "name";
             };
             header?: never;
             path?: never;
@@ -1014,6 +1016,8 @@ export interface operations {
                 company?: string | null;
                 industry?: string | null;
                 region?: string | null;
+                job_title?: string | null;
+                sort?: "recent" | "cohort_desc" | "cohort_asc" | "name";
             };
             header?: never;
             path?: never;

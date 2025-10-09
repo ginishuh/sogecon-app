@@ -14,23 +14,47 @@
 
 ## 애플리케이션 가드
 - Next.js 보안 헤더(`apps/web/next.config.js`)
-  - CSP: 기본 `self` 엄격, 개발에서는 `unsafe-eval` 허용(프로덕션 제외)
-  - HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy 등
+  - 기본 CSP(프로덕션): `default-src 'self'; img-src 'self' https: data:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; frame-ancestors 'none'`
+  - 개발/프리뷰 또는 `NEXT_PUBLIC_RELAX_CSP=1` 환경에서는 HMR/DevTools를 위해 `unsafe-inline`, `unsafe-eval`, `ws:` 등을 임시 허용
+  - `NEXT_PUBLIC_ANALYTICS_ID` 설정 시 `https://www.googletagmanager.com` 스크립트 로드를 허용(나머지는 기본 `'self'`)
+  - HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy 등 보조 헤더 유지
 - FastAPI 보안 헤더 미들웨어(`apps/api/main.py`)
   - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`
 - CORS: `CORS_ORIGINS` 환경 변수 기반 화이트리스트
-- 레이트리밋: SlowAPI 기반 per-IP 제한(`RATE_LIMIT_DEFAULT`, 기본 120/minute)
- - Web Push 보강:
+- 레이트리밋: SlowAPI 기반 per-IP 제한(`RATE_LIMIT_*` 환경변수; 상세 표 참조)
+- Web Push 보강:
    - 구독 at-rest 암호화(옵션): `PUSH_ENCRYPT_AT_REST=true`, `PUSH_KEK=base64(32B)` 설정 시 endpoint/p256dh/auth를 AES-GCM으로 암호화 저장(접두사 `enc:v1:`), 조회/삭제는 `endpoint_hash(SHA-256)`로 결정.
    - 로그 프라이버시: 발송 로그는 endpoint의 SHA-256 해시 + 말미 16자만 저장.
    - 죽은 구독 정리: 404/410 응답 시 즉시 폐기, 관리자 `prune-logs`로 오래된 로그 정리.
+
+### 레이트리밋 프로필
+
+| 기능 | 환경 변수 | 기본값 | 적용 경로 |
+| --- | --- | --- | --- |
+| 전역 기본 | `RATE_LIMIT_DEFAULT` | `120/minute` | SlowAPI 미들웨어 기본값 |
+| 로그인(회원/관리자) | `RATE_LIMIT_LOGIN` | `5/minute` | `/auth/member/login`, `/auth/member/activate`, `/auth/member/change-password`, `/auth/login` |
+| 알림 테스트 발송 | `RATE_LIMIT_NOTIFY_TEST` | `1/minute` | `POST /notifications/admin/notifications/test` |
+| Web Push 구독/해지 | `RATE_LIMIT_SUBSCRIBE` | `30/minute` | `POST/DELETE /notifications/subscriptions` |
+| 문의 접수 | `RATE_LIMIT_SUPPORT` | `1/minute` | `POST /support/contact` |
+| 커뮤니티 게시글 작성(멤버) | `RATE_LIMIT_POST_CREATE` | `5/minute` | `POST /posts` (멤버 작성 한정) |
+
+### 관측/로깅
+
+- `RequestContextMiddleware` 가 요청당 `request_id` 를 생성하고 `X-Request-Id` 헤더로 반환한다.
+- `apps/api/logging_utils.py` 의 JSON 라인 로거가 `method`, `path`, `status`, `duration_ms`, `request_id`, `code` 등을 기록한다.
+- 예외 핸들러는 `emit_error_event` 로 Sentry에 오류 이벤트를 전송한다(DSN 미설정 시 no-op). 전송 시 `request_id`·`http.method`·`http.path`만 태그에 첨부하고 `code`/`status` 정도만 extra 로 포함해 PII를 배제한다.
+- Sentry 연동(`SENTRY_DSN` 설정 시 활성화):
+  - `APP_ENV`, `RELEASE` 태그와 `request_id`, `http.method`, `http.path` 태그를 자동 부여한다.
+  - 샘플링 기본값은 트레이스 0.05, 프로파일 0.0이며 `SENTRY_TRACES_SAMPLE_RATE`, `SENTRY_PROFILES_SAMPLE_RATE` 로 조정한다.
+  - PII 전송 필요 시 `SENTRY_SEND_DEFAULT_PII=true` 로 명시하며, 기본은 비활성화된다.
+  - 알림 기준(권장): 5분 rolling 5xx 비율 ≥ 5%, 개별 5xx 발생 시 Slack/메일 알림 트리거.
 
 ## 운영 권장(추가)
 - 경계 레이트리밋: API Gateway/Ingress 레벨에서 IP/토큰 기반 제한(로그인/활성화/알림 발송 강제)
 - TLS: HSTS 프리로드 등록 전 도메인·서브도메인 HTTPS 적용 검증
 - 비밀 관리: `.env`는 로컬 전용, 운영은 시크릿 매니저 사용(KMS 암호화, 버전/교체 정책)
 - 로깅/감사: 요청 ID/사용자 ID/행위/리소스/성공 여부 기록. 민감 데이터 마스킹
- - 세션 보안: 운영에서 세션 쿠키 Secure + SameSite=Strict 권장, 로그인 시도 레이트리밋(5/min/IP)
+- 세션 보안: 운영에서 세션 쿠키 Secure + SameSite=Strict 권장, 로그인 시도 레이트리밋(5/min/IP)
 - 키 관리: PUSH_KEK는 시크릿 매니저 관리(KMS 암호화), 주기적 회전(더블 키 + 롤링 기간), 폐기 절차 수립
 
 ### Web Push KEK 로테이션 절차(무중단 지향)

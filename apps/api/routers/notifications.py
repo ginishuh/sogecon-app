@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
-from typing import Annotated, Protocol, cast
+from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, HttpUrl
@@ -13,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from apps.api.config import get_settings
 from apps.api.db import get_db
+from apps.api.ratelimit import consume_limit
 from apps.api.repositories import notifications as subs_repo
 from apps.api.repositories import send_logs as logs_repo
 from apps.api.routers.auth import (
@@ -24,7 +24,11 @@ from apps.api.routers.auth import (
 from apps.api.services import notifications_service as notif_svc
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
-limiter_admin = Limiter(key_func=get_remote_address)
+limiter_notifications = Limiter(key_func=get_remote_address)
+
+
+def _is_test_client(request: Request) -> bool:
+    return bool(request.client and request.client.host == "testclient")
 
 # pyright/ruff 호환 UTC 타임존 (timezone.utc 대체)
 UTC_TZ = timezone(timedelta(0))
@@ -46,10 +50,18 @@ class SubscriptionPayload(BaseModel):
 @router.post("/subscriptions", status_code=204)
 def save_subscription(
     payload: SubscriptionPayload,
+    request: Request,
     db: Session = Depends(get_db),
     _member: CurrentMember = Depends(require_member),
 ) -> None:
     """Web Push 구독 저장(idempotent). 동일 endpoint는 갱신 처리."""
+    settings = get_settings()
+    if not _is_test_client(request):
+        consume_limit(
+            limiter_notifications,
+            request,
+            settings.rate_limit_subscribe,
+        )
     notif_svc.save_subscription(
         db,
         {
@@ -69,9 +81,17 @@ class UnsubscribePayload(BaseModel):
 @router.delete("/subscriptions", status_code=204)
 def delete_subscription(
     payload: UnsubscribePayload,
+    request: Request,
     db: Session = Depends(get_db),
     _member: CurrentMember = Depends(require_member),
 ) -> None:
+    settings = get_settings()
+    if not _is_test_client(request):
+        consume_limit(
+            limiter_notifications,
+            request,
+            settings.rate_limit_subscribe,
+        )
     notif_svc.delete_subscription(db, endpoint=str(payload.endpoint))
 
 
@@ -89,22 +109,12 @@ def send_test_push(
     db: Session = Depends(get_db),
     provider: notif_svc.PushProvider = Depends(get_push_provider),
 ) -> dict[str, int]:
-    # 레이트리밋(1/min/IP) — 테스트클라이언트는 면제
-    if not (request.client and request.client.host == "testclient"):
-        # slowapi expects the parameter name literally 'request'
-        def _consume(request: Request) -> None:
-            """Consume a token."""
-            return None
-
-        class _LimiterProto(Protocol):
-            # pragma: no cover
-            def limit(
-                self, limit_value: str
-            ) -> Callable[[Callable[[Request], None]], Callable[[Request], None]]:
-                ...
-        limiter_typed: _LimiterProto = cast(_LimiterProto, limiter_admin)
-        checker = limiter_typed.limit("1/minute")
-        checker(_consume)(request)
+    if not _is_test_client(request):
+        consume_limit(
+            limiter_notifications,
+            request,
+            get_settings().rate_limit_notify_test,
+        )
 
     result = notif_svc.send_test_to_all(
         db, provider, title=_payload.title, body=_payload.body, url=_payload.url

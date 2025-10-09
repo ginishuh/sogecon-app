@@ -4,6 +4,13 @@ from collections.abc import Sequence
 from typing import cast
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import (
+    CompileError,
+    DBAPIError,
+    InvalidRequestError,
+    NotSupportedError,
+    OperationalError,
+)
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
@@ -40,7 +47,13 @@ def _promote_waitlist_candidate(db: Session, event_id: int) -> None:
         try:
             # 비지원 백엔드(SQLite)에서는 with_for_update가 무시됨 → 안전
             candidate = q.with_for_update(skip_locked=True).first()
-        except Exception:  # pragma: no cover - dialects without for_update
+        except (
+            InvalidRequestError,
+            CompileError,
+            DBAPIError,
+            OperationalError,
+            NotSupportedError,
+        ):  # pragma: no cover - dialect별 lock 미지원 시 폴백
             candidate = q.first()
         if candidate is not None:
             setattr(candidate, "status", models.RSVPStatus.GOING)

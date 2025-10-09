@@ -12,3 +12,4 @@ email-validator==2.2.0
 pywebpush==2.0.0
 cryptography==44.0.1
 Pillow==10.4.0
+sentry-sdk[starlette]==2.40.0
