@@ -100,3 +100,20 @@ Tailwind 설정(`apps/web/tailwind.config.ts`)에서 semantic 레이어로 정�
 - 아이콘: 시스템 아이콘 세트(후속), 대체 텍스트/`aria-hidden` 규칙
 - 모션: 감속 선호 미디어쿼리 준수, 필수 모션 외 최소화
 
+---
+
+## Phase 1 작업 범위(초안)
+본 섹션은 DS v1 Phase 1(토큰/프리미티브/공통 컴포넌트) 구현 체크리스트입니다. 구현 완료 시 본 섹션은 요약으로 축약하거나 제거합니다.
+
+### 범위
+- Tailwind 토큰(semantic colors/spacing/radius/shadow/container)
+- 글로벌 스타일(타이포 스케일, 포커스 링)
+- 공통 UI 1차: Button / Input / Select / TextArea / Badge / Card / Tabs
+
+### 체크리스트
+- [ ] tailwind.config.ts에 semantic 토큰 정의(AA 대비 준수)
+- [ ] globals.css 타이포/포커스 링 반영
+- [ ] UI 6~7종 기본/비활성/에러 상태 구현 및 스냅샷
+- [ ] 접근성: 라벨 연결, aria-* 속성, 키보드 포커스 확인
+- [ ] `pnpm -C apps/web test && pnpm -C apps/web build` 그린
+- [ ] `docs/design_system.md` 토큰·컴포넌트 예시 갱신
