@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { WEB_BASE_URL } from './utils/env';
 
-let browser: Browser;
-let page: Page;
+let browser: Browser | null = null;
+let page: Page | null = null;
 
 describe('Home (CDP E2E)', () => {
   beforeAll(async () => {
@@ -13,11 +13,15 @@ describe('Home (CDP E2E)', () => {
   });
 
   afterAll(async () => {
-    await page.close();
-    await browser.close();
+    try {
+      if (page) await page.close();
+    } finally {
+      if (browser) await browser.close();
+    }
   });
 
   it('renders hero and navigates to directory via primary CTA', async () => {
+    if (!page) throw new Error('Puppeteer page not initialized');
     await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'networkidle0' });
 
     await page.waitForSelector('h1#home-hero');

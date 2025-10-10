@@ -31,6 +31,8 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - name: Install dependencies (web)
+        env:
+          PNPM_ALLOW_RUN_SCRIPTS: puppeteer
         run: pnpm -C apps/web install --frozen-lockfile
       - name: Build web
         run: pnpm -C apps/web build

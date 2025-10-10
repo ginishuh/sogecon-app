@@ -243,4 +243,5 @@
 - CI/E2E: PR(Ready) 대상 CDP E2E 워크플로 추가, Puppeteer headless/모바일 뷰포트/네트워크 대기 보강. 훅에서 웹 린트 범위 확대.
  - CI 트리거 개선: dto-verify/lighthouse/e2e 워크플로에 `pull_request.types: [opened, synchronize, reopened, ready_for_review]`와 `workflow_dispatch` 추가 — Draft→Ready 전환 시 즉시 실행 및 수동 실행 허용.
 - CI(e2e): `web-e2e-cdp`에서 pnpm 설치 순서를 수정 — setup-node(cache=pnpm) 이전에 pnpm/action-setup 실행.
- - CI(e2e): 앱 전용 설치로 전환 — `pnpm -C apps/web install --frozen-lockfile`.
+- CI(e2e): 앱 전용 설치로 전환 — `pnpm -C apps/web install --frozen-lockfile`.
+ - Test(e2e): Puppeteer 설치 승인(ENV: `PNPM_ALLOW_RUN_SCRIPTS=puppeteer`), afterAll null 가드 추가로 에러 메시지 개선.

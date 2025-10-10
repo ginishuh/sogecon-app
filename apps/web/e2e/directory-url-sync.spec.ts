@@ -3,8 +3,8 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import { WEB_BASE_URL } from './utils/env';
 import { setupDirectoryMocks } from './utils/mockApi';
 
-let browser: Browser;
-let page: Page;
+let browser: Browser | null = null;
+let page: Page | null = null;
 
 function getSearch(urlString: string): URLSearchParams {
   const u = new URL(urlString);
@@ -27,11 +27,15 @@ describe('Directory URL sync (CDP E2E)', () => {
   });
 
   afterAll(async () => {
-    await page.close();
-    await browser.close();
+    try {
+      if (page) await page.close();
+    } finally {
+      if (browser) await browser.close();
+    }
   });
 
   it('updates query string when typing filters and changing sort', async () => {
+    if (!page) throw new Error('Puppeteer page not initialized');
     await setupDirectoryMocks(page);
     await page.goto(`${WEB_BASE_URL}/directory`, { waitUntil: 'networkidle0' });
 
