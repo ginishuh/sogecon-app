@@ -27,6 +27,16 @@ export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: 
   const uid = useId();
   const tabsRef = useRef<Array<HTMLButtonElement | null>>([]);
 
+  const selectIndex = useCallback(
+    (target: number) => {
+      const idx = Math.max(0, Math.min(items.length - 1, target));
+      setIndex(idx);
+      onChange?.(idx);
+      tabsRef.current[idx]?.focus();
+    },
+    [items.length, onChange],
+  );
+
   const move = useCallback(
     (delta: number) => {
       if (items.length === 0) return;
@@ -35,52 +45,32 @@ export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: 
         next = (next + delta + items.length) % items.length;
         if (!items[next]?.disabled) break;
       }
-      setIndex(next);
-      onChange?.(next);
-      tabsRef.current[next]?.focus();
+      selectIndex(next);
     },
-    [index, items, onChange],
+    [index, items, selectIndex],
   );
 
-  const onKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowRight':
-          e.preventDefault();
-          move(1);
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          move(-1);
-          break;
-        case 'Home':
-          e.preventDefault();
-          {
-            const nxt = items.findIndex((t) => !t.disabled);
-            const target = nxt >= 0 ? nxt : 0;
-            setIndex(target);
-            onChange?.(target);
-            tabsRef.current[target]?.focus();
-          }
-          break;
-        case 'End':
-          e.preventDefault();
-          {
-            const nxt =
-              [...items]
-                .map((t, i) => [t, i] as const)
-                .reverse()
-                .find(([, i]) => !items[i]?.disabled)?.[1] ?? (items.length - 1);
-            setIndex(nxt);
-            onChange?.(nxt);
-            tabsRef.current[nxt]?.focus();
-          }
-          break;
-        default:
-      }
-    },
-    [items, move, onChange],
-  );
+  const firstEnabled = useCallback(() => items.findIndex((t) => !t.disabled), [items]);
+  const lastEnabled = useCallback(() => {
+    for (let i = items.length - 1; i >= 0; i -= 1) {
+      if (!items[i]?.disabled) return i;
+    }
+    return Math.max(0, items.length - 1);
+  }, [items]);
+
+  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const handlers: Record<string, () => void> = {
+      ArrowRight: () => move(1),
+      ArrowLeft: () => move(-1),
+      Home: () => selectIndex(Math.max(0, firstEnabled() ?? 0)),
+      End: () => selectIndex(lastEnabled()),
+    };
+    const fn = handlers[e.key];
+    if (fn) {
+      e.preventDefault();
+      fn();
+    }
+  }, [firstEnabled, lastEnabled, move, selectIndex]);
 
   const ids = useMemo(
     () =>
