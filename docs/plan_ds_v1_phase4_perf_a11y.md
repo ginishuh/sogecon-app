@@ -13,10 +13,10 @@
 3) 폰트 로딩(후속)
    - next/font 도입(서브셋/가변/표시 전략)으로 CLS 방지 — 이 항목은 별 커밋로 진행
 
-## DoD
-- [ ] 홈/디렉터리/게시판 Perf/A11y ≥ 0.90 (모바일 기준)
-- [ ] CLS < 0.1, 보고서 리그레션 없음
-- [ ] 문서: `docs/design_system.md` 성능 지침 반영
+## DoD (완료)
+- [x] 홈/디렉터리/게시판 Perf/A11y ≥ 0.90 (모바일 기준)
+- [x] CLS < 0.1, 보고서 리그레션 없음
+- [x] 문서: `docs/design_system.md` 성능 지침 반영
 
 ## 브랜치/PR
 - branch: `feat/ds-v1-phase4-perf-a11y`
