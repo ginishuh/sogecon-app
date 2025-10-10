@@ -83,7 +83,11 @@ export default function BoardNewPage() {
             value={title}
             onChange={(e) => setTitle(e.currentTarget.value)}
             placeholder="글 제목을 입력하세요"
+            autoComplete="off"
+            inputMode="text"
+            aria-describedby="title-help"
           />
+          <span id="title-help" className="sr-only">게시글 제목</span>
         </label>
         <label className="block text-sm text-slate-700">
           카테고리
@@ -91,6 +95,7 @@ export default function BoardNewPage() {
             className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
             value={category}
             onChange={(e) => setCategory(e.currentTarget.value as (typeof BOARD_CATEGORY_OPTIONS)[number]['value'])}
+            aria-label="카테고리"
           >
             {BOARD_CATEGORY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -107,7 +112,10 @@ export default function BoardNewPage() {
             value={content}
             onChange={(e) => setContent(e.currentTarget.value)}
             placeholder="커뮤니티 글 내용을 입력하세요"
+            inputMode="text"
+            aria-describedby="content-help"
           />
+          <span id="content-help" className="sr-only">게시글 본문</span>
         </label>
         <button
           type="submit"
@@ -116,7 +124,7 @@ export default function BoardNewPage() {
         >
           작성
         </button>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? <p role="alert" aria-live="polite" className="text-sm text-red-600">{error}</p> : null}
       </form>
     </section>
   );
