@@ -60,6 +60,7 @@ jobs:
             http://localhost:3000/about/greeting
             http://localhost:3000/about/org
             http://localhost:3000/about/history
+            http://localhost:3000/board
           uploadArtifacts: true
           temporaryPublicStorage: true
           runs: 3

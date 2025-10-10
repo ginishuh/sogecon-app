@@ -47,5 +47,42 @@ describe('SiteHeader mobile drawer', () => {
     await screen.findByLabelText('전체 메뉴 열기');
     expect(toggle).toHaveFocus();
   });
-});
 
+  it('closes with Escape and restores focus', async () => {
+    render(<SiteHeader />);
+    const toggle = screen.getByLabelText('전체 메뉴 열기');
+    toggle.focus();
+    fireEvent.click(toggle);
+    await screen.findByRole('dialog', { name: '전체 메뉴' });
+
+    // ESC로 닫기
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    // Drawer 닫히고 포커스 복귀
+    await screen.findByLabelText('전체 메뉴 열기');
+    expect(toggle).toHaveFocus();
+  });
+
+  it('closes via ESC and via backdrop click, then restores focus', async () => {
+    render(<SiteHeader />);
+    const toggle = screen.getByLabelText('전체 메뉴 열기');
+    toggle.focus();
+    fireEvent.click(toggle);
+
+    await screen.findByRole('dialog', { name: '전체 메뉴' });
+
+    // ESC 닫기
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await screen.findByLabelText('전체 메뉴 열기');
+    expect(toggle).toHaveFocus();
+
+    // 다시 열고 Backdrop 클릭 닫기
+    fireEvent.click(toggle);
+    await screen.findByRole('dialog', { name: '전체 메뉴' });
+    const backdrop = document.querySelector('div[aria-hidden="true"]');
+    expect(backdrop).not.toBeNull();
+    fireEvent.click(backdrop as Element);
+    await screen.findByLabelText('전체 메뉴 열기');
+    expect(toggle).toHaveFocus();
+  });
+});

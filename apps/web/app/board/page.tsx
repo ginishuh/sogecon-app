@@ -117,7 +117,7 @@ export default function BoardPage() {
                       pinned={post.pinned}
                       cover_image={post.cover_image ?? undefined}
                       published_at={post.published_at ?? undefined}
-                      href={`/board/${post.id}`}
+                      href={{ pathname: '/board/[id]', params: { id: String(post.id) } }}
                     />
                   </li>
                 ))}

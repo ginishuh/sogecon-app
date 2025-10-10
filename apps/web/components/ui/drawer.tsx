@@ -39,6 +39,37 @@ export default function Drawer({ open, onClose, title, side = 'left', className,
   }, [open]);
 
   useEffect(() => {
+    function trapTab(container: HTMLElement, e: KeyboardEvent) {
+      const list = Array.from(
+        container.querySelectorAll<HTMLElement>(
+          'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      if (list.length === 0) {
+        e.preventDefault();
+        container.focus();
+        return;
+      }
+      const active = document.activeElement as HTMLElement | null;
+      // 범위 내 첫/마지막 포커서블 산출 후 분기
+      const first = list[0] as HTMLElement;
+      const last = list[list.length - 1] as HTMLElement;
+      if (!active || !container.contains(active)) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+        return;
+      }
+      if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
     function onKey(e: KeyboardEvent) {
       if (!open) return;
       if (e.key === 'Escape') {
@@ -49,30 +80,9 @@ export default function Drawer({ open, onClose, title, side = 'left', className,
       if (e.key !== 'Tab') return;
       const container = panelRef.current;
       if (!container) return;
-      const list = Array.from(
-        container.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])')
-      );
-      if (list.length === 0) {
-        e.preventDefault();
-        container.focus();
-        return;
-      }
-      const first = list[0];
-      const last = list[list.length - 1];
-      const active = document.activeElement as HTMLElement | null;
-      if (!active || !container.contains(active)) {
-        e.preventDefault();
-        first.focus();
-        return;
-      }
-      if (e.shiftKey && active === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      }
+      trapTab(container, e);
     }
+
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);

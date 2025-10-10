@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import React from 'react';
+import Image from 'next/image';
+import type { Route } from 'next';
 import { Card } from './ui/card';
+
+export type BoardPostHref = Route | { pathname: "/board/[id]"; params: { id: string } };
 
 export interface PostCardProps {
   title: string;
@@ -9,7 +13,7 @@ export interface PostCardProps {
   pinned?: boolean;
   cover_image?: string | null;
   published_at?: string | null;
-  href?: string; // 상세로 이동할 링크(선택)
+  href?: BoardPostHref; // 상세로 이동할 링크(선택)
 }
 
 /** 게시판 카드 — 카테고리 배지, 날짜, 제목, 요약 */
@@ -44,7 +48,13 @@ export function PostCard({ title, content, category, pinned, cover_image, publis
       }
     >
       {cover_image ? (
-        <img src={cover_image} alt="cover" className="mb-2 h-40 w-full rounded object-cover" />
+        <Image
+          src={cover_image}
+          alt="cover"
+          width={640}
+          height={160}
+          className="mb-2 h-40 w-full rounded object-cover"
+        />
       ) : null}
       <p className="line-clamp-2 text-sm text-text-secondary">{content}</p>
     </Card>
