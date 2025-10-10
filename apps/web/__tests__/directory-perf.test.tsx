@@ -78,6 +78,10 @@ describe('DirectoryPage 공유 링크/페이지 요약', () => {
       expect(listMembersMock).toHaveBeenCalledTimes(3);
     });
 
+    // 공유 링크 패널 토글 후 링크 노출 확인
+    const toggle = screen.getByRole('button', { name: '링크 표시' });
+    toggle.click();
+
     expect(screen.getByText('/directory?sort=cohort_asc&page=2')).toBeInTheDocument();
     expect(screen.getByText('총 25명 중 25명 표시 (페이지 3 / 3)')).toBeInTheDocument();
   });

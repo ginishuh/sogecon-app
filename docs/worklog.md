@@ -249,4 +249,6 @@
 - CI(e2e): puppeteer 빌드 승인/리빌드 단계 추가 — Chromium 바이너리 확보.
 - CI(e2e): 시스템 Chrome 설치(browser-actions/setup-chrome) + `PUPPETEER_EXECUTABLE_PATH`로 실행 경로 지정.
  - Test(e2e): 홈 페이지 셀렉터 안정화 — CTA 존재 대기 후 h1 텍스트 확인.
- - CI(e2e): PR 비차단화 — Run E2E 스텝에 `continue-on-error: true` 적용(신호는 남기되 병합 차단 해제).
+- CI(e2e): PR 비차단화 — Run E2E 스텝에 `continue-on-error: true` 적용(신호는 남기되 병합 차단 해제).
+ - Web: DS v1 Phase 2 — 디렉터리 모바일 카드/아코디언 스캐폴드 추가(`directory-card`, `ui/accordion`), `/directory`에 연결(초안).
+ - Web/PR#23 니트픽 반영: className 결합 유틸 `cn()` 도입(Accordion), `DirectoryCard` 패널 ID를 `useId()` 기반으로 수정, 주석의 `autocomplete` 표기 보정(기능 변화 없음).

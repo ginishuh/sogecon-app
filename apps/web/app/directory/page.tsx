@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, type ReactNode } from 'react';
+import React, { Suspense, useState, type ReactNode } from 'react';
 
 import {
   FILTER_FIELDS,
@@ -13,6 +13,9 @@ import {
   useDirectoryUrlSync,
   useInfiniteLoader,
 } from './state';
+import DirectoryCard from '../../components/directory-card';
+import Accordion from '../../components/ui/accordion';
+import Button from '../../components/ui/button';
 
 type DirectoryFiltersProps = {
   value: FilterState;
@@ -22,44 +25,53 @@ type DirectoryFiltersProps = {
 };
 
 function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryFiltersProps) {
+  // autocomplete 힌트(모바일 가독성/입력 이득)
+  const autocompleteHints: Partial<Record<TextFilterKeys, string>> = {
+    q: 'off',
+    cohort: 'off',
+    major: 'off',
+    company: 'organization',
+    industry: 'off',
+    region: 'address-level1',
+    jobTitle: 'organization-title',
+  };
   return (
-    <fieldset className="mb-4 flex flex-wrap items-end gap-3" aria-label="디렉터리 검색 필터">
-      {FILTER_FIELDS.map(({ key, label, placeholder, inputMode }) => (
-        <label key={key} className="flex flex-col text-xs text-slate-600">
-          <span className="mb-1 font-medium text-slate-700">{label}</span>
-          <input
-            inputMode={inputMode}
+    <Accordion summary="필터/정렬" defaultOpen density="sm" className="mb-2">
+      <fieldset className="flex flex-wrap items-end gap-3" aria-label="디렉터리 검색 필터">
+        {FILTER_FIELDS.map(({ key, label, placeholder, inputMode }) => (
+          <label key={key} className="flex flex-col text-xs text-slate-600">
+            <span className="mb-1 font-medium text-slate-700">{label}</span>
+            <input
+              inputMode={inputMode}
+              autoComplete={autocompleteHints[key]}
+              className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+              value={value[key]}
+              placeholder={placeholder}
+              aria-label={label}
+              onChange={(event) => onChange(key, event.target.value)}
+            />
+          </label>
+        ))}
+        <label className="flex flex-col text-xs text-slate-600">
+          <span className="mb-1 font-medium text-slate-700">정렬</span>
+          <select
             className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-            value={value[key]}
-            placeholder={placeholder}
-            aria-label={label}
-            onChange={(event) => onChange(key, event.target.value)}
-          />
+            value={value.sort}
+            onChange={(event) => onSortChange(event.target.value as SortOption)}
+            aria-label="정렬 옵션"
+          >
+            {Object.entries(SORT_LABELS).map(([key, label]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
+          </select>
         </label>
-      ))}
-      <label className="flex flex-col text-xs text-slate-600">
-        <span className="mb-1 font-medium text-slate-700">정렬</span>
-        <select
-          className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-          value={value.sort}
-          onChange={(event) => onSortChange(event.target.value as SortOption)}
-          aria-label="정렬 옵션"
-        >
-          {Object.entries(SORT_LABELS).map(([key, label]) => (
-            <option key={key} value={key}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <button
-        type="button"
-        onClick={onReset}
-        className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-600 transition hover:border-emerald-500 hover:text-emerald-600"
-      >
-        필터 초기화
-      </button>
-    </fieldset>
+        <Button type="button" onClick={onReset} variant="secondary" size="sm">
+          필터 초기화
+        </Button>
+      </fieldset>
+    </Accordion>
   );
 }
 
@@ -110,32 +122,28 @@ function DirectoryResults({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto">
+      {/* 카드 뷰 — 모바일 전용 */}
+      <ul className="grid gap-3 md:hidden" aria-label={`동문 목록 — ${sortLabel}`}>
+        {items.map((m) => (
+          <li key={m.id}>
+            <DirectoryCard member={m} />
+          </li>
+        ))}
+      </ul>
+
+      {/* 테이블 뷰 — md 이상 유지 */}
+      <div className="hidden overflow-x-auto md:block">
         <table className="min-w-[640px] table-fixed border-collapse text-left text-sm">
           <caption className="sr-only">동문 목록 — {sortLabel}</caption>
           <thead>
             <tr className="border-b bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <th className="p-2" scope="col">
-                이름
-              </th>
-              <th className="p-2" scope="col">
-                이메일
-              </th>
-              <th className="p-2" scope="col">
-                기수
-              </th>
-              <th className="p-2" scope="col">
-                전공
-              </th>
-              <th className="p-2" scope="col">
-                회사
-              </th>
-              <th className="p-2" scope="col">
-                업종
-              </th>
-              <th className="p-2" scope="col">
-                공개 범위
-              </th>
+              <th className="p-2" scope="col">이름</th>
+              <th className="p-2" scope="col">이메일</th>
+              <th className="p-2" scope="col">기수</th>
+              <th className="p-2" scope="col">전공</th>
+              <th className="p-2" scope="col">회사</th>
+              <th className="p-2" scope="col">업종</th>
+              <th className="p-2" scope="col">공개 범위</th>
             </tr>
           </thead>
           <tbody>
@@ -153,20 +161,21 @@ function DirectoryResults({
           </tbody>
         </table>
       </div>
-      <div className="flex flex-col items-center gap-2" ref={sentinelRef}>
+
+      {/* 페이지네이션/무한 스크롤 버튼 — 위치/접근성 정리 */}
+      <nav
+        aria-label="목록 페이지네이션"
+        className="flex flex-col items-center gap-2"
+        ref={sentinelRef}
+      >
         {hasNext ? (
-          <button
-            type="button"
-            onClick={onLoadMore}
-            disabled={isLoadingMore}
-            className="rounded border border-emerald-500 px-4 py-2 text-sm text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
-          >
+          <Button type="button" onClick={onLoadMore} disabled={isLoadingMore} variant="secondary" size="md">
             {isLoadingMore ? '불러오는 중…' : loadMoreLabel}
-          </button>
+          </Button>
         ) : (
           <span className="text-xs text-slate-500">더 이상 결과가 없습니다.</span>
         )}
-      </div>
+      </nav>
     </div>
   );
 }
@@ -206,6 +215,8 @@ function DirectoryPageInner() {
   const isLoadingMore = membersQuery.isFetchingNextPage;
   const hasNextPage = Boolean(membersQuery.hasNextPage);
 
+  const [shareOpen, setShareOpen] = useState(false);
+
   return (
     <div className="space-y-4 p-6">
       <header className="space-y-2">
@@ -228,16 +239,21 @@ function DirectoryPageInner() {
             총 {totalLabel}명 중 {displayedCount.toLocaleString()}명 표시 (페이지 {currentPage}
             {totalPages ? ` / ${totalPages}` : ''})
           </p>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            <span className="font-medium text-slate-600">공유 링크</span>
-            <code className="rounded bg-slate-100 px-2 py-1">{sharePath}</code>
-            <button
-              type="button"
-              onClick={copyShareLink}
-              className="rounded border border-slate-300 px-2 py-1 text-slate-600 transition hover:bg-slate-100"
-            >
-              {copied ? '복사 완료' : '복사'}
-            </button>
+          <div className="flex flex-col gap-2 text-xs text-slate-500">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-slate-600">공유</span>
+              <Button type="button" variant="ghost" size="sm" aria-expanded={shareOpen} aria-controls="share-panel" onClick={() => setShareOpen((v) => !v)}>
+                {shareOpen ? '옵션 닫기' : '링크 표시'}
+              </Button>
+            </div>
+            <div id="share-panel" role="region" aria-label="공유 옵션" hidden={!shareOpen}>
+              <div className="flex flex-wrap items-center gap-2">
+                <code className="rounded bg-slate-100 px-2 py-1">{sharePath}</code>
+                <Button type="button" variant="secondary" size="sm" onClick={copyShareLink} aria-live="polite">
+                  {copied ? '복사 완료' : '복사'}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
         {isLoadingMembers ? (
