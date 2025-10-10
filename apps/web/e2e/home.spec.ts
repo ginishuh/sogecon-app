@@ -24,8 +24,8 @@ describe('Home (CDP E2E)', () => {
     if (!page) throw new Error('Puppeteer page not initialized');
     await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'networkidle0' });
 
-    await page.waitForSelector('h1#home-hero');
-    const title = await page.$eval('h1#home-hero', (el) => el.textContent?.trim() ?? '');
+    await page.waitForSelector('a.home-hero__cta', { timeout: 60000 });
+    const title = await page.$eval('h1', (el) => el.textContent?.trim() ?? '');
     expect(title).toContain('한 번의 로그인');
 
     // 클릭 시 /directory 로 이동

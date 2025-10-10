@@ -247,4 +247,5 @@
 - Test(e2e): Puppeteer 설치 승인(ENV: `PNPM_ALLOW_RUN_SCRIPTS=puppeteer`), afterAll null 가드 추가로 에러 메시지 개선.
 - Test(e2e): CI 런타임 샌드박스 호환 옵션 추가(`--no-sandbox`, `--disable-setuid-sandbox`).
 - CI(e2e): puppeteer 빌드 승인/리빌드 단계 추가 — Chromium 바이너리 확보.
- - CI(e2e): 시스템 Chrome 설치(browser-actions/setup-chrome) + `PUPPETEER_EXECUTABLE_PATH`로 실행 경로 지정.
+- CI(e2e): 시스템 Chrome 설치(browser-actions/setup-chrome) + `PUPPETEER_EXECUTABLE_PATH`로 실행 경로 지정.
+ - Test(e2e): 홈 페이지 셀렉터 안정화 — CTA 존재 대기 후 h1 텍스트 확인.
