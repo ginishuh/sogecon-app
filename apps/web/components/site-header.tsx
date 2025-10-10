@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 
@@ -8,6 +8,7 @@ import { HeaderAuth } from './header-auth';
 import { NotifyCTA } from './notify-cta';
 import { RequireMember } from './require-member';
 import { RequireAdmin } from './require-admin';
+import Drawer from './ui/drawer';
 
 type LinkItem = {
   href: Route;
@@ -40,6 +41,7 @@ const ADMIN_LINKS: LinkItem[] = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const toggleBtnRef = useRef<HTMLButtonElement | null>(null);
 
   const closeMenu = () => setOpen(false);
 
@@ -62,6 +64,7 @@ export function SiteHeader() {
           aria-expanded={open}
           aria-label={open ? '전체 메뉴 닫기' : '전체 메뉴 열기'}
           onClick={() => setOpen((prev) => !prev)}
+          ref={toggleBtnRef}
         >
           <span className="sr-only">메뉴 토글</span>
           <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -141,11 +144,9 @@ export function SiteHeader() {
           </div>
         </div>
       </div>
-      <div
-        id="primary-navigation"
-        className={`md:hidden ${open ? 'block' : 'hidden'} border-t border-neutral-border bg-white px-4 pb-4`}
-      >
-        <nav aria-label="모바일 주 메뉴" className="flex flex-col gap-4 pt-4 text-sm text-neutral-muted">
+      {/* 모바일 내비: Drawer 연동 */}
+      <Drawer open={open} onClose={closeMenu} title="전체 메뉴" side="left">
+        <nav id="primary-navigation" aria-label="모바일 주 메뉴" className="flex h-full flex-col gap-4 overflow-y-auto p-4 text-sm text-neutral-muted">
           <ul className="grid gap-3" aria-label="주요 링크">
             {PRIMARY_LINKS.map((link) => (
               <li key={link.href}>
@@ -192,11 +193,7 @@ export function SiteHeader() {
             </ul>
           </section>
           <RequireAdmin
-            fallback={
-              <div className="text-xs text-neutral-muted">
-                관리자 전용 메뉴는 로그인 후 확인할 수 있습니다.
-              </div>
-            }
+            fallback={<div className="text-xs text-neutral-muted">관리자 전용 메뉴는 로그인 후 확인할 수 있습니다.</div>}
           >
             <section aria-label="관리자 링크" className="space-y-2">
               <h2 className="text-xs font-semibold uppercase text-neutral-muted">관리자</h2>
@@ -215,14 +212,14 @@ export function SiteHeader() {
               </ul>
             </section>
           </RequireAdmin>
-          <div className="flex flex-col gap-2 border-t border-neutral-border pt-4">
+          <div className="mt-auto flex flex-col gap-2 border-t border-neutral-border pt-4">
             <RequireMember>
               <NotifyCTA />
             </RequireMember>
             <HeaderAuth />
           </div>
         </nav>
-      </div>
+      </Drawer>
     </header>
   );
 }

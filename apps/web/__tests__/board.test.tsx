@@ -86,7 +86,7 @@ describe('BoardPage', () => {
       expect(screen.getByText('자유 게시글')).toBeInTheDocument();
     });
 
-    const questionTab = screen.getByRole('button', { name: '질문' });
+    const questionTab = screen.getByRole('tab', { name: '질문' });
     fireEvent.click(questionTab);
 
     await waitFor(() => {
@@ -106,9 +106,9 @@ describe('BoardNewPage', () => {
   it('폼 제출 시 게시글 생성 API를 호출한다', async () => {
     renderWithClient(<BoardNewPage />);
 
-    fireEvent.change(screen.getByLabelText('제목'), { target: { value: '새 글' } });
+    fireEvent.change(screen.getByPlaceholderText('글 제목을 입력하세요'), { target: { value: '새 글' } });
     fireEvent.change(screen.getByLabelText('카테고리'), { target: { value: 'question' } });
-    fireEvent.change(screen.getByLabelText('내용'), { target: { value: '본문 내용' } });
+    fireEvent.change(screen.getByPlaceholderText('커뮤니티 글 내용을 입력하세요'), { target: { value: '본문 내용' } });
 
     fireEvent.click(screen.getByRole('button', { name: '작성' }));
 
@@ -124,5 +124,37 @@ describe('BoardNewPage', () => {
     const callArgs = createPostMock.mock.calls.at(-1)?.[0] as Record<string, unknown>;
     expect(callArgs).not.toHaveProperty('author_id');
     expect(pushMock).toHaveBeenCalledWith('/board');
+  });
+
+  it('에러 시 안내 메시지를 표시하고 제출 버튼 상태를 업데이트한다', async () => {
+    const { ApiError } = await import('../lib/api');
+    // 지연 promise로 pending 상태 확인 → 이후 즉시 오류로 전환
+    let rejectFn: (e: unknown) => void;
+    createPostMock.mockImplementation(
+      () =>
+        new Promise((_, reject) => {
+          rejectFn = reject;
+        }),
+    );
+
+    renderWithClient(<BoardNewPage />);
+
+    fireEvent.change(screen.getByPlaceholderText('글 제목을 입력하세요'), { target: { value: '제목' } });
+    fireEvent.change(screen.getByLabelText('카테고리'), { target: { value: 'discussion' } });
+    fireEvent.change(screen.getByPlaceholderText('커뮤니티 글 내용을 입력하세요'), { target: { value: '본문' } });
+
+    const submit = screen.getByRole('button', { name: '작성' });
+    fireEvent.click(submit);
+    // pending 텍스트 — 비동기 상태 반영 대기
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '작성 중…' })).toBeDisabled();
+    });
+
+    // 오류 전환
+    rejectFn?.(new ApiError(401, 'Unauthorized'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('로그인 후 다시 시도해주세요.');
+    });
   });
 });
