@@ -274,4 +274,6 @@
   - Tailwind: `fontFamily.heading/body`를 `var(--font-sans)`로 전환(클래스 유지)
   - CSS: 글로벌 `body` 폰트 패밀리를 `var(--font-sans)` 기반으로 치환(시스템 폰트 안정 폴백)
   - Lighthouse 예산: `font` 리소스 상한(1300KB) 추가, 모바일 Perf/A11y ≥ 0.90 목표 유지
-  - 문서: `docs/design_system.md`에 폰트/이미지/레이아웃 성능 가이드 보강
+ - 문서: `docs/design_system.md`에 폰트/이미지/레이아웃 성능 가이드 보강
+2025-10-10
+- docs: README 전면 개편 — 최신 템플릿/버전/빠른 시작/품질·보안/FAQ 반영, `docs/versions.md`·`AGENTS.md`·`Makefile`와 정합성 확인
