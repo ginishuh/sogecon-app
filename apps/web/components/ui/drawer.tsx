@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
+import { cn } from '../../lib/cn';
 
 type DrawerProps = React.PropsWithChildren<{
   open: boolean;
@@ -15,23 +16,26 @@ type DrawerProps = React.PropsWithChildren<{
 export default function Drawer({ open, onClose, title, side = 'left', className, children }: DrawerProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const previouslyFocused = useRef<Element | null>(null);
+  const titleUid = useId();
+  const labelledBy = title ? `drawer-title-${titleUid}` : undefined;
 
   useEffect(() => {
-    if (open) {
-      previouslyFocused.current = document.activeElement;
-      const el = panelRef.current;
-      // body 스크롤 잠금
-      const prevOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      // 포커스 이동
-      setTimeout(() => {
-        el?.focus();
-      }, 0);
-      return () => {
-        document.body.style.overflow = prevOverflow;
-      };
-    }
-    return undefined;
+    if (!open) return;
+    previouslyFocused.current = document.activeElement;
+    const el = panelRef.current;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    // 첫 포커서블로 이동(없으면 패널)
+    setTimeout(() => {
+      const focusables = el?.querySelectorAll<HTMLElement>(
+        'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const first = focusables && focusables.length > 0 ? focusables[0] : el;
+      first?.focus();
+    }, 0);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
   }, [open]);
 
   useEffect(() => {
@@ -40,25 +44,33 @@ export default function Drawer({ open, onClose, title, side = 'left', className,
       if (e.key === 'Escape') {
         e.preventDefault();
         onClose();
+        return;
       }
-      if (e.key === 'Tab') {
-        // 초간단 포커스 트랩
-        const container = panelRef.current;
-        if (!container) return;
-        const focusables = container.querySelectorAll<HTMLElement>(
-          'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        if (focusables.length === 0) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        const active = document.activeElement as HTMLElement | null;
-        if (e.shiftKey && active === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && active === last) {
-          e.preventDefault();
-          first.focus();
-        }
+      if (e.key !== 'Tab') return;
+      const container = panelRef.current;
+      if (!container) return;
+      const list = Array.from(
+        container.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      );
+      if (list.length === 0) {
+        e.preventDefault();
+        container.focus();
+        return;
+      }
+      const first = list[0];
+      const last = list[list.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (!active || !container.contains(active)) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
       }
     }
     document.addEventListener('keydown', onKey);
@@ -76,29 +88,43 @@ export default function Drawer({ open, onClose, title, side = 'left', className,
 
   return (
     <div aria-hidden={!open} className="fixed inset-0 z-50">
-      {/* Backdrop */}
-      <button
-        type="button"
-        aria-label="닫기"
-        className="absolute inset-0 cursor-default bg-black/30"
-        onClick={onClose}
-      />
+      {/* Backdrop (비포커스) */}
+      <div aria-hidden="true" className="absolute inset-0 bg-black/30" onClick={onClose} />
       {/* Panel */}
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby={labelledBy}
+        aria-label={labelledBy ? undefined : title}
         tabIndex={-1}
-        className={[
-          'absolute top-0 h-full w-80 max-w-[80vw] bg-white shadow-xl outline-none',
+        className={cn(
+          'absolute top-0 h-full w-80 max-w-[80vw] bg-white shadow-xl outline-none z-10',
           side === 'left' ? 'left-0' : 'right-0',
-          className ?? '',
-        ].join(' ')}
+          className
+        )}
       >
-        {children}
+        {(title || true) && (
+          <div className="flex items-center justify-between border-b border-slate-200 p-3">
+            {title ? (
+              <h2 id={labelledBy} className="text-sm font-medium text-slate-800">
+                {title}
+              </h2>
+            ) : (
+              <span className="sr-only" id={labelledBy}>메뉴</span>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded p-2 text-slate-600 hover:bg-slate-100"
+              aria-label="닫기"
+            >
+              닫기
+            </button>
+          </div>
+        )}
+        <div className="p-3">{children}</div>
       </div>
     </div>
   );
 }
-

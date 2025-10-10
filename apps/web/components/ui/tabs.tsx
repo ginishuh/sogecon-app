@@ -100,8 +100,10 @@ export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: 
               tabIndex={selected ? 0 : -1}
               disabled={t.disabled}
               className={[
-                'rounded-t-md px-3 py-2 text-sm font-medium',
-                selected ? 'bg-surface text-text-primary border-x border-t border-neutral-border -mb-px' : 'text-text-muted hover:text-text-primary',
+                'rounded-t-md px-3 py-2 text-sm font-medium min-h-11', // 터치 타겟 44px 이상
+                selected
+                  ? 'bg-surface text-text-primary border-x border-t border-neutral-border -mb-px'
+                  : 'text-text-muted hover:text-text-primary',
               ].join(' ')}
               onClick={() => {
                 if (t.disabled) return;

@@ -24,7 +24,8 @@
 
 ## DoD(Ready 전)
 - [ ] Lighthouse(/board): 모바일 Perf/A11y ≥ 0.90 유지
-- [ ] vitest: 탭 전환/폼 오류/드로어 포커스 스모크
+- [ ] vitest: 탭 전환/폼 오류/드로어 포커스 스모크(Backdrop 클릭/ESC 닫기/포커스 복귀 포함)
+- [ ] 키보드 네비 수동 점검 체크리스트: ArrowLeft/Right, Home/End(탭), ESC(드로어), Tab 순환(드로어)
 - [ ] ESLint/TS `strict` 통과(우회 주석 금지), 파일당 600라인 이하
 
 ## 브랜치/PR 정책

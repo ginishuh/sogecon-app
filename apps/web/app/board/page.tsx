@@ -1,10 +1,12 @@
-'use client';
+"use client";
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { listPosts, type Post } from '../../services/posts';
+import { Tabs } from '../../components/ui/tabs';
+import PostCard from '../../components/post-card';
 
 const BOARD_CATEGORIES = [
   { key: 'all', label: '전체' },
@@ -49,6 +51,8 @@ export default function BoardPage() {
     });
   }, [query.data, search]);
 
+  const selectedIndex = BOARD_CATEGORIES.findIndex((c) => c.key === category) ?? 0;
+
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6 px-6 py-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -65,18 +69,6 @@ export default function BoardPage() {
       </header>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <nav className="flex gap-2">
-          {BOARD_CATEGORIES.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => setCategory(item.key)}
-              className={`rounded px-3 py-1 text-sm ${category === item.key ? 'bg-slate-900 text-white' : 'border border-slate-300 text-slate-700 hover:bg-slate-100'}`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
         <label className="flex items-center gap-2 text-sm text-slate-700">
           <span>검색</span>
           <input
@@ -91,35 +83,49 @@ export default function BoardPage() {
         </label>
       </div>
 
-      {query.isLoading ? (
-        <p className="text-sm text-slate-600">게시글을 불러오는 중입니다…</p>
-      ) : null}
-      {query.isError ? (
-        <p className="text-sm text-red-600">게시글을 불러오지 못했습니다.</p>
-      ) : null}
-
-      {!query.isLoading && filtered.length === 0 ? (
-        <p className="rounded border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-500">
-          아직 등록된 게시글이 없습니다.
-        </p>
-      ) : null}
-
-      <ul className="space-y-4">
-        {filtered.map((post) => (
-          <li key={post.id} className="rounded border border-slate-200 bg-white p-4 shadow-sm">
-            <Link href={`/board/${post.id}`} className="block space-y-2">
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                {post.category ? (
-                  <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-700">{post.category}</span>
-                ) : null}
-                {post.published_at ? <span>{new Date(post.published_at).toLocaleDateString()}</span> : null}
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900">{post.title}</h3>
-              <p className="line-clamp-2 text-sm text-slate-600">{post.content}</p>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <Tabs
+        aria-label="게시판 카테고리"
+        className="mt-2"
+        defaultIndex={selectedIndex}
+        onChange={(i) => {
+          const key = BOARD_CATEGORIES[i]?.key ?? 'all';
+          setCategory(key);
+        }}
+        items={BOARD_CATEGORIES.map((t) => ({
+          id: t.key,
+          label: t.label,
+          content: (
+            <div className="space-y-4">
+              {query.isLoading ? (
+                <p className="text-sm text-slate-600">게시글을 불러오는 중입니다…</p>
+              ) : null}
+              {query.isError ? (
+                <p className="text-sm text-red-600">게시글을 불러오지 못했습니다.</p>
+              ) : null}
+              {!query.isLoading && filtered.length === 0 ? (
+                <p className="rounded border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-500">
+                  아직 등록된 게시글이 없습니다.
+                </p>
+              ) : null}
+              <ul className="space-y-4">
+                {filtered.map((post) => (
+                  <li key={post.id}>
+                    <PostCard
+                      title={post.title}
+                      content={post.content}
+                      category={post.category}
+                      pinned={post.pinned}
+                      cover_image={post.cover_image ?? undefined}
+                      published_at={post.published_at ?? undefined}
+                      href={`/board/${post.id}`}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ),
+        }))}
+      />
 
       <div className="flex items-center justify-between">
         <button

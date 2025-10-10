@@ -113,6 +113,7 @@ export default function BoardNewPage() {
             onChange={(e) => setContent(e.currentTarget.value)}
             placeholder="커뮤니티 글 내용을 입력하세요"
             inputMode="text"
+            autoComplete="off"
             aria-describedby="content-help"
           />
           <span id="content-help" className="sr-only">게시글 본문</span>
@@ -121,8 +122,9 @@ export default function BoardNewPage() {
           type="submit"
           className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
           disabled={isDisabled}
+          aria-busy={isSubmitting}
         >
-          작성
+          {isSubmitting ? '작성 중…' : '작성'}
         </button>
         {error ? <p role="alert" aria-live="polite" className="text-sm text-red-600">{error}</p> : null}
       </form>
