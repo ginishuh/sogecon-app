@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import type { Member } from '../services/members';
 
 type Props = {
@@ -7,7 +7,8 @@ type Props = {
 
 export default function DirectoryCard({ member }: Props) {
   const [open, setOpen] = useState(false);
-  const panelId = `dir-card-${member.id}`;
+  const uid = useId();
+  const panelId = `dir-card-${uid}`;
   return (
     <article className="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
       <header className="flex items-start justify-between gap-3">
@@ -52,4 +53,3 @@ export default function DirectoryCard({ member }: Props) {
     </article>
   );
 }
-

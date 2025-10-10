@@ -25,7 +25,7 @@ type DirectoryFiltersProps = {
 };
 
 function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryFiltersProps) {
-  // autoComplete 힌트(모바일 가독성/입력 이득)
+  // autocomplete 힌트(모바일 가독성/입력 이득)
   const autocompleteHints: Partial<Record<TextFilterKeys, string>> = {
     q: 'off',
     cohort: 'off',
