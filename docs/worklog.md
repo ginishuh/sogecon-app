@@ -198,6 +198,7 @@
 - Web: vitest 3.2.4로 상향(GHSA-9crc-q9x8-hgqq 대응).
 - DB: 0012_member_post_extra_fields 마이그레이션 추가(회원 확장 필드/게시글 category/pinned/cover 컬럼 생성).
 - API: B v2 프로필 검증 강화(phone·company_phone 형식, 부서/직함/주소/업종 길이 검사, 서비스 계층 문자열 trim 재검증) 및 422 테스트 추가.
+2025-10-10: 디렉터리 모바일 카드/필터 아코디언/공유 토글 구현, 유닛·E2E 추가 및 기존 테스트 보정.
 - Web: B v2 프로필 폼에 동기 검증/에러 맵핑, 공개 범위 안내 카피(접근성 라벨)와 vitest 검증을 추가.
 - API: `/me/avatar` 업로드 경로 추가(512px 리사이즈, 100KB 압축, media static 서빙) 및 `avatar_path` 칼럼/pytest 추가.
 - Web: 프로필 사진 업로드 UI·미리보기, FormData 지원, `/me` 페이지 토스트/접근성 문구 보강.
@@ -238,4 +239,5 @@
  - Web/Tabs: `defaultIndex`가 비활성 탭을 가리키는 경우 첫 활성 탭으로 보정, Home/End 키 입력 시 선택 변경과 함께 포커스 이동 처리(접근성 보완).
 - Build: puppeteer(dev) 추가에 따른 pnpm-lock.yaml 갱신(워크스페이스 루트에서 lockfile-only).
  - Web/Tabs: 키 핸들러 복잡도(ESLint complexity) ↓ — 키→핸들러 매핑/공통 util로 분기 단순화.
- - DS v1 Phase 2 킥오프: 브랜치 생성(`feat/ds-v1-phase2-directory-mobile`), 계획서 보강(DoD/체크리스트/E2E 추가).
+- DS v1 Phase 2 킥오프: 브랜치 생성(`feat/ds-v1-phase2-directory-mobile`), 계획서 보강(DoD/체크리스트/E2E 추가).
+ - CI/E2E: PR(Ready) 대상 CDP E2E 워크플로 추가, Puppeteer headless/모바일 뷰포트/네트워크 대기 보강. 훅에서 웹 린트 범위 확대.

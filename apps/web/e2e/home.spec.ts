@@ -7,8 +7,9 @@ let page: Page;
 
 describe('Home (CDP E2E)', () => {
   beforeAll(async () => {
-    browser = await puppeteer.launch({ headless: 'new' });
+    browser = await puppeteer.launch({ headless: true });
     page = await browser.newPage();
+    await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
   });
 
   afterAll(async () => {
@@ -17,7 +18,7 @@ describe('Home (CDP E2E)', () => {
   });
 
   it('renders hero and navigates to directory via primary CTA', async () => {
-    await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'networkidle0' });
 
     await page.waitForSelector('h1#home-hero');
     const title = await page.$eval('h1#home-hero', (el) => el.textContent?.trim() ?? '');
@@ -25,11 +26,10 @@ describe('Home (CDP E2E)', () => {
 
     // 클릭 시 /directory 로 이동
     await Promise.all([
-      page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+      page.waitForNavigation({ waitUntil: 'networkidle0' }),
       page.click('a.home-hero__cta'),
     ]);
     const url = page.url();
     expect(url).toContain('/directory');
   });
 });
-

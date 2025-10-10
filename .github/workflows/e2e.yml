@@ -1,0 +1,52 @@
+name: web-e2e-cdp
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.17.1
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+      - name: Install dependencies (workspace)
+        run: pnpm -w install --frozen-lockfile
+      - name: Build web
+        run: pnpm -C apps/web build
+      - name: Start web (background)
+        run: |
+          pnpm -C apps/web start &
+          echo $! > web.pid
+      - name: Wait for web
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:3000 >/dev/null; then echo "web up"; exit 0; fi; sleep 1; done
+          echo "web not responding"; curl -v http://localhost:3000 || true; exit 1
+      - name: Run E2E (CDP/Puppeteer)
+        env:
+          WEB_BASE_URL: http://localhost:3000
+        run: pnpm -C apps/web e2e
+      - name: Stop web
+        if: always()
+        run: |
+          if [ -f web.pid ]; then kill $(cat web.pid) || true; fi
+
