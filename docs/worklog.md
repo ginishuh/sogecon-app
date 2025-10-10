@@ -257,7 +257,12 @@
   - 문서: `docs/plan_ds_v1_phase3_board_nav_forms.md` 목적/DoD/세부 작업 업데이트(모바일 카드·드로어·폼)
   - Web(UI): `components/ui/drawer.tsx` 접근성 드로어(ESC/Backdrop/포커스 트랩/스크롤 잠금)
   - Web(Form): `/board/new`에 `autocomplete`/`inputMode`/`role="alert" aria-live` 보강
-  - 리뷰 반영(1차): Drawer에 `cn()` 적용, Backdrop 비포커스화 및 닫기 버튼/`aria-labelledby` 추가, Tab 순환/첫 포커스/ESC 로직 개선; 폼 textarea `autocomplete="off"`, 제출 버튼 진행 문구 적용.
+ - 리뷰 반영(1차): Drawer에 `cn()` 적용, Backdrop 비포커스화 및 닫기 버튼/`aria-labelledby` 추가, Tab 순환/첫 포커스/ESC 로직 개선; 폼 textarea `autocomplete="off"`, 제출 버튼 진행 문구 적용.
+2025-10-10
+- DS v1 Phase 4 킥오프(Draft): 성능/접근성 마감 스켈레톤
+  - 문서: `docs/plan_ds_v1_phase4_perf_a11y.md` 업데이트(목표/DoD/초기 작업 항목)
+  - CI: Lighthouse URL에 `/directory` 추가(이미 `/board` 포함)
+  - 이미지: 홈 히어로/게시글 커버 `sizes` 지정, 히어로 priority 유지
  - Web/Board: DS v1 카드형 목록(PostCard) 도입 및 `/app/board/page.tsx` 탭 UI로 리팩터링(Tabs a11y/키보드 네비, 터치 타겟 ≥44px).
  - Web/Nav: 모바일 내비 Drawer 연동(`components/site-header`↔`components/ui/drawer`) — ESC/Backdrop 닫기 + 포커스 복귀.
  - Web/Form: `/board/new` 제출 중 버튼 비활성화+텍스트 변경(작성→작성 중…), 오류 안내(role="alert"/aria-live) 유지.

@@ -30,7 +30,14 @@ export default async function PostDetailPage({ params }: PageProps) {
           </p>
         </header>
         {post.cover_image ? (
-          <Image src={post.cover_image} alt="cover" width={720} height={405} className="h-auto w-full rounded object-cover" />
+          <Image
+            src={post.cover_image}
+            alt="cover"
+            width={720}
+            height={405}
+            sizes="(max-width: 768px) 100vw, 720px"
+            className="h-auto w-full rounded object-cover"
+          />
         ) : null}
         <div className="whitespace-pre-wrap text-sm text-slate-800">{post.content}</div>
       </article>

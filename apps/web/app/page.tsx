@@ -81,6 +81,7 @@ export default function HomePage() {
             width={480}
             height={360}
             className="h-auto w-full rounded-2xl object-cover shadow-soft"
+            sizes="(max-width: 768px) 100vw, 480px"
             priority
           />
         </div>
