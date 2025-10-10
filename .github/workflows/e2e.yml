@@ -30,8 +30,8 @@ jobs:
           node-version: 22.17.1
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
-      - name: Install dependencies (workspace)
-        run: pnpm -w install --frozen-lockfile
+      - name: Install dependencies (web)
+        run: pnpm -C apps/web install --frozen-lockfile
       - name: Build web
         run: pnpm -C apps/web build
       - name: Start web (background)
