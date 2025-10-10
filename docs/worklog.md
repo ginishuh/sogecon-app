@@ -236,3 +236,4 @@
 - Test(Web): DS v1 Phase 1 — UI 스냅샷(Button/Badge/Card) 및 Tabs 상호작용/폼 aria 연결 테스트 추가.
  - Test(Web): E2E — Playwright → Chrome DevTools(CDP) 전환 스켈레톤 추가, Puppeteer 기반 e2e 구성 및 URL 동기화 시나리오 추가.
  - Web/Tabs: `defaultIndex`가 비활성 탭을 가리키는 경우 첫 활성 탭으로 보정, Home/End 키 입력 시 선택 변경과 함께 포커스 이동 처리(접근성 보완).
+ - Build: puppeteer(dev) 추가에 따른 pnpm-lock.yaml 갱신(워크스페이스 루트에서 lockfile-only).
