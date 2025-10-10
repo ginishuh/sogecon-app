@@ -12,11 +12,6 @@ vi.mock('next/image', () => ({
   },
 }));
 
-// next/font — 테스트 환경 모킹(빌드 시에만 실제 폰트 로더 사용)
-vi.mock('next/font/google', () => ({
-  Inter: () => ({ variable: '--font-sans' }),
-}));
-
 vi.mock('next/font/local', () => ({
   default: () => ({ variable: '--font-sans' }),
 }));
