@@ -34,10 +34,11 @@ jobs:
         env:
           PNPM_ALLOW_RUN_SCRIPTS: puppeteer
         run: pnpm -C apps/web install --frozen-lockfile
-      - name: Approve puppeteer build scripts
-        run: pnpm -C apps/web approve-builds puppeteer || true
-      - name: Rebuild puppeteer (download Chromium)
-        run: pnpm -C apps/web rebuild puppeteer || true
+      - name: Setup Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
       - name: Build web
         run: pnpm -C apps/web build
       - name: Start web (background)
@@ -52,6 +53,7 @@ jobs:
       - name: Run E2E (CDP/Puppeteer)
         env:
           WEB_BASE_URL: http://localhost:3000
+          PUPPETEER_EXECUTABLE_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: pnpm -C apps/web e2e
       - name: Stop web
         if: always()
