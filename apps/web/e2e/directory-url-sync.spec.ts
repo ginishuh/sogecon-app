@@ -13,7 +13,7 @@ function getSearch(urlString: string): URLSearchParams {
 
 describe('Directory URL sync (CDP E2E)', () => {
   beforeAll(async () => {
-    browser = await puppeteer.launch({ headless: true, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH });
+    browser = await puppeteer.launch({ headless: true, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     page = await browser.newPage();
     await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
     await page.setBypassCSP(true);
