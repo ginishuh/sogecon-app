@@ -245,4 +245,5 @@
 - CI(e2e): `web-e2e-cdp`에서 pnpm 설치 순서를 수정 — setup-node(cache=pnpm) 이전에 pnpm/action-setup 실행.
 - CI(e2e): 앱 전용 설치로 전환 — `pnpm -C apps/web install --frozen-lockfile`.
 - Test(e2e): Puppeteer 설치 승인(ENV: `PNPM_ALLOW_RUN_SCRIPTS=puppeteer`), afterAll null 가드 추가로 에러 메시지 개선.
- - Test(e2e): CI 런타임 샌드박스 호환 옵션 추가(`--no-sandbox`, `--disable-setuid-sandbox`).
+- Test(e2e): CI 런타임 샌드박스 호환 옵션 추가(`--no-sandbox`, `--disable-setuid-sandbox`).
+ - CI(e2e): puppeteer 빌드 승인/리빌드 단계 추가 — Chromium 바이너리 확보.

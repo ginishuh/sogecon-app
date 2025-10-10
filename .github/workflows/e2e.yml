@@ -34,6 +34,10 @@ jobs:
         env:
           PNPM_ALLOW_RUN_SCRIPTS: puppeteer
         run: pnpm -C apps/web install --frozen-lockfile
+      - name: Approve puppeteer build scripts
+        run: pnpm -C apps/web approve-builds puppeteer || true
+      - name: Rebuild puppeteer (download Chromium)
+        run: pnpm -C apps/web rebuild puppeteer || true
       - name: Build web
         run: pnpm -C apps/web build
       - name: Start web (background)
