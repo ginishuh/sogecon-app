@@ -17,7 +17,12 @@ export interface TabsProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'o
 export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: TabsProps) {
   const [index, setIndex] = useState(() => {
     const firstEnabled = items.findIndex((t) => !t.disabled);
-    return firstEnabled >= 0 ? Math.max(firstEnabled, defaultIndex) : 0;
+    const isValidDefault =
+      defaultIndex >= 0 &&
+      defaultIndex < items.length &&
+      !items[defaultIndex]?.disabled;
+    if (isValidDefault) return defaultIndex;
+    return firstEnabled >= 0 ? firstEnabled : 0;
   });
   const uid = useId();
   const tabsRef = useRef<Array<HTMLButtonElement | null>>([]);
@@ -50,21 +55,26 @@ export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: 
           break;
         case 'Home':
           e.preventDefault();
-          setIndex(() => {
+          {
             const nxt = items.findIndex((t) => !t.disabled);
-            onChange?.(nxt);
-            return nxt >= 0 ? nxt : 0;
-          });
+            const target = nxt >= 0 ? nxt : 0;
+            setIndex(target);
+            onChange?.(target);
+            tabsRef.current[target]?.focus();
+          }
           break;
         case 'End':
           e.preventDefault();
-          setIndex(() => {
-            const nxt = [...items].map((t, i) => [t, i] as const)
-              .reverse()
-              .find(([, i]) => !items[i]?.disabled)?.[1] ?? items.length - 1;
+          {
+            const nxt =
+              [...items]
+                .map((t, i) => [t, i] as const)
+                .reverse()
+                .find(([, i]) => !items[i]?.disabled)?.[1] ?? (items.length - 1);
+            setIndex(nxt);
             onChange?.(nxt);
-            return nxt;
-          });
+            tabsRef.current[nxt]?.focus();
+          }
           break;
         default:
       }
