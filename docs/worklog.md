@@ -242,3 +242,4 @@
 - DS v1 Phase 2 킥오프: 브랜치 생성(`feat/ds-v1-phase2-directory-mobile`), 계획서 보강(DoD/체크리스트/E2E 추가).
 - CI/E2E: PR(Ready) 대상 CDP E2E 워크플로 추가, Puppeteer headless/모바일 뷰포트/네트워크 대기 보강. 훅에서 웹 린트 범위 확대.
  - CI 트리거 개선: dto-verify/lighthouse/e2e 워크플로에 `pull_request.types: [opened, synchronize, reopened, ready_for_review]`와 `workflow_dispatch` 추가 — Draft→Ready 전환 시 즉시 실행 및 수동 실행 허용.
+ - CI(e2e): `web-e2e-cdp`에서 pnpm 설치 순서를 수정 — setup-node(cache=pnpm) 이전에 pnpm/action-setup 실행.
