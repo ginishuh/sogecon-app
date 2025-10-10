@@ -22,6 +22,8 @@ body {
   background: linear-gradient(180deg, rgba(248, 244, 237, 1) 0%, rgba(252, 248, 242, 1) 100%);
   color: var(--text-primary);
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* 타이포 스케일 — 모바일 기준 body 15px → md 이상 16px */
+  font-size: 0.9375rem; /* 15px */
   line-height: 1.6;
   display: flex;
   flex-direction: column;
@@ -42,26 +44,21 @@ main:focus {
 }
 
 @media (min-width: 768px) {
-  main {
-    padding: 4rem 2.5rem 5rem;
-  }
+  body { font-size: 1rem; } /* 16px */
+  main { padding: 4rem 2.5rem 5rem; }
 }
 
-a {
-  color: var(--brand-primary);
-  transition: color 150ms ease;
-  text-decoration: none;
-}
+/* 링크 상태 일관 (AA 대비 유지) */
+a { color: theme(colors.brand.700); transition: color 150ms ease; text-decoration: none; }
+a:visited { color: theme(colors.brand.600); }
+a:hover { color: theme(colors.brand.800); text-decoration: underline; }
+a:active { color: theme(colors.brand.900); }
+a:focus-visible { outline: none; text-decoration: underline; }
 
-a:hover,
-a:focus-visible {
-  text-decoration: underline;
-}
-
-button:focus-visible,
-select:focus-visible {
+/* 포커스 링 — 토큰 기반 ring */
+:where(button, [role="button"], a, input, select, textarea):focus-visible {
   outline: none;
-  box-shadow: 0 0 0 4px rgba(244, 162, 89, 0.55);
+  @apply ring-2 ring-brand-400 ring-offset-2 ring-offset-surface;
 }
 
 .skip-link {
@@ -99,6 +96,15 @@ select:focus-visible {
 }
 
 @layer components {
+  /* 시맨틱 헤딩(모바일 기준) — md 이상에서 점진 확대 */
+  h1 { @apply text-h1 font-heading text-text-primary; }
+  h2 { @apply text-h2 font-heading text-text-primary; }
+  h3 { @apply text-h3 font-heading text-text-primary; }
+  @media (min-width: 768px) {
+    h1 { @apply text-4xl; } /* 약 32px */
+    h2 { @apply text-2xl; } /* 약 24px */
+    h3 { @apply text-xl; }  /* 약 20px */
+  }
   .about-page {
     @apply flex flex-col gap-16;
   }

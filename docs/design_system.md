@@ -100,3 +100,52 @@ Tailwind 설정(`apps/web/tailwind.config.ts`)에서 semantic 레이어로 정�
 - 아이콘: 시스템 아이콘 세트(후속), 대체 텍스트/`aria-hidden` 규칙
 - 모션: 감속 선호 미디어쿼리 준수, 필수 모션 외 최소화
 
+---
+
+## Phase 1 작업 범위(초안)
+본 섹션은 DS v1 Phase 1(토큰/프리미티브/공통 컴포넌트) 구현 체크리스트입니다. 구현 완료 시 본 섹션은 요약으로 축약하거나 제거합니다.
+
+### 범위
+- Tailwind 토큰(semantic colors/spacing/radius/shadow/container)
+- 글로벌 스타일(타이포 스케일, 포커스 링)
+- 공통 UI 1차: Button / Input / Select / TextArea / Badge / Card / Tabs
+
+### 체크리스트
+- [x] tailwind.config.ts에 semantic 토큰 정의(AA 대비 준수)
+- [x] globals.css 타이포/포커스 링 반영
+- [x] UI 7종(Button/Input/Select/TextArea/Badge/Card/Tabs) 구현 및 스냅샷
+- [x] 접근성: 라벨 연결, aria-* 속성, 키보드 포커스/탭 이동 확인
+- [x] `pnpm -C apps/web test && pnpm -C apps/web build` 그린
+- [x] `docs/design_system.md` 토큰·컴포넌트 예시 갱신
+
+### 토큰 표(요약)
+- 색상
+  - brand: 50~900
+  - text: primary/secondary/muted/inverse
+  - surface: default/raised/sunken
+  - state: primary/secondary/success/info/warning/error
+- 레이아웃
+  - radius: sm=4, md=8, lg=12
+  - shadow: xs/sm/md/lg
+  - container padding: sm:px-4 md:px-6 lg:px-8
+
+### 컴포넌트 예시
+
+```tsx
+// Button
+<Button variant="primary" size="md">확인</Button>
+<Button variant="secondary" size="sm">취소</Button>
+
+// Input (a11y: 라벨/에러 연결)
+<Input id="email" label="이메일" helperText="로그인에 사용" />
+<Input id="nick" label="닉네임" errorText="필수 입력입니다" />
+
+// Tabs
+<Tabs
+  items={[
+    { id: 'a', label: '개요', content: <div>…</div> },
+    { id: 'b', label: '상세', content: <div>…</div> },
+  ]}
+  aria-label="상세 탭"
+/>
+```
