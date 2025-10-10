@@ -257,8 +257,21 @@
   - 문서: `docs/plan_ds_v1_phase3_board_nav_forms.md` 목적/DoD/세부 작업 업데이트(모바일 카드·드로어·폼)
   - Web(UI): `components/ui/drawer.tsx` 접근성 드로어(ESC/Backdrop/포커스 트랩/스크롤 잠금)
   - Web(Form): `/board/new`에 `autocomplete`/`inputMode`/`role="alert" aria-live` 보강
-  - 리뷰 반영(1차): Drawer에 `cn()` 적용, Backdrop 비포커스화 및 닫기 버튼/`aria-labelledby` 추가, Tab 순환/첫 포커스/ESC 로직 개선; 폼 textarea `autocomplete="off"`, 제출 버튼 진행 문구 적용.
+ - 리뷰 반영(1차): Drawer에 `cn()` 적용, Backdrop 비포커스화 및 닫기 버튼/`aria-labelledby` 추가, Tab 순환/첫 포커스/ESC 로직 개선; 폼 textarea `autocomplete="off"`, 제출 버튼 진행 문구 적용.
+2025-10-10
+- DS v1 Phase 4 킥오프(Draft): 성능/접근성 마감 스켈레톤
+  - 문서: `docs/plan_ds_v1_phase4_perf_a11y.md` 업데이트(목표/DoD/초기 작업 항목)
+  - CI: Lighthouse URL에 `/directory` 추가(이미 `/board` 포함)
+ - 이미지: 홈 히어로/게시글 커버 `sizes` 지정, 히어로 priority 유지
+ - 폰트: next/font/local로 Inter Variable(woff2) 동봉 및 전역 적용 — 네트워크 의존 제거(빌드/테스트 안정화), 라이선스 동봉(OFL).
  - Web/Board: DS v1 카드형 목록(PostCard) 도입 및 `/app/board/page.tsx` 탭 UI로 리팩터링(Tabs a11y/키보드 네비, 터치 타겟 ≥44px).
  - Web/Nav: 모바일 내비 Drawer 연동(`components/site-header`↔`components/ui/drawer`) — ESC/Backdrop 닫기 + 포커스 복귀.
- - Web/Form: `/board/new` 제출 중 버튼 비활성화+텍스트 변경(작성→작성 중…), 오류 안내(role="alert"/aria-live) 유지.
- - Test(Web): 탭 전환/폼 오류/드로어 포커스 스모크 추가 및 기존 테스트 보정.
+- Web/Form: `/board/new` 제출 중 버튼 비활성화+텍스트 변경(작성→작성 중…), 오류 안내(role="alert"/aria-live) 유지.
+- Test(Web): 탭 전환/폼 오류/드로어 포커스 스모크 추가 및 기존 테스트 보정.
+2025-10-10
+- Perf/A11y(Phase 4): next/font 전역 도입 및 CLS 억제
+  - Web(Layout): `app/fonts.ts`에 `Noto_Sans_KR(400/500/700, swap)` 추가 후 `app/layout.tsx`에 `${font.variable}` 적용
+  - Tailwind: `fontFamily.heading/body`를 `var(--font-sans)`로 전환(클래스 유지)
+  - CSS: 글로벌 `body` 폰트 패밀리를 `var(--font-sans)` 기반으로 치환(시스템 폰트 안정 폴백)
+  - Lighthouse 예산: `font` 리소스 상한(1300KB) 추가, 모바일 Perf/A11y ≥ 0.90 목표 유지
+  - 문서: `docs/design_system.md`에 폰트/이미지/레이아웃 성능 가이드 보강

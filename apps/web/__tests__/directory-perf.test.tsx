@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { vi } from 'vitest';
@@ -80,7 +80,7 @@ describe('DirectoryPage 공유 링크/페이지 요약', () => {
 
     // 공유 링크 패널 토글 후 링크 노출 확인
     const toggle = screen.getByRole('button', { name: '링크 표시' });
-    toggle.click();
+    fireEvent.click(toggle);
 
     expect(screen.getByText('/directory?sort=cohort_asc&page=2')).toBeInTheDocument();
     expect(screen.getByText('총 25명 중 25명 표시 (페이지 3 / 3)')).toBeInTheDocument();

@@ -11,3 +11,7 @@ vi.mock('next/image', () => ({
     return React.createElement('img', rest as React.ImgHTMLAttributes<HTMLImageElement>);
   },
 }));
+
+vi.mock('next/font/local', () => ({
+  default: () => ({ variable: '--font-sans' }),
+}));

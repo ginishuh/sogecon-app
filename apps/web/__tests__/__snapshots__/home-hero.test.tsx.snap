@@ -81,6 +81,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
           alt="웹 런치를 기념하는 총원우회 일러스트"
           class="h-auto w-full rounded-2xl object-cover shadow-soft"
           height="360"
+          sizes="(max-width: 768px) 100vw, 480px"
           src="/images/home/hero-launch.svg"
           width="480"
         />

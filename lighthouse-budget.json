@@ -4,7 +4,8 @@
     "resourceSizes": [
       { "resourceType": "total", "budget": 2500 },
       { "resourceType": "script", "budget": 350 },
-      { "resourceType": "image", "budget": 900 }
+      { "resourceType": "image", "budget": 900 },
+      { "resourceType": "font", "budget": 1300 }
     ],
     "resourceCounts": [
       { "resourceType": "third-party", "budget": 10 }

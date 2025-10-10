@@ -71,16 +71,33 @@ Tailwind 설정(`apps/web/tailwind.config.ts`)에서 semantic 레이어로 정�
 - 무한스크롤: 페이지마다 버튼/자동 로드 기준 일관 유지, 관찰자 여백 `rootMargin` 표준화
 
 ## 6) 접근성 체크리스트(요약)
-- [ ] 시맨틱 구조(h1→h2→h3), landmark(role=main/nav/contentinfo)
-- [ ] 포커스 순서/표시, 키보드 조작 가능
-- [ ] 폼 라벨/에러 연결, `aria-*` 정확성
-- [ ] 대비(AA 이상), 의미만 색상으로 전달하지 않기
-- [ ] 애니메이션은 선호도(감소) 미디어쿼리 존중
+- [x] 시맨틱 구조(h1→h2→h3), landmark(role=main/nav/contentinfo)
+- [x] 포커스 순서/표시, 키보드 조작 가능
+- [x] 폼 라벨/에러 연결, `aria-*` 정확성
+- [x] 대비(AA 이상), 의미만 색상으로 전달하지 않기
+- [x] 애니메이션은 선호도(감소) 미디어쿼리 존중
 
 ## 7) 성능 가이드
 - 이미지: `next/image` 사용, `sizes` 지정, LCP 이미지는 `priority`, 나머지 lazy
-- 폰트: `font-display: swap` 또는 균형 잡힌 정책, 서브셋 고려, CLS 최소화
-- Lighthouse(모바일) 기준 Perf/A11y ≥ 0.90 유지, 예산(`lighthouse-budget.json`) 준수
+- 폰트: next/font로 self-host + `display: swap`(fallback metrics 자동 조정) 사용, 서브셋/가중치 최소화(예: KR 400/500/700), 전역 CSS 변수(`--font-sans`)로 Tailwind 토큰(`font-heading`, `font-body`) 매핑해 CLS 억제
+- 레이아웃: 초기 뷰포트 내 요소의 레이아웃 크기를 고정(width/height or aspect-ratio)하고, 이미지 컨테이너에는 명시적 치수/비율을 제공해 레이아웃 점프 방지
+- Lighthouse(모바일) 기준 Perf/A11y ≥ 0.90 유지, 예산(`lighthouse-budget.json`) 준수(폰트 리소스 상한 포함)
+
+폰트 운영(Phase 4)
+- next/font/local로 Inter Variable(woff2)을 프로젝트에 동봉하여 네트워크 의존 없이 빌드/테스트가 가능하도록 구성합니다.
+- 경로: `apps/web/public/fonts/Inter-Variable.woff2`, 라이선스: `apps/web/public/fonts/OFL.txt`(SIL OFL 1.1).
+- 전역 적용: `apps/web/app/fonts.ts` → CSS 변수 `--font-sans`, `app/layout.tsx`에서 `<html className={font.variable}>`.
+
+### 7.1 폰트 도입 규칙
+- 구현: `apps/web/app/fonts.ts`에서 next/font(예: `Noto_Sans_KR`)를 선언하고 `variable: '--font-sans'`로 노출 → `app/layout.tsx`의 `<html>`에 `${font.variable}` 추가
+- Tailwind: `tailwind.config.ts`의 `fontFamily.heading/body`를 `['var(--font-sans)', 'system-ui', …]`로 정의해 클래스 유지보수와 전역 치환을 단순화
+- 글로벌 CSS: `body { font-family: var(--font-sans), system-ui, … }`로 지정하여 초기 페인트 시 시스템 폰트 폴백이 안정적으로 적용되도록 함
+- 가중치/서브셋: 화면에서 실제 사용하는 굵기만 포함(본문 400, UI 500, 헤딩 700 권장). 과도한 웨이트/서브셋 금지
+- 표시 전략: `display: 'swap'` 유지(렌더 차단 최소화). next/font가 fallback metrics를 자동 보정하여 CLS < 0.1 목표 달성에 기여
+
+### 7.2 이미지/LCP 규칙
+- LCP 후보는 명시적인 `sizes`를 제공하고, 홈 히어로 등 핵심 이미지는 `priority`로 사전 로드
+- 리스트/카드 썸네일은 기본 lazy(뷰포트 진입 시 로드) 유지. 스켈레톤/blur placeholder는 사용자 지각 성능이 필요한 경우에만 사용
 
 ## 8) 도입 계획
 - Phase 1: 토큰/컴포넌트

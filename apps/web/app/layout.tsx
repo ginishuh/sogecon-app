@@ -7,6 +7,7 @@ import { Providers } from './providers';
 import { SiteHeader } from '../components/site-header';
 import { Analytics } from '../components/analytics';
 import { siteConfig, ogImage } from '../lib/site';
+import { fontSans } from './fonts';
 
 const metadataUrl = new URL(siteConfig.url);
 const ogImageUrl = new URL(ogImage.path, siteConfig.url);
@@ -69,7 +70,7 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={`${fontSans.variable} antialiased`}>
       <body>
         <a className="skip-link" href="#main-content">
           본문 바로가기
