@@ -71,11 +71,11 @@ Tailwind 설정(`apps/web/tailwind.config.ts`)에서 semantic 레이어로 정�
 - 무한스크롤: 페이지마다 버튼/자동 로드 기준 일관 유지, 관찰자 여백 `rootMargin` 표준화
 
 ## 6) 접근성 체크리스트(요약)
-- [ ] 시맨틱 구조(h1→h2→h3), landmark(role=main/nav/contentinfo)
-- [ ] 포커스 순서/표시, 키보드 조작 가능
-- [ ] 폼 라벨/에러 연결, `aria-*` 정확성
-- [ ] 대비(AA 이상), 의미만 색상으로 전달하지 않기
-- [ ] 애니메이션은 선호도(감소) 미디어쿼리 존중
+- [x] 시맨틱 구조(h1→h2→h3), landmark(role=main/nav/contentinfo)
+- [x] 포커스 순서/표시, 키보드 조작 가능
+- [x] 폼 라벨/에러 연결, `aria-*` 정확성
+- [x] 대비(AA 이상), 의미만 색상으로 전달하지 않기
+- [x] 애니메이션은 선호도(감소) 미디어쿼리 존중
 
 ## 7) 성능 가이드
 - 이미지: `next/image` 사용, `sizes` 지정, LCP 이미지는 `priority`, 나머지 lazy
