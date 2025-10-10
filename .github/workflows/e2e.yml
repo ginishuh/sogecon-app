@@ -3,6 +3,8 @@ name: web-e2e-cdp
 on:
   pull_request:
     branches: [ main ]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -49,4 +51,3 @@ jobs:
         if: always()
         run: |
           if [ -f web.pid ]; then kill $(cat web.pid) || true; fi
-
