@@ -238,3 +238,4 @@
  - Web/Tabs: `defaultIndex`가 비활성 탭을 가리키는 경우 첫 활성 탭으로 보정, Home/End 키 입력 시 선택 변경과 함께 포커스 이동 처리(접근성 보완).
 - Build: puppeteer(dev) 추가에 따른 pnpm-lock.yaml 갱신(워크스페이스 루트에서 lockfile-only).
  - Web/Tabs: 키 핸들러 복잡도(ESLint complexity) ↓ — 키→핸들러 매핑/공통 util로 분기 단순화.
+ - DS v1 Phase 2 킥오프: 브랜치 생성(`feat/ds-v1-phase2-directory-mobile`), 계획서 보강(DoD/체크리스트/E2E 추가).
