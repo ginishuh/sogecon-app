@@ -1,6 +1,6 @@
 # 서강대학교 경제대학원 총동문회 앱 (Segecon App)
 
-공개 웹 애플리케이션 모노레포입니다. 브랜드는 **서강대학교 경제대학원 총동문회**이며, 참고 사이트는 https://sogangeconomics.com 입니다.
+공개 웹 애플리케이션 모노레포입니다. 브랜드는 **서강대학교 경제대학원 총동문회**입니다
 
 ![Static Badge](https://img.shields.io/badge/Python-3.12.3-3776AB?logo=python&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/Node-22.17.1-339933?logo=node.js&logoColor=white)
