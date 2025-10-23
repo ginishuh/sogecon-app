@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+from typing import cast
 
 from sqlalchemy import (
     Boolean,
@@ -31,6 +32,15 @@ class RSVPStatus(enum.Enum):
     CANCEL = "cancel"
 
 
+def _enum_values(enum_cls: type[enum.Enum]) -> list[str]:
+    """SQLAlchemy Enum.values_callable용 헬퍼.
+
+    Pyright(strict)에서 람다의 매개변수/반환 타입 추론 경고를 피하기 위해
+    명시적 시그니처를 둡니다. Enum.value는 Unknown으로 추론되므로 str로 cast합니다.
+    """
+    return [cast(str, member.value) for member in enum_cls]
+
+
 class Member(Base):
     __tablename__ = "members"
 
@@ -45,7 +55,7 @@ class Member(Base):
         Enum(
             Visibility,
             name="visibility",
-            values_callable=lambda e: [m.value for m in e],
+            values_callable=_enum_values,
         ),
         nullable=False,
         default=Visibility.ALL,
@@ -143,7 +153,7 @@ class RSVP(Base):
         Enum(
             RSVPStatus,
             name="rsvpstatus",
-            values_callable=lambda e: [m.value for m in e],
+            values_callable=_enum_values,
         ),
         nullable=False,
         default=RSVPStatus.GOING,
@@ -233,3 +243,4 @@ class MemberAuth(Base):
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+    
