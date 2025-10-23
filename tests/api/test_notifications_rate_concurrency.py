@@ -35,7 +35,7 @@ async def test_admin_send_rate_limit_concurrent(admin_login: TestClient) -> None
         ) as hc:
             rc_login = await hc.post(
                 "/auth/login",
-                json={"email": "__seed__@example.com", "password": "__seed__"},
+                json={"student_id": "__seed__admin", "password": "__seed__"},
             )
             assert rc_login.status_code == HTTPStatus.OK
 

@@ -572,11 +572,8 @@ export interface components {
         };
         /** LoginPayload */
         LoginPayload: {
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
+            /** Student Id */
+            student_id: string;
             /** Password */
             password: string;
         };
@@ -594,6 +591,8 @@ export interface components {
         };
         /** MemberCreate */
         MemberCreate: {
+            /** Student Id */
+            student_id: string;
             /**
              * Email
              * Format: email
@@ -639,16 +638,15 @@ export interface components {
         };
         /** MemberLoginPayload */
         MemberLoginPayload: {
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
+            /** Student Id */
+            student_id: string;
             /** Password */
             password: string;
         };
         /** MemberRead */
         MemberRead: {
+            /** Student Id */
+            student_id: string;
             /**
              * Email
              * Format: email

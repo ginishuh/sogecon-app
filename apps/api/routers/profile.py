@@ -17,7 +17,7 @@ router = APIRouter(prefix="/me", tags=["me"])
 def get_me(
     db: Session = Depends(get_db), m: CurrentMember = Depends(require_member)
 ) -> schemas.MemberRead:
-    row = members_service.get_member_by_email(db, m.email)
+    row = members_service.get_member_by_student_id(db, m.student_id)
     return schemas.MemberRead.model_validate(row)
 
 
@@ -27,7 +27,7 @@ def update_me(
     db: Session = Depends(get_db),
     m: CurrentMember = Depends(require_member),
 ) -> schemas.MemberRead:
-    row = members_service.get_member_by_email(db, m.email)
+    row = members_service.get_member_by_student_id(db, m.student_id)
     updated = members_service.update_member_profile(
         db, member_id=cast(int, row.id), data=payload
     )
@@ -40,7 +40,7 @@ async def upload_avatar(
     db: Session = Depends(get_db),
     m: CurrentMember = Depends(require_member),
 ) -> schemas.MemberRead:
-    row = members_service.get_member_by_email(db, m.email)
+    row = members_service.get_member_by_student_id(db, m.student_id)
     file_bytes = await avatar.read()
     await avatar.close()
     updated = members_service.update_member_avatar(

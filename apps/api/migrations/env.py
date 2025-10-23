@@ -43,10 +43,10 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
+            connection=connection,
             target_metadata=target_metadata,
             version_table="alembic_version",
-            version_num_length=64
+            version_num_length=64,  # Extended to 64 to support long revision IDs
         )
 
         with context.begin_transaction():

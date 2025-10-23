@@ -27,4 +27,3 @@ def test_decrypt_returns_ciphertext_on_key_mismatch() -> None:
     os.environ.pop("PUSH_ENCRYPT_AT_REST", None)
     os.environ.pop("PUSH_KEK", None)
     reset_settings_cache()
-

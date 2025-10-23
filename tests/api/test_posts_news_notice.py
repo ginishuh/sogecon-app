@@ -15,7 +15,12 @@ def _seed_author() -> int:
     gen = override()
     db = next(gen)
     try:
-        m = models.Member(email="author@example.com", name="Author", cohort=2025)
+        m = models.Member(
+            student_id="20250001",
+            email="author@example.com",
+            name="Author",
+            cohort=2025,
+        )
         db.add(m)
         db.commit()
         db.refresh(m)

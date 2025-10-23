@@ -32,6 +32,7 @@ class LoginPayload(BaseModel):
 class CurrentAdmin:
     id: int
     email: str
+    student_id: str
 
 
 def _get_admin_session(req: Request) -> CurrentAdmin | None:
@@ -40,8 +41,13 @@ def _get_admin_session(req: Request) -> CurrentAdmin | None:
     if isinstance(data, dict):
         _id = data.get("id")
         _email = data.get("email")
-        if (isinstance(_id, (int, str))) and isinstance(_email, str):
-            return CurrentAdmin(id=int(_id), email=_email)
+        _student_id = data.get("student_id")
+        if (
+            (isinstance(_id, (int, str)))
+            and isinstance(_email, str)
+            and isinstance(_student_id, str)
+        ):
+            return CurrentAdmin(id=int(_id), email=_email, student_id=_student_id)
     return None
 
 
@@ -54,7 +60,7 @@ def require_admin(req: Request) -> CurrentAdmin:
 
 @dataclass
 class CurrentMember:
-    email: str
+    student_id: str
     id: int | None = None
 
 
@@ -62,15 +68,15 @@ def require_member(req: Request) -> CurrentMember:
     raw: Any = req.session.get("member")
     data = cast("dict[str, object] | None", raw)
     if isinstance(data, dict):
-        em = data.get("email")
+        sid = data.get("student_id")
         mid = data.get("id")
         member_id = int(mid) if isinstance(mid, (int, str)) else None
-        if isinstance(em, str):
-            return CurrentMember(email=em, id=member_id)
+        if isinstance(sid, str):
+            return CurrentMember(student_id=sid, id=member_id)
     # 임시 호환: 관리자 세션 보유 시 멤버로 간주(후속 단계에서 제거)
     admin = _get_admin_session(req)
     if admin:
-        return CurrentMember(email=admin.email)
+        return CurrentMember(student_id=admin.student_id)
     raise HTTPException(status_code=401, detail="unauthorized")
 
 
@@ -89,14 +95,14 @@ def member_login(
 
     # 학번으로 회원과 자격을 조회
     member = db.query(Member).filter(Member.student_id == payload.student_id).first()
-    creds = db.query(MemberAuth).filter(
-        MemberAuth.student_id == payload.student_id
-    ).first()
+    creds = (
+        db.query(MemberAuth).filter(MemberAuth.student_id == payload.student_id).first()
+    )
     if member is None or creds is None:
         raise HTTPException(status_code=401, detail="login_failed")
     if not bcrypt.checkpw(payload.password.encode(), creds.password_hash.encode()):
         raise HTTPException(status_code=401, detail="login_failed")
-    request.session["member"] = {"email": member.email, "id": member.id}
+    request.session["member"] = {"student_id": member.student_id, "id": member.id}
     return {"ok": "true"}
 
 
@@ -107,7 +113,7 @@ def member_logout(request: Request) -> None:
 
 @router.get("/member/me")
 def member_me(m: CurrentMember = Depends(require_member)) -> dict[str, str]:
-    return {"email": m.email}
+    return {"student_id": m.student_id}
 
 
 class MemberActivatePayload(BaseModel):
@@ -147,7 +153,10 @@ def member_activate(
     # 멤버 조회/생성
     member = db.query(Member).filter(Member.email == email_obj).first()
     if member is None:
+        # 이메일의 @ 앞부분을 student_id로 사용 (임시 방안)
+        student_id = email_obj.split("@")[0]
         member = Member(
+            student_id=student_id,
             email=email_obj,
             name=(name_obj if isinstance(name_obj, str) and name_obj else "Member"),
             cohort=int(cohort_obj) if isinstance(cohort_obj, int) else 1,
@@ -161,11 +170,15 @@ def member_activate(
     # 자격 생성/갱신
     bcrypt = __import__("bcrypt")
     pwd_hash = bcrypt.hashpw(payload.password.encode(), bcrypt.gensalt()).decode()
-    auth_row = db.query(MemberAuth).filter(MemberAuth.email == member.email).first()
+    auth_row = (
+        db.query(MemberAuth).filter(MemberAuth.student_id == member.student_id).first()
+    )
     if auth_row is None:
         db.add(
             MemberAuth(
-                member_id=member.id, email=member.email, password_hash=pwd_hash
+                member_id=member.id,
+                student_id=member.student_id,
+                password_hash=pwd_hash,
             )
         )
     else:
@@ -173,7 +186,7 @@ def member_activate(
     db.commit()
 
     # 세션 로그인 처리
-    request.session["member"] = {"email": member.email, "id": member.id}
+    request.session["member"] = {"student_id": member.student_id, "id": member.id}
     return {"ok": "true"}
 
 
@@ -193,7 +206,9 @@ def change_password(
         consume_limit(limiter_login, request, get_settings().rate_limit_login)
 
     bcrypt = __import__("bcrypt")
-    auth_row = db.query(MemberAuth).filter(MemberAuth.email == m.email).first()
+    auth_row = (
+        db.query(MemberAuth).filter(MemberAuth.student_id == m.student_id).first()
+    )
     if auth_row is None:
         raise HTTPException(status_code=401, detail="unauthorized")
     if not bcrypt.checkpw(
@@ -216,14 +231,18 @@ def login(
     if not _is_test_client(request):
         consume_limit(limiter_login, request, get_settings().rate_limit_login)
 
-    user = db.query(AdminUser).filter(
-        AdminUser.student_id == payload.student_id
-    ).first()
+    user = (
+        db.query(AdminUser).filter(AdminUser.student_id == payload.student_id).first()
+    )
     if user is None:
         raise HTTPException(status_code=401, detail="login_failed")
     if not bcrypt.checkpw(payload.password.encode(), user.password_hash.encode()):
         raise HTTPException(status_code=401, detail="login_failed")
-    request.session["admin"] = {"id": user.id, "student_id": user.student_id}
+    request.session["admin"] = {
+        "id": user.id,
+        "email": user.email or user.student_id,
+        "student_id": user.student_id,
+    }
     return {"ok": "true"}
 
 

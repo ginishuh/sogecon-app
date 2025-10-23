@@ -39,6 +39,7 @@ def _avatar_url_from_path(path: str | None) -> str | None:
 
 
 class MemberBase(BaseModel):
+    student_id: str
     email: EmailStr
     name: str
     cohort: int
@@ -187,6 +188,11 @@ class RSVPBase(BaseModel):
 
 class RSVPCreate(RSVPBase):
     pass
+
+
+class MemberAuthCreate(BaseModel):
+    student_id: str
+    password: str
 
 
 class RSVPStatusUpdate(BaseModel):

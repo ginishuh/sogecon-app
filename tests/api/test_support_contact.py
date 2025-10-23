@@ -21,7 +21,7 @@ async def test_support_contact_rate_limit_and_validation(client: TestClient) -> 
         # login as admin to satisfy require_member compatibility
         rc_login = await hc.post(
             "/auth/login",
-            json={"email": "__seed__@example.com", "password": "__seed__"},
+            json={"student_id": "__seed__admin", "password": "__seed__"},
         )
         assert rc_login.status_code in (HTTPStatus.OK, HTTPStatus.UNAUTHORIZED)
         if rc_login.status_code == HTTPStatus.UNAUTHORIZED:

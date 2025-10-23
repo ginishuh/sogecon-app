@@ -9,7 +9,12 @@ def test_create_post_and_get(admin_login: TestClient) -> None:
     client = admin_login
     m = client.post(
         "/members/",
-        json={"email": "author@example.com", "name": "Author", "cohort": 2025},
+        json={
+            "student_id": "author001",
+            "email": "author@example.com",
+            "name": "Author",
+            "cohort": 2025,
+        },
     ).json()
     p = client.post(
         "/posts/",
@@ -59,11 +64,21 @@ def test_rsvp_capacity_v1_enforces_waitlist(admin_login: TestClient) -> None:
     ).json()
     m1 = client.post(
         "/members/",
-        json={"email": "a@example.com", "name": "A", "cohort": 2025},
+        json={
+            "student_id": "m1001",
+            "email": "a@example.com",
+            "name": "A",
+            "cohort": 2025,
+        },
     ).json()
     m2 = client.post(
         "/members/",
-        json={"email": "b@example.com", "name": "B", "cohort": 2025},
+        json={
+            "student_id": "m1002",
+            "email": "b@example.com",
+            "name": "B",
+            "cohort": 2025,
+        },
     ).json()
 
     r1 = client.post(
@@ -94,7 +109,12 @@ def test_rsvp_going_reassertion_keeps_status(admin_login: TestClient) -> None:
     ).json()
     m1 = client.post(
         "/members/",
-        json={"email": "ra@example.com", "name": "ReAssert", "cohort": 2025},
+        json={
+            "student_id": "ra001",
+            "email": "ra@example.com",
+            "name": "ReAssert",
+            "cohort": 2025,
+        },
     ).json()
 
     r1 = client.post(
@@ -121,7 +141,12 @@ def test_rsvp_create_success(admin_login: TestClient) -> None:
     client = admin_login
     m = client.post(
         "/members/",
-        json={"email": "c@example.com", "name": "C", "cohort": 2025},
+        json={
+            "student_id": "c001",
+            "email": "c@example.com",
+            "name": "C",
+            "cohort": 2025,
+        },
     ).json()
     e = client.post(
         "/events/",
@@ -145,11 +170,21 @@ def test_rsvp_waitlist_promoted_on_cancel(admin_login: TestClient) -> None:
     # capacity 1: m1 going, m2 waitlist → m1 cancel 시 m2 going 승급
     m1 = client.post(
         "/members/",
-        json={"email": "p1@example.com", "name": "P1", "cohort": 2025},
+        json={
+            "student_id": "p1001",
+            "email": "p1@example.com",
+            "name": "P1",
+            "cohort": 2025,
+        },
     ).json()
     m2 = client.post(
         "/members/",
-        json={"email": "p2@example.com", "name": "P2", "cohort": 2025},
+        json={
+            "student_id": "p1002",
+            "email": "p2@example.com",
+            "name": "P2",
+            "cohort": 2025,
+        },
     ).json()
     e = client.post(
         "/events/",

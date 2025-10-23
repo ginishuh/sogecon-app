@@ -159,6 +159,10 @@ def get_member_by_email(db: Session, email: str) -> models.Member:
     return members_repo.get_member_by_email(db, email)
 
 
+def get_member_by_student_id(db: Session, student_id: str) -> models.Member:
+    return members_repo.get_member_by_student_id(db, student_id)
+
+
 def update_member_profile(
     db: Session, *, member_id: int, data: schemas.MemberUpdate
 ) -> models.Member:

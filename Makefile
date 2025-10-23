@@ -11,6 +11,14 @@ VENV_BIN := $(VENV_DIR)/bin
 DB_DEV_PORT ?= 5433
 DB_TEST_PORT ?= 5434
 
+# Helper function to wait for PostgreSQL container to be ready
+define wait_for_pg
+	@echo "[db] Waiting for $(1) to be ready..."
+	@timeout 60 bash -c 'until docker compose -f infra/docker-compose.dev.yml exec -T $(1) pg_isready -U app -d $(2) >/dev/null 2>&1; do sleep 2; done' || { \
+		echo "[db] Timeout waiting for $(1) to be ready"; exit 1; \
+	}
+endef
+
 venv:
 	python -m venv .venv
 	. .venv/bin/activate && pip install --upgrade pip
@@ -29,13 +37,8 @@ db-up:
 		docker version >/dev/null 2>&1 || { echo "[db] Error: Docker is not running. Please start Docker first."; exit 1; }; \
 		exit 1; \
 	}
-	@echo "[db] Waiting for databases to be ready..."
-	@timeout 60 bash -c 'until docker compose -f infra/docker-compose.dev.yml exec -T postgres pg_isready -U app -d appdb >/dev/null 2>&1; do sleep 2; done' || { \
-		echo "[db] Timeout waiting for postgres to be ready"; exit 1; \
-	}
-	@timeout 60 bash -c 'until docker compose -f infra/docker-compose.dev.yml exec -T postgres_test pg_isready -U app -d appdb_test >/dev/null 2>&1; do sleep 2; done' || { \
-		echo "[db] Timeout waiting for postgres_test to be ready"; exit 1; \
-	}
+	$(call wait_for_pg,postgres,appdb)
+	$(call wait_for_pg,postgres_test,appdb_test)
 	@echo "[db] PostgreSQL containers are ready (dev:5433, test:5434)"
 
 db-down:

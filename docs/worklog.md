@@ -1,3 +1,15 @@
+## 2025-10-24
+
+- 인증 시스템 마이그레이션 완료: 이메일 기반에서 학번 기반으로 전환
+  - 데이터베이스: MemberAuth 모델에서 email 필드 제거, student_id만 유지 (Alembic 마이그레이션 적용)
+  - 스키마: MemberAuthCreate를 student_id/password만으로 구성, Pydantic v1/v2 호환성 문제 해결
+  - 서비스/리포지토리: get_member_by_student_id 함수 추가, 모든 인증 관련 로직을 학번 기반으로 수정
+  - 세션 관리: CurrentMember/CurrentAdmin 클래스를 student_id 필드 기반으로 재구성
+  - API 라우터: posts.py에서 member.email 대신 member.student_id 사용하도록 수정
+  - 테스트: 58개 테스트 전체 통과 확인, 모든 테스트 픽스처에 student_id 필드 추가
+  - CI: 원래 실패하던 test_member_activate_and_login을 포함한 모든 테스트가 정상 작동
+  - 문서: architecture.md에 인증 체계 변경 사항 반영 (학번 기반 자체 인증으로 확정)
+
 ## 2025-10-06
 
 

@@ -10,12 +10,12 @@ from apps.api import models
 from apps.api.db import get_db
 
 
-def _seed_admin(client: TestClient, email: str, password: str) -> None:
-    # Access the same DB session used by the app via dependency override in conftest
+def _seed_admin(client: TestClient, student_id: str, password: str) -> None:
+    # Access the same DB session used by app via dependency override in conftest
     db: Session = next(iter(client.app.dependency_overrides[get_db]().__iter__()))  # type: ignore[arg-type]
     try:
         pwd = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-        admin = models.AdminUser(email=email, password_hash=pwd)
+        admin = models.AdminUser(student_id=student_id, password_hash=pwd)
         db.add(admin)
         db.commit()
     finally:
@@ -23,7 +23,7 @@ def _seed_admin(client: TestClient, email: str, password: str) -> None:
 
 
 def test_login_success_and_protected_routes(client: TestClient) -> None:
-    _seed_admin(client, "admin@example.com", "adminpass")
+    _seed_admin(client, "admin001", "adminpass")
 
     # Protected route: create post should require login
     res_unauth = client.post(
@@ -34,7 +34,7 @@ def test_login_success_and_protected_routes(client: TestClient) -> None:
 
     # Login
     res_login = client.post(
-        "/auth/login", json={"email": "admin@example.com", "password": "adminpass"}
+        "/auth/login", json={"student_id": "admin001", "password": "adminpass"}
     )
     assert res_login.status_code == HTTPStatus.OK
 
@@ -42,7 +42,12 @@ def test_login_success_and_protected_routes(client: TestClient) -> None:
     # 먼저 멤버 생성(보호됨)
     res_member = client.post(
         "/members/",
-        json={"email": "m@example.com", "name": "M", "cohort": 2025},
+        json={
+            "student_id": "student001",
+            "email": "m@example.com",
+            "name": "M",
+            "cohort": 2025,
+        },
     )
     assert res_member.status_code == HTTPStatus.CREATED
 
@@ -74,7 +79,5 @@ def test_login_success_and_protected_routes(client: TestClient) -> None:
 
 
 def test_login_failure(client: TestClient) -> None:
-    res = client.post(
-        "/auth/login", json={"email": "none@example.com", "password": "x"}
-    )
+    res = client.post("/auth/login", json={"student_id": "none001", "password": "x"})
     assert res.status_code == HTTPStatus.UNAUTHORIZED

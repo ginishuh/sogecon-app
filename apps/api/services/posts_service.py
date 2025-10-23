@@ -35,12 +35,12 @@ def create_member_post(
     db: Session,
     payload: schemas.PostCreate,
     *,
-    member_email: str,
+    member_student_id: str,
     member_id: int | None = None,
 ) -> models.Post:
     author_id = member_id
     if author_id is None:
-        member = members_repo.get_member_by_email(db, member_email)
+        member = members_repo.get_member_by_student_id(db, member_student_id)
         author_id = member.id
     sanitized = payload.model_copy(
         update={

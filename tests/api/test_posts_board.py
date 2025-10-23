@@ -67,7 +67,7 @@ async def test_post_create_rate_limit(member_login: TestClient) -> None:
     async with httpx.AsyncClient(transport=transport, base_url="http://local") as hc:
         login_res = await hc.post(
             "/auth/member/login",
-            json={"email": "member@example.com", "password": "memberpass"},
+            json={"student_id": "member001", "password": "memberpass"},
         )
         assert login_res.status_code == HTTPStatus.OK
 

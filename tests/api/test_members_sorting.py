@@ -36,6 +36,7 @@ def test_members_sort_recent(admin_login: TestClient) -> None:
     older = client.post(
         "/members/",
         json={
+            "student_id": "older001",
             "email": "older@example.com",
             "name": "Older",
             "cohort": 1,
@@ -44,6 +45,7 @@ def test_members_sort_recent(admin_login: TestClient) -> None:
     newer = client.post(
         "/members/",
         json={
+            "student_id": "newer001",
             "email": "newer@example.com",
             "name": "Newer",
             "cohort": 1,
@@ -68,9 +70,24 @@ def test_members_sort_recent(admin_login: TestClient) -> None:
 def test_members_sort_cohort_desc(admin_login: TestClient) -> None:
     client = admin_login
     payloads = [
-        {"email": "anna@example.com", "name": "Anna", "cohort": 3},
-        {"email": "brad@example.com", "name": "Brad", "cohort": 3},
-        {"email": "carol@example.com", "name": "Carol", "cohort": 1},
+        {
+            "student_id": "anna001",
+            "email": "anna@example.com",
+            "name": "Anna",
+            "cohort": 3,
+        },
+        {
+            "student_id": "brad001",
+            "email": "brad@example.com",
+            "name": "Brad",
+            "cohort": 3,
+        },
+        {
+            "student_id": "carol001",
+            "email": "carol@example.com",
+            "name": "Carol",
+            "cohort": 1,
+        },
     ]
     for payload in payloads:
         res = client.post("/members/", json=payload)

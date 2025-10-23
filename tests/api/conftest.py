@@ -75,7 +75,7 @@ def admin_login(client: TestClient) -> TestClient:
     """관리자 계정 시드 후 로그인한 클라이언트를 반환."""
     # 기존 세션에서 바로 시도
     res = client.post(
-        "/auth/login", json={"email": "__seed__@example.com", "password": "__seed__"}
+        "/auth/login", json={"student_id": "__seed__admin", "password": "__seed__"}
     )
     if res.status_code == HTTPStatus.OK:
         return client
@@ -88,7 +88,7 @@ def admin_login(client: TestClient) -> TestClient:
     db: Session = next(gen)
     try:
         pwd = hashpw(b"__seed__", gensalt()).decode()
-        admin = models.AdminUser(email="__seed__@example.com", password_hash=pwd)
+        admin = models.AdminUser(student_id="__seed__admin", password_hash=pwd)
         db.add(admin)
         db.commit()
     finally:
@@ -99,7 +99,7 @@ def admin_login(client: TestClient) -> TestClient:
             pass
 
     client.post(
-        "/auth/login", json={"email": "__seed__@example.com", "password": "__seed__"}
+        "/auth/login", json={"student_id": "__seed__admin", "password": "__seed__"}
     )
     return client
 
@@ -110,7 +110,7 @@ def member_login(client: TestClient) -> TestClient:
     # 시도: 기존 세션으로 바로 로그인
     rc = client.post(
         "/auth/member/login",
-        json={"email": "member@example.com", "password": "memberpass"},
+        json={"student_id": "member001", "password": "memberpass"},
     )
     if rc.status_code == HTTPStatus.OK:
         return client
@@ -125,11 +125,12 @@ def member_login(client: TestClient) -> TestClient:
         # create member if not exists
         m = (
             db.query(models.Member)
-            .filter(models.Member.email == "member@example.com")
+            .filter(models.Member.student_id == "member001")
             .first()
         )
         if m is None:
             m = models.Member(
+                student_id="member001",
                 email="member@example.com",
                 name="Member",
                 cohort=1,
@@ -142,11 +143,15 @@ def member_login(client: TestClient) -> TestClient:
         pwd = hashpw(b"memberpass", gensalt()).decode()
         auth_row = (
             db.query(models.MemberAuth)
-            .filter(models.MemberAuth.email == m.email)
+            .filter(models.MemberAuth.student_id == m.student_id)
             .first()
         )
         if auth_row is None:
-            db.add(models.MemberAuth(member_id=m.id, email=m.email, password_hash=pwd))
+            db.add(
+                models.MemberAuth(
+                    member_id=m.id, student_id=m.student_id, password_hash=pwd
+                )
+            )
             db.commit()
     finally:
         db.close()
@@ -157,6 +162,6 @@ def member_login(client: TestClient) -> TestClient:
 
     client.post(
         "/auth/member/login",
-        json={"email": "member@example.com", "password": "memberpass"},
+        json={"student_id": "member001", "password": "memberpass"},
     )
     return client
