@@ -40,7 +40,16 @@ class Member(Base):
     cohort = Column(Integer, nullable=False)
     major = Column(String(255), nullable=True)
     roles = Column(String(255), nullable=False, default="member")
-    visibility = Column(Enum(Visibility), nullable=False, default=Visibility.ALL)
+    # Enum 라벨을 DB에 소문자(value)로 저장하도록 values_callable 지정
+    visibility = Column(
+        Enum(
+            Visibility,
+            name="visibility",
+            values_callable=lambda e: [m.value for m in e],
+        ),
+        nullable=False,
+        default=Visibility.ALL,
+    )
     # B v1 확장: 표시용 생일(양/음) + 연락처(간단 문자열)
     birth_date = Column(String(10), nullable=True)  # 'YYYY-MM-DD'
     birth_lunar = Column(Boolean, nullable=True)
@@ -129,7 +138,16 @@ class RSVP(Base):
         ForeignKey("events.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    status = Column(Enum(RSVPStatus), nullable=False, default=RSVPStatus.GOING)
+    # 마찬가지로 RSVP 상태도 소문자 라벨 적용
+    status = Column(
+        Enum(
+            RSVPStatus,
+            name="rsvpstatus",
+            values_callable=lambda e: [m.value for m in e],
+        ),
+        nullable=False,
+        default=RSVPStatus.GOING,
+    )
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

@@ -281,6 +281,8 @@
 
 ## 2025-10-23
 
+- DB 스키마 리셋 및 ENUM 라벨 정합화: 모델 `Enum(..., values_callable=...)`로 소문자 라벨 고정, Postgres 전용 리비전으로 기존 대문자 값을 소문자로 rename. Make 타깃 추가(`db-reset`, `db-test-reset`, `api-migrate`, `api-migrate-test`) 후 dev/test DB 스키마 드롭→업그레이드 적용.
+
 - 마이그레이션 재설정 및 환경변수 개선
   - 기존 15개 마이그레이션 파일 삭제 및 단일 초기 마이그레이션으로 통합 (559d5829569f)
   - PostgreSQL 마이그레이션 시 version_num 필드 길이 문제 해결
