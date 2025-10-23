@@ -5,7 +5,7 @@ from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from itsdangerous import BadData, BadSignature, URLSafeSerializer
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
@@ -24,7 +24,7 @@ def _is_test_client(request: Request) -> bool:
 
 
 class LoginPayload(BaseModel):
-    email: EmailStr
+    student_id: str
     password: str
 
 
@@ -75,7 +75,7 @@ def require_member(req: Request) -> CurrentMember:
 
 
 class MemberLoginPayload(BaseModel):
-    email: EmailStr
+    student_id: str
     password: str
 
 
@@ -87,9 +87,11 @@ def member_login(
     if not _is_test_client(request):
         consume_limit(limiter_login, request, get_settings().rate_limit_login)
 
-    # 이메일로 회원과 자격을 조회
-    member = db.query(Member).filter(Member.email == payload.email).first()
-    creds = db.query(MemberAuth).filter(MemberAuth.email == payload.email).first()
+    # 학번으로 회원과 자격을 조회
+    member = db.query(Member).filter(Member.student_id == payload.student_id).first()
+    creds = db.query(MemberAuth).filter(
+        MemberAuth.student_id == payload.student_id
+    ).first()
     if member is None or creds is None:
         raise HTTPException(status_code=401, detail="login_failed")
     if not bcrypt.checkpw(payload.password.encode(), creds.password_hash.encode()):
@@ -214,12 +216,14 @@ def login(
     if not _is_test_client(request):
         consume_limit(limiter_login, request, get_settings().rate_limit_login)
 
-    user = db.query(AdminUser).filter(AdminUser.email == payload.email).first()
+    user = db.query(AdminUser).filter(
+        AdminUser.student_id == payload.student_id
+    ).first()
     if user is None:
         raise HTTPException(status_code=401, detail="login_failed")
     if not bcrypt.checkpw(payload.password.encode(), user.password_hash.encode()):
         raise HTTPException(status_code=401, detail="login_failed")
-    request.session["admin"] = {"id": user.id, "email": user.email}
+    request.session["admin"] = {"id": user.id, "student_id": user.student_id}
     return {"ok": "true"}
 
 

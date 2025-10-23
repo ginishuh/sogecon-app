@@ -2,7 +2,8 @@
         api-start api-stop api-restart api-status \
         web-start web-stop web-restart web-status \
         dev-up dev-down dev-status \
-        db-reset db-test-reset db-reset-all api-migrate api-migrate-test
+        db-reset db-test-reset db-reset-all api-migrate api-migrate-test \
+        seed-data
 
 # Detect active virtualenv; fallback to project-local .venv
 VENV_DIR ?= $(if $(VIRTUAL_ENV),$(VIRTUAL_ENV),.venv)
@@ -74,7 +75,7 @@ api-start: db-up
 		exit 1; \
 	fi
 	@mkdir -p logs
-	@nohup "$(VENV_BIN)/uvicorn" apps.api.main:app --reload --port 3001 --reload-dir apps/api > logs/api-dev.log 2>&1 & echo $$! > .api-dev.pid
+	@cd apps/api && nohup "$(VENV_BIN)/uvicorn" main:app --reload --port 3001 > ../../logs/api-dev.log 2>&1 & echo $$! > .api-dev.pid
 	@echo "[api] started (pid $$(cat .api-dev.pid)) → logs/api-dev.log"
 
 api-stop:
@@ -146,3 +147,11 @@ api-migrate-test:
 	fi
 	DB_URL=postgresql+psycopg://app:devpass@localhost:$(DB_TEST_PORT)/appdb_test; \
 	DATABASE_URL="$$DB_URL" "$(VENV_BIN)/alembic" -c apps/api/alembic.ini upgrade head
+
+seed-data:
+	@if [ ! -x "$(VENV_BIN)/python" ]; then \
+		echo "[make] Python not found in '$(VENV_BIN)'. Run 'make venv' and 'make api-install'."; \
+		exit 1; \
+	fi
+	@echo "[seed] Creating seed data..."
+	"$(VENV_BIN)/python" -m apps.api.seed_data

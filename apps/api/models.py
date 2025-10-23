@@ -45,7 +45,8 @@ class Member(Base):
     __tablename__ = "members"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(255), nullable=False, unique=True, index=True)
+    student_id = Column(String(20), nullable=False, unique=True, index=True)
+    email = Column(String(255), nullable=True, unique=True, index=True)
     name = Column(String(255), nullable=False)
     cohort = Column(Integer, nullable=False)
     major = Column(String(255), nullable=True)
@@ -170,7 +171,8 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id = Column(Integer, primary_key=True)
-    email = Column(String(255), nullable=False, unique=True, index=True)
+    student_id = Column(String(20), nullable=False, unique=True, index=True)
+    email = Column(String(255), nullable=True, unique=True, index=True)
     password_hash = Column(String(255), nullable=False)
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
@@ -238,7 +240,7 @@ class MemberAuth(Base):
         Integer, ForeignKey("members.id", ondelete="CASCADE"), nullable=False
     )
     __table_args__ = (Index("ix_member_auth_member_id", "member_id"),)
-    email = Column(String(255), nullable=False, unique=True, index=True)
+    student_id = Column(String(20), nullable=False, unique=True, index=True)
     password_hash = Column(String(255), nullable=False)
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

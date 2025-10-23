@@ -27,3 +27,12 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+
+def get_db_session() -> Generator[Session, None, None]:
+    """시드 데이터 등을 위한 세션 컨텍스트 매니저"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
