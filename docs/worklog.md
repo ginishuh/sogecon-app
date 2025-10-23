@@ -338,4 +338,4 @@
 - fix(api): Alembic 리비전 SQLite 호환 분기 및 enum 라벨 소문자 정렬, 빈 리비전 제거
 - chore(ops): Makefile wait_for_pg 함수 도입 및 PID 경로 정리
 - docs(docs): .env.example CORS_ORIGINS 설명 강화, dev_log 갱신
-- chore(repo): artifacts/ 폴더 gitignore 추가, 오래된 브랜치 백업 파일 정리
+- revert(ops): artifacts/ 폴더 .gitignore 추가를 취소(되돌림); 필요 시 수동 백업 사용
