@@ -16,7 +16,12 @@ def test_member_not_found_returns_problem_details(client: TestClient) -> None:
 
 def test_member_create_conflict_code(admin_login: TestClient) -> None:
     client = admin_login
-    payload = {"email": "user@example.com", "name": "User", "cohort": 2025}
+    payload = {
+        "student_id": "user001",
+        "email": "user@example.com",
+        "name": "User",
+        "cohort": 2025,
+    }
     res1 = client.post("/members/", json=payload)
     assert res1.status_code == HTTPStatus.CREATED
 
@@ -48,7 +53,12 @@ def test_rsvp_not_found_returns_problem_details(admin_login: TestClient) -> None
     # 선행: 회원/이벤트 생성
     m = client.post(
         "/members/",
-        json={"email": "rsvp@example.com", "name": "RSVP", "cohort": 2025},
+        json={
+            "student_id": "rsvp001",
+            "email": "rsvp@example.com",
+            "name": "RSVP",
+            "cohort": 2025,
+        },
     ).json()
     e = client.post(
         "/events/",
@@ -73,7 +83,12 @@ def test_rsvp_create_conflict_code(admin_login: TestClient) -> None:
     # 선행: 회원/이벤트 생성
     m = client.post(
         "/members/",
-        json={"email": "dup@example.com", "name": "Dup", "cohort": 2025},
+        json={
+            "student_id": "dup001",
+            "email": "dup@example.com",
+            "name": "Dup",
+            "cohort": 2025,
+        },
     ).json()
     e = client.post(
         "/events/",
@@ -102,7 +117,12 @@ def test_events_rsvp_upsert_create_and_update(admin_login: TestClient) -> None:
     # 선행: 회원/이벤트 생성
     m = client.post(
         "/members/",
-        json={"email": "upsert@example.com", "name": "Up Ser", "cohort": 2025},
+        json={
+            "student_id": "upsert001",
+            "email": "upsert@example.com",
+            "name": "Up Ser",
+            "cohort": 2025,
+        },
     ).json()
     e = client.post(
         "/events/",
@@ -135,7 +155,12 @@ def test_events_rsvp_invalid_enum_422(admin_login: TestClient) -> None:
     # 선행: 회원/이벤트 생성
     m = client.post(
         "/members/",
-        json={"email": "enum@example.com", "name": "Enum", "cohort": 2025},
+        json={
+            "student_id": "enum001",
+            "email": "enum@example.com",
+            "name": "Enum",
+            "cohort": 2025,
+        },
     ).json()
     e = client.post(
         "/events/",

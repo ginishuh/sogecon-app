@@ -107,7 +107,7 @@ def create_post(
         post = posts_service.create_member_post(
             db,
             sanitized,
-            member_email=member.email,
+            member_student_id=member.student_id,
             member_id=member.id,
         )
 

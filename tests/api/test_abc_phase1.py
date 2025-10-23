@@ -14,11 +14,13 @@ def _make_activation_token(data: dict[str, object]) -> str:
 
 
 def test_member_activate_and_login(client: TestClient) -> None:
-    token = _make_activation_token({
-        "email": "abc1@example.com",
-        "name": "ABC One",
-        "cohort": 1,
-    })
+    token = _make_activation_token(
+        {
+            "email": "abc1@example.com",
+            "name": "ABC One",
+            "cohort": 1,
+        }
+    )
     res = client.post("/auth/member/activate", json={"token": token, "password": "pw1"})
     assert res.status_code == HTTPStatus.OK
     # change password with member session
@@ -29,14 +31,14 @@ def test_member_activate_and_login(client: TestClient) -> None:
     assert res2.status_code == HTTPStatus.OK
 
     # profile get/put
-    me = client.get('/me/')
+    me = client.get("/me/")
     assert me.status_code == HTTPStatus.OK
     data = me.json()
-    assert 'email' in data and data['email'] == 'abc1@example.com'
-    upd = client.put('/me/', json={'name': 'Renamed', 'visibility': 'cohort'})
+    assert "email" in data and data["email"] == "abc1@example.com"
+    upd = client.put("/me/", json={"name": "Renamed", "visibility": "cohort"})
     assert upd.status_code == HTTPStatus.OK
     data2 = upd.json()
-    assert data2['name'] == 'Renamed'
+    assert data2["name"] == "Renamed"
 
 
 def test_member_activate_invalid_token_401(client: TestClient) -> None:

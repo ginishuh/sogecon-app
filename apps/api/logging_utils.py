@@ -57,6 +57,8 @@ def log_json(
 def emit_error_event(event: Mapping[str, object]) -> None:
     """외부 에러 알림 연동(Sentry). DSN 미설정 시 No-op."""
     event_payload = dict(event)
+    # level 키가 있으면 제거하여 log_json의 level 파라미터와 충돌 방지
+    event_payload.pop("level", None)
     log_json(
         logging.getLogger("apps.api.error_event"),
         logging.DEBUG,

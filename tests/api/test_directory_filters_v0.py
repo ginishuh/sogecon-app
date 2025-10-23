@@ -20,6 +20,7 @@ def _seed_members(n: int = 5) -> None:
         # seed
         payloads = [
             dict(
+                student_id="alice001",
                 email="a@example.com",
                 name="Alice",
                 cohort=1,
@@ -30,6 +31,7 @@ def _seed_members(n: int = 5) -> None:
                 addr_company="Seoul",
             ),
             dict(
+                student_id="bob002",
                 email="b@example.com",
                 name="Bob",
                 cohort=1,
@@ -40,6 +42,7 @@ def _seed_members(n: int = 5) -> None:
                 addr_company="Seoul",
             ),
             dict(
+                student_id="charlie003",
                 email="c@example.com",
                 name="Charlie",
                 cohort=2,
@@ -50,6 +53,7 @@ def _seed_members(n: int = 5) -> None:
                 addr_company="Incheon",
             ),
             dict(
+                student_id="dana004",
                 email="d@example.com",
                 name="Dana",
                 cohort=2,
@@ -60,6 +64,7 @@ def _seed_members(n: int = 5) -> None:
                 addr_company="Busan",
             ),
             dict(
+                student_id="eve005",
                 email="e@example.com",
                 name="Eve",
                 cohort=3,

@@ -1,3 +1,15 @@
+## 2025-10-24
+
+- 인증 시스템 마이그레이션 완료: 이메일 기반에서 학번 기반으로 전환
+  - 데이터베이스: MemberAuth 모델에서 email 필드 제거, student_id만 유지 (Alembic 마이그레이션 적용)
+  - 스키마: MemberAuthCreate를 student_id/password만으로 구성, Pydantic v1/v2 호환성 문제 해결
+  - 서비스/리포지토리: get_member_by_student_id 함수 추가, 모든 인증 관련 로직을 학번 기반으로 수정
+  - 세션 관리: CurrentMember/CurrentAdmin 클래스를 student_id 필드 기반으로 재구성
+  - API 라우터: posts.py에서 member.email 대신 member.student_id 사용하도록 수정
+  - 테스트: 58개 테스트 전체 통과 확인, 모든 테스트 픽스처에 student_id 필드 추가
+  - CI: 원래 실패하던 test_member_activate_and_login을 포함한 모든 테스트가 정상 작동
+  - 문서: architecture.md에 인증 체계 변경 사항 반영 (학번 기반 자체 인증으로 확정)
+
 ## 2025-10-06
 
 
@@ -277,3 +289,52 @@
  - 문서: `docs/design_system.md`에 폰트/이미지/레이아웃 성능 가이드 보강
 2025-10-10
 - docs: README 전면 개편 — 최신 템플릿/버전/빠른 시작/품질·보안/FAQ 반영, `docs/versions.md`·`AGENTS.md`·`Makefile`와 정합성 확인
+
+
+## 2025-10-23
+
+- DB 스키마 리셋 및 ENUM 라벨 정합화: 모델 `Enum(..., values_callable=...)`로 소문자 라벨 고정, Postgres 전용 리비전으로 기존 대문자 값을 소문자로 rename. Make 타깃 추가(`db-reset`, `db-test-reset`, `api-migrate`, `api-migrate-test`) 후 dev/test DB 스키마 드롭→업그레이드 적용.
+- Makefile에 스키마 리셋/마이그레이션 타깃을 추가하고 문서(dev_log) 갱신.
+- Pyright(strict) 호환: Enum values_callable에 타입 보강(_enum_values) 적용.
+
+- 마이그레이션 재설정 및 환경변수 개선
+  - 기존 15개 마이그레이션 파일 삭제 및 단일 초기 마이그레이션으로 통합 (559d5829569f)
+  - PostgreSQL 마이그레이션 시 version_num 필드 길이 문제 해결
+  - 데이터베이스 스키마 완전 재구성 (10개 테이블, 29개 인덱스)
+  - SQLite와 PostgreSQL 모두에서 마이그레이션 검증 완료
+- 개발 환경 자동화 개선
+  - Makefile에 DB 컨테이너 자동 시작 의존성 추가 (api-dev, api-start, dev-up)
+  - db-up 타겟에 상세 로그 및 health check 추가
+- 환경변수 설정 정리
+  - .env.example 중복 설정 제거 및 누락된 필드 추가
+  - .env.dev 파일 생성 (개발용 PostgreSQL, 테스트용 SQLite 설정)
+  - CORS_ORIGINS JSON 배열 형식으로 명확화
+  - 레이트 리밋, Web Push, Docker 포트 설정 포함
+- 기타 개선
+  - 마이그레이션 템플릿 파일(script.py.mako) 복원
+  - Docker Compose 경고 메시지 수정
+
+
+## 2025-10-23 (후기)
+
+- 개발 워크플로우 개선: pre-push 훅에서 pytest 제거
+  - 로컬 푸시 속도 향상 (테스트는 CI에서 실행)
+  - 개발자 경험 개선 및 CI 자원 활용 최적화
+
+## 2025-10-23 (저녁)
+
+- 학번 기반 인증 시스템 구현
+  - Member, MemberAuth, AdminUser 모델에 student_id 필드 추가
+  - 이메일 기반 로그인을 학번 기반으로 완전 전환 (auth.py 라우터 수정)
+  - 관리자 계정 (s47053/허민철/ginishuh@gmail.com) 및 테스트 멤버 계정들 포함하는 시드 데이터 생성
+  - 개발용/운영용 시드 스크립트 분리 (seed_data.py, seed_production.py)
+  - 패키지 구조 개선 (__init__.py 파일 추가로 import 오류 해결)
+  - 데이터베이스 스키마 마이그레이션 파일 생성
+- 테스트 확인 완료
+  - 관리자 로그인: s47053/admin1234 ✅
+  - 멤버 로그인: s47054/member1234 ✅
+  - API 서버 안정적 운영 확인
+## 2025-10-23 (후속 수정)
+- fix(api): Alembic 리비전 SQLite 호환 분기 및 enum 라벨 소문자 정렬, 빈 리비전 제거
+- chore(ops): Makefile wait_for_pg 함수 도입 및 PID 경로 정리
+- docs(docs): .env.example CORS_ORIGINS 설명 강화, dev_log 갱신

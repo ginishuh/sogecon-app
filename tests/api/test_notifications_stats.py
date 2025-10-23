@@ -12,4 +12,3 @@ def test_stats_range_param(admin_login: TestClient) -> None:
         assert res.status_code == HTTPStatus.OK
         data = res.json()
         assert data.get("range") == r
-

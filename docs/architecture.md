@@ -8,14 +8,15 @@
   - SSOT(목적/IA): `docs/Project_overview.md` — 본 아키텍처는 해당 문서의 범위를 단계적으로 구현한다.
 - **프런트엔드 (`apps/web`)**: Next.js(App Router) 기반의 SSR/SSG 혼합 아키텍처. Tailwind CSS, PWA 설정을 포함하며 한국어 UI를 기본값으로 제공한다. 모바일 웹 우선(모바일 퍼스트)로 반응형을 설계한다. UI 일관성/접근성/성능 기준은 `docs/design_system.md`(디자인 시스템 v1)를 따른다.
 - **백엔드 API (`apps/api`)**: FastAPI + SQLAlchemy 조합으로 RESTful API를 제공한다. Pydantic 스키마(`schemas.py`)가 요청/응답 검증과 문서화를 담당한다.
-  - 인증/권한(개발 단계): 세션 쿠키 기반 관리자(/auth) + 멤버(/auth/member) 로그인 제공. 작성/관리 라우트는 `require_admin`, 구독 저장/삭제는 `require_member`로 보호. 쿠키는 HttpOnly + SameSite=Lax(개발), 운영에서는 Secure 적용.
+- **인증/권한(개발 단계)**: 학번 기반 세션 쿠키 인증. 관리자(/auth) + 멤버(/auth/member) 로그인 제공. `MemberAuth` 모델에서 `student_id`/`password`로 인증. 작성/관리 라우트는 `require_admin`, 구독 저장/삭제는 `require_member`로 보호. 쿠키는 HttpOnly + SameSite=Lax(개발), 운영에서는 Secure 적용.
 - **데이터 스토어**: 개발 기본값은 SQLite(`sqlite:///./dev.sqlite3`), 운영 전환 시 PostgreSQL 16( `infra/docker-compose.dev.yml` 참조 )을 사용한다. ORM 레벨에서 두 엔진 모두 호환되도록 설계했다.
 - **스키마 공유 (`packages/schemas`)**: FastAPI에서 생성한 `openapi.json`을 TypeScript DTO로 변환하여 프런트엔드에서 타입 안정성을 확보한다.
 
 ## 도메인 모델
 | 엔터티 | 주요 속성 | 설명 |
 | --- | --- | --- |
-| `Member` | `email`, `name`, `cohort`, `roles`, `visibility` | 회원 기본 정보와 노출 범위 설정. 역할 문자열(`member`, `admin` 등)로 권한 제어 예정. |
+| `Member` | `student_id`, `email`, `name`, `cohort`, `roles`, `visibility` | 회원 기본 정보와 노출 범위 설정. `student_id`는 고유 식별자이자 인증용 ID. 역할 문자열(`member`, `admin` 등)로 권한 제어 예정. |
+| `MemberAuth` | `student_id`, `password_hash` | 회원 인증 정보. `student_id`를 외래 키로 Member와 연동하며, 비밀번호는 해시 저장. 이메일 기반 인증에서 학번 기반으로 전환 완료. |
 | `Post` | `author_id`, `title`, `content`, `published_at` | 공지/게시글. `published_at` 내림차순 인덱스로 최신 게시물 조회 최적화. |
 | `Event` | `title`, `starts_at`, `ends_at`, `location`, `capacity` | 모임 일정. 시작 일시 인덱스로 일정 정렬 제공. |
 | `RSVP` | `member_id`, `event_id`, `status` | 회원과 이벤트 간 다대다 관계. 기본 상태는 `going`, 취소·대기열 상태를 Enum으로 제한한다. |
@@ -78,7 +79,7 @@
 - **프로덕션 가정**: API와 웹을 분리 배포하되, 공통 인증 게이트웨이(Nginx, CloudFront 등) 뒤에 배치. 데이터베이스는 매니지드 PostgreSQL 사용을 권장.
 
 ## 향후 결정이 필요한 항목
-1. 인증 체계: 동문회 계정 관리 방식(학교 계정 연동 vs 자체 가입) 및 세션 전략.
+1. ~~인증 체계: 동문회 계정 관리 방식(학교 계정 연동 vs 자체 가입) 및 세션 전략.~~ ✅ **완료**: 학번 기반 자체 인증 체계로 확정. `MemberAuth` 모델에서 `student_id`/`password`로 인증.
 2. 권한/역할 설계: `roles` 문자열을 Enum 구조로 정규화할지 여부.
 3. 알림 채널: 이메일/푸시 중심으로 운영하며 SMS는 1차 릴리스에서 제외(보류). 카카오톡 챗봇 등은 차기 검토.
 4. 데이터 이력: 게시글·이벤트 수정 이력, 감사 로그 보존 정책.
@@ -131,7 +132,7 @@
 
 | 영역 | 구현 상태 |
 | --- | --- |
-| 인증/계정(A-1) | 로그인(관리자/멤버) 완료, 회원활성화/비번변경/문의는 후속 |
+| 인증/계정(A-1) | 학번 기반 로그인(관리자/멤버) 완료, 회원활성화/비번변경/문의는 후속 |
 | 내 정보(B) | 데이터 모델만 초안(Member); 화면/편집은 후속 |
 | 수첩(C) | 미착수(검색/필터/상세 포함) |
 | 소식(D) | 게시글(공지 대용) CRUD/목록/상세 완료(초판) |

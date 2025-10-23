@@ -127,6 +127,13 @@ def get_member_by_email(db: Session, email: str) -> models.Member:
     return row
 
 
+def get_member_by_student_id(db: Session, student_id: str) -> models.Member:
+    row = db.query(models.Member).filter(models.Member.student_id == student_id).first()
+    if row is None:
+        raise NotFoundError(code="member_not_found", detail="Member not found")
+    return row
+
+
 def update_member_profile(
     db: Session, *, member_id: int, data: schemas.MemberUpdate
 ) -> models.Member:

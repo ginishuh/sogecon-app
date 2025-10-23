@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+from typing import cast
 
 from sqlalchemy import (
     Boolean,
@@ -31,16 +32,35 @@ class RSVPStatus(enum.Enum):
     CANCEL = "cancel"
 
 
+def _enum_values(enum_cls: type[enum.Enum]) -> list[str]:
+    """SQLAlchemy Enum.values_callable용 헬퍼.
+
+    Pyright(strict)에서 람다의 매개변수/반환 타입 추론 경고를 피하기 위해
+    명시적 시그니처를 둡니다. Enum.value는 Unknown으로 추론되므로 str로 cast합니다.
+    """
+    return [cast(str, member.value) for member in enum_cls]
+
+
 class Member(Base):
     __tablename__ = "members"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(255), nullable=False, unique=True, index=True)
+    student_id = Column(String(20), nullable=False, unique=True, index=True)
+    email = Column(String(255), nullable=True, unique=True, index=True)
     name = Column(String(255), nullable=False)
     cohort = Column(Integer, nullable=False)
     major = Column(String(255), nullable=True)
     roles = Column(String(255), nullable=False, default="member")
-    visibility = Column(Enum(Visibility), nullable=False, default=Visibility.ALL)
+    # Enum 라벨을 DB에 소문자(value)로 저장하도록 values_callable 지정
+    visibility = Column(
+        Enum(
+            Visibility,
+            name="visibility",
+            values_callable=_enum_values,
+        ),
+        nullable=False,
+        default=Visibility.ALL,
+    )
     # B v1 확장: 표시용 생일(양/음) + 연락처(간단 문자열)
     birth_date = Column(String(10), nullable=True)  # 'YYYY-MM-DD'
     birth_lunar = Column(Boolean, nullable=True)
@@ -129,7 +149,16 @@ class RSVP(Base):
         ForeignKey("events.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    status = Column(Enum(RSVPStatus), nullable=False, default=RSVPStatus.GOING)
+    # 마찬가지로 RSVP 상태도 소문자 라벨 적용
+    status = Column(
+        Enum(
+            RSVPStatus,
+            name="rsvpstatus",
+            values_callable=_enum_values,
+        ),
+        nullable=False,
+        default=RSVPStatus.GOING,
+    )
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -142,7 +171,8 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id = Column(Integer, primary_key=True)
-    email = Column(String(255), nullable=False, unique=True, index=True)
+    student_id = Column(String(20), nullable=False, unique=True, index=True)
+    email = Column(String(255), nullable=True, unique=True, index=True)
     password_hash = Column(String(255), nullable=False)
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
@@ -210,8 +240,9 @@ class MemberAuth(Base):
         Integer, ForeignKey("members.id", ondelete="CASCADE"), nullable=False
     )
     __table_args__ = (Index("ix_member_auth_member_id", "member_id"),)
-    email = Column(String(255), nullable=False, unique=True, index=True)
+    student_id = Column(String(20), nullable=False, unique=True, index=True)
     password_hash = Column(String(255), nullable=False)
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+    
