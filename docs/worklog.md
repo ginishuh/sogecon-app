@@ -334,3 +334,7 @@
   - 관리자 로그인: s47053/admin1234 ✅
   - 멤버 로그인: s47054/member1234 ✅
   - API 서버 안정적 운영 확인
+## 2025-10-23 (후속 수정)
+- fix(api): Alembic 리비전 SQLite 호환 분기 및 enum 라벨 소문자 정렬, 빈 리비전 제거
+- chore(ops): Makefile wait_for_pg 함수 도입 및 PID 경로 정리
+- docs(docs): .env.example CORS_ORIGINS 설명 강화, dev_log 갱신

@@ -29,30 +29,39 @@ def create_production_admins(session: Session) -> None:
     # 실제 운영용 강력한 비밀번호
     admin_users = [
         {
+            "student_id": "admin001",
             "email": "admin@segecon.kr",
             "password": "Segecon2025!@#",  # 강력한 비밀번호
-            "description": "최고 관리자"
+            "description": "최고 관리자",
         },
         {
-            "email": "master@segecon.kr", 
+            "student_id": "admin002",
+            "email": "master@segecon.kr",
             "password": "Master2025!@#",
-            "description": "마스터 관리자"
-        }
+            "description": "마스터 관리자",
+        },
     ]
     
     for admin_data in admin_users:
         # 기존 계정 확인
-        existing = session.query(AdminUser).filter_by(email=admin_data["email"]).first()
+        existing = (
+            session.query(AdminUser)
+            .filter_by(student_id=admin_data["student_id"])  # 학번 기준 조회
+            .first()
+        )
         if existing:
             print(f"  ⚠️  관리자 계정 이미 존재: {admin_data['email']}")
             continue
             
         admin = AdminUser(
+            student_id=admin_data["student_id"],
             email=admin_data["email"],
-            password_hash=hash_password(admin_data["password"])
+            password_hash=hash_password(admin_data["password"]),
         )
         session.add(admin)
-        print(f"  ✅ 관리자 계정 생성: {admin_data['email']}")
+        print(
+            f"  ✅ 관리자 계정 생성: {admin_data['student_id']} ({admin_data['email']})"
+        )
     
     session.commit()
 
@@ -64,6 +73,7 @@ def create_production_members(session: Session) -> None:
     # 실제 동문회원 데이터 (예시)
     members = [
         {
+            "student_id": "president2025",
             "email": "president@segecon.kr",
             "name": "홍길동",
             "cohort": 1985,
@@ -74,9 +84,10 @@ def create_production_members(session: Session) -> None:
             "company": "서강대학교 경제대학원",
             "department": "총동문회",
             "job_title": "회장",
-            "industry": "교육/학술"
+            "industry": "교육/학술",
         },
         {
+            "student_id": "vicepresident2025",
             "email": "vice-president@segecon.kr",
             "name": "김철수",
             "cohort": 1987,
@@ -87,9 +98,10 @@ def create_production_members(session: Session) -> None:
             "company": "무역투자협회",
             "department": "중동부",
             "job_title": "상무이사",
-            "industry": "무역/투자"
+            "industry": "무역/투자",
         },
         {
+            "student_id": "secretary2025",
             "email": "secretary@segecon.kr",
             "name": "이영희",
             "cohort": 1990,
@@ -100,20 +112,26 @@ def create_production_members(session: Session) -> None:
             "company": "기획재정부",
             "department": "기획조정팀",
             "job_title": "과장",
-            "industry": "공공/정부"
-        }
+            "industry": "공공/정부",
+        },
     ]
     
     for member_data in members:
         # 기존 회원 확인
-        existing = session.query(Member).filter_by(email=member_data["email"]).first()
+        existing = (
+            session.query(Member)
+            .filter_by(student_id=member_data["student_id"])  # 학번 기준
+            .first()
+        )
         if existing:
-            print(f"  ⚠️  회원 계정 이미 존재: {member_data['email']}")
+            print(f"  ⚠️  회원 계정 이미 존재: {member_data['student_id']}")
             continue
             
         member = Member(**member_data)
         session.add(member)
-        print(f"  ✅ 회원 계정 생성: {member_data['email']} ({member_data['name']})")
+        print(
+            f"  ✅ 회원 계정 생성: {member_data['student_id']} ({member_data['name']})"
+        )
     
     session.commit()
 
@@ -124,40 +142,39 @@ def create_production_member_auth(session: Session) -> None:
     
     # 간단한 비밀번호 (운영에서 변경 필요)
     member_auth_data = [
-        {
-            "email": "president@segecon.kr",
-            "password": "President123!"
-        },
-        {
-            "email": "vice-president@segecon.kr", 
-            "password": "Vice123!"
-        },
-        {
-            "email": "secretary@segecon.kr",
-            "password": "Secretary123!"
-        }
+        {"student_id": "president2025", "password": "President123!"},
+        {"student_id": "vicepresident2025", "password": "Vice123!"},
+        {"student_id": "secretary2025", "password": "Secretary123!"},
     ]
     
     for auth_data in member_auth_data:
         # 회원 정보 확인
-        member = session.query(Member).filter_by(email=auth_data["email"]).first()
+        member = (
+            session.query(Member)
+            .filter_by(student_id=auth_data["student_id"])  # 학번 기준
+            .first()
+        )
         if not member:
-            print(f"  ⚠️  회원 정보 없음: {auth_data['email']}")
+            print(f"  ⚠️  회원 정보 없음: {auth_data['student_id']}")
             continue
             
         # 기존 인증 정보 확인
-        existing = session.query(MemberAuth).filter_by(email=auth_data["email"]).first()
+        existing = (
+            session.query(MemberAuth)
+            .filter_by(student_id=auth_data["student_id"])  # 학번 기준
+            .first()
+        )
         if existing:
-            print(f"  ⚠️  인증 정보 이미 존재: {auth_data['email']}")
+            print(f"  ⚠️  인증 정보 이미 존재: {auth_data['student_id']}")
             continue
             
         member_auth = MemberAuth(
             member_id=member.id,
-            email=auth_data["email"],
-            password_hash=hash_password(auth_data["password"])
+            student_id=auth_data["student_id"],
+            password_hash=hash_password(auth_data["password"]),
         )
         session.add(member_auth)
-        print(f"  ✅ 인증 정보 생성: {auth_data['email']}")
+        print(f"  ✅ 인증 정보 생성: {auth_data['student_id']}")
     
     session.commit()
 
@@ -196,12 +213,12 @@ def main():
         print("✅ 운영 환경 시드 데이터 생성 완료")
         print("\n📋 생성된 운영 계정 정보:")
         print("🔧 관리자 계정:")
-        print("  - admin@segecon.kr / Segecon2025!@#")
-        print("  - master@segecon.kr / Master2025!@#")
+        print("  - admin001 (admin@segecon.kr) / Segecon2025!@#")
+        print("  - admin002 (master@segecon.kr) / Master2025!@#")
         print("\n👥 초기 회원 계정:")
-        print("  - president@segecon.kr (홍길동 회장)")
-        print("  - vice-president@segecon.kr (김철수 부회장)")
-        print("  - secretary@segecon.kr (이영희 총무)")
+        print("  - president2025 (홍길동 회장)")
+        print("  - vicepresident2025 (김철수 부회장)")
+        print("  - secretary2025 (이영희 총무)")
         print("\n⚠️  중요: 운영 전에 반드시 비밀번호를 변경하세요!")
         
     except (RuntimeError, ValueError, OSError) as e:
