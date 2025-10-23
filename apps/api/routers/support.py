@@ -55,9 +55,9 @@ def contact(
         return {"status": "accepted"}
 
     # 최근 동일 사용자(또는 세션 IP) 중복/쿨다운 드롭
-    ident = (request.client.host if request.client else "") + "|" + (
-        _m.email if hasattr(_m, "email") else ""
-    )
+    host = request.client.host if request.client else ""
+    email = getattr(_m, "email", "") or ""
+    ident = f"{host}|{email}"
     h = f"{payload.subject}\n{payload.body}"
     now = time.monotonic()
     t_prev, h_prev = _recent.get(ident, (0.0, ""))
