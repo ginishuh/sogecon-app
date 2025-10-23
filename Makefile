@@ -19,7 +19,20 @@ api-install:
 	"$(VENV_BIN)/pip" install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
 
 db-up:
-	docker compose -f infra/docker-compose.dev.yml up -d postgres postgres_test
+	@echo "[db] Starting PostgreSQL containers..."
+	@docker compose -f infra/docker-compose.dev.yml up -d postgres postgres_test || { \
+		echo "[db] Failed to start containers. Checking Docker status..."; \
+		docker version >/dev/null 2>&1 || { echo "[db] Error: Docker is not running. Please start Docker first."; exit 1; }; \
+		exit 1; \
+	}
+	@echo "[db] Waiting for databases to be ready..."
+	@timeout 60 bash -c 'until docker compose -f infra/docker-compose.dev.yml exec -T postgres pg_isready -U app -d appdb >/dev/null 2>&1; do sleep 2; done' || { \
+		echo "[db] Timeout waiting for postgres to be ready"; exit 1; \
+	}
+	@timeout 60 bash -c 'until docker compose -f infra/docker-compose.dev.yml exec -T postgres_test pg_isready -U app -d appdb_test >/dev/null 2>&1; do sleep 2; done' || { \
+		echo "[db] Timeout waiting for postgres_test to be ready"; exit 1; \
+	}
+	@echo "[db] PostgreSQL containers are ready (dev:5433, test:5434)"
 
 db-down:
 	docker compose -f infra/docker-compose.dev.yml down
@@ -27,7 +40,7 @@ db-down:
 db-test-up:
 	docker compose -f infra/docker-compose.dev.yml up -d postgres_test
 
-api-dev:
+api-dev: db-up
 	@if [ ! -x "$(VENV_BIN)/uvicorn" ]; then \
 		echo "[make] uvicorn not found in '$(VENV_BIN)'. Run 'make api-install' or check your active venv."; \
 		exit 1; \
@@ -38,7 +51,7 @@ web-dev:
 	pnpm -C apps/web dev
 
 # --- Detached dev helpers (background with logs) ---
-api-start:
+api-start: db-up
 	@if [ ! -x "$(VENV_BIN)/uvicorn" ]; then \
 		echo "[make] uvicorn not found in '$(VENV_BIN)'. Run 'make api-install' or check your active venv."; \
 		exit 1; \
@@ -84,7 +97,7 @@ web-status:
 	@echo "[web] pid file:" $$(test -f apps/web/.web-dev.pid && cat apps/web/.web-dev.pid || echo none)
 	@echo "[web] listening on :3000?" && (command -v lsof >/dev/null 2>&1 && lsof -i :3000 -sTCP:LISTEN || ss -ltnp | grep ':3000' || true)
 
-dev-up: api-start web-start
+dev-up: db-up api-start web-start
 dev-down: api-stop web-stop
 dev-status: api-status web-status
 

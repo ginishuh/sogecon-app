@@ -277,3 +277,23 @@
  - 문서: `docs/design_system.md`에 폰트/이미지/레이아웃 성능 가이드 보강
 2025-10-10
 - docs: README 전면 개편 — 최신 템플릿/버전/빠른 시작/품질·보안/FAQ 반영, `docs/versions.md`·`AGENTS.md`·`Makefile`와 정합성 확인
+
+
+## 2025-10-23
+
+- 마이그레이션 재설정 및 환경변수 개선
+  - 기존 15개 마이그레이션 파일 삭제 및 단일 초기 마이그레이션으로 통합 (559d5829569f)
+  - PostgreSQL 마이그레이션 시 version_num 필드 길이 문제 해결
+  - 데이터베이스 스키마 완전 재구성 (10개 테이블, 29개 인덱스)
+  - SQLite와 PostgreSQL 모두에서 마이그레이션 검증 완료
+- 개발 환경 자동화 개선
+  - Makefile에 DB 컨테이너 자동 시작 의존성 추가 (api-dev, api-start, dev-up)
+  - db-up 타겟에 상세 로그 및 health check 추가
+- 환경변수 설정 정리
+  - .env.example 중복 설정 제거 및 누락된 필드 추가
+  - .env.dev 파일 생성 (개발용 PostgreSQL, 테스트용 SQLite 설정)
+  - CORS_ORIGINS JSON 배열 형식으로 명확화
+  - 레이트 리밋, Web Push, Docker 포트 설정 포함
+- 기타 개선
+  - 마이그레이션 템플릿 파일(script.py.mako) 복원
+  - Docker Compose 경고 메시지 수정
