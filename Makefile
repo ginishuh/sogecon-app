@@ -1,11 +1,14 @@
 .PHONY: venv api-install db-up db-down db-test-up api-dev web-dev schema-gen test-api info-venv \
         api-start api-stop api-restart api-status \
         web-start web-stop web-restart web-status \
-        dev-up dev-down dev-status
+        dev-up dev-down dev-status \
+        db-reset db-test-reset db-reset-all api-migrate api-migrate-test
 
 # Detect active virtualenv; fallback to project-local .venv
 VENV_DIR ?= $(if $(VIRTUAL_ENV),$(VIRTUAL_ENV),.venv)
 VENV_BIN := $(VENV_DIR)/bin
+DB_DEV_PORT ?= 5433
+DB_TEST_PORT ?= 5434
 
 venv:
 	python -m venv .venv
@@ -39,6 +42,20 @@ db-down:
 
 db-test-up:
 	docker compose -f infra/docker-compose.dev.yml up -d postgres_test
+
+# --- Schema reset helpers (DANGER) ---
+db-reset: db-up
+	@echo "[db] Dropping and recreating schema 'public' on dev DB (localhost:$(DB_DEV_PORT)/appdb)"
+	docker compose -f infra/docker-compose.dev.yml exec -T postgres psql -U app -d appdb -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO app; GRANT ALL ON SCHEMA public TO public;"
+	@echo "[db] Done. You can now run: make api-migrate"
+
+db-test-reset: db-test-up
+	@echo "[db] Dropping and recreating schema 'public' on test DB (localhost:$(DB_TEST_PORT)/appdb_test)"
+	docker compose -f infra/docker-compose.dev.yml exec -T postgres_test psql -U app -d appdb_test -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO app; GRANT ALL ON SCHEMA public TO public;"
+	@echo "[db] Done. You can now run: make api-migrate-test"
+
+db-reset-all: db-reset db-test-reset
+	@echo "[db] Both dev and test schemas were reset."
 
 api-dev: db-up
 	@if [ ! -x "$(VENV_BIN)/uvicorn" ]; then \
@@ -113,3 +130,19 @@ test-api:
 
 info-venv:
 	@echo "Detected VENV_DIR=$(VENV_DIR)" && echo "Using BIN=$(VENV_BIN)"
+
+# --- Migrations ---
+api-migrate:
+	@if [ ! -x "$(VENV_BIN)/alembic" ]; then \
+		echo "[make] alembic not found in '$(VENV_BIN)'. Run 'make api-install'."; \
+		exit 1; \
+	fi
+	"$(VENV_BIN)/alembic" -c apps/api/alembic.ini upgrade head
+
+api-migrate-test:
+	@if [ ! -x "$(VENV_BIN)/alembic" ]; then \
+		echo "[make] alembic not found in '$(VENV_BIN)'. Run 'make api-install'."; \
+		exit 1; \
+	fi
+	DB_URL=postgresql+psycopg://app:devpass@localhost:$(DB_TEST_PORT)/appdb_test; \
+	DATABASE_URL="$$DB_URL" "$(VENV_BIN)/alembic" -c apps/api/alembic.ini upgrade head
