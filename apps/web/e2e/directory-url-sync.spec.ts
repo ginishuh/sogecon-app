@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { WEB_BASE_URL } from './utils/env';
 import { setupDirectoryMocks } from './utils/mockApi';
+import type { ConsoleMessage } from 'puppeteer';
 
 let browser: Browser | null = null;
 let page: Page | null = null;
@@ -18,9 +19,8 @@ describe('Directory URL sync (CDP E2E)', () => {
     await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
     await page.setBypassCSP(true);
     // E2E 안정화를 위해 SW 비활성화
-    page.on('console', (msg: unknown) => {
-      const consoleMsg = msg as { type: () => string; text: () => string };
-      console.log('[console]', consoleMsg.type(), consoleMsg.text());
+    page.on('console', (msg: ConsoleMessage) => {
+      console.log('[console]', msg.type(), msg.text());
     });
     page.on('pageerror', (err: Error) => console.log('[pageerror]', err.message));
     await page.evaluateOnNewDocument(() => {

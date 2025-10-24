@@ -359,3 +359,5 @@
 - chore(ops): Makefile wait_for_pg 함수 도입 및 PID 경로 정리
 - docs(docs): .env.example CORS_ORIGINS 설명 강화, dev_log 갱신
 - revert(ops): artifacts/ 폴더 .gitignore 추가를 취소(되돌림); 필요 시 수동 백업 사용
+## 2025-10-24
+- ci(web): e2e 린트 엄격 복구(타입 인식) 및 테스트 코드 린트 정리 — see #29

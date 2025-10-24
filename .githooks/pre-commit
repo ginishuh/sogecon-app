@@ -75,13 +75,14 @@ if [ ${#python_targets[@]} -gt 0 ]; then
 fi
 
 # 웹 변경 파일 수집(스테이징) — e2e 포함, 타입 인식 린트 적용 (#29)
-if [ ${#web_targets[@]} -gt 0 ]; then
-  if command -v pnpm >/dev/null 2>&1; then
-    echo "[hooks] Running ESLint on staged web files (e2e 포함, 타입 인식) — see #29"
-    echo "${web_targets[@]}" | xargs -r pnpm -C apps/web exec eslint --max-warnings=0
-  else
-    echo "[hooks] Warning: pnpm not found; skipping web lint/type-check"
+if command -v pnpm >/dev/null 2>&1; then
+  if [ ${#web_targets[@]} -gt 0 ]; then
+    echo "[hooks] web: lint staged files (e2e 포함, 타입 인식) — see #29"
+    # apps/web 기준 상대경로 배열을 null-delimited로 안전 전달
+    printf '%s\0' "${web_targets[@]}" | xargs -0 -r pnpm -C apps/web exec eslint --max-warnings=0 --
   fi
+else
+  echo "[hooks] Warning: pnpm not found; skipping web lint/type-check"
 fi
 
 exit 0

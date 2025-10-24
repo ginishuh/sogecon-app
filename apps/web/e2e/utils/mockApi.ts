@@ -1,8 +1,8 @@
-import type { Page, HTTPRequest, Awaitable } from 'puppeteer';
+import type { Page, HTTPRequest } from 'puppeteer';
 
 export async function setupDirectoryMocks(page: Page): Promise<void> {
   await page.setRequestInterception(true);
-  const handler = async (request: HTTPRequest): Awaitable<void> => {
+  const handler = async (request: HTTPRequest): Promise<void> => {
     try {
       const url = new URL(request.url());
       const path = url.pathname;

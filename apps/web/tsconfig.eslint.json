@@ -1,20 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noEmit": true,
-    "skipLibCheck": true,
-    "typeRoots": [
-      "../../typings",
-      "../../node_modules/@types",
-      "node_modules/@types"
-    ]
+    "noEmit": true
   },
   "include": [
     "next-env.d.ts",
-    "app/**/*",
-    "components/**/*",
-    "hooks/**/*",
-    "lib/**/*",
     "e2e/**/*",
     "vitest.config.e2e.ts",
     ".next/types/**/*.ts",
@@ -24,3 +14,4 @@
     "node_modules"
   ]
 }
+

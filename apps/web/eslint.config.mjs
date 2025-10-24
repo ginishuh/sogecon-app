@@ -1,6 +1,7 @@
 // ESLint v9 flat config that wraps existing .eslintrc-style settings
 // via FlatCompat, so we can keep rules while migrating.
 import { FlatCompat } from '@eslint/eslintrc';
+import tsParser from '@typescript-eslint/parser';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -50,10 +51,18 @@ export default [
   {
     files: ['e2e/**/*.{ts,tsx}', '**/*.e2e.{ts,tsx}', 'vitest.config.e2e.ts'],
     languageOptions: {
+      // compat 블록들과의 병합 순서와 무관하게 의도를 명확히 하기 위해 parser 명시
+      parser: tsParser,
       parserOptions: {
         project: ['./tsconfig.eslint.json'],
         tsconfigRootDir: __dirname
-      }
+      },
+      ecmaVersion: 'latest',
+      sourceType: 'module'
+    },
+    rules: {
+      // 테스트 로깅 허용(프리커밋 --max-warnings=0 보호)
+      'no-console': 'off'
     }
   }
 ];
