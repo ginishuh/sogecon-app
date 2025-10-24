@@ -18,7 +18,8 @@
   - getSession 함수 로직 순서 변경: adminMe()를 먼저 시도하도록 수정
   - 관리자 로그인 시 멤버로 잘못 인식되는 문제 해결
   - 관리자 전용 메뉴가 정상적으로 표시되도록 수정
- - Web 린트: ESLint가 e2e 폴더와 vitest.config.e2e.ts를 완전히 제외하도록 flat config 및 pre-commit 훅 정비 → 커밋 실패(린트 단계) 해소
+- Web 린트: ESLint가 e2e 폴더와 vitest.config.e2e.ts를 완전히 제외하도록 flat config 및 pre-commit 훅 정비 → 커밋 실패(린트 단계) 해소
+ - 위생: 실수로 추가된 `cookies.txt` 제거 및 `.gitignore`에 `cookies*.txt` 추가(민감/임시 아티팩트 추적 방지)
 
 ## 2025-10-06
 

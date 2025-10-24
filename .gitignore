@@ -22,3 +22,5 @@ apps/api/migrations/__pycache__/
 .api-dev.pid
 .web-dev.pid
 logs/
+cookies.txt
+cookies-*.txt
