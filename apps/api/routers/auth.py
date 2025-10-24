@@ -90,8 +90,10 @@ def member_login(
     payload: MemberLoginPayload, request: Request, db: Session = Depends(get_db)
 ) -> dict[str, str]:
     bcrypt = __import__("bcrypt")
-    if not _is_test_client(request):
-        consume_limit(limiter_login, request, get_settings().rate_limit_login)
+    settings = get_settings()
+    # 개발환경(dev)에서는 로그인 레이트리밋을 해제하고, 운영(prod)에서만 적용
+    if settings.app_env == "prod" and not _is_test_client(request):
+        consume_limit(limiter_login, request, settings.rate_limit_login)
 
     # 학번으로 회원과 자격을 조회
     member = db.query(Member).filter(Member.student_id == payload.student_id).first()
@@ -131,7 +133,7 @@ def member_activate(
     개발 단계에서는 itsdangerous 서명 토큰을 사용한다.
     """
     settings = get_settings()
-    if not _is_test_client(request):
+    if settings.app_env == "prod" and not _is_test_client(request):
         consume_limit(limiter_login, request, settings.rate_limit_login)
 
     # 토큰 검증
@@ -202,8 +204,9 @@ def change_password(
     db: Session = Depends(get_db),
     m: CurrentMember = Depends(require_member),
 ) -> dict[str, str]:
-    if not _is_test_client(request):
-        consume_limit(limiter_login, request, get_settings().rate_limit_login)
+    settings = get_settings()
+    if settings.app_env == "prod" and not _is_test_client(request):
+        consume_limit(limiter_login, request, settings.rate_limit_login)
 
     bcrypt = __import__("bcrypt")
     auth_row = (
@@ -228,8 +231,9 @@ def login(
     bcrypt = __import__("bcrypt")  # 런타임 임포트로 훅 환경 의존성 문제 최소화
 
     # 로그인 시도 레이트리밋(환경설정값 기반)
-    if not _is_test_client(request):
-        consume_limit(limiter_login, request, get_settings().rate_limit_login)
+    settings = get_settings()
+    if settings.app_env == "prod" and not _is_test_client(request):
+        consume_limit(limiter_login, request, settings.rate_limit_login)
 
     user = (
         db.query(AdminUser).filter(AdminUser.student_id == payload.student_id).first()
