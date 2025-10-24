@@ -5,7 +5,7 @@ import { vi } from 'vitest';
 
 import DirectoryPage from '../app/directory/page';
 
-const replaceMock = vi.fn((url: string, _options?: { scroll?: boolean }) => {
+const replaceMock = vi.fn((url: string) => {
   const query = url.split('?')[1] ?? '';
   currentSearchParams = new URLSearchParams(query);
 });

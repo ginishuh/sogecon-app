@@ -43,7 +43,7 @@ describe('Directory URL sync (CDP E2E)', () => {
 
     // 필터 UI가 보이는지 확인(아코디언 내부)
     await page.waitForSelector('summary');
-    await page.waitForSelector('fieldset[aria-label="디렉터리 검색 필터"]');
+    await page.waitForSelector('fieldset[aria-label="수첩 검색 필터"]');
 
     // 검색어 입력 → URL q 파라미터 동기화
     const qInput = await page.$('input[aria-label="검색어"]');

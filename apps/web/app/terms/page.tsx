@@ -70,7 +70,7 @@ const sections: TermsSection[] = [
           총동문회는 다음과 같은 서비스를 제공합니다.
         </p>
         <ul className="mt-2 list-disc space-y-2 pl-5">
-          <li>공지, 행사, 디렉터리, 소개 등 총동문회 관련 정보 제공</li>
+          <li>공지, 행사, 수첩, 소개 등 총동문회 관련 정보 제공</li>
           <li>회원 간 교류를 위한 커뮤니티, 알림 서비스</li>
           <li>총동문회 운영과 관련한 각종 신청 및 통계 기능</li>
         </ul>

@@ -16,18 +16,18 @@ exports[`SEO metadata configuration > declares title template and open graph bas
   ],
   "category": "organization",
   "creator": "서강대 경제대학원 총동문회",
-  "description": "서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 디렉터리, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
+  "description": "서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 수첩, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
   "keywords": [
     "총동문회",
     "서강대학교 경제대학원",
-    "동문 디렉터리",
+    "동문 수첩",
     "총회",
     "행사",
     "FAQ",
   ],
   "metadataBase": "https://alumni.sogang-econ.kr/",
   "openGraph": {
-    "description": "서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 디렉터리, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
+    "description": "서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 수첩, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
     "images": [
       {
         "alt": "서강대 경제대학원 총동문회 웹 런치 대표 이미지",
@@ -58,7 +58,7 @@ exports[`SEO metadata configuration > declares title template and open graph bas
   },
   "twitter": {
     "card": "summary_large_image",
-    "description": "서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 디렉터리, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
+    "description": "서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 수첩, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
     "images": [
       "https://alumni.sogang-econ.kr/og-default.png",
     ],

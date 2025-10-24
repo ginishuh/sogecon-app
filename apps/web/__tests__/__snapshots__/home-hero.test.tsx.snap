@@ -24,7 +24,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
         <p
           class="home-hero__description"
         >
-          공지, 행사, 디렉터리, 소개 페이지를 하나의 홈에서 연결했습니다. 모바일에서도 동일한 경험을 제공하며, 2025년 4분기부터는 푸시 알림과 회원 전용 기능을 순차적으로 공개합니다.
+          공지, 행사, 수첩, 소개 페이지를 하나의 홈에서 연결했습니다. 모바일에서도 동일한 경험을 제공하며, 2025년 4분기부터는 푸시 알림과 회원 전용 기능을 순차적으로 공개합니다.
         </p>
         <div
           aria-label="주요 행동"
@@ -35,7 +35,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
             class="home-hero__cta"
             href="/directory"
           >
-            동문 디렉터리 열기
+            동문 수첩 열기
           </a>
           <a
             class="home-hero__secondary"
@@ -206,7 +206,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
         class="home-card-grid"
       >
         <a
-          aria-label="디렉터리 · 동문 디렉터리 베타 공개"
+          aria-label="수첩 · 동문 수첩 베타 공개"
           class="home-card"
           href="/directory"
         >
@@ -214,17 +214,17 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
             <span
               class="text-xs font-semibold uppercase tracking-widest text-brand-primary"
             >
-              디렉터리
+              수첩
             </span>
             <h3
               class="home-card__title"
             >
-              동문 디렉터리 베타 공개
+              동문 수첩 베타 공개
             </h3>
             <p
               class="home-card__description"
             >
-              검색, 기수/업종 필터, 정렬 기능까지 포함된 디렉터리를 웹에서 바로 이용하세요.
+              검색, 기수/업종 필터, 정렬 기능까지 포함된 수첩을 웹에서 바로 이용하세요.
             </p>
           </div>
           <div

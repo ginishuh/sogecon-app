@@ -38,7 +38,7 @@ const sections: PolicySection[] = [
     content: (
       <ol className="list-decimal space-y-2 pl-5">
         <li>회원 식별 및 로그인, 계정 활성화·재설정 등 서비스 기본 기능 제공</li>
-        <li>행사/공지/디렉터리 운영을 위한 회원 정보 검증과 연락</li>
+        <li>행사/공지/수첩 운영을 위한 회원 정보 검증과 연락</li>
         <li>장학사업, 프로그램 안내, 총회 공지 등 커뮤니케이션 발송</li>
         <li>서비스 안정성 확보, 보안 로그 분석, 이용 통계 작성</li>
       </ol>

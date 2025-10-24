@@ -104,7 +104,7 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
             디지털 허브 완성
           </h3>
           <p>
-            2025년 하반기 웹 런치를 통해 언제 어디서든 행사·공지·디렉터리를 확인할 수 있는 원스톱 허브를 완성하겠습니다.
+            2025년 하반기 웹 런치를 통해 언제 어디서든 행사·공지·수첩을 확인할 수 있는 원스톱 허브를 완성하겠습니다.
           </p>
         </li>
         <li
@@ -320,7 +320,7 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
               공식 웹 런치
             </h3>
             <p>
-              웹·모바일 통합 경험을 제공하는 공식 웹을 오픈하고, 디렉터리/공지/행사/소개를 한 번에 연결하도록 개편했습니다.
+              웹·모바일 통합 경험을 제공하는 공식 웹을 오픈하고, 수첩/공지/행사/소개를 한 번에 연결하도록 개편했습니다.
             </p>
           </div>
         </li>
