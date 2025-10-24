@@ -46,6 +46,24 @@ export default [
       }
     }
   },
+  // test 전용: 타입 인식 린트(별도 프로젝트)
+  {
+    files: ['__tests__/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        project: ['./tsconfig.eslint.json'],
+        tsconfigRootDir: __dirname
+      }
+    },
+    rules: {
+      // 테스트 코드는 런타임 안전성보다 가독성과 서드파티 타입 한계를 고려
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off'
+    }
+  },
 
   // e2e 전용: 타입 인식 린트(별도 프로젝트) — #29 e2e 엄격 린트 복구
   {

@@ -29,7 +29,7 @@ const contactPoints = [
   { label: '사무국 대표 메일', value: 'office@sogang-econ-alumni.kr' },
   { label: '대표 전화', value: '02-715-1234 (ARS 2번: 행사/협업)' },
   { label: '운영시간', value: '평일 10:00 - 17:00 (점심 12:00 - 13:00)' },
-  { label: '주소', value: '서울 마포구 백범로 35, 서강대학교 경제대학원 3층 총원우회 사무국' }
+  { label: '주소', value: '서울 마포구 백범로 35, 서강대학교 경제대학원 3층 총동문회 사무국' }
 ];
 
 export default function OrgPage() {
@@ -37,8 +37,8 @@ export default function OrgPage() {
     <div className="about-page">
       <AboutHero
         title="조직도"
-        description="총원우회는 회장단, 집행부, 감사단, 자문위원으로 구성되어 각자의 책임을 분담합니다. 모든 회의록과 결산 자료는 회원 전용 아카이브에 공개합니다."
-        image={{ src: '/images/about/org-hero.svg', alt: '총원우회 조직 구성을 보여주는 삽화', priority: true }}
+        description="총동문회는 회장단, 집행부, 감사단, 자문위원으로 구성되어 각자의 책임을 분담합니다. 모든 회의록과 결산 자료는 회원 전용 아카이브에 공개합니다."
+        image={{ src: '/images/about/org-hero.svg', alt: '총동문회 조직 구성을 보여주는 삽화', priority: true }}
       />
 
       <section aria-labelledby="org-structure" className="about-section">
@@ -55,7 +55,7 @@ export default function OrgPage() {
             논의 후 공지합니다. 분기별로 공개하는 리포트에는 KPI 달성 현황과 다음 분기 계획이 포함됩니다.
           </p>
         </div>
-        <figure aria-label="총원우회 조직 계층 구조" className="about-section__figure">
+        <figure aria-label="총동문회 조직 계층 구조" className="about-section__figure">
           <Image
             src="/images/about/org-chart.svg"
             alt="회장단, 집행부, 자문위원으로 구성된 조직도"

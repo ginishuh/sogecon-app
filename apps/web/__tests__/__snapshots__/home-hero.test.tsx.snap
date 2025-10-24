@@ -78,7 +78,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
         class="home-hero__image"
       >
         <img
-          alt="웹 런치를 기념하는 총원우회 일러스트"
+          alt="웹 런치를 기념하는 총동문회 일러스트"
           class="h-auto w-full rounded-2xl object-cover shadow-soft"
           height="360"
           sizes="(max-width: 768px) 100vw, 480px"
@@ -98,7 +98,7 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
           <span
             class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
           >
-            총원우회 스냅숏
+            총동문회 스냅숏
           </span>
           <h2
             class="mt-2 font-heading text-2xl text-neutral-ink md:text-3xl"

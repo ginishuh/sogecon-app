@@ -77,7 +77,7 @@ export default function HomePage() {
         <div className="home-hero__image">
           <Image
             src="/images/home/hero-launch.svg"
-            alt="웹 런치를 기념하는 총원우회 일러스트"
+            alt="웹 런치를 기념하는 총동문회 일러스트"
             width={480}
             height={360}
             className="h-auto w-full rounded-2xl object-cover shadow-soft"
@@ -91,7 +91,7 @@ export default function HomePage() {
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
             <span className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">
-              총원우회 스냅숏
+              총동문회 스냅숏
             </span>
             <h2 id="home-stats" className="mt-2 font-heading text-2xl text-neutral-ink md:text-3xl">
               2025년 4분기 준비 현황

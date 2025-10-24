@@ -5,6 +5,8 @@
   },
   "include": [
     "next-env.d.ts",
+    "__tests__/**/*",
+    "tests/**/*",
     "e2e/**/*",
     "vitest.config.e2e.ts",
     ".next/types/**/*.ts",
@@ -14,4 +16,3 @@
     "node_modules"
   ]
 }
-

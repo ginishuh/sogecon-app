@@ -7,7 +7,7 @@ import robots from '../app/robots';
 describe('SEO metadata configuration', () => {
   it('declares title template and open graph baseline', () => {
     expect(metadata.title).toMatchObject({
-      default: '서강대 경제대학원 총원우회 웹 서비스',
+      default: '서강대 경제대학원 총동문회 웹 서비스',
       template: expect.stringContaining('%s')
     });
     expect(metadata.openGraph?.images?.[0]?.url).toContain('og-default.png');

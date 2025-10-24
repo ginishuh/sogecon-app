@@ -35,9 +35,9 @@ describe('About static pages', () => {
   it('renders greeting page hero and sections', () => {
     const { asFragment } = render(<GreetingPage />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('회장 인사말');
-    expect(screen.getByLabelText('총원우회 비전 다이어그램')).toBeInTheDocument();
+    expect(screen.getByLabelText('총동문회 비전 다이어그램')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '디지털 허브 완성' })).toBeInTheDocument();
-    expect(screen.getByRole('list', { name: '총원우회 운영 원칙 목록' })).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: '총동문회 운영 원칙 목록' })).toBeInTheDocument();
     expect(asFragment()).toMatchSnapshot();
   });
 
@@ -52,7 +52,7 @@ describe('About static pages', () => {
 
   it('renders history page timeline and archive', () => {
     const { asFragment } = render(<HistoryPage />);
-    expect(screen.getByRole('list', { name: '총원우회 주요 연혁' })).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: '총동문회 주요 연혁' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '공식 웹 런치' })).toBeInTheDocument();
     expect(screen.getByText('16대 회장 김서강')).toBeInTheDocument();
     expect(asFragment()).toMatchSnapshot();

@@ -17,7 +17,7 @@ type LinkItem = {
 
 const PRIMARY_LINKS: LinkItem[] = [
   { href: '/', label: '홈' },
-  { href: '/posts', label: '총원우회 소식' },
+  { href: '/posts', label: '총동문회 소식' },
   { href: '/events', label: '행사' }
 ];
 
@@ -50,12 +50,12 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6">
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-brand-primary">
           <span
-            aria-label="총원우회 홈으로 이동"
+            aria-label="총동문회 홈으로 이동"
             className="rounded-full bg-brand-primary px-2 py-1 text-sm text-white"
           >
             SG
           </span>
-          <span className="tracking-tight text-neutral-ink">서강대 경제대학원 총원우회</span>
+          <span className="tracking-tight text-neutral-ink">서강대 경제대학원 총동문회</span>
         </Link>
         <button
           type="button"
@@ -90,9 +90,9 @@ export function SiteHeader() {
               ))}
             </ul>
             <div className="flex items-start gap-8 text-xs">
-              <div aria-label="총원우회 소개" className="flex flex-col gap-2">
+              <div aria-label="총동문회 소개" className="flex flex-col gap-2">
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-muted">
-                  총원우회 소개
+                  총동문회 소개
                 </span>
                 <ul className="flex flex-col gap-2">
                   {ABOUT_LINKS.map((link) => (
@@ -160,8 +160,8 @@ export function SiteHeader() {
               </li>
             ))}
           </ul>
-          <section aria-label="총원우회 소개 링크" className="space-y-2">
-            <h2 className="text-xs font-semibold uppercase text-neutral-muted">총원우회 소개</h2>
+          <section aria-label="총동문회 소개 링크" className="space-y-2">
+            <h2 className="text-xs font-semibold uppercase text-neutral-muted">총동문회 소개</h2>
             <ul className="grid gap-2">
               {ABOUT_LINKS.map((link) => (
                 <li key={link.href}>

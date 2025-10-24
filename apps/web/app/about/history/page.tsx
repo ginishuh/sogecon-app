@@ -5,8 +5,8 @@ import { AboutHero } from '../../../components/about-hero';
 const milestones = [
   {
     year: '1994',
-    title: '총원우회 창립',
-    body: '첫 4개 기수가 연합해 총원우회를 창립하고, 서강대학교 경제대학원 동문 네트워크의 기반을 마련했습니다.'
+    title: '총동문회 창립',
+    body: '첫 4개 기수가 연합해 총동문회를 창립하고, 서강대학교 경제대학원 동문 네트워크의 기반을 마련했습니다.'
   },
   {
     year: '2005',
@@ -42,8 +42,8 @@ export default function HistoryPage() {
     <div className="about-page">
       <AboutHero
         title="역대 회장단과 연혁"
-        description="총원우회는 1994년 창립 이후 30년 넘게 동문 교류와 사회 공헌을 이어왔습니다. 연혁과 역대 회장단의 주요 활동을 한눈에 정리했습니다."
-        image={{ src: '/images/about/history-hero.svg', alt: '총원우회 연혁을 상징하는 타임라인 삽화' }}
+        description="총동문회는 1994년 창립 이후 30년 넘게 동문 교류와 사회 공헌을 이어왔습니다. 연혁과 역대 회장단의 주요 활동을 한눈에 정리했습니다."
+        image={{ src: '/images/about/history-hero.svg', alt: '총동문회 연혁을 상징하는 타임라인 삽화' }}
       />
 
       <section aria-labelledby="history-timeline" className="about-section about-section--timeline">
@@ -56,7 +56,7 @@ export default function HistoryPage() {
             2025년부터는 주요 지표를 데이터 보드로 시각화해 제공할 예정입니다.
           </p>
         </div>
-        <ol className="about-timeline" aria-label="총원우회 주요 연혁">
+        <ol className="about-timeline" aria-label="총동문회 주요 연혁">
           {milestones.map((item) => (
             <li key={item.year} className="about-timeline__item">
               <div className="about-timeline__marker" aria-hidden />
@@ -76,7 +76,7 @@ export default function HistoryPage() {
             역대 회장단
           </h2>
           <p>
-            지난 6년간 총원우회를 이끌어 주신 회장단입니다. 각 회장단의 주요 사업과 과제를 간략히 소개합니다.
+            지난 6년간 총동문회를 이끌어 주신 회장단입니다. 각 회장단의 주요 사업과 과제를 간략히 소개합니다.
           </p>
         </div>
         <ul className="about-section__list" aria-label="역대 회장단 소개">

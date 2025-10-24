@@ -15,7 +15,7 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
         <p
           class="about-hero__eyebrow"
         >
-          총원우회 소개
+          총동문회 소개
         </p>
         <h1
           class="about-hero__title"
@@ -26,14 +26,14 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
         <p
           class="about-hero__description"
         >
-          총원우회 16대 회장 김서강입니다. 2025년 웹 서비스 런치와 함께, 동문 누구나 쉽게 소식을 접하고 의견을 나눌 수 있는 열린 커뮤니티를 만들겠습니다.
+          총동문회 16대 회장 김서강입니다. 2025년 웹 서비스 런치와 함께, 동문 누구나 쉽게 소식을 접하고 의견을 나눌 수 있는 열린 커뮤니티를 만들겠습니다.
         </p>
       </div>
       <div
         class="about-hero__image"
       >
         <img
-          alt="총원우회 서강대 캠퍼스 풍경 삽화"
+          alt="총동문회 서강대 캠퍼스 풍경 삽화"
           class="h-full w-full rounded-xl object-cover shadow-md"
           height="480"
           src="/images/about/greeting-hero.svg"
@@ -55,18 +55,18 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
           동문이 함께 만드는 미래
         </h2>
         <p>
-          지난 30년 동안 총원우회는 서로의 지식과 경험을 나누며 성장해 왔습니다. 이제는 모바일과 웹 어디서나 같은 정보를 볼 수 있도록 디지털 전환을 완성해, 멀리 떨어진 동문도 실시간으로 소식을 접할 수 있는 환경을 구축하고 있습니다.
+          지난 30년 동안 총동문회는 서로의 지식과 경험을 나누며 성장해 왔습니다. 이제는 모바일과 웹 어디서나 같은 정보를 볼 수 있도록 디지털 전환을 완성해, 멀리 떨어진 동문도 실시간으로 소식을 접할 수 있는 환경을 구축하고 있습니다.
         </p>
         <p>
           2025년에는 정기총회와 산업별 라운드테이블, ESG 프로젝트를 아우르는 ‘공유 달력’을 운영해 참여 동선을 단순화할 예정입니다. 동문 여러분 한 분, 한 분의 제안이 정책과 프로그램으로 이어지도록 의견 수렴 창구도 상시로 열어 두겠습니다.
         </p>
       </div>
       <figure
-        aria-label="총원우회 비전 다이어그램"
+        aria-label="총동문회 비전 다이어그램"
         class="about-section__figure"
       >
         <img
-          alt="총원우회의 비전을 상징하는 원형 다이어그램"
+          alt="총동문회의 비전을 상징하는 원형 다이어그램"
           class="h-auto w-full rounded-lg object-cover shadow-sm"
           height="360"
           src="/images/about/greeting-detail.svg"
@@ -88,11 +88,11 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
           약속드리는 세 가지 방향
         </h2>
         <p>
-          총원우회가 추구하는 핵심 가치를 세 가지로 정리했습니다. 모든 사업과 모임은 이 가치 위에서 기획하고, 결과를 투명하게 공유하겠습니다.
+          총동문회가 추구하는 핵심 가치를 세 가지로 정리했습니다. 모든 사업과 모임은 이 가치 위에서 기획하고, 결과를 투명하게 공유하겠습니다.
         </p>
       </div>
       <ul
-        aria-label="총원우회 운영 원칙 목록"
+        aria-label="총동문회 운영 원칙 목록"
         class="about-section__list"
       >
         <li
@@ -152,7 +152,7 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
         <p
           class="about-hero__eyebrow"
         >
-          총원우회 소개
+          총동문회 소개
         </p>
         <h1
           class="about-hero__title"
@@ -163,14 +163,14 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
         <p
           class="about-hero__description"
         >
-          총원우회는 1994년 창립 이후 30년 넘게 동문 교류와 사회 공헌을 이어왔습니다. 연혁과 역대 회장단의 주요 활동을 한눈에 정리했습니다.
+          총동문회는 1994년 창립 이후 30년 넘게 동문 교류와 사회 공헌을 이어왔습니다. 연혁과 역대 회장단의 주요 활동을 한눈에 정리했습니다.
         </p>
       </div>
       <div
         class="about-hero__image"
       >
         <img
-          alt="총원우회 연혁을 상징하는 타임라인 삽화"
+          alt="총동문회 연혁을 상징하는 타임라인 삽화"
           class="h-full w-full rounded-xl object-cover shadow-md"
           height="480"
           src="/images/about/history-hero.svg"
@@ -196,7 +196,7 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
         </p>
       </div>
       <ol
-        aria-label="총원우회 주요 연혁"
+        aria-label="총동문회 주요 연혁"
         class="about-timeline"
       >
         <li
@@ -217,10 +217,10 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
             <h3
               class="about-timeline__title"
             >
-              총원우회 창립
+              총동문회 창립
             </h3>
             <p>
-              첫 4개 기수가 연합해 총원우회를 창립하고, 서강대학교 경제대학원 동문 네트워크의 기반을 마련했습니다.
+              첫 4개 기수가 연합해 총동문회를 창립하고, 서강대학교 경제대학원 동문 네트워크의 기반을 마련했습니다.
             </p>
           </div>
         </li>
@@ -340,7 +340,7 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
           역대 회장단
         </h2>
         <p>
-          지난 6년간 총원우회를 이끌어 주신 회장단입니다. 각 회장단의 주요 사업과 과제를 간략히 소개합니다.
+          지난 6년간 총동문회를 이끌어 주신 회장단입니다. 각 회장단의 주요 사업과 과제를 간략히 소개합니다.
         </p>
       </div>
       <ul
@@ -517,7 +517,7 @@ exports[`About static pages > renders organization page with contact list 1`] = 
         <p
           class="about-hero__eyebrow"
         >
-          총원우회 소개
+          총동문회 소개
         </p>
         <h1
           class="about-hero__title"
@@ -528,14 +528,14 @@ exports[`About static pages > renders organization page with contact list 1`] = 
         <p
           class="about-hero__description"
         >
-          총원우회는 회장단, 집행부, 감사단, 자문위원으로 구성되어 각자의 책임을 분담합니다. 모든 회의록과 결산 자료는 회원 전용 아카이브에 공개합니다.
+          총동문회는 회장단, 집행부, 감사단, 자문위원으로 구성되어 각자의 책임을 분담합니다. 모든 회의록과 결산 자료는 회원 전용 아카이브에 공개합니다.
         </p>
       </div>
       <div
         class="about-hero__image"
       >
         <img
-          alt="총원우회 조직 구성을 보여주는 삽화"
+          alt="총동문회 조직 구성을 보여주는 삽화"
           class="h-full w-full rounded-xl object-cover shadow-md"
           height="480"
           src="/images/about/org-hero.svg"
@@ -564,7 +564,7 @@ exports[`About static pages > renders organization page with contact list 1`] = 
         </p>
       </div>
       <figure
-        aria-label="총원우회 조직 계층 구조"
+        aria-label="총동문회 조직 계층 구조"
         class="about-section__figure"
       >
         <img
@@ -721,7 +721,7 @@ exports[`About static pages > renders organization page with contact list 1`] = 
           <dd
             class="about-contact-list__description"
           >
-            서울 마포구 백범로 35, 서강대학교 경제대학원 3층 총원우회 사무국
+            서울 마포구 백범로 35, 서강대학교 경제대학원 3층 총동문회 사무국
           </dd>
         </div>
       </dl>
