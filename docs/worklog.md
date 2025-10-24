@@ -1,5 +1,13 @@
 ## 2025-10-24
 
+- e2e 린트 엄격 복구 + 테스트 코드 린트 제거 — see #29
+  - ESLint 타입 인식(typescript-eslint project)으로 e2e까지 포함 및 비-널 단정 제거, 반환 타입 명시
+  - tsconfig.eslint.json 신설 및 e2e 파일 타입 체크 활성화
+  - pre-commit 훅 e2e 필터 제거, 스테이징된 웹 파일 전체 린트 적용
+  - directory-url-sync.spec.ts qInput! → 명시적 가드 전환, pageerror 타입 명시 (Error)
+  - home.spec.ts pageerror 타입 명시 추가
+  - env.ts 명시적 WEB_BASE_URL 타입 추가
+  - mockApi.ts 반환 타입 (Promise<void>) 및 함수 타입 명시 강화
 - 인증 시스템 마이그레이션 완료: 이메일 기반에서 학번 기반으로 전환
   - 데이터베이스: MemberAuth 모델에서 email 필드 제거, student_id만 유지 (Alembic 마이그레이션 적용)
   - 스키마: MemberAuthCreate를 student_id/password만으로 구성, Pydantic v1/v2 호환성 문제 해결

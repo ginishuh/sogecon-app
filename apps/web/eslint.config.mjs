@@ -8,9 +8,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const compat = new FlatCompat({ baseDirectory: __dirname });
 
 export default [
-  // 임시(반드시 원복): e2e 린트 제외 — glm-4.6 자동 변경 우회; see #29; remove by 2025-10-31
-  // Ignore build output and E2E sources entirely from lint
-  { ignores: ['**/.next/**', '**/e2e/**', 'vitest.config.e2e.ts', '**/*.e2e.*', 'playwright.config.*'] },
+  // 빌드 산출물만 무시
+  { ignores: ['**/.next/**'] },
+
   // Load equivalent of our .eslintrc.json
   ...compat.config({
     extends: ['next/core-web-vitals', 'plugin:@typescript-eslint/recommended'],
@@ -33,13 +33,25 @@ export default [
       'import/no-cycle': ['error', { maxDepth: 1 }],
       'promise/catch-or-return': 'error'
     }
-  })
-  ,
+  }),
+
+  // 일반 TS 파일: 앱 소스는 기본 tsconfig
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: {
         project: ['./tsconfig.json'],
+        tsconfigRootDir: __dirname
+      }
+    }
+  },
+
+  // e2e 전용: 타입 인식 린트(별도 프로젝트) — #29 e2e 엄격 린트 복구
+  {
+    files: ['e2e/**/*.{ts,tsx}', '**/*.e2e.{ts,tsx}', 'vitest.config.e2e.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.eslint.json'],
         tsconfigRootDir: __dirname
       }
     }

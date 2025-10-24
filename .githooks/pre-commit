@@ -74,25 +74,13 @@ if [ ${#python_targets[@]} -gt 0 ]; then
   fi
 fi
 
-# 임시(반드시 원복): e2e 제외 — glm-4.6 우회; see #29; remove by 2025-10-31
+# 웹 변경 파일 수집(스테이징) — e2e 포함, 타입 인식 린트 적용 (#29)
 if [ ${#web_targets[@]} -gt 0 ]; then
-  WEB_FILTERED=()
-  for file in "${web_targets[@]}"; do
-    if ! [[ "$file" =~ (^e2e/)|(.e2e.)|(playwright.config.) ]]; then
-      WEB_FILTERED+=("$file")
-    fi
-  done
-
-  if [ ${#WEB_FILTERED[@]} -gt 0 ]; then
-    if command -v pnpm >/dev/null 2>&1; then
-      echo "[hooks] Running ESLint (flat config) on web (app/components/hooks/lib) — e2e excluded"
-      (cd apps/web && pnpm exec eslint app components hooks lib --ext .ts,.tsx,.js,.jsx --max-warnings=0 --ignore-pattern .next --ignore-pattern "e2e/**" --ignore-pattern "vitest.config.e2e.ts")
-      # Type-check is covered in CI build; skipping here to keep commits fast
-    else
-      echo "[hooks] Warning: pnpm not found; skipping web lint/type-check"
-    fi
+  if command -v pnpm >/dev/null 2>&1; then
+    echo "[hooks] Running ESLint on staged web files (e2e 포함, 타입 인식) — see #29"
+    echo "${web_targets[@]}" | xargs -r pnpm -C apps/web exec eslint --max-warnings=0
   else
-    echo "[hooks] web: only e2e changes detected; skipping eslint/tsc temporarily."
+    echo "[hooks] Warning: pnpm not found; skipping web lint/type-check"
   fi
 fi
 

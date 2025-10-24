@@ -18,10 +18,12 @@ describe('Directory URL sync (CDP E2E)', () => {
     await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
     await page.setBypassCSP(true);
     // E2E 안정화를 위해 SW 비활성화
-    page.on('console', (msg) => console.log('[console]', msg.type(), msg.text()));
-    page.on('pageerror', (err) => console.log('[pageerror]', err.message));
+    page.on('console', (msg: unknown) => {
+      const consoleMsg = msg as { type: () => string; text: () => string };
+      console.log('[console]', consoleMsg.type(), consoleMsg.text());
+    });
+    page.on('pageerror', (err: Error) => console.log('[pageerror]', err.message));
     await page.evaluateOnNewDocument(() => {
-      // @ts-expect-error - override readonly for test
       Object.defineProperty(navigator, 'serviceWorker', { value: undefined });
     });
   });
@@ -45,9 +47,9 @@ describe('Directory URL sync (CDP E2E)', () => {
 
     // 검색어 입력 → URL q 파라미터 동기화
     const qInput = await page.$('input[aria-label="검색어"]');
-    expect(qInput).not.toBeNull();
-    await qInput!.click({ clickCount: 3 });
-    await qInput!.type('kim');
+    if (!qInput) throw new Error('검색어 입력 필드를 찾을 수 없습니다');
+    await qInput.click({ clickCount: 3 });
+    await qInput.type('kim');
 
     await page.waitForFunction(
       () => new URL(window.location.href).searchParams.get('q') === 'kim',
