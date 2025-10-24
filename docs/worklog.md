@@ -9,6 +9,11 @@
   - 테스트: 58개 테스트 전체 통과 확인, 모든 테스트 픽스처에 student_id 필드 추가
   - CI: 원래 실패하던 test_member_activate_and_login을 포함한 모든 테스트가 정상 작동
   - 문서: architecture.md에 인증 체계 변경 사항 반영 (학번 기반 자체 인증으로 확정)
+- 프론트엔드 로그인 필드 불일치 수정: 422 Unprocessable Entity 오류 해결
+  - login 페이지: email 상태 변수를 studentId로 변경, 입력 필드 레이블을 '학번'으로 수정
+  - auth 서비스: login/memberLogin 함수 파라미터를 { student_id: string, password: string }으로 변경
+  - API 호출: 백엔드 LoginPayload 스키마와 일치하도록 student_id 필드 사용
+  - 이슈 #28: 앱 MVP 제작 연결
 
 ## 2025-10-06
 

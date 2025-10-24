@@ -19,7 +19,7 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
-  const [email, setEmail] = useState('');
+  const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState<'member'|'admin'>('member');
 
@@ -41,7 +41,7 @@ function LoginForm() {
   const { invalidate } = useAuth();
 
   const mutate = useMutation({
-    mutationFn: () => (mode === 'admin' ? login({ email, password }) : memberLogin({ email, password })),
+    mutationFn: () => (mode === 'admin' ? login({ student_id: studentId, password }) : memberLogin({ student_id: studentId, password })),
     onSuccess: async () => {
       await invalidate();
       show('로그인되었습니다.', { type: 'success' });
@@ -70,8 +70,8 @@ function LoginForm() {
         멤버 로그인: 구독/알림 등 일반 기능 이용. 관리자 로그인: 생성/관리 기능 접근.
       </p>
       <label className="block text-sm">
-        이메일
-        <input className="mt-1 w-full rounded border px-2 py-1" value={email} onChange={(e) => setEmail(e.currentTarget.value)} />
+        학번
+        <input className="mt-1 w-full rounded border px-2 py-1" value={studentId} onChange={(e) => setStudentId(e.currentTarget.value)} />
       </label>
       <label className="block text-sm">
         비밀번호
@@ -84,7 +84,7 @@ function LoginForm() {
       </label>
       <button
         className="rounded bg-slate-900 px-3 py-1 text-white disabled:opacity-50"
-        disabled={mutate.isPending || !email || !password}
+        disabled={mutate.isPending || !studentId || !password}
         onClick={() => mutate.mutate()}
       >
         {mode==='admin'?'관리자':'멤버'} 로그인

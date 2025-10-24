@@ -20,7 +20,7 @@ export async function getSession(): Promise<Session> {
   }
 }
 
-export async function login(payload: { email: string; password: string }): Promise<{ ok: string }> {
+export async function login(payload: { student_id: string; password: string }): Promise<{ ok: string }> {
   return apiFetch<{ ok: string }>('/auth/login', { method: 'POST', body: JSON.stringify(payload) });
 }
 
@@ -28,7 +28,7 @@ export async function logout(): Promise<void> {
   await apiFetch('/auth/logout', { method: 'POST' });
 }
 
-export async function memberLogin(payload: { email: string; password: string }): Promise<{ ok: string }> {
+export async function memberLogin(payload: { student_id: string; password: string }): Promise<{ ok: string }> {
   return apiFetch<{ ok: string }>('/auth/member/login', { method: 'POST', body: JSON.stringify(payload) });
 }
 
