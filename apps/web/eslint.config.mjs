@@ -36,6 +36,20 @@ export default [
     }
   }),
 
+  // JS config files (no type info) — relax TS unsafe rules here only
+  {
+    files: ['**/*.config.js', 'next.config.js'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unused-vars': ['off', { "argsIgnorePattern": "^_" }],
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-floating-promises': 'off'
+    }
+  },
+
   // 일반 TS 파일: 앱 소스는 기본 tsconfig
   {
     files: ['**/*.{ts,tsx}'],

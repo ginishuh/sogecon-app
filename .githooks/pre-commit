@@ -79,7 +79,9 @@ if command -v pnpm >/dev/null 2>&1; then
   if [ ${#web_targets[@]} -gt 0 ]; then
     echo "[hooks] web: lint staged files (e2e 포함, 타입 인식) — see #29"
     # apps/web 기준 상대경로 배열을 null-delimited로 안전 전달
-    printf '%s\0' "${web_targets[@]}" | xargs -0 -r pnpm -C apps/web exec eslint --max-warnings=0 --
+    # next.config.js 등 JS 파일도 포함되므로 타입정보 의존 룰로 인한 false positive를 피하기 위해
+    # 스테이징된 파일만 대상으로 실행하되, --no-warn-ignored로 무시 경고를 억제
+    printf '%s\0' "${web_targets[@]}" | xargs -0 -r pnpm -C apps/web exec eslint --no-warn-ignored --max-warnings=0 --
   fi
 else
   echo "[hooks] Warning: pnpm not found; skipping web lint/type-check"
