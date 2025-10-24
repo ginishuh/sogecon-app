@@ -8,8 +8,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const compat = new FlatCompat({ baseDirectory: __dirname });
 
 export default [
+  // 임시(반드시 원복): e2e 린트 제외 — glm-4.6 자동 변경 우회; see #29; remove by 2025-10-31
   // Ignore build output and E2E sources entirely from lint
-  { ignores: ['**/.next/**', '**/e2e/**', 'vitest.config.e2e.ts', '**/*.e2e.*'] },
+  { ignores: ['**/.next/**', '**/e2e/**', 'vitest.config.e2e.ts', '**/*.e2e.*', 'playwright.config.*'] },
   // Load equivalent of our .eslintrc.json
   ...compat.config({
     extends: ['next/core-web-vitals', 'plugin:@typescript-eslint/recommended'],

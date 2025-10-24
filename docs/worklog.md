@@ -20,6 +20,7 @@
   - 관리자 전용 메뉴가 정상적으로 표시되도록 수정
 - Web 린트: ESLint가 e2e 폴더와 vitest.config.e2e.ts를 완전히 제외하도록 flat config 및 pre-commit 훅 정비 → 커밋 실패(린트 단계) 해소
  - 위생: 실수로 추가된 `cookies.txt` 제거 및 `.gitignore`에 `cookies*.txt` 추가(민감/임시 아티팩트 추적 방지)
+- 2025-10-24(저녁): e2e 린트/tsc 임시 제외(우회) — 원복 예정; see #29.
 
 ## 2025-10-06
 
