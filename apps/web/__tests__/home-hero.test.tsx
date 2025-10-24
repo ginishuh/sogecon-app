@@ -17,7 +17,7 @@ describe('HomePage hero and cards', () => {
     render(<HomePage />);
     const cards = screen.getAllByRole('link', { name: /·/ });
     expect(cards).toHaveLength(3);
-    expect(screen.getByRole('link', { name: '수첩 · 동문 수첩 베타 공개' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '동문 수첩 · 동문 수첩 베타 공개' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '가이드 · 웹 런치 FAQ 12선' })).toBeInTheDocument();
   });
 });

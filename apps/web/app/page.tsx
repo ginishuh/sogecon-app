@@ -14,9 +14,9 @@ type HighlightCard = {
 const highlightCards: HighlightCard[] = [
   {
     href: '/directory',
-    badge: '수첩',
+    badge: '동문 수첩',
     title: '동문 수첩 베타 공개',
-    description: '검색, 기수/업종 필터, 정렬 기능까지 포함된 수첩을 웹에서 바로 이용하세요.',
+    description: '검색, 기수/업종 필터, 정렬 기능까지 포함된 동문 수첩을 웹에서 바로 이용하세요.',
     meta: '실시간 업데이트 중'
   },
   {
@@ -52,7 +52,7 @@ export default function HomePage() {
             한 번의 로그인으로 동문 네트워크 전체를
           </h1>
           <p className="home-hero__description">
-            공지, 행사, 수첩, 소개 페이지를 하나의 홈에서 연결했습니다. 모바일에서도 동일한 경험을 제공하며,
+            공지, 행사, 동문 수첩, 소개 페이지를 하나의 홈에서 연결했습니다. 모바일에서도 동일한 경험을 제공하며,
             2025년 4분기부터는 푸시 알림과 회원 전용 기능을 순차적으로 공개합니다.
           </p>
           <div className="home-hero__actions" role="group" aria-label="주요 행동">

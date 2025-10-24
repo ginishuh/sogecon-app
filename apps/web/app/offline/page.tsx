@@ -27,7 +27,7 @@ export default function OfflinePage() {
       </div>
       <OfflineActionButtons />
       <p className="text-xs text-slate-500">
-        이 페이지는 홈과 수첩 화면의 최소 오프라인 스켈레톤으로 제공되며, 연결이 복구되면 자동으로 최신 데이터로 갱신됩니다.
+        이 페이지는 홈과 동문 수첩 화면의 최소 오프라인 스켈레톤으로 제공되며, 연결이 복구되면 자동으로 최신 데이터로 갱신됩니다.
       </p>
     </section>
   );

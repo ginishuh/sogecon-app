@@ -37,7 +37,7 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
   };
   return (
     <Accordion summary="필터/정렬" defaultOpen density="sm" className="mb-2">
-      <fieldset className="flex flex-wrap items-end gap-3" aria-label="수첩 검색 필터">
+      <fieldset className="flex flex-wrap items-end gap-3" aria-label="동문 수첩 검색 필터">
         {FILTER_FIELDS.map(({ key, label, placeholder, inputMode }) => (
           <label key={key} className="flex flex-col text-xs text-slate-600">
             <span className="mb-1 font-medium text-slate-700">{label}</span>

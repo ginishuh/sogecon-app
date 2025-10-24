@@ -5,7 +5,7 @@ import { AboutHero } from '../../../components/about-hero';
 const commitments = [
   {
     title: '디지털 허브 완성',
-    body: '2025년 하반기 웹 런치를 통해 언제 어디서든 행사·공지·수첩을 확인할 수 있는 원스톱 허브를 완성하겠습니다.'
+    body: '2025년 하반기 웹 런치를 통해 언제 어디서든 행사·공지·동문 수첩을 확인할 수 있는 원스톱 허브를 완성하겠습니다.'
   },
   {
     title: '투명한 재정과 보고',
