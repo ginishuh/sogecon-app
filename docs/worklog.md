@@ -14,6 +14,11 @@
   - auth 서비스: login/memberLogin 함수 파라미터를 { student_id: string, password: string }으로 변경
   - API 호출: 백엔드 LoginPayload 스키마와 일치하도록 student_id 필드 사용
   - 이슈 #28: 앱 MVP 제작 연결
+- 관리자 세션 감지 문제 해결: RequireAdmin 컴포넌트 동작 수정
+  - getSession 함수 로직 순서 변경: adminMe()를 먼저 시도하도록 수정
+  - 관리자 로그인 시 멤버로 잘못 인식되는 문제 해결
+  - 관리자 전용 메뉴가 정상적으로 표시되도록 수정
+ - Web 린트: ESLint가 e2e 폴더와 vitest.config.e2e.ts를 완전히 제외하도록 flat config 및 pre-commit 훅 정비 → 커밋 실패(린트 단계) 해소
 
 ## 2025-10-06
 

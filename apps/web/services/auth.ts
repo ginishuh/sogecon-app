@@ -9,12 +9,12 @@ export async function memberMe(): Promise<MemberMe> { return apiFetch<MemberMe>(
 
 export async function getSession(): Promise<Session> {
   try {
-    const m = await memberMe();
-    return { kind: 'member', email: m.email };
+    const a = await adminMe();
+    return { kind: 'admin', email: a.email, id: a.id };
   } catch (e) {
     if (e instanceof ApiError && e.status === 401) {
-      const a = await adminMe();
-      return { kind: 'admin', email: a.email, id: a.id };
+      const m = await memberMe();
+      return { kind: 'member', email: m.email };
     }
     throw e;
   }
@@ -37,7 +37,15 @@ export async function memberLogout(): Promise<void> {
 }
 
 export async function logoutAll(): Promise<void> {
-  // Try both, ignore 401s
-  try { await memberLogout(); } catch {}
-  try { await logout(); } catch {}
+  // 두 세션 모두 시도하되, 401(세션 없음)은 무시하고 나머지는 전파
+  try {
+    await memberLogout();
+  } catch (err) {
+    if (!(err instanceof ApiError && err.status === 401)) throw err;
+  }
+  try {
+    await logout();
+  } catch (err) {
+    if (!(err instanceof ApiError && err.status === 401)) throw err;
+  }
 }

@@ -8,7 +8,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const compat = new FlatCompat({ baseDirectory: __dirname });
 
 export default [
-  { ignores: ['**/.next/**'] },
+  // Ignore build output and E2E sources entirely from lint
+  { ignores: ['**/.next/**', '**/e2e/**', 'vitest.config.e2e.ts', '**/*.e2e.*'] },
   // Load equivalent of our .eslintrc.json
   ...compat.config({
     extends: ['next/core-web-vitals', 'plugin:@typescript-eslint/recommended'],
