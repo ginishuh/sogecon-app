@@ -50,15 +50,16 @@
 - web(api): 모바일 접속 시 NEXT_PUBLIC_WEB_API_BASE가 localhost면 현재 호스트로 자동 대체 — 세션 쿠키 정상화.
 - test(web): 세션 목 구조 보정(학번 포함). 보드 테스트 업데이트.
 - schemas: OpenAPI/DTO 재생성 — `/auth/session` 추가 반영(verify-dto CI 실패 원인 제거).
- - 리뷰 대응(Web):
-   - useAuth: HttpOnly 쿠키 가정 제거 → 항상 `/auth/session` 질의하고 401은 정상 흐름으로 처리.
-   - eslint(config): `@typescript-eslint/no-unused-vars`를 error로 상향(JS 설정 블록), `_` 접두 인자 무시만 허용.
-   - api.ts: 로컬호스트 판별 정규식 비캡처 그룹으로 미세 최적화.
-   - site-header: 모바일 `flex`↔데스크탑 `grid` 전환 시 유틸 충돌 정리.
+- 리뷰 대응(Web):
+  - useAuth: HttpOnly 쿠키 가정 제거 → 항상 `/auth/session` 질의하고 401은 정상 흐름으로 처리.
+  - eslint(config): `@typescript-eslint/no-unused-vars`를 error로 상향(JS 설정 블록), `_` 접두 인자 무시만 허용.
+  - api.ts: 로컬호스트 판별 정규식 비캡처 그룹으로 미세 최적화.
+  - site-header: 모바일 `flex`↔데스크탑 `grid` 전환 시 유틸 충돌 정리.
 - 리뷰 대응(API):
   - roles 보정 중복 제거: `_ensure_member_role()` 도입.
   - `student_id` 불변 보장: 런타임 `assert` 추가로 캐스트 정당화.
- - CI 보강(API): Bandit B101(assert 사용) 지적 반영 — assert 제거하고 명시적 유효성 검사로 대체.
+- CI 보강(API): Bandit B101(assert 사용) 지적 반영 — assert 제거하고 명시적 유효성 검사로 대체.
+ - web(자산): 브랜드 에셋 폴더 생성 — `apps/web/public/fonts/Brand/`, `apps/web/public/images/brand/`, `apps/web/public/images/og/`.
 
 ## 2025-10-06
 
