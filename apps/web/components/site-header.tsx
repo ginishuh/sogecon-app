@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import type { Route } from 'next';
 
@@ -51,14 +52,17 @@ export function SiteHeader() {
   return (
     <header className="border-b border-neutral-border bg-white shadow-sm">
       <div className="mx-auto max-w-6xl flex flex-row items-center justify-between gap-4 px-4 py-4 md:grid md:grid-cols-4 md:items-start md:justify-normal md:px-6">
-        <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-brand-primary">
-          <span
-            aria-label="총동문회 홈으로 이동"
-            className="rounded-full bg-brand-primary px-2 py-1 text-sm text-white"
-          >
-            SG
+        <Link href="/" className="flex items-center gap-3 text-brand-primary" aria-label="총동문회 홈으로 이동">
+          <Image
+            src="/images/brand/seogang_korean_logo.svg"
+            alt="서강대학교"
+            width={112}
+            height={24}
+            priority
+          />
+          <span className="font-kopub font-bold tracking-tight text-neutral-ink text-sm md:text-base">
+            경제대학원 총동문회
           </span>
-          <span className="tracking-tight text-neutral-ink">서강대 경제대학원 총동문회</span>
         </Link>
         <button
           type="button"
@@ -80,7 +84,7 @@ export function SiteHeader() {
         </button>
         {/* col-2: 주요 링크 */}
         <div className="hidden md:block">
-          <nav aria-label="주 메뉴" className="text-sm text-neutral-muted">
+          <nav aria-label="주 메뉴" className="text-sm text-neutral-muted font-menu">
             <ul className="flex items-center gap-5">
               {PRIMARY_LINKS.map((link) => (
                 <li key={link.href}>
@@ -93,7 +97,7 @@ export function SiteHeader() {
           </nav>
         </div>
         {/* col-3: 드롭다운(롤아웃) */}
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-6 md:flex font-menu">
           <NavDropdown label="총동문회 소개" items={ABOUT_LINKS} />
           <NavDropdown label="고객 지원" items={SUPPORT_LINKS} />
           <RequireAdmin fallback={null}>
@@ -114,7 +118,7 @@ export function SiteHeader() {
       </div>
       {/* 모바일 내비: Drawer 연동 */}
       <Drawer open={open} onClose={closeMenu} title="전체 메뉴" side="right">
-        <nav id="primary-navigation" aria-label="모바일 주 메뉴" className="flex h-full flex-col gap-4 overflow-y-auto p-4 text-sm text-neutral-muted">
+        <nav id="primary-navigation" aria-label="모바일 주 메뉴" className="flex h-full flex-col gap-4 overflow-y-auto p-4 text-sm text-neutral-muted font-menu">
           {status === 'unauthorized' && (
             <div className="mb-2">
               <Link

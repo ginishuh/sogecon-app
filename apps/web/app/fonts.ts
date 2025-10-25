@@ -19,3 +19,23 @@ export const fontSans = localFont({
   display: 'swap',
   preload: true,
 });
+
+// 메뉴 전용: 서강체 (SOGANG_UNIVERSITY.otf)
+export const fontMenu = localFont({
+  src: [
+    { path: '../public/fonts/Brand/SOGANG_UNIVERSITY.otf', weight: '400', style: 'normal' }
+  ],
+  variable: '--font-menu',
+  display: 'swap',
+  preload: true,
+});
+
+// 헤더 일부(“경제대학원 총동문회”) 전용: KoPubWorld 돋움 Bold
+export const fontKoPubDotum = localFont({
+  src: [
+    { path: '../public/fonts/Brand/KoPubWorld Dotum_Pro Bold.otf', weight: '700', style: 'normal' }
+  ],
+  variable: '--font-kopub',
+  display: 'swap',
+  preload: true,
+});

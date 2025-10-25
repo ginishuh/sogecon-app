@@ -7,7 +7,7 @@ import { Providers } from './providers';
 import { HeaderGate } from '../components/header-gate';
 import { Analytics } from '../components/analytics';
 import { siteConfig, ogImage } from '../lib/site';
-import { fontSans } from './fonts';
+import { fontSans, fontMenu, fontKoPubDotum } from './fonts';
 
 const metadataUrl = new URL(siteConfig.url);
 const ogImageUrl = new URL(ogImage.path, siteConfig.url);
@@ -70,7 +70,7 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="ko" className={`${fontSans.variable} antialiased`}>
+    <html lang="ko" className={`${fontSans.variable} ${fontMenu.variable} ${fontKoPubDotum.variable} antialiased`}>
       <body>
         <a className="skip-link" href="#main-content">
           본문 바로가기

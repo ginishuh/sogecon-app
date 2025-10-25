@@ -68,6 +68,8 @@ const config: Config = {
         // next/font가 주입하는 CSS 변수 기반 — 전역에서 html.className에 설정
         heading: ['var(--font-sans)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         body: ['var(--font-sans)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        menu: ['var(--font-menu)', 'var(--font-sans)', 'system-ui', 'sans-serif'],
+        kopub: ['var(--font-kopub)', 'var(--font-sans)', 'system-ui', 'sans-serif'],
       },
       // 모바일 기준 타이포 스케일(글로벌에서 md 이상 확대)
       fontSize: {

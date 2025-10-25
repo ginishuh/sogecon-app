@@ -59,7 +59,11 @@
   - roles 보정 중복 제거: `_ensure_member_role()` 도입.
   - `student_id` 불변 보장: 런타임 `assert` 추가로 캐스트 정당화.
 - CI 보강(API): Bandit B101(assert 사용) 지적 반영 — assert 제거하고 명시적 유효성 검사로 대체.
- - web(자산): 브랜드 에셋 폴더 생성 — `apps/web/public/fonts/Brand/`, `apps/web/public/images/brand/`, `apps/web/public/images/og/`.
+- web(자산): 브랜드 에셋 폴더 생성 — `apps/web/public/fonts/Brand/`, `apps/web/public/images/brand/`, `apps/web/public/images/og/`.
+ - web(브랜드 적용):
+   - 메뉴 폰트: 서강체(SOGANG_UNIVERSITY.otf) → `font-menu`로 매핑
+   - 헤더 텍스트(“경제대학원 총동문회”): KoPubWorld 돋움 Bold 적용(`font-kopub` + `font-bold`)
+   - 헤더 로고: `seogang_korean_logo.svg` 표시, 파비콘은 심볼(`seogang.svg` → `favicon.svg`)
 
 ## 2025-10-06
 
