@@ -8,7 +8,7 @@ function resolveApiBase(): string {
   if (typeof window !== 'undefined') {
     const h = window.location.hostname;
     if (!envBase) return `http://${h}:3001`;
-    const isLocal = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?/i.test(envBase);
+    const isLocal = /^(?:https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?/i.test(envBase);
     if (isLocal) return `http://${h}:3001`;
     return envBase;
   }

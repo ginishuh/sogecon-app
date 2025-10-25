@@ -139,6 +139,13 @@ def _normalize_roles(value: object) -> list[str]:
     return []
 
 
+def _ensure_member_role(roles: list[str]) -> list[str]:
+    """roles에 'member'가 없으면 선두에 추가하여 반환."""
+    if "member" in roles:
+        return roles
+    return ["member", *roles]
+
+
 def _get_user_session(req: Request) -> CurrentUser | None:
     raw: Any = req.session.get("user")
     data = cast("dict[str, object] | None", raw)
@@ -209,12 +216,14 @@ def member_login(
         raise HTTPException(status_code=401, detail="login_failed")
     if not bcrypt.checkpw(payload.password.encode(), creds.password_hash.encode()):
         raise HTTPException(status_code=401, detail="login_failed")
-    roles = _normalize_roles(member.roles) or ["member"]
-    if "member" not in roles:
-        roles = ["member", *roles]
+    roles = _ensure_member_role(_normalize_roles(member.roles))
+    # 런타임 불변 보장: student_id는 NOT NULL
+    # (SQLAlchemy 컬럼 truthy 평가를 피하기 위해 별도 변수 사용)
+    sid_obj: object = cast(object, member.student_id)
+    assert isinstance(sid_obj, str) and len(sid_obj) > 0
     _set_user_session(
         request,
-        student_id=cast(str, member.student_id),
+        student_id=sid_obj,
         roles=roles,
         id=cast(int, member.id),
         email=cast(str | None, member.email),
@@ -392,12 +401,14 @@ def login(
         raise HTTPException(status_code=401, detail="login_failed")
     if not bcrypt.checkpw(payload.password.encode(), creds.password_hash.encode()):
         raise HTTPException(status_code=401, detail="login_failed")
-    roles = _normalize_roles(member.roles) or ["member"]
-    if "member" not in roles:
-        roles = ["member", *roles]
+    roles = _ensure_member_role(_normalize_roles(member.roles))
+    # 런타임 불변 보장: student_id는 NOT NULL
+    # (SQLAlchemy 컬럼 truthy 평가를 피하기 위해 별도 변수 사용)
+    sid_obj2: object = cast(object, member.student_id)
+    assert isinstance(sid_obj2, str) and len(sid_obj2) > 0
     _set_user_session(
         request,
-        student_id=cast(str, member.student_id),
+        student_id=sid_obj2,
         roles=roles,
         id=cast(int, member.id),
         email=cast(str | None, member.email),

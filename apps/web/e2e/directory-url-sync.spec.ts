@@ -24,6 +24,7 @@ describe('Directory URL sync (CDP E2E)', () => {
     });
     page.on('pageerror', (err: Error) => console.log('[pageerror]', err.message));
     await page.evaluateOnNewDocument(() => {
+      // 테스트 환경 안정화를 위해 readonly 속성 오버라이드(의도적): SW 등록을 비활성화
       Object.defineProperty(navigator, 'serviceWorker', { value: undefined });
     });
   });

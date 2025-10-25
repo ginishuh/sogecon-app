@@ -986,6 +986,7 @@
           "auth"
         ],
         "summary": "Member Login",
+        "description": "\ud558\uc704\ud638\ud658 \uba64\ubc84 \ub85c\uadf8\uc778 \uc5d4\ub4dc\ud3ec\uc778\ud2b8.\n\n\ud1b5\ud569 \ub85c\uc9c1\uc73c\ub85c \uc138\uc158\uc744 \uc124\uc815\ud558\uba70, \uba64\ubc84 \uc790\uaca9\ub9cc \uac80\uc0ac\ud55c\ub2e4.",
         "operationId": "member_login_auth_member_login_post",
         "requestBody": {
           "content": {
@@ -1045,6 +1046,7 @@
           "auth"
         ],
         "summary": "Member Me",
+        "description": "\uba64\ubc84 \uc790\uae30\uc815\ubcf4: \uc6f9 \ud504\ub860\ud2b8 \ud0c0\uc785 \uc815\uc758\uc5d0 \ub9de\ucdb0 email\uc744 \ubc18\ud658.\n\n\uc138\uc158\uc5d0 email\uc774 \uc5c6\uc744 \uc218 \uc788\uc5b4 Member \ud14c\uc774\ube14\uc744 \uc870\ud68c\ud558\uc5ec \ubcf4\uac15\ud55c\ub2e4.",
         "operationId": "member_me_auth_member_me_get",
         "responses": {
           "200": {
@@ -1220,6 +1222,7 @@
           "auth"
         ],
         "summary": "Me",
+        "description": "\uad00\ub9ac\uc790 \uc790\uae30\uc815\ubcf4(\ud558\uc704\ud638\ud658): \uad00\ub9ac\uc790 \uc138\uc158\uc774 \uc788\uc744 \ub54c\ub9cc 200.\n\n\ud1b5\ud569 \uc138\uc158\uc744 \uc0ac\uc6a9\ud558\ub354\ub77c\ub3c4 roles\uc5d0 'admin'\uc774 \uc788\uc5b4\uc57c \ud1b5\uacfc\ud55c\ub2e4.",
         "operationId": "me_auth_me_get",
         "responses": {
           "200": {
@@ -1239,6 +1242,30 @@
                   },
                   "type": "object",
                   "title": "Response Me Auth Me Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/session": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Session",
+        "description": "\ud1b5\ud569 \uc138\uc158 \uc870\ud68c \uc5d4\ub4dc\ud3ec\uc778\ud2b8.\n\n\ubc18\ud658 \ud615\uc2dd: { kind: 'admin'|'member', student_id, email, id? }\n\uc138\uc158\uc774 \uc5c6\uc73c\uba74 401.",
+        "operationId": "session_auth_session_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Session Auth Session Get"
                 }
               }
             }

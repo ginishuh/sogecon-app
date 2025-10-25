@@ -50,7 +50,7 @@ export function SiteHeader() {
 
   return (
     <header className="border-b border-neutral-border bg-white shadow-sm">
-      <div className="mx-auto max-w-6xl items-center justify-between gap-4 px-4 py-4 md:grid md:grid-cols-4 md:px-6 flex">
+      <div className="mx-auto max-w-6xl flex flex-row items-center justify-between gap-4 px-4 py-4 md:grid md:grid-cols-4 md:items-start md:justify-normal md:px-6">
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-brand-primary">
           <span
             aria-label="총동문회 홈으로 이동"

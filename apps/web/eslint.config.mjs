@@ -41,7 +41,8 @@ export default [
     files: ['**/*.config.js', 'next.config.js'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
-      '@typescript-eslint/no-unused-vars': ['off', { "argsIgnorePattern": "^_" }],
+      // 사용하지 않는 변수는 경고가 아닌 에러로 취급(가드레일 준수)
+      '@typescript-eslint/no-unused-vars': ['error', { "argsIgnorePattern": "^_" }],
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
