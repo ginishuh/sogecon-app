@@ -16,6 +16,47 @@ const ACTIONS: QuickAction[] = [
   { href: '/board', label: '게시판', description: '자유·질문·정보', ariaLabel: '커뮤니티 게시판 바로가기' },
 ];
 
+function ActionIcon({ label }: { label: string }) {
+  // 간단한 일러스트 스타일의 라인 아이콘 — 장치/테마 무관하게 안전한 색/크기
+  // 접근성: 장식 목적이므로 aria-hidden
+  const common = 'h-5 w-5';
+  if (label.includes('수첩')) {
+    // 주소록/카드
+    return (
+      <svg aria-hidden="true" className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <rect x="5" y="3" width="14" height="18" rx="2" />
+        <path d="M9 8h6M9 12h6M9 16h4" />
+      </svg>
+    );
+  }
+  if (label.includes('행사')) {
+    // 달력
+    return (
+      <svg aria-hidden="true" className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M7 3v4M17 3v4M3 9h18M8 14h3M13 14h3M8 18h3" />
+      </svg>
+    );
+  }
+  if (label.includes('소식')) {
+    // 신문/메가폰 느낌의 뉴스 카드
+    return (
+      <svg aria-hidden="true" className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <rect x="3" y="5" width="14" height="14" rx="2" />
+        <path d="M5.5 8h9M5.5 11h9M5.5 14h6" />
+        <path d="M17 9l4 2v6a2 2 0 0 1-2 2h-2V9Z" />
+      </svg>
+    );
+  }
+  // 게시판: 대화 말풍선
+  return (
+    <svg aria-hidden="true" className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 6h16v9a2 2 0 0 1-2 2H9l-5 3V6Z" />
+      <path d="M8 10h8M8 13h6" />
+    </svg>
+  );
+}
+
 export function HomeQuickActions() {
   return (
     <section aria-labelledby="home-quick-actions" className="home-quick-actions">
@@ -33,6 +74,9 @@ export function HomeQuickActions() {
               aria-label={item.ariaLabel ?? item.label}
               className="home-quick-actions__item"
             >
+              <span className="home-quick-actions__icon" aria-hidden="true">
+                <ActionIcon label={item.label} />
+              </span>
               <span className="home-quick-actions__label">{item.label}</span>
               <span className="home-quick-actions__desc">{item.description}</span>
             </Link>
@@ -44,4 +88,3 @@ export function HomeQuickActions() {
 }
 
 export default HomeQuickActions;
-
