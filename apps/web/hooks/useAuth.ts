@@ -2,6 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getSession, type Session } from '../services/auth';
+import { ApiError } from '../lib/api';
 
 export function useAuth() {
   const qc = useQueryClient();
@@ -9,8 +10,8 @@ export function useAuth() {
   const hasSessionCookie = typeof document !== 'undefined' && document.cookie.split(';').some((c) => c.trim().startsWith('session='));
   const query = useQuery<Session>({
     queryKey: ['auth', 'me'],
-    queryFn: getSession,
-    enabled: hasSessionCookie,
+    // 세션 쿠키가 없으면 네트워크 호출 없이 401로 처리
+    queryFn: () => (hasSessionCookie ? getSession() : Promise.reject(new ApiError(401, 'no session'))),
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
