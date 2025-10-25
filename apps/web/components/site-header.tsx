@@ -52,7 +52,7 @@ export function SiteHeader() {
   return (
     <header className="border-b border-neutral-border bg-white shadow-sm">
       <div className="mx-auto max-w-6xl flex flex-row items-center justify-between gap-4 px-4 py-4 md:grid md:grid-cols-4 md:items-start md:justify-normal md:px-6">
-        <Link href="/" className="flex items-center gap-3 text-brand-primary" aria-label="총동문회 홈으로 이동">
+        <Link href="/" className="flex items-center gap-3 text-brand-primary md:col-span-2 min-w-0" aria-label="총동문회 홈으로 이동">
           {/* 심볼 */}
           <Image
             src="/images/brand/seogang.svg"
@@ -69,7 +69,7 @@ export function SiteHeader() {
             height={24}
             priority
           />
-          <span className="font-kopub font-bold tracking-tight text-neutral-ink text-base md:text-lg">
+          <span className="font-kopub font-bold tracking-tight text-neutral-ink text-base md:text-lg whitespace-nowrap">
             경제대학원 총동문회
           </span>
         </Link>
