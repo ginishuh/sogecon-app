@@ -11,12 +11,31 @@ VENV_BIN := $(VENV_DIR)/bin
 DB_DEV_PORT ?= 5433
 DB_TEST_PORT ?= 5434
 
-# Helper function to wait for PostgreSQL container to be ready
+# Helper function to wait for PostgreSQL service health (fallback to pg_isready)
+# - 먼저 compose 컨테이너의 Health.Status가 healthy가 될 때까지 대기
+# - 헬스체크를 사용할 수 없는 환경에서는 컨테이너 내부의 pg_isready로 대기
+# - 타임아웃은 WAIT_FOR_PG_TIMEOUT(기본 90초)
 define wait_for_pg
-	@echo "[db] Waiting for $(1) to be ready..."
-	@timeout 60 bash -c 'until docker compose -f infra/docker-compose.dev.yml exec -T $(1) pg_isready -U app -d $(2) >/dev/null 2>&1; do sleep 2; done' || { \
-		echo "[db] Timeout waiting for $(1) to be ready"; exit 1; \
-	}
+	@echo "[db] Waiting for $(1) to be healthy..."
+	@CID=$$(docker compose -f infra/docker-compose.dev.yml ps -q $(1)); \
+	if [ -z "$$CID" ]; then \
+		echo "[db] Error: container for $(1) not found"; exit 1; \
+	fi; \
+	END=$$(( $${SECONDS:-0} + $${WAIT_FOR_PG_TIMEOUT:-90} )); \
+	OK=0; \
+	while [ $${SECONDS:-0} -lt $$END ]; do \
+		STATE=$$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}unknown{{end}}' $$CID 2>/dev/null || echo unknown); \
+		if [ "$$STATE" = "healthy" ]; then OK=1; break; fi; \
+		sleep 2; \
+	done; \
+	if [ $$OK -eq 1 ]; then \
+		echo "[db] $(1) is healthy"; \
+	else \
+		echo "[db] Health not healthy in time; fallback to pg_isready..."; \
+		timeout $${WAIT_FOR_PG_TIMEOUT:-60} bash -c 'until docker compose -f infra/docker-compose.dev.yml exec -T $(1) pg_isready -U app -d $(2) >/dev/null 2>&1; do sleep 2; done' || { \
+			echo "[db] Timeout waiting for $(1) to be ready"; exit 1; \
+		}; \
+	fi
 endef
 
 venv:

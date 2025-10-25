@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { WEB_BASE_URL } from './utils/env';
 import { setupDirectoryMocks } from './utils/mockApi';
+import type { ConsoleMessage } from 'puppeteer';
 
 let browser: Browser | null = null;
 let page: Page | null = null;
@@ -18,10 +19,12 @@ describe('Directory URL sync (CDP E2E)', () => {
     await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
     await page.setBypassCSP(true);
     // E2E 안정화를 위해 SW 비활성화
-    page.on('console', (msg) => console.log('[console]', msg.type(), msg.text()));
-    page.on('pageerror', (err) => console.log('[pageerror]', err.message));
+    page.on('console', (msg: ConsoleMessage) => {
+      console.log('[console]', msg.type(), msg.text());
+    });
+    page.on('pageerror', (err: Error) => console.log('[pageerror]', err.message));
     await page.evaluateOnNewDocument(() => {
-      // @ts-expect-error - override readonly for test
+      // 테스트 환경 안정화를 위해 readonly 속성 오버라이드(의도적): SW 등록을 비활성화
       Object.defineProperty(navigator, 'serviceWorker', { value: undefined });
     });
   });
@@ -41,13 +44,13 @@ describe('Directory URL sync (CDP E2E)', () => {
 
     // 필터 UI가 보이는지 확인(아코디언 내부)
     await page.waitForSelector('summary');
-    await page.waitForSelector('fieldset[aria-label="디렉터리 검색 필터"]');
+    await page.waitForSelector('fieldset[aria-label="동문 수첩 검색 필터"]');
 
     // 검색어 입력 → URL q 파라미터 동기화
     const qInput = await page.$('input[aria-label="검색어"]');
-    expect(qInput).not.toBeNull();
-    await qInput!.click({ clickCount: 3 });
-    await qInput!.type('kim');
+    if (!qInput) throw new Error('검색어 입력 필드를 찾을 수 없습니다');
+    await qInput.click({ clickCount: 3 });
+    await qInput.type('kim');
 
     await page.waitForFunction(
       () => new URL(window.location.href).searchParams.get('q') === 'kim',

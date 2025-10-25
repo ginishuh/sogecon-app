@@ -15,7 +15,7 @@ export function AboutHero({ title, description, image }: AboutHeroProps) {
   return (
     <section aria-labelledby="about-hero-heading" className="about-hero">
       <div className="about-hero__text">
-        <p className="about-hero__eyebrow">총원우회 소개</p>
+        <p className="about-hero__eyebrow">총동문회 소개</p>
         <h1 id="about-hero-heading" className="about-hero__title">
           {title}
         </h1>

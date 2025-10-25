@@ -8,29 +8,29 @@ exports[`SEO metadata configuration > declares title template and open graph bas
       "ko": "https://alumni.sogang-econ.kr",
     },
   },
-  "applicationName": "총원우회",
+  "applicationName": "총동문회",
   "authors": [
     {
-      "name": "서강대 경제대학원 총원우회",
+      "name": "서강대 경제대학원 총동문회",
     },
   ],
   "category": "organization",
-  "creator": "서강대 경제대학원 총원우회",
-  "description": "서강대학교 경제대학원 총원우회 공식 웹 — 공지, 행사, 디렉터리, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
+  "creator": "서강대 경제대학원 총동문회",
+  "description": "서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 동문 수첩, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
   "keywords": [
-    "총원우회",
+    "총동문회",
     "서강대학교 경제대학원",
-    "동문 디렉터리",
+    "동문 수첩",
     "총회",
     "행사",
     "FAQ",
   ],
   "metadataBase": "https://alumni.sogang-econ.kr/",
   "openGraph": {
-    "description": "서강대학교 경제대학원 총원우회 공식 웹 — 공지, 행사, 디렉터리, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
+    "description": "서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 동문 수첩, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
     "images": [
       {
-        "alt": "서강대 경제대학원 총원우회 웹 런치 대표 이미지",
+        "alt": "서강대 경제대학원 총동문회 웹 런치 대표 이미지",
         "height": 630,
         "type": "image/png",
         "url": "https://alumni.sogang-econ.kr/og-default.png",
@@ -38,12 +38,12 @@ exports[`SEO metadata configuration > declares title template and open graph bas
       },
     ],
     "locale": "ko_KR",
-    "siteName": "서강대 경제대학원 총원우회",
-    "title": "서강대 경제대학원 총원우회 웹 서비스",
+    "siteName": "서강대 경제대학원 총동문회",
+    "title": "서강대 경제대학원 총동문회 웹 서비스",
     "type": "website",
     "url": "https://alumni.sogang-econ.kr",
   },
-  "publisher": "서강대 경제대학원 총원우회",
+  "publisher": "서강대 경제대학원 총동문회",
   "robots": {
     "follow": true,
     "googleBot": {
@@ -53,16 +53,16 @@ exports[`SEO metadata configuration > declares title template and open graph bas
     "index": true,
   },
   "title": {
-    "default": "서강대 경제대학원 총원우회 웹 서비스",
-    "template": "%s | 서강대 경제대학원 총원우회",
+    "default": "서강대 경제대학원 총동문회 웹 서비스",
+    "template": "%s | 서강대 경제대학원 총동문회",
   },
   "twitter": {
     "card": "summary_large_image",
-    "description": "서강대학교 경제대학원 총원우회 공식 웹 — 공지, 행사, 디렉터리, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
+    "description": "서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 동문 수첩, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
     "images": [
       "https://alumni.sogang-econ.kr/og-default.png",
     ],
-    "title": "서강대 경제대학원 총원우회 웹 서비스",
+    "title": "서강대 경제대학원 총동문회 웹 서비스",
   },
 }
 `;

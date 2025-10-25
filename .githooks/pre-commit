@@ -74,14 +74,17 @@ if [ ${#python_targets[@]} -gt 0 ]; then
   fi
 fi
 
-if [ ${#web_targets[@]} -gt 0 ]; then
-  if command -v pnpm >/dev/null 2>&1; then
-    echo "[hooks] Running ESLint (flat config) on web (app/components/hooks/lib/e2e)"
-    (cd apps/web && pnpm exec eslint app components hooks lib e2e --ext .ts,.tsx,.js,.jsx --max-warnings=0 --ignore-pattern .next)
-    # Type-check is covered in CI build; skipping here to keep commits fast
-  else
-    echo "[hooks] Warning: pnpm not found; skipping web lint/type-check"
+# 웹 변경 파일 수집(스테이징) — e2e 포함, 타입 인식 린트 적용 (#29)
+if command -v pnpm >/dev/null 2>&1; then
+  if [ ${#web_targets[@]} -gt 0 ]; then
+    echo "[hooks] web: lint staged files (e2e 포함, 타입 인식) — see #29"
+    # apps/web 기준 상대경로 배열을 null-delimited로 안전 전달
+    # next.config.js 등 JS 파일도 포함되므로 타입정보 의존 룰로 인한 false positive를 피하기 위해
+    # 스테이징된 파일만 대상으로 실행하되, --no-warn-ignored로 무시 경고를 억제
+    printf '%s\0' "${web_targets[@]}" | xargs -0 -r pnpm -C apps/web exec eslint --no-warn-ignored --max-warnings=0 --
   fi
+else
+  echo "[hooks] Warning: pnpm not found; skipping web lint/type-check"
 fi
 
 exit 0

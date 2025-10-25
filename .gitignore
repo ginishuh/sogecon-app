@@ -8,6 +8,7 @@ coverage/
 .pytest_cache/
 .tsbuildinfo
 apps/web/tsconfig.tsbuildinfo
+apps/web/tsconfig.eslint.tsbuildinfo
 .env
 .env.*
 !.env.example
@@ -22,3 +23,5 @@ apps/api/migrations/__pycache__/
 .api-dev.pid
 .web-dev.pid
 logs/
+cookies.txt
+cookies-*.txt

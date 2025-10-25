@@ -37,7 +37,7 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
   };
   return (
     <Accordion summary="필터/정렬" defaultOpen density="sm" className="mb-2">
-      <fieldset className="flex flex-wrap items-end gap-3" aria-label="디렉터리 검색 필터">
+      <fieldset className="flex flex-wrap items-end gap-3" aria-label="동문 수첩 검색 필터">
         {FILTER_FIELDS.map(({ key, label, placeholder, inputMode }) => (
           <label key={key} className="flex flex-col text-xs text-slate-600">
             <span className="mb-1 font-medium text-slate-700">{label}</span>
@@ -220,7 +220,7 @@ function DirectoryPageInner() {
   return (
     <div className="space-y-4 p-6">
       <header className="space-y-2">
-        <h2 className="text-xl font-semibold text-slate-800">동문 디렉터리</h2>
+        <h2 className="text-xl font-semibold text-slate-800">동문 수첩</h2>
         <p className="text-sm text-slate-600">
           검색어나 필터를 조합해 동문 정보를 찾아보세요. 공개 범위가 제한된 항목은 표시되지 않을 수 있습니다.
         </p>

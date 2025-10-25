@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 
 import { ServiceWorkerRegister } from './sw-register';
 import { Providers } from './providers';
-import { SiteHeader } from '../components/site-header';
+import { HeaderGate } from '../components/header-gate';
 import { Analytics } from '../components/analytics';
 import { siteConfig, ogImage } from '../lib/site';
 import { fontSans } from './fonts';
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`
   },
   description: siteConfig.description,
-  keywords: ['총원우회', '서강대학교 경제대학원', '동문 디렉터리', '총회', '행사', 'FAQ'],
+  keywords: ['총동문회', '서강대학교 경제대학원', '동문 수첩', '총회', '행사', 'FAQ'],
   authors: [{ name: siteConfig.name }],
   creator: siteConfig.name,
   publisher: siteConfig.name,
@@ -81,7 +81,7 @@ export default function RootLayout({
         )}
         <Providers>
           <Analytics />
-          <SiteHeader />
+          <HeaderGate />
           <main id="main-content" role="main" tabIndex={-1}>
             {children}
           </main>

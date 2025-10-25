@@ -204,7 +204,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Member Login */
+        /**
+         * Member Login
+         * @description 하위호환 멤버 로그인 엔드포인트.
+         *
+         *     통합 로직으로 세션을 설정하며, 멤버 자격만 검사한다.
+         */
         post: operations["member_login_auth_member_login_post"];
         delete?: never;
         options?: never;
@@ -236,7 +241,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Member Me */
+        /**
+         * Member Me
+         * @description 멤버 자기정보: 웹 프론트 타입 정의에 맞춰 email을 반환.
+         *
+         *     세션에 email이 없을 수 있어 Member 테이블을 조회하여 보강한다.
+         */
         get: operations["member_me_auth_member_me_get"];
         put?: never;
         post?: never;
@@ -327,8 +337,36 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Me */
+        /**
+         * Me
+         * @description 관리자 자기정보(하위호환): 관리자 세션이 있을 때만 200.
+         *
+         *     통합 세션을 사용하더라도 roles에 'admin'이 있어야 통과한다.
+         */
         get: operations["me_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Session
+         * @description 통합 세션 조회 엔드포인트.
+         *
+         *     반환 형식: { kind: 'admin'|'member', student_id, email, id? }
+         *     세션이 없으면 401.
+         */
+        get: operations["session_auth_session_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1614,6 +1652,28 @@ export interface operations {
                 content: {
                     "application/json": {
                         [key: string]: string | number;
+                    };
+                };
+            };
+        };
+    };
+    session_auth_session_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
                     };
                 };
             };

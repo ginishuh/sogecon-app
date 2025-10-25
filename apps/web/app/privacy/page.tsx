@@ -4,7 +4,7 @@ import React from 'react';
 export const metadata: Metadata = {
   title: '개인정보 처리방침',
   description:
-    '서강대 경제대학원 총원우회는 회원 개인정보를 안전하게 보호하기 위해 수집 항목, 이용 목적, 보유 기간, 제3자 제공 기준을 명확히 고지합니다.'
+    '서강대 경제대학원 총동문회는 회원 개인정보를 안전하게 보호하기 위해 수집 항목, 이용 목적, 보유 기간, 제3자 제공 기준을 명확히 고지합니다.'
 };
 
 type PolicySection = {
@@ -38,7 +38,7 @@ const sections: PolicySection[] = [
     content: (
       <ol className="list-decimal space-y-2 pl-5">
         <li>회원 식별 및 로그인, 계정 활성화·재설정 등 서비스 기본 기능 제공</li>
-        <li>행사/공지/디렉터리 운영을 위한 회원 정보 검증과 연락</li>
+        <li>행사/공지/수첩 운영을 위한 회원 정보 검증과 연락</li>
         <li>장학사업, 프로그램 안내, 총회 공지 등 커뮤니케이션 발송</li>
         <li>서비스 안정성 확보, 보안 로그 분석, 이용 통계 작성</li>
       </ol>
@@ -63,7 +63,7 @@ const sections: PolicySection[] = [
     content: (
       <>
         <p>
-          총원우회는 원칙적으로 회원 개인정보를 외부에 제공하지 않습니다. 다만 다음의 경우에는 예외적으로 제공할 수 있으며,
+          총동문회는 원칙적으로 회원 개인정보를 외부에 제공하지 않습니다. 다만 다음의 경우에는 예외적으로 제공할 수 있으며,
           제공 시 사전 고지 및 동의를 진행합니다.
         </p>
         <ul className="mt-3 list-disc space-y-2 pl-5">
@@ -133,7 +133,7 @@ export default function PrivacyPage() {
         <p className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">Policy</p>
         <h1 className="font-heading text-3xl text-neutral-ink md:text-4xl">개인정보 처리방침</h1>
         <p className="text-sm leading-6 text-neutral-muted">
-          서강대 경제대학원 총원우회는 『개인정보 보호법』, 『정보통신망 이용촉진 및 정보보호 등에 관한 법률』 등 관련 법령을 준수하며 회원 정보를 보호합니다.
+          서강대 경제대학원 총동문회는 『개인정보 보호법』, 『정보통신망 이용촉진 및 정보보호 등에 관한 법률』 등 관련 법령을 준수하며 회원 정보를 보호합니다.
           아래 항목을 확인하시고, 문의 사항은 언제든지 개인정보 보호책임자에게 전달해 주세요.
         </p>
       </header>

@@ -30,7 +30,7 @@ function addValues(directive, values) {
 if (relaxCsp) {
   // 개발/프리뷰 환경에서는 HMR, DevTools 등을 위해 완화
   addValues('script-src', ["'unsafe-inline'", "'unsafe-eval'", 'wasm-unsafe-eval', 'blob:']);
-  addValues('connect-src', ['http://localhost:3000', 'http://localhost:3001', 'ws:']);
+  addValues('connect-src', ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001', 'ws:']);
   addValues('img-src', ['blob:']);
   addValues('worker-src', ['blob:']);
 }
@@ -73,6 +73,7 @@ const remoteDomainsEnv = (process.env.NEXT_PUBLIC_IMAGE_DOMAINS || '')
 
 const imageRemotePatterns = [
   { protocol: 'http', hostname: 'localhost', port: '3001' },
+  { protocol: 'http', hostname: '127.0.0.1', port: '3001' },
   ...remoteDomainsEnv.map((hostname) => ({ protocol: 'https', hostname })),
 ];
 

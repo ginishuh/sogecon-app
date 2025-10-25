@@ -1,5 +1,13 @@
 ## 2025-10-24
 
+- e2e 린트 엄격 복구 + 테스트 코드 린트 제거 — see #29
+  - ESLint 타입 인식(typescript-eslint project)으로 e2e까지 포함 및 비-널 단정 제거, 반환 타입 명시
+  - tsconfig.eslint.json 신설 및 e2e 파일 타입 체크 활성화
+  - pre-commit 훅 e2e 필터 제거, 스테이징된 웹 파일 전체 린트 적용
+  - directory-url-sync.spec.ts qInput! → 명시적 가드 전환, pageerror 타입 명시 (Error)
+  - home.spec.ts pageerror 타입 명시 추가
+  - env.ts 명시적 WEB_BASE_URL 타입 추가
+  - mockApi.ts 반환 타입 (Promise<void>) 및 함수 타입 명시 강화
 - 인증 시스템 마이그레이션 완료: 이메일 기반에서 학번 기반으로 전환
   - 데이터베이스: MemberAuth 모델에서 email 필드 제거, student_id만 유지 (Alembic 마이그레이션 적용)
   - 스키마: MemberAuthCreate를 student_id/password만으로 구성, Pydantic v1/v2 호환성 문제 해결
@@ -14,6 +22,43 @@
   - auth 서비스: login/memberLogin 함수 파라미터를 { student_id: string, password: string }으로 변경
   - API 호출: 백엔드 LoginPayload 스키마와 일치하도록 student_id 필드 사용
   - 이슈 #28: 앱 MVP 제작 연결
+- 관리자 세션 감지 문제 해결: RequireAdmin 컴포넌트 동작 수정
+  - getSession 함수 로직 순서 변경: adminMe()를 먼저 시도하도록 수정
+  - 관리자 로그인 시 멤버로 잘못 인식되는 문제 해결
+  - 관리자 전용 메뉴가 정상적으로 표시되도록 수정
+- Web 린트: ESLint가 e2e 폴더와 vitest.config.e2e.ts를 완전히 제외하도록 flat config 및 pre-commit 훅 정비 → 커밋 실패(린트 단계) 해소
+ - 위생: 실수로 추가된 `cookies.txt` 제거 및 `.gitignore`에 `cookies*.txt` 추가(민감/임시 아티팩트 추적 방지)
+- 2025-10-24(저녁): e2e 린트/tsc 임시 제외(우회) — 원복 예정; see #29.
+
+- infra: make db-up 타임아웃 개선 — 컨테이너 Health.Status 우선, 실패 시 pg_isready 폴백(기본 90s, WAIT_FOR_PG_TIMEOUT로 조정)
+- api(auth): 세션 통합(user) 및 `/auth/session` 추가 — kind, student_id, email, id 반환. `/auth/logout`가 모든 세션 키(user/admin/member) 정리.
+- api(auth): `require_member`가 관리자도 통과(백엔드 정책과 프론트 가드 일치화). `/auth/member/me`는 `{ email }`로 응답 고정.
+- web(auth): 세션 조회 단일화(`/auth/session`), 헤더 표시는 이메일→학번(student_id). 로그인 UI 단일화(모드 토글 제거). `RequireMember`가 관리자도 허용.
+- web(ui): 로그인 페이지에서 헤더/드로어의 로그인 링크/안내가 중복 노출되지 않도록 헤더 미표시(HeaderGate) 적용.
+
+## 2025-10-25
+
+- web(nav): 헤더/드로어 로그인 UX 개선 — 미로그인 시 링크는 1곳만, /login에서도 헤더 유지, 모바일 드로어는 우측에서 열림.
+- web(auth): RequireAdmin/RequireMember 기본 안내 비표시(명시적 fallback 있을 때만), 중복 문구 재발 방지.
+- web(nav): 모바일 드로어 상단에 ‘로그인’ 버튼 추가, 하단에는 인라인 ‘빠른 로그인’ 폼 제공(성공 시 드로어 자동 닫힘).
+- api(auth): pyright 타입 오류 수정 — SQLAlchemy 컬럼 접근값에 대한 명시적 cast 및 조건 단순화.
+- web(nav): 데스크톱 헤더 4분할 의도 반영 — md:grid md:grid-cols-4 적용, 로그인 링크는 우측 세션 영역으로 이동.
+- web(nav): ‘총동문회 소개/고객 지원’ 드롭다운(롤아웃) 도입 — NavDropdown 컴포넌트로 hover/focus/click 접근성 지원.
+- web(nav): 드롭다운 hover 이탈 시 즉시 닫힘 방지 — 지연 타이머(160ms)와 패널 onMouseEnter로 브릿지 처리.
+- web(auth): 미로그인 시 /auth/session 호출을 생략(useAuth enabled=false) — 401/CORS 콘솔 스팸 제거.
+- web(auth): 로그인 직후 Drawer 동기화 — enabled 대신 쿼리 함수에서 쿠키 없으면 로컬 401 처리.
+- web(api): 모바일 접속 시 NEXT_PUBLIC_WEB_API_BASE가 localhost면 현재 호스트로 자동 대체 — 세션 쿠키 정상화.
+- test(web): 세션 목 구조 보정(학번 포함). 보드 테스트 업데이트.
+- schemas: OpenAPI/DTO 재생성 — `/auth/session` 추가 반영(verify-dto CI 실패 원인 제거).
+ - 리뷰 대응(Web):
+   - useAuth: HttpOnly 쿠키 가정 제거 → 항상 `/auth/session` 질의하고 401은 정상 흐름으로 처리.
+   - eslint(config): `@typescript-eslint/no-unused-vars`를 error로 상향(JS 설정 블록), `_` 접두 인자 무시만 허용.
+   - api.ts: 로컬호스트 판별 정규식 비캡처 그룹으로 미세 최적화.
+   - site-header: 모바일 `flex`↔데스크탑 `grid` 전환 시 유틸 충돌 정리.
+- 리뷰 대응(API):
+  - roles 보정 중복 제거: `_ensure_member_role()` 도입.
+  - `student_id` 불변 보장: 런타임 `assert` 추가로 캐스트 정당화.
+ - CI 보강(API): Bandit B101(assert 사용) 지적 반영 — assert 제거하고 명시적 유효성 검사로 대체.
 
 ## 2025-10-06
 
@@ -344,3 +389,9 @@
 - chore(ops): Makefile wait_for_pg 함수 도입 및 PID 경로 정리
 - docs(docs): .env.example CORS_ORIGINS 설명 강화, dev_log 갱신
 - revert(ops): artifacts/ 폴더 .gitignore 추가를 취소(되돌림); 필요 시 수동 백업 사용
+## 2025-10-24
+- ci(web): e2e 린트 엄격 복구(타입 인식) 및 테스트 코드 린트 정리 — see #29
+- docs/web: 명칭 일괄 정리 — 총동문회로 통일 (사용자 노출 텍스트·메타데이터·이미지 aria-label/타이틀·네비게이션 라벨·문서)
+- feat(web): UI 용어 변경 — ‘동문 디렉터리/수첩’ → ‘동문 수첩’로 통일 (텍스트·키워드·CTA·a11y·테스트/스냅샷)
+- fix(api): 개발환경(dev)에서 로그인 레이트리밋 해제(운영(prod)에서만 적용)
+- chore(web): API_BASE 기본값을 현재 호스트 기반으로 계산(127.0.0.1/localhost 혼용 시 세션 유지)
