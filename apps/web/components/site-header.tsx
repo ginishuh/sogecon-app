@@ -10,6 +10,7 @@ import { RequireAdmin } from './require-admin';
 import { useAuth } from '../hooks/useAuth';
 import { LoginInline } from './login-inline';
 import Drawer from './ui/drawer';
+import { NavDropdown } from './ui/nav-dropdown';
 
 type LinkItem = {
   href: Route;
@@ -77,11 +78,9 @@ export function SiteHeader() {
             )}
           </svg>
         </button>
-        <div className="hidden flex-1 items-center justify-between md:flex">
-          <nav
-            aria-label="주 메뉴"
-            className="flex flex-1 items-center justify-between gap-10 text-sm text-neutral-muted"
-          >
+        {/* col-2: 주요 링크 */}
+        <div className="hidden md:block">
+          <nav aria-label="주 메뉴" className="text-sm text-neutral-muted">
             <ul className="flex items-center gap-5">
               {PRIMARY_LINKS.map((link) => (
                 <li key={link.href}>
@@ -91,61 +90,26 @@ export function SiteHeader() {
                 </li>
               ))}
             </ul>
-            <div className="flex items-start gap-8 text-xs">
-              <div aria-label="총동문회 소개" className="flex flex-col gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-muted">
-                  총동문회 소개
-                </span>
-                <ul className="flex flex-col gap-2">
-                  {ABOUT_LINKS.map((link) => (
-                    <li key={link.href}>
-                      <Link className="transition hover:text-brand-primary" href={link.href}>
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div aria-label="고객 지원" className="flex flex-col gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-muted">
-                  고객 지원
-                </span>
-                <ul className="flex flex-col gap-2">
-                  {SUPPORT_LINKS.map((link) => (
-                    <li key={link.href}>
-                      <Link className="transition hover:text-brand-primary" href={link.href}>
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <RequireAdmin fallback={null}>
-                <div aria-label="관리자 메뉴" className="flex flex-col gap-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-muted">
-                    관리자
-                  </span>
-                  <ul className="flex flex-col gap-2">
-                    {ADMIN_LINKS.map((link) => (
-                      <li key={link.href}>
-                        <Link className="transition hover:text-brand-primary" href={link.href}>
-                          {link.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </RequireAdmin>
-            </div>
           </nav>
-          <div className="flex items-center gap-4">
-            <NotifyCTA />
-            {status === 'authorized' ? (
-              <HeaderAuth />
-            ) : (
-              <Link href="/login" className="text-sm text-slate-600 hover:underline">로그인</Link>
-            )}
-          </div>
+        </div>
+        {/* col-3: 드롭다운(롤아웃) */}
+        <div className="hidden items-center gap-6 md:flex">
+          <NavDropdown label="총동문회 소개" items={ABOUT_LINKS} />
+          <NavDropdown label="고객 지원" items={SUPPORT_LINKS} />
+          <RequireAdmin fallback={null}>
+            <div className="hidden 2xl:block">
+              <NavDropdown label="관리자" items={ADMIN_LINKS} />
+            </div>
+          </RequireAdmin>
+        </div>
+        {/* col-4: 세션/로그인 */}
+        <div className="hidden items-center justify-end gap-4 md:flex">
+          <NotifyCTA />
+          {status === 'authorized' ? (
+            <HeaderAuth />
+          ) : (
+            <Link href="/login" className="text-sm text-slate-600 hover:underline">로그인</Link>
+          )}
         </div>
       </div>
       {/* 모바일 내비: Drawer 연동 */}
