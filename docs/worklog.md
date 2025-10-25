@@ -46,6 +46,7 @@
 - web(nav): ‘총동문회 소개/고객 지원’ 드롭다운(롤아웃) 도입 — NavDropdown 컴포넌트로 hover/focus/click 접근성 지원.
 - web(nav): 드롭다운 hover 이탈 시 즉시 닫힘 방지 — 지연 타이머(160ms)와 패널 onMouseEnter로 브릿지 처리.
 - web(auth): 미로그인 시 /auth/session 호출을 생략(useAuth enabled=false) — 401/CORS 콘솔 스팸 제거.
+- web(api): 모바일 접속 시 NEXT_PUBLIC_WEB_API_BASE가 localhost면 현재 호스트로 자동 대체 — 세션 쿠키 정상화.
 - test(web): 세션 목 구조 보정(학번 포함). 보드 테스트 업데이트.
 
 ## 2025-10-06
