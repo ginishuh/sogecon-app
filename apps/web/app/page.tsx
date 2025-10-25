@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Route } from 'next';
 import React from 'react';
+import { HomeQuickActions } from '../components/home/quick-actions';
 
 type HighlightCard = {
   href: Route;
@@ -87,29 +88,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section aria-labelledby="home-stats" className="rounded-3xl bg-brand-surface px-6 py-8 shadow-sm md:px-10">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">
-              총동문회 스냅숏
-            </span>
-            <h2 id="home-stats" className="mt-2 font-heading text-2xl text-neutral-ink md:text-3xl">
-              2025년 4분기 준비 현황
-            </h2>
-          </div>
-          <Link className="home-hero__secondary" href="/about/org">
-            조직도 자세히 보기
-          </Link>
-        </div>
-        <dl className="mt-8 grid gap-6 text-sm text-neutral-muted md:grid-cols-4">
-          {stats.map((item) => (
-            <div key={item.label} className="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
-              <dt className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">{item.label}</dt>
-              <dd className="mt-2 text-xl font-semibold text-neutral-ink">{item.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+      {/* SSOT: 홈 빠른 실행(2×2) */}
+      <HomeQuickActions />
 
       <section aria-labelledby="home-updates" className="flex flex-col gap-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -140,6 +120,45 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+      </section>
+
+      {/* SSOT: 회장 인사말 카드(프리뷰) */}
+      <section aria-labelledby="home-greeting" className="rounded-3xl bg-white px-6 py-7 shadow-sm md:px-10">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">메시지</span>
+            <h2 id="home-greeting" className="mt-1 font-heading text-2xl text-neutral-ink md:text-3xl">회장 인사말</h2>
+            <p className="mt-2 text-sm text-neutral-muted">
+              총동문회가 준비하는 디지털 허브와 2025년 운영 원칙을 간략히 소개합니다.
+            </p>
+          </div>
+          <Link href="/about/greeting" className="home-hero__cta">전문 보기</Link>
+        </div>
+      </section>
+
+      {/* SSOT: 스냅숏(마지막) */}
+      <section aria-labelledby="home-stats" className="rounded-3xl bg-brand-surface px-6 py-8 shadow-sm md:px-10">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">
+              총동문회 스냅숏
+            </span>
+            <h2 id="home-stats" className="mt-2 font-heading text-2xl text-neutral-ink md:text-3xl">
+              2025년 4분기 준비 현황
+            </h2>
+          </div>
+          <Link className="home-hero__secondary" href="/about/org">
+            조직도 자세히 보기
+          </Link>
+        </div>
+        <dl className="mt-8 grid gap-6 text-sm text-neutral-muted md:grid-cols-4">
+          {stats.map((item) => (
+            <div key={item.label} className="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
+              <dt className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">{item.label}</dt>
+              <dd className="mt-2 text-xl font-semibold text-neutral-ink">{item.value}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
     </div>
   );

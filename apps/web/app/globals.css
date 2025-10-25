@@ -286,3 +286,31 @@ a:focus-visible { outline: none; text-decoration: underline; }
     @apply mt-6 flex items-center justify-between text-xs uppercase tracking-widest text-neutral-muted;
   }
 }
+
+/* 홈: Quick Actions (2×2) */
+@layer components {
+  .home-quick-actions {
+    @apply rounded-3xl bg-white px-6 py-7 shadow-sm md:px-10;
+  }
+
+  .home-quick-actions__grid {
+    @apply mt-4 grid grid-cols-2 gap-3 md:gap-4;
+  }
+
+  .home-quick-actions__item {
+    @apply flex flex-col justify-between rounded-2xl border border-neutral-border bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:ring-4 focus-visible:ring-brand-accent;
+  }
+
+  .home-quick-actions__label {
+    @apply font-menu text-base font-semibold text-neutral-ink md:text-lg;
+  }
+
+  .home-quick-actions__desc {
+    @apply mt-1 text-xs text-neutral-muted;
+  }
+}
+
+/* 홈: 히어로 이미지 — 모바일에서도 표시 (크기 축소) */
+@layer components {
+  .home-hero__image { @apply block self-center rounded-3xl bg-brand-surface p-3 shadow-sm md:p-4; }
+}

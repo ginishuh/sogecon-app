@@ -3,6 +3,7 @@ import React, { type ReactNode } from 'react';
 import { vi } from 'vitest';
 
 import { SiteHeader } from '../components/site-header';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('../components/header-auth', () => ({
   HeaderAuth: () => <div data-testid="header-auth">header-auth-placeholder</div>,
@@ -24,9 +25,19 @@ vi.mock('../components/require-admin', () => ({
   ),
 }));
 
+// ToastProvider 의존을 회피하기 위해 인라인 로그인 컴포넌트는 간단히 모킹
+vi.mock('../components/login-inline', () => ({
+  LoginInline: () => <div data-testid="login-inline">login-inline</div>,
+}));
+
 describe('SiteHeader mobile drawer', () => {
   it('opens drawer and restores focus on close', async () => {
-    render(<SiteHeader />);
+    const qc = new QueryClient();
+    render(
+      <QueryClientProvider client={qc}>
+        <SiteHeader />
+      </QueryClientProvider>
+    );
     const toggle = screen.getByLabelText('전체 메뉴 열기');
     toggle.focus();
     fireEvent.click(toggle);
@@ -49,7 +60,12 @@ describe('SiteHeader mobile drawer', () => {
   });
 
   it('closes with Escape and restores focus', async () => {
-    render(<SiteHeader />);
+    const qc = new QueryClient();
+    render(
+      <QueryClientProvider client={qc}>
+        <SiteHeader />
+      </QueryClientProvider>
+    );
     const toggle = screen.getByLabelText('전체 메뉴 열기');
     toggle.focus();
     fireEvent.click(toggle);
@@ -64,7 +80,12 @@ describe('SiteHeader mobile drawer', () => {
   });
 
   it('closes via ESC and via backdrop click, then restores focus', async () => {
-    render(<SiteHeader />);
+    const qc = new QueryClient();
+    render(
+      <QueryClientProvider client={qc}>
+        <SiteHeader />
+      </QueryClientProvider>
+    );
     const toggle = screen.getByLabelText('전체 메뉴 열기');
     toggle.focus();
     fireEvent.click(toggle);

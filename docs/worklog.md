@@ -65,7 +65,9 @@
   - 헤더 텍스트(“경제대학원 총동문회”): KoPubWorld 돋움 Bold 적용(`font-kopub` + `font-bold`)
   - 헤더 로고: `seogang_korean_logo.svg` 표시, 파비콘은 심볼(`seogang.svg` → `favicon.svg`)
   - 헤더 개선: 좌측에 심볼(`seogang.svg`) 추가 배치, 타이틀 폰트 크기 상향(text-base → md:text-lg)
- - web(헤더 레이아웃): 데스크톱에서 타이틀 줄바꿈 방지 및 메뉴 우측 이동 — 로고/타이틀 컨테이너 `md:col-span-2`+`whitespace-nowrap` 적용.
+- web(헤더 레이아웃): 데스크톱에서 타이틀 줄바꿈 방지 및 메뉴 우측 이동 — 로고/타이틀 컨테이너 `md:col-span-2`+`whitespace-nowrap` 적용.
+
+- web(home): 모바일 SSOT 정렬 — 퀵 액션(2×2), 히어로 이미지 모바일 표시, 섹션 순서 조정(히어로→퀵액션→공지/행사→인사말→스냅숏), 회장 인사말 카드 추가. 헤더 로고 폭/간격 미세 조정으로 타이틀 한 줄 유지. 단위 테스트 추가 및 스냅샷 갱신. (see #28)
 
 ## 2025-10-06
 

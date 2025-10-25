@@ -6,6 +6,7 @@ import GreetingPage from '../app/about/greeting/page';
 import OrgPage from '../app/about/org/page';
 import HistoryPage from '../app/about/history/page';
 import { SiteHeader } from '../components/site-header';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('../components/header-auth', () => ({
   HeaderAuth: () => <div data-testid="header-auth">header-auth-placeholder</div>
@@ -61,7 +62,12 @@ describe('About static pages', () => {
 
 describe('SiteHeader navigation', () => {
   it('exposes about links through accessible navigation', () => {
-    render(<SiteHeader />);
+    const qc = new QueryClient();
+    render(
+      <QueryClientProvider client={qc}>
+        <SiteHeader />
+      </QueryClientProvider>
+    );
     const toggleButton = screen.getByLabelText('전체 메뉴 열기');
     fireEvent.click(toggleButton);
 
@@ -76,10 +82,19 @@ describe('SiteHeader navigation', () => {
   });
 
   it('marks navigation landmarks for desktop layout', () => {
-    render(<SiteHeader />);
+    const qc = new QueryClient();
+    render(
+      <QueryClientProvider client={qc}>
+        <SiteHeader />
+      </QueryClientProvider>
+    );
+    // 데스크톱 주 메뉴 랜드마크와 기본 링크 확인
     expect(screen.getByLabelText('주 메뉴')).toBeInTheDocument();
     const toggleButton = screen.getByLabelText('전체 메뉴 열기');
     expect(toggleButton).toHaveAttribute('aria-controls', 'primary-navigation');
-    expect(within(screen.getByLabelText('주 메뉴')).getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq');
+    const mainNav = screen.getByLabelText('주 메뉴');
+    expect(within(mainNav).getByRole('link', { name: '홈' })).toHaveAttribute('href', '/');
+    expect(within(mainNav).getByRole('link', { name: '총동문회 소식' })).toHaveAttribute('href', '/posts');
+    expect(within(mainNav).getByRole('link', { name: '행사' })).toHaveAttribute('href', '/events');
   });
 });
