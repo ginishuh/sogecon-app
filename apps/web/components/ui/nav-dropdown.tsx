@@ -14,6 +14,7 @@ type Props = {
 export function NavDropdown({ label, items }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const closeTimer = useRef<number | null>(null);
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
@@ -24,12 +25,24 @@ export function NavDropdown({ label, items }: Props) {
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
 
+  const clearCloseTimer = () => {
+    if (closeTimer.current) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+
+  const scheduleClose = () => {
+    clearCloseTimer();
+    closeTimer.current = window.setTimeout(() => setOpen(false), 160);
+  };
+
   return (
     <div
       ref={ref}
       className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={() => { clearCloseTimer(); setOpen(true); }}
+      onMouseLeave={scheduleClose}
     >
       <button
         type="button"
@@ -46,7 +59,9 @@ export function NavDropdown({ label, items }: Props) {
       {open && (
         <div
           role="menu"
-          className="absolute left-0 top-full z-50 mt-2 w-56 rounded-md border border-neutral-border bg-white p-2 shadow-lg"
+          className="absolute left-0 top-full z-50 mt-1 w-56 rounded-md border border-neutral-border bg-white p-2 shadow-lg"
+          onMouseEnter={clearCloseTimer}
+          onMouseLeave={scheduleClose}
         >
           <ul className="grid gap-1">
             {items.map((it) => (
@@ -67,4 +82,3 @@ export function NavDropdown({ label, items }: Props) {
     </div>
   );
 }
-

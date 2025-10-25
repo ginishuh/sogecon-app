@@ -44,6 +44,7 @@
 - api(auth): pyright 타입 오류 수정 — SQLAlchemy 컬럼 접근값에 대한 명시적 cast 및 조건 단순화.
 - web(nav): 데스크톱 헤더 4분할 의도 반영 — md:grid md:grid-cols-4 적용, 로그인 링크는 우측 세션 영역으로 이동.
 - web(nav): ‘총동문회 소개/고객 지원’ 드롭다운(롤아웃) 도입 — NavDropdown 컴포넌트로 hover/focus/click 접근성 지원.
+- web(nav): 드롭다운 hover 이탈 시 즉시 닫힘 방지 — 지연 타이머(160ms)와 패널 onMouseEnter로 브릿지 처리.
 - test(web): 세션 목 구조 보정(학번 포함). 보드 테스트 업데이트.
 
 ## 2025-10-06
