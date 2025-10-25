@@ -49,7 +49,7 @@ export function SiteHeader() {
 
   return (
     <header className="border-b border-neutral-border bg-white shadow-sm">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6">
+      <div className="mx-auto max-w-6xl items-center justify-between gap-4 px-4 py-4 md:grid md:grid-cols-4 md:px-6 flex">
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-brand-primary">
           <span
             aria-label="총동문회 홈으로 이동"
@@ -83,16 +83,6 @@ export function SiteHeader() {
             className="flex flex-1 items-center justify-between gap-10 text-sm text-neutral-muted"
           >
             <ul className="flex items-center gap-5">
-              {status === 'unauthorized' && (
-                <li key="login-left">
-                  <Link
-                    className="transition hover:text-brand-primary"
-                    href="/login"
-                  >
-                    로그인
-                  </Link>
-                </li>
-              )}
               {PRIMARY_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link className="transition hover:text-brand-primary" href={link.href}>
@@ -150,7 +140,11 @@ export function SiteHeader() {
           </nav>
           <div className="flex items-center gap-4">
             <NotifyCTA />
-            {status === 'authorized' ? <HeaderAuth /> : null}
+            {status === 'authorized' ? (
+              <HeaderAuth />
+            ) : (
+              <Link href="/login" className="text-sm text-slate-600 hover:underline">로그인</Link>
+            )}
           </div>
         </div>
       </div>

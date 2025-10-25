@@ -42,6 +42,7 @@
 - web(auth): RequireAdmin/RequireMember 기본 안내 비표시(명시적 fallback 있을 때만), 중복 문구 재발 방지.
 - web(nav): 모바일 드로어 상단에 ‘로그인’ 버튼 추가, 하단에는 인라인 ‘빠른 로그인’ 폼 제공(성공 시 드로어 자동 닫힘).
 - api(auth): pyright 타입 오류 수정 — SQLAlchemy 컬럼 접근값에 대한 명시적 cast 및 조건 단순화.
+- web(nav): 데스크톱 헤더 4분할 의도 반영 — md:grid md:grid-cols-4 적용, 로그인 링크는 우측 세션 영역으로 이동.
 - test(web): 세션 목 구조 보정(학번 포함). 보드 테스트 업데이트.
 
 ## 2025-10-06
