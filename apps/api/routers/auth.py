@@ -219,11 +219,12 @@ def member_login(
     roles = _ensure_member_role(_normalize_roles(member.roles))
     # 런타임 불변 보장: student_id는 NOT NULL
     # (SQLAlchemy 컬럼 truthy 평가를 피하기 위해 별도 변수 사용)
-    sid_obj: object = cast(object, member.student_id)
-    assert isinstance(sid_obj, str) and len(sid_obj) > 0
+    sid_raw: object = cast(object, member.student_id)
+    if not (isinstance(sid_raw, str) and sid_raw):
+        raise HTTPException(status_code=500, detail="invalid_member_student_id")
     _set_user_session(
         request,
-        student_id=sid_obj,
+        student_id=sid_raw,
         roles=roles,
         id=cast(int, member.id),
         email=cast(str | None, member.email),
@@ -404,11 +405,12 @@ def login(
     roles = _ensure_member_role(_normalize_roles(member.roles))
     # 런타임 불변 보장: student_id는 NOT NULL
     # (SQLAlchemy 컬럼 truthy 평가를 피하기 위해 별도 변수 사용)
-    sid_obj2: object = cast(object, member.student_id)
-    assert isinstance(sid_obj2, str) and len(sid_obj2) > 0
+    sid_raw2: object = cast(object, member.student_id)
+    if not (isinstance(sid_raw2, str) and sid_raw2):
+        raise HTTPException(status_code=500, detail="invalid_member_student_id")
     _set_user_session(
         request,
-        student_id=sid_obj2,
+        student_id=sid_raw2,
         roles=roles,
         id=cast(int, member.id),
         email=cast(str | None, member.email),

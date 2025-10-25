@@ -55,9 +55,10 @@
    - eslint(config): `@typescript-eslint/no-unused-vars`를 error로 상향(JS 설정 블록), `_` 접두 인자 무시만 허용.
    - api.ts: 로컬호스트 판별 정규식 비캡처 그룹으로 미세 최적화.
    - site-header: 모바일 `flex`↔데스크탑 `grid` 전환 시 유틸 충돌 정리.
- - 리뷰 대응(API):
-   - roles 보정 중복 제거: `_ensure_member_role()` 도입.
-   - `student_id` 불변 보장: 런타임 `assert` 추가로 캐스트 정당화.
+- 리뷰 대응(API):
+  - roles 보정 중복 제거: `_ensure_member_role()` 도입.
+  - `student_id` 불변 보장: 런타임 `assert` 추가로 캐스트 정당화.
+ - CI 보강(API): Bandit B101(assert 사용) 지적 반영 — assert 제거하고 명시적 유효성 검사로 대체.
 
 ## 2025-10-06
 
