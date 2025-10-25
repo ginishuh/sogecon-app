@@ -312,5 +312,6 @@ a:focus-visible { outline: none; text-decoration: underline; }
 
 /* 홈: 히어로 이미지 — 모바일에서도 표시 (크기 축소) */
 @layer components {
-  .home-hero__image { @apply block self-center rounded-3xl bg-brand-surface p-3 shadow-sm md:p-4; }
+  .home-hero__image { @apply relative block self-center overflow-hidden rounded-3xl bg-brand-surface p-0 shadow-sm md:p-0; }
+  .home-hero__image::after { content: ''; position: absolute; inset: 0; @apply rounded-3xl; background: linear-gradient(to top, rgba(0,0,0,0.25), rgba(0,0,0,0.08)); pointer-events: none; }
 }

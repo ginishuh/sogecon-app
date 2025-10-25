@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import React from 'react';
 import { HomeQuickActions } from '../components/home/quick-actions';
+import NoticePreview from '../components/home/notice-preview';
 
 type HighlightCard = {
   href: Route;
@@ -90,6 +91,12 @@ export default function HomePage() {
 
       {/* SSOT: 홈 빠른 실행(2×2) */}
       <HomeQuickActions />
+
+      {/* SSOT: 공지사항 프리뷰 리스트 */}
+      {/* 시안 느낌(심플 리스트)만 적용, 콘텐츠는 SSOT 도메인(공지) */}
+      {/* 테스트에서는 네트워크를 호출하지 않고 폴백 데이터를 사용함 */}
+      {/* 실제 서버에서는 category=notice가 지원되면 해당 목록을 사용 */}
+      <NoticePreview />
 
       <section aria-labelledby="home-updates" className="flex flex-col gap-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
