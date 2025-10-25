@@ -3,6 +3,7 @@
   // 한국어 주석: 로컬 개발에서 바로 실행/디버깅 가능하도록 설정합니다.
   "version": "0.2.0",
   "configurations": [
+  
     {
       "name": "API: FastAPI (SQLite dev)",
       "type": "python",
@@ -37,6 +38,8 @@
         "--reload"
       ],
       "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "DB: Up",
+      "postDebugTask": "DB: Down",
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": true

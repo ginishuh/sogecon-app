@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 
 import { ServiceWorkerRegister } from './sw-register';
 import { Providers } from './providers';
-import { SiteHeader } from '../components/site-header';
+import { HeaderGate } from '../components/header-gate';
 import { Analytics } from '../components/analytics';
 import { siteConfig, ogImage } from '../lib/site';
 import { fontSans } from './fonts';
@@ -81,7 +81,7 @@ export default function RootLayout({
         )}
         <Providers>
           <Analytics />
-          <SiteHeader />
+          <HeaderGate />
           <main id="main-content" role="main" tabIndex={-1}>
             {children}
           </main>

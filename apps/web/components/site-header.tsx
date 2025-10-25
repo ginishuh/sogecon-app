@@ -6,8 +6,9 @@ import type { Route } from 'next';
 
 import { HeaderAuth } from './header-auth';
 import { NotifyCTA } from './notify-cta';
-import { RequireMember } from './require-member';
 import { RequireAdmin } from './require-admin';
+import { useAuth } from '../hooks/useAuth';
+import { LoginInline } from './login-inline';
 import Drawer from './ui/drawer';
 
 type LinkItem = {
@@ -40,6 +41,7 @@ const ADMIN_LINKS: LinkItem[] = [
 ];
 
 export function SiteHeader() {
+  const { status } = useAuth();
   const [open, setOpen] = useState(false);
   const toggleBtnRef = useRef<HTMLButtonElement | null>(null);
 
@@ -81,6 +83,16 @@ export function SiteHeader() {
             className="flex flex-1 items-center justify-between gap-10 text-sm text-neutral-muted"
           >
             <ul className="flex items-center gap-5">
+              {status === 'unauthorized' && (
+                <li key="login-left">
+                  <Link
+                    className="transition hover:text-brand-primary"
+                    href="/login"
+                  >
+                    로그인
+                  </Link>
+                </li>
+              )}
               {PRIMARY_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link className="transition hover:text-brand-primary" href={link.href}>
@@ -118,7 +130,7 @@ export function SiteHeader() {
                   ))}
                 </ul>
               </div>
-              <RequireAdmin>
+              <RequireAdmin fallback={null}>
                 <div aria-label="관리자 메뉴" className="flex flex-col gap-2">
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-muted">
                     관리자
@@ -137,16 +149,25 @@ export function SiteHeader() {
             </div>
           </nav>
           <div className="flex items-center gap-4">
-            <RequireMember>
-              <NotifyCTA />
-            </RequireMember>
-            <HeaderAuth />
+            <NotifyCTA />
+            {status === 'authorized' ? <HeaderAuth /> : null}
           </div>
         </div>
       </div>
       {/* 모바일 내비: Drawer 연동 */}
-      <Drawer open={open} onClose={closeMenu} title="전체 메뉴" side="left">
+      <Drawer open={open} onClose={closeMenu} title="전체 메뉴" side="right">
         <nav id="primary-navigation" aria-label="모바일 주 메뉴" className="flex h-full flex-col gap-4 overflow-y-auto p-4 text-sm text-neutral-muted">
+          {status === 'unauthorized' && (
+            <div className="mb-2">
+              <Link
+                href="/login"
+                onClick={closeMenu}
+                className="block rounded-md bg-slate-900 px-3 py-2 text-center text-sm text-white hover:bg-slate-800"
+              >
+                로그인
+              </Link>
+            </div>
+          )}
           <ul className="grid gap-3" aria-label="주요 링크">
             {PRIMARY_LINKS.map((link) => (
               <li key={link.href}>
@@ -192,9 +213,7 @@ export function SiteHeader() {
               ))}
             </ul>
           </section>
-          <RequireAdmin
-            fallback={<div className="text-xs text-neutral-muted">관리자 전용 메뉴는 로그인 후 확인할 수 있습니다.</div>}
-          >
+          <RequireAdmin fallback={null}>
             <section aria-label="관리자 링크" className="space-y-2">
               <h2 className="text-xs font-semibold uppercase text-neutral-muted">관리자</h2>
               <ul className="grid gap-2">
@@ -213,10 +232,15 @@ export function SiteHeader() {
             </section>
           </RequireAdmin>
           <div className="mt-auto flex flex-col gap-2 border-t border-neutral-border pt-4">
-            <RequireMember>
-              <NotifyCTA />
-            </RequireMember>
-            <HeaderAuth />
+            <NotifyCTA />
+            {status === 'unauthorized' ? (
+              <section aria-label="빠른 로그인" className="rounded border border-neutral-border p-3">
+                <h3 className="mb-2 text-xs font-semibold text-neutral-muted">빠른 로그인</h3>
+                <LoginInline onSuccess={closeMenu} />
+              </section>
+            ) : (
+              <HeaderAuth />
+            )}
           </div>
         </nav>
       </Drawer>

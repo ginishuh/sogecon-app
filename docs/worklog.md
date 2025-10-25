@@ -30,6 +30,20 @@
  - 위생: 실수로 추가된 `cookies.txt` 제거 및 `.gitignore`에 `cookies*.txt` 추가(민감/임시 아티팩트 추적 방지)
 - 2025-10-24(저녁): e2e 린트/tsc 임시 제외(우회) — 원복 예정; see #29.
 
+- infra: make db-up 타임아웃 개선 — 컨테이너 Health.Status 우선, 실패 시 pg_isready 폴백(기본 90s, WAIT_FOR_PG_TIMEOUT로 조정)
+- api(auth): 세션 통합(user) 및 `/auth/session` 추가 — kind, student_id, email, id 반환. `/auth/logout`가 모든 세션 키(user/admin/member) 정리.
+- api(auth): `require_member`가 관리자도 통과(백엔드 정책과 프론트 가드 일치화). `/auth/member/me`는 `{ email }`로 응답 고정.
+- web(auth): 세션 조회 단일화(`/auth/session`), 헤더 표시는 이메일→학번(student_id). 로그인 UI 단일화(모드 토글 제거). `RequireMember`가 관리자도 허용.
+- web(ui): 로그인 페이지에서 헤더/드로어의 로그인 링크/안내가 중복 노출되지 않도록 헤더 미표시(HeaderGate) 적용.
+
+## 2025-10-25
+
+- web(nav): 헤더/드로어 로그인 UX 개선 — 미로그인 시 링크는 1곳만, /login에서도 헤더 유지, 모바일 드로어는 우측에서 열림.
+- web(auth): RequireAdmin/RequireMember 기본 안내 비표시(명시적 fallback 있을 때만), 중복 문구 재발 방지.
+- web(nav): 모바일 드로어 상단에 ‘로그인’ 버튼 추가, 하단에는 인라인 ‘빠른 로그인’ 폼 제공(성공 시 드로어 자동 닫힘).
+- api(auth): pyright 타입 오류 수정 — SQLAlchemy 컬럼 접근값에 대한 명시적 cast 및 조건 단순화.
+- test(web): 세션 목 구조 보정(학번 포함). 보드 테스트 업데이트.
+
 ## 2025-10-06
 
 

@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "DB: Up",
+      "type": "shell",
+      "command": "make",
+      "args": ["db-up"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "DB: Down",
+      "type": "shell",
+      "command": "make",
+      "args": ["db-down"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    }
+  ]
+}
+

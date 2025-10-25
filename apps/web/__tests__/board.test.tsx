@@ -17,7 +17,7 @@ vi.mock('../services/posts', () => ({
 
 vi.mock('../hooks/useAuth', () => ({
   useAuth: () => ({
-    data: { kind: 'member', email: 'user@example.com' as const },
+    data: { kind: 'member' as const, email: 'user@example.com', student_id: '20250001' },
     status: 'authorized' as const,
   }),
 }));
