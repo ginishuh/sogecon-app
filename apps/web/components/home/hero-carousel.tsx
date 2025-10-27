@@ -97,12 +97,16 @@ export default function HomeHeroCarousel() {
 
   // 터치 스와이프
   const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+    const t = e.touches.item(0);
+    if (!t) return;
+    touchStartX.current = t.clientX;
     touchDeltaX.current = 0;
   };
   const onTouchMove = (e: React.TouchEvent) => {
     if (touchStartX.current == null) return;
-    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+    const t = e.touches.item(0);
+    if (!t) return;
+    touchDeltaX.current = t.clientX - touchStartX.current;
   };
   const onTouchEnd = () => {
     const dx = touchDeltaX.current;
