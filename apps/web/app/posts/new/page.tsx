@@ -17,7 +17,7 @@ export default function NewPostPage() {
   const [authorId, setAuthorId] = useState<number | ''>('' as const);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [category, setCategory] = useState<'notice'|'news'>('notice');
+  const [category, setCategory] = useState<'notice'|'news'|'hero'>('notice');
   const [pinned, setPinned] = useState(false);
   const [coverImage, setCoverImage] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -89,9 +89,10 @@ export default function NewPostPage() {
         </label>
         <label className="block text-sm">
           카테고리
-          <select className="mt-1 rounded border px-2 py-1" value={category} onChange={(e) => setCategory(e.currentTarget.value as 'notice'|'news')}>
+          <select className="mt-1 rounded border px-2 py-1" value={category} onChange={(e) => setCategory(e.currentTarget.value as 'notice'|'news'|'hero')}>
             <option value="notice">공지</option>
             <option value="news">소식</option>
+            <option value="hero">히어로(홈 배너)</option>
           </select>
         </label>
         <label className="flex items-center gap-2 text-sm">

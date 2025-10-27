@@ -25,6 +25,8 @@ apps/api/migrations/__pycache__/
 logs/
 cookies.txt
 cookies-*.txt
+# Local tooling (e.g., pinned Node for builds)
+.tooling/
 # Windows ADS 메타파일(탐색기 복사 시 생성될 수 있음)
 *:\Zone.Identifier
 *:Zone.Identifier

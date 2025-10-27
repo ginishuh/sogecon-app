@@ -2,7 +2,8 @@
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import Link from 'next/link';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import { listPosts, type Post } from '../../services/posts';
 import { Tabs } from '../../components/ui/tabs';
@@ -13,14 +14,21 @@ const BOARD_CATEGORIES = [
   { key: 'discussion', label: '자유' },
   { key: 'question', label: '질문' },
   { key: 'share', label: '정보' },
+  { key: 'congrats', label: '경조사' },
 ] as const;
 
 type BoardCategory = (typeof BOARD_CATEGORIES)[number]['key'];
 
 const PAGE_SIZE = 10;
 
-export default function BoardPage() {
-  const [category, setCategory] = useState<BoardCategory>('all');
+function BoardPageInner() {
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get('tab') ?? 'all').toLowerCase();
+  const categoryKeys = BOARD_CATEGORIES.map((c) => c.key);
+  const initialCategory: BoardCategory =
+    (categoryKeys.includes(initialTab as BoardCategory) ? (initialTab as BoardCategory) :
+      initialTab === 'free' ? 'discussion' : 'all');
+  const [category, setCategory] = useState<BoardCategory>(initialCategory);
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
 
@@ -147,5 +155,13 @@ export default function BoardPage() {
         </button>
       </div>
     </section>
+  );
+}
+
+export default function BoardPage() {
+  return (
+    <Suspense fallback={<section className="mx-auto w-full max-w-3xl px-6 py-6 text-sm text-slate-600">게시판을 불러오는 중…</section>}>
+      <BoardPageInner />
+    </Suspense>
   );
 }

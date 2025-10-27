@@ -52,13 +52,14 @@ export function SiteHeader() {
   return (
     <header className="border-b border-neutral-border bg-white shadow-sm">
       <div className="mx-auto max-w-6xl flex flex-row items-center justify-between gap-4 px-4 py-4 md:grid md:grid-cols-4 md:items-start md:justify-normal md:px-6">
-        <Link href="/" className="flex items-center gap-3 text-brand-primary md:col-span-2 min-w-0" aria-label="총동문회 홈으로 이동">
+        <Link href="/" className="flex items-center gap-2 md:gap-3 text-brand-primary md:col-span-2 min-w-0" aria-label="총동문회 홈으로 이동">
           {/* 심볼 */}
           <Image
             src="/images/brand/seogang.svg"
             alt=""
             width={24}
             height={34}
+            className="h-auto w-[20px] md:w-[24px] shrink-0"
             priority
           />
           {/* 한글 로고 */}
@@ -67,6 +68,7 @@ export function SiteHeader() {
             alt="서강대학교"
             width={112}
             height={24}
+            className="h-auto w-[96px] md:w-[112px] shrink-0"
             priority
           />
           <span className="font-kopub font-bold tracking-tight text-neutral-ink text-base md:text-lg whitespace-nowrap">

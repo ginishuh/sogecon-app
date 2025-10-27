@@ -88,92 +88,272 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
       </div>
     </section>
     <section
-      aria-labelledby="home-stats"
-      class="rounded-3xl bg-brand-surface px-6 py-8 shadow-sm md:px-10"
+      aria-labelledby="home-quick-actions"
+      class="home-quick-actions"
     >
       <div
-        class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between"
+        class="flex items-baseline justify-between"
       >
-        <div>
-          <span
-            class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
+        <h2
+          class="font-heading text-2xl text-neutral-ink md:text-3xl"
+          id="home-quick-actions"
+        >
+          빠른 실행
+        </h2>
+        <span
+          class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
+        >
+          Shortcuts
+        </span>
+      </div>
+      <ul
+        aria-label="빠른 실행 링크"
+        class="home-quick-actions__grid"
+        role="list"
+      >
+        <li>
+          <a
+            aria-label="동문 수첩 바로가기"
+            class="home-quick-actions__item"
+            href="/directory"
           >
-            총동문회 스냅숏
-          </span>
-          <h2
-            class="mt-2 font-heading text-2xl text-neutral-ink md:text-3xl"
-            id="home-stats"
+            <span
+              aria-hidden="true"
+              class="home-quick-actions__icon"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                viewBox="0 0 24 24"
+              >
+                <rect
+                  height="18"
+                  rx="2"
+                  width="14"
+                  x="5"
+                  y="3"
+                />
+                <path
+                  d="M9 8h6M9 12h6M9 16h4"
+                />
+              </svg>
+            </span>
+            <span
+              class="home-quick-actions__label"
+            >
+              동문 수첩
+            </span>
+            <span
+              class="home-quick-actions__desc"
+            >
+              이름/기수로 검색
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            aria-label="행사 바로가기"
+            class="home-quick-actions__item"
+            href="/events"
           >
-            2025년 4분기 준비 현황
-          </h2>
-        </div>
+            <span
+              aria-hidden="true"
+              class="home-quick-actions__icon"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                viewBox="0 0 24 24"
+              >
+                <rect
+                  height="16"
+                  rx="2"
+                  width="18"
+                  x="3"
+                  y="5"
+                />
+                <path
+                  d="M7 3v4M17 3v4M3 9h18M8 14h3M13 14h3M8 18h3"
+                />
+              </svg>
+            </span>
+            <span
+              class="home-quick-actions__label"
+            >
+              행사
+            </span>
+            <span
+              class="home-quick-actions__desc"
+            >
+              일정 확인/신청
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            aria-label="총동문회 소식 바로가기"
+            class="home-quick-actions__item"
+            href="/posts"
+          >
+            <span
+              aria-hidden="true"
+              class="home-quick-actions__icon"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                viewBox="0 0 24 24"
+              >
+                <rect
+                  height="14"
+                  rx="2"
+                  width="14"
+                  x="3"
+                  y="5"
+                />
+                <path
+                  d="M5.5 8h9M5.5 11h9M5.5 14h6"
+                />
+                <path
+                  d="M17 9l4 2v6a2 2 0 0 1-2 2h-2V9Z"
+                />
+              </svg>
+            </span>
+            <span
+              class="home-quick-actions__label"
+            >
+              소식
+            </span>
+            <span
+              class="home-quick-actions__desc"
+            >
+              공지/뉴스 모아보기
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            aria-label="커뮤니티 게시판 바로가기"
+            class="home-quick-actions__item"
+            href="/board"
+          >
+            <span
+              aria-hidden="true"
+              class="home-quick-actions__icon"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M4 6h16v9a2 2 0 0 1-2 2H9l-5 3V6Z"
+                />
+                <path
+                  d="M8 10h8M8 13h6"
+                />
+              </svg>
+            </span>
+            <span
+              class="home-quick-actions__label"
+            >
+              게시판
+            </span>
+            <span
+              class="home-quick-actions__desc"
+            >
+              자유·질문·정보
+            </span>
+          </a>
+        </li>
+      </ul>
+    </section>
+    <section
+      aria-labelledby="home-notices"
+      class="rounded-3xl bg-white px-6 py-7 shadow-sm md:px-10"
+    >
+      <div
+        class="mb-3 flex items-center justify-between"
+      >
+        <h2
+          class="font-heading text-2xl text-neutral-ink md:text-3xl"
+          id="home-notices"
+        >
+          공지사항
+        </h2>
         <a
           class="home-hero__secondary"
-          href="/about/org"
+          href="/posts"
         >
-          조직도 자세히 보기
+          더보기
         </a>
       </div>
-      <dl
-        class="mt-8 grid gap-6 text-sm text-neutral-muted md:grid-cols-4"
+      <ul
+        aria-label="최신 공지 목록"
+        class="divide-y divide-neutral-border"
+        role="list"
       >
-        <div
-          class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+        <li
+          class="flex items-center justify-between py-3"
         >
-          <dt
-            class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
+          <a
+            class="text-sm text-neutral-ink hover:underline"
+            href="/posts"
           >
-            등록 회원
-          </dt>
-          <dd
-            class="mt-2 text-xl font-semibold text-neutral-ink"
+            [공지] 서비스 오픈 안내
+          </a>
+          <time
+            class="text-xs text-neutral-muted"
+            datetime="2025-10-08"
           >
-            1,286명
-          </dd>
-        </div>
-        <div
-          class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+            2025-10-08
+          </time>
+        </li>
+        <li
+          class="flex items-center justify-between py-3"
         >
-          <dt
-            class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
+          <a
+            class="text-sm text-neutral-ink hover:underline"
+            href="/posts"
           >
-            2025 주요 행사
-          </dt>
-          <dd
-            class="mt-2 text-xl font-semibold text-neutral-ink"
+            정기총회 일정 공지
+          </a>
+          <time
+            class="text-xs text-neutral-muted"
+            datetime="2025-10-25"
           >
-            17건 진행
-          </dd>
-        </div>
-        <div
-          class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+            2025-10-25
+          </time>
+        </li>
+        <li
+          class="flex items-center justify-between py-3"
         >
-          <dt
-            class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
+          <a
+            class="text-sm text-neutral-ink hover:underline"
+            href="/posts"
           >
-            장학 기금
-          </dt>
-          <dd
-            class="mt-2 text-xl font-semibold text-neutral-ink"
+            FAQ/정책 문서 업데이트
+          </a>
+          <time
+            class="text-xs text-neutral-muted"
+            datetime="2025-10-08"
           >
-            ₩196,500,000
-          </dd>
-        </div>
-        <div
-          class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
-        >
-          <dt
-            class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
-          >
-            운영 프로젝트 팀
-          </dt>
-          <dd
-            class="mt-2 text-xl font-semibold text-neutral-ink"
-          >
-            8개 준비
-          </dd>
-        </div>
-      </dl>
+            2025-10-08
+          </time>
+        </li>
+      </ul>
     </section>
     <section
       aria-labelledby="home-updates"
@@ -305,6 +485,127 @@ exports[`HomePage hero and cards > renders hero title, description, and primary 
           </div>
         </a>
       </div>
+    </section>
+    <section
+      aria-labelledby="home-greeting"
+      class="rounded-3xl bg-white px-6 py-7 shadow-sm md:px-10"
+    >
+      <div
+        class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between"
+      >
+        <div>
+          <span
+            class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
+          >
+            메시지
+          </span>
+          <h2
+            class="mt-1 font-heading text-2xl text-neutral-ink md:text-3xl"
+            id="home-greeting"
+          >
+            회장 인사말
+          </h2>
+          <p
+            class="mt-2 text-sm text-neutral-muted"
+          >
+            총동문회가 준비하는 디지털 허브와 2025년 운영 원칙을 간략히 소개합니다.
+          </p>
+        </div>
+        <a
+          class="home-hero__cta"
+          href="/about/greeting"
+        >
+          전문 보기
+        </a>
+      </div>
+    </section>
+    <section
+      aria-labelledby="home-stats"
+      class="rounded-3xl bg-brand-surface px-6 py-8 shadow-sm md:px-10"
+    >
+      <div
+        class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between"
+      >
+        <div>
+          <span
+            class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
+          >
+            총동문회 스냅숏
+          </span>
+          <h2
+            class="mt-2 font-heading text-2xl text-neutral-ink md:text-3xl"
+            id="home-stats"
+          >
+            2025년 4분기 준비 현황
+          </h2>
+        </div>
+        <a
+          class="home-hero__secondary"
+          href="/about/org"
+        >
+          조직도 자세히 보기
+        </a>
+      </div>
+      <dl
+        class="mt-8 grid gap-6 text-sm text-neutral-muted md:grid-cols-4"
+      >
+        <div
+          class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+        >
+          <dt
+            class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
+          >
+            등록 회원
+          </dt>
+          <dd
+            class="mt-2 text-xl font-semibold text-neutral-ink"
+          >
+            1,286명
+          </dd>
+        </div>
+        <div
+          class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+        >
+          <dt
+            class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
+          >
+            2025 주요 행사
+          </dt>
+          <dd
+            class="mt-2 text-xl font-semibold text-neutral-ink"
+          >
+            17건 진행
+          </dd>
+        </div>
+        <div
+          class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+        >
+          <dt
+            class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
+          >
+            장학 기금
+          </dt>
+          <dd
+            class="mt-2 text-xl font-semibold text-neutral-ink"
+          >
+            ₩196,500,000
+          </dd>
+        </div>
+        <div
+          class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+        >
+          <dt
+            class="text-xs font-semibold uppercase tracking-widest text-neutral-muted"
+          >
+            운영 프로젝트 팀
+          </dt>
+          <dd
+            class="mt-2 text-xl font-semibold text-neutral-ink"
+          >
+            8개 준비
+          </dd>
+        </div>
+      </dl>
     </section>
   </div>
 </DocumentFragment>

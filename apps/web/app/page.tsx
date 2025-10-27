@@ -1,7 +1,10 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import type { Route } from 'next';
 import React from 'react';
+import { HomeQuickActions } from '../components/home/quick-actions';
+import NoticePreview from '../components/home/notice-preview';
+import HomeHeroCarousel from '../components/home/hero-carousel';
+import AboutPromoCard from '../components/home/about-card';
 
 type HighlightCard = {
   href: Route;
@@ -45,71 +48,21 @@ const stats = [
 export default function HomePage() {
   return (
     <div className="flex flex-col gap-16">
-      <section aria-labelledby="home-hero" className="home-hero">
-        <div>
-          <span className="home-hero__eyebrow">2025 웹 런치</span>
-          <h1 id="home-hero" className="home-hero__title">
-            한 번의 로그인으로 동문 네트워크 전체를
-          </h1>
-          <p className="home-hero__description">
-            공지, 행사, 동문 수첩, 소개 페이지를 하나의 홈에서 연결했습니다. 모바일에서도 동일한 경험을 제공하며,
-            2025년 4분기부터는 푸시 알림과 회원 전용 기능을 순차적으로 공개합니다.
-          </p>
-          <div className="home-hero__actions" role="group" aria-label="주요 행동">
-            <Link className="home-hero__cta" href="/directory">
-              동문 수첩 열기
-            </Link>
-            <Link className="home-hero__secondary" href="/faq">
-              자주 묻는 질문
-            </Link>
-          </div>
-          <dl className="mt-6 grid gap-4 text-sm text-neutral-muted md:grid-cols-2" aria-label="2025년 하이라이트 지표">
-            <div>
-              <dt className="text-xs uppercase tracking-widest text-neutral-muted">다음 행사</dt>
-              <dd className="font-semibold text-neutral-ink">정기총회 & 런치 데이 · 10월 25일(토) 14:00</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-widest text-neutral-muted">공지 업데이트</dt>
-              <dd className="font-semibold text-neutral-ink">FAQ/정책 문서 최종본 · 10월 8일 게시</dd>
-            </div>
-          </dl>
-        </div>
-        <div className="home-hero__image">
-          <Image
-            src="/images/home/hero-launch.svg"
-            alt="웹 런치를 기념하는 총동문회 일러스트"
-            width={480}
-            height={360}
-            className="h-auto w-full rounded-2xl object-cover shadow-soft"
-            sizes="(max-width: 768px) 100vw, 480px"
-            priority
-          />
-        </div>
-      </section>
+      {/* 접근성/SEO용 H1 — 시각적 타이포는 캡션으로 대체 */}
+      <h1 className="sr-only">서강대 경제대학원 총동문회</h1>
+      <HomeHeroCarousel />
 
-      <section aria-labelledby="home-stats" className="rounded-3xl bg-brand-surface px-6 py-8 shadow-sm md:px-10">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">
-              총동문회 스냅숏
-            </span>
-            <h2 id="home-stats" className="mt-2 font-heading text-2xl text-neutral-ink md:text-3xl">
-              2025년 4분기 준비 현황
-            </h2>
-          </div>
-          <Link className="home-hero__secondary" href="/about/org">
-            조직도 자세히 보기
-          </Link>
-        </div>
-        <dl className="mt-8 grid gap-6 text-sm text-neutral-muted md:grid-cols-4">
-          {stats.map((item) => (
-            <div key={item.label} className="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
-              <dt className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">{item.label}</dt>
-              <dd className="mt-2 text-xl font-semibold text-neutral-ink">{item.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+      {/* SSOT: 홈 빠른 실행(3×2, 6개) */}
+      <HomeQuickActions />
+
+      {/* 소개 프로모 카드(단일) */}
+      <AboutPromoCard />
+
+      {/* SSOT: 공지사항 프리뷰 리스트 */}
+      {/* 시안 느낌(심플 리스트)만 적용, 콘텐츠는 SSOT 도메인(공지) */}
+      {/* 테스트에서는 네트워크를 호출하지 않고 폴백 데이터를 사용함 */}
+      {/* 실제 서버에서는 category=notice가 지원되면 해당 목록을 사용 */}
+      <NoticePreview />
 
       <section aria-labelledby="home-updates" className="flex flex-col gap-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -140,6 +93,45 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+      </section>
+
+      {/* SSOT: 회장 인사말 카드(프리뷰) */}
+      <section aria-labelledby="home-greeting" className="rounded-3xl bg-white px-6 py-7 shadow-sm md:px-10">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">메시지</span>
+            <h2 id="home-greeting" className="mt-1 font-heading text-2xl text-neutral-ink md:text-3xl">회장 인사말</h2>
+            <p className="mt-2 text-sm text-neutral-muted">
+              총동문회가 준비하는 디지털 허브와 2025년 운영 원칙을 간략히 소개합니다.
+            </p>
+          </div>
+          <Link href="/about/greeting" className="home-hero__cta">전문 보기</Link>
+        </div>
+      </section>
+
+      {/* SSOT: 스냅숏(마지막) */}
+      <section aria-labelledby="home-stats" className="rounded-3xl bg-brand-surface px-6 py-8 shadow-sm md:px-10">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">
+              총동문회 스냅숏
+            </span>
+            <h2 id="home-stats" className="mt-2 font-heading text-2xl text-neutral-ink md:text-3xl">
+              2025년 4분기 준비 현황
+            </h2>
+          </div>
+          <Link className="home-hero__secondary" href="/about/org">
+            조직도 자세히 보기
+          </Link>
+        </div>
+        <dl className="mt-8 grid gap-6 text-sm text-neutral-muted md:grid-cols-4">
+          {stats.map((item) => (
+            <div key={item.label} className="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
+              <dt className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">{item.label}</dt>
+              <dd className="mt-2 text-xl font-semibold text-neutral-ink">{item.value}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
     </div>
   );

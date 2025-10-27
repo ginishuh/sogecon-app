@@ -1,5 +1,5 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
 import { ServiceWorkerRegister } from './sw-register';
@@ -64,6 +64,12 @@ export const metadata: Metadata = {
   }
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover'
+};
+
 export default function RootLayout({
   children
 }: {
@@ -75,10 +81,8 @@ export default function RootLayout({
         <a className="skip-link" href="#main-content">
           본문 바로가기
         </a>
-        {/* Dev에서 SW가 RSC 스트림을 끊는 것을 피하기 위해 prod/NEXT_PUBLIC_ENABLE_SW=1 에서만 렌더 */}
-        {(process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_SW === '1') && (
-          <ServiceWorkerRegister />
-        )}
+        {/* CI/운영 안정화를 위해 SW는 명시적 플래그가 있을 때만 등록 */}
+        {process.env.NEXT_PUBLIC_ENABLE_SW === '1' ? <ServiceWorkerRegister /> : null}
         <Providers>
           <Analytics />
           <HeaderGate />
