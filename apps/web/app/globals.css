@@ -292,12 +292,13 @@ a:focus-visible { outline: none; text-decoration: underline; }
 
 /* 홈: Quick Actions (2×2) */
 @layer components {
-  .home-quick-actions { @apply rounded-3xl bg-white/95 px-5 py-7 shadow-soft md:px-12; }
+  .home-quick-actions { @apply px-0 py-0 bg-transparent shadow-none rounded-none; }
 
-  .home-quick-actions__grid { @apply grid grid-cols-3 gap-3 md:gap-4; }
+  .home-quick-actions__grid { @apply grid grid-cols-3 gap-3 md:gap-4 lg:grid-cols-6; }
 
   .home-quick-actions__item {
-    @apply flex flex-col justify-between rounded-2xl p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:ring-4 focus-visible:ring-brand-accent;
+    @apply flex flex-col items-center justify-center gap-2 rounded-2xl p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:ring-4 focus-visible:ring-brand-accent;
+    aspect-ratio: 1 / 1; /* 정사각형 카드 */
   }
 
   .home-quick-actions__icon { @apply mb-2 inline-flex h-10 w-10 items-center justify-center text-white; }
