@@ -21,18 +21,15 @@ describe('Home (CDP E2E)', () => {
     }
   });
 
-  it('renders hero and navigates to directory via primary CTA', async () => {
+  it('renders hero carousel and navigates to directory via quick action', async () => {
     if (!page) throw new Error('Puppeteer page not initialized');
     await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'networkidle0' });
 
-    await page.waitForSelector('a.home-hero__cta', { timeout: 60000 });
-    const title = await page.$eval('h1', (el) => el.textContent?.trim() ?? '');
-    expect(title).toContain('한 번의 로그인');
-
-    // 클릭 시 /directory 로 이동
+    await page.waitForSelector('.hero-dots', { timeout: 60000 });
+    // 빠른 실행에서 /directory 이동
     await Promise.all([
       page.waitForNavigation({ waitUntil: 'networkidle0' }),
-      page.click('a.home-hero__cta'),
+      page.click('a.home-quick-actions__item[href="/directory"]'),
     ]);
     const url = page.url();
     expect(url).toContain('/directory');

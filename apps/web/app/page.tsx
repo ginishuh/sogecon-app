@@ -1,9 +1,10 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import type { Route } from 'next';
 import React from 'react';
 import { HomeQuickActions } from '../components/home/quick-actions';
 import NoticePreview from '../components/home/notice-preview';
+import HomeHeroCarousel from '../components/home/hero-carousel';
+import AboutPromoCard from '../components/home/about-card';
 
 type HighlightCard = {
   href: Route;
@@ -47,50 +48,15 @@ const stats = [
 export default function HomePage() {
   return (
     <div className="flex flex-col gap-16">
-      <section aria-labelledby="home-hero" className="home-hero">
-        <div>
-          <span className="home-hero__eyebrow">2025 웹 런치</span>
-          <h1 id="home-hero" className="home-hero__title">
-            한 번의 로그인으로 동문 네트워크 전체를
-          </h1>
-          <p className="home-hero__description">
-            공지, 행사, 동문 수첩, 소개 페이지를 하나의 홈에서 연결했습니다. 모바일에서도 동일한 경험을 제공하며,
-            2025년 4분기부터는 푸시 알림과 회원 전용 기능을 순차적으로 공개합니다.
-          </p>
-          <div className="home-hero__actions" role="group" aria-label="주요 행동">
-            <Link className="home-hero__cta" href="/directory">
-              동문 수첩 열기
-            </Link>
-            <Link className="home-hero__secondary" href="/faq">
-              자주 묻는 질문
-            </Link>
-          </div>
-          <dl className="mt-6 grid gap-4 text-sm text-neutral-muted md:grid-cols-2" aria-label="2025년 하이라이트 지표">
-            <div>
-              <dt className="text-xs uppercase tracking-widest text-neutral-muted">다음 행사</dt>
-              <dd className="font-semibold text-neutral-ink">정기총회 & 런치 데이 · 10월 25일(토) 14:00</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-widest text-neutral-muted">공지 업데이트</dt>
-              <dd className="font-semibold text-neutral-ink">FAQ/정책 문서 최종본 · 10월 8일 게시</dd>
-            </div>
-          </dl>
-        </div>
-        <div className="home-hero__image">
-          <Image
-            src="/images/home/hero-launch.svg"
-            alt="웹 런치를 기념하는 총동문회 일러스트"
-            width={480}
-            height={360}
-            className="h-auto w-full rounded-2xl object-cover shadow-soft"
-            sizes="(max-width: 768px) 100vw, 480px"
-            priority
-          />
-        </div>
-      </section>
+      {/* 접근성/SEO용 H1 — 시각적 타이포는 캡션으로 대체 */}
+      <h1 className="sr-only">서강대 경제대학원 총동문회</h1>
+      <HomeHeroCarousel />
 
       {/* SSOT: 홈 빠른 실행(2×2) */}
       <HomeQuickActions />
+
+      {/* 소개 프로모 카드(단일) */}
+      <AboutPromoCard />
 
       {/* SSOT: 공지사항 프리뷰 리스트 */}
       {/* 시안 느낌(심플 리스트)만 적용, 콘텐츠는 SSOT 도메인(공지) */}

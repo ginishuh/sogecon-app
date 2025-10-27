@@ -60,12 +60,8 @@ function ActionIcon({ label }: { label: string }) {
 export function HomeQuickActions() {
   return (
     <section aria-labelledby="home-quick-actions" className="home-quick-actions">
-      <div className="flex items-baseline justify-between">
-        <h2 id="home-quick-actions" className="font-heading text-2xl text-neutral-ink md:text-3xl">
-          빠른 실행
-        </h2>
-        <span className="text-xs font-semibold uppercase tracking-widest text-neutral-muted">Shortcuts</span>
-      </div>
+      {/* 시각적 헤더 제거 — 접근성용으로만 유지 */}
+      <h2 id="home-quick-actions" className="sr-only">빠른 실행</h2>
       <ul className="home-quick-actions__grid" role="list" aria-label="빠른 실행 링크">
         {ACTIONS.map((item) => (
           <li key={item.href}>

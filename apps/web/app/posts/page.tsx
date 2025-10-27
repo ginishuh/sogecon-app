@@ -95,7 +95,11 @@ export default function PostsPage() {
     return <p className="text-red-600">게시글을 불러오지 못했습니다.</p>;
   }
 
-  const posts = query.data ?? [];
+  let posts = query.data ?? [];
+  // 홈/리스트 UX: hero 카테고리는 기본 뷰에서 제외(명시적으로 hero 선택 시에만 노출)
+  if (category === 'all') {
+    posts = posts.filter((p) => (p.category ?? '') !== 'hero');
+  }
   if (posts.length === 0) {
     return <p>게시글이 아직 없습니다.</p>;
   }
