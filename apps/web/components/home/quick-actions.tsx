@@ -5,24 +5,23 @@ import React from 'react';
 type QuickAction = {
   href: Route;
   label: string;
-  description: string;
   ariaLabel?: string;
   theme: 'rose' | 'emerald' | 'sky' | 'amber' | 'indigo' | 'slate';
 };
 
 const ACTIONS: QuickAction[] = [
-  { href: '/about/greeting', label: '총동문회 소개', description: '인사말·연혁·조직', ariaLabel: '총동문회 소개 바로가기', theme: 'indigo' },
-  { href: '/directory', label: '총동문회 수첩', description: '이름/기수로 검색', ariaLabel: '총동문회 수첩 바로가기', theme: 'emerald' },
-  { href: '/events', label: '총동문회 행사', description: '일정 확인/신청', ariaLabel: '총동문회 행사 바로가기', theme: 'amber' },
-  { href: '/posts', label: '총동문회 소식', description: '공지/뉴스 모아보기', ariaLabel: '총동문회 소식 바로가기', theme: 'sky' },
-  { href: '/board?tab=discussion' as Route, label: '자유게시판', description: '자유 주제 토론', ariaLabel: '자유게시판 바로가기', theme: 'slate' },
-  { href: '/board?tab=share' as Route, label: '경조사 게시판', description: '축하/부고 소식', ariaLabel: '경조사 게시판 바로가기', theme: 'rose' },
+  { href: '/about/greeting', label: '총동문회 소개', ariaLabel: '총동문회 소개 바로가기', theme: 'indigo' },
+  { href: '/directory', label: '총동문회 수첩', ariaLabel: '총동문회 수첩 바로가기', theme: 'emerald' },
+  { href: '/events', label: '총동문회 행사', ariaLabel: '총동문회 행사 바로가기', theme: 'amber' },
+  { href: '/posts', label: '총동문회 소식', ariaLabel: '총동문회 소식 바로가기', theme: 'sky' },
+  { href: '/board?tab=discussion' as Route, label: '자유게시판', ariaLabel: '자유게시판 바로가기', theme: 'slate' },
+  { href: '/board?tab=share' as Route, label: '경조사 게시판', ariaLabel: '경조사 게시판 바로가기', theme: 'rose' },
 ];
 
 function ActionIcon({ label }: { label: string }) {
   // 간단한 일러스트 스타일의 라인 아이콘 — 장치/테마 무관하게 안전한 색/크기
   // 접근성: 장식 목적이므로 aria-hidden
-  const common = 'h-5 w-5';
+  const common = 'h-8 w-8';
   if (label.includes('수첩')) {
     // 주소록/카드
     return (
@@ -77,7 +76,7 @@ export function HomeQuickActions() {
                 <ActionIcon label={item.label} />
               </span>
               <span className="home-quick-actions__label">{item.label}</span>
-              <span className="home-quick-actions__desc">{item.description}</span>
+              {/* 설명 텍스트 제거 — 간결한 3×2 배치 */}
             </Link>
           </li>
         ))}

@@ -296,19 +296,17 @@ a:focus-visible { outline: none; text-decoration: underline; }
     @apply rounded-3xl bg-white px-6 py-7 shadow-sm md:px-10;
   }
 
-  .home-quick-actions__grid {
-    @apply grid grid-cols-2 gap-3 md:gap-4;
-  }
+  .home-quick-actions__grid { @apply grid grid-cols-3 gap-3 md:gap-4; }
 
   .home-quick-actions__item {
     @apply flex flex-col justify-between rounded-2xl p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:ring-4 focus-visible:ring-brand-accent;
   }
 
-  .home-quick-actions__icon { @apply mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white; }
+  .home-quick-actions__icon { @apply mb-2 inline-flex h-8 w-8 items-center justify-center text-white; }
 
   .home-quick-actions__label { @apply font-menu text-base font-semibold md:text-lg; }
 
-  .home-quick-actions__desc { @apply mt-1 text-xs; }
+  .home-quick-actions__desc { @apply hidden; }
 }
 
 /* 빠른 실행: 색상 변형(전체 카드 배경 컬러 + 텍스트 흰색) */
