@@ -41,6 +41,9 @@ jobs:
         run: pnpm -C apps/web build
 
       - name: Start server
+        env:
+          NEXT_PUBLIC_RELAX_CSP: "1"
+          NEXT_PUBLIC_ENABLE_SW: "0"
         run: pnpm -C apps/web start &
 
       - name: Wait for server
