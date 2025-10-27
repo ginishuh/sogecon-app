@@ -476,5 +476,9 @@
 ## 2025-10-27 (CI-simplify)
 - ci: 기본 Lighthouse CI 워크플로(`lighthouse.yml`) 제거 — 수동 디버그 워크플로만 유지. (Relates #33)
 
+## 2025-10-27 (CI-a11y+bundle)
+- ci(web): axe 기반 접근성 스모크 테스트 추가(quick-actions 컴포넌트 대상, 변동성 높은 규칙 제외).
+- ci(web): 번들 사이즈 가드 추가 — `.next/static/chunks` JS 총합 ≤ 1000KB 검사 스크립트.
+
 ## 2025-10-27 (CI)
 - ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)

@@ -44,6 +44,7 @@
     "jsdom": "25.0.1",
     "schemas": "workspace:*",
     "vitest": "3.2.4",
-    "puppeteer": "23.7.1"
+    "puppeteer": "23.7.1",
+    "axe-core": "4.9.1"
   }
 }
