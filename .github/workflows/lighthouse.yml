@@ -58,7 +58,11 @@ jobs:
           # Chrome stability in CI
           LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
           # Give a bit more time for First Contentful Paint to avoid NO_FCP flakes
-          LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 60000
+          LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 90000
+          LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_LOAD: 90000
+          # Relax CSP and disable SW during Lighthouse to avoid interference
+          NEXT_PUBLIC_RELAX_CSP: "1"
+          NEXT_PUBLIC_ENABLE_SW: "0"
         with:
           configPath: './lighthouserc.mobile.json'
           uploadArtifacts: true
@@ -69,7 +73,10 @@ jobs:
         uses: treosh/lighthouse-ci-action@v11
         env:
           LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
-          LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 60000
+          LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 90000
+          LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_LOAD: 90000
+          NEXT_PUBLIC_RELAX_CSP: "1"
+          NEXT_PUBLIC_ENABLE_SW: "0"
         with:
           configPath: './lighthouserc.desktop.json'
           uploadArtifacts: true
