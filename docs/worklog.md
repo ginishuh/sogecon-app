@@ -51,6 +51,7 @@
 - web(home): 빠른 실행 헤더/Shortcuts 라벨 제거(섹션 헤더는 sr-only로 접근성만 유지), 그리드 상단 여백 제거.
 - web(home): 빠른 실행 4→6개로 확장 — 소개/수첩/행사/소식/자유게시판/경조사 게시판. 카드 배경에 개별 색상 적용, 아이콘/텍스트는 흰색.
 - web(board): URL 쿼리 `?tab=`로 초기 탭 선택 지원(all|discussion|question|share|free|congrats).
+- web(board): '경조사(congrats)' 카테고리 신설 — 작성/목록 탭 모두 반영. 빠른 실행 링크는 /board?tab=congrats 로 업데이트.
 - web(home): 빠른 실행 배치를 3×2로 변경(모바일 포함), 부연설명 제거(라벨만 노출), 아이콘 확대 및 원형 배경 제거.
 - web(home): 빠른 실행 컨테이너의 좌우 패딩·배경·그림자를 히어로 섹션과 동일하게 정렬(px-5/md:px-12, bg-white/95, shadow-soft). 라벨 크기 소형화.
 - web(home): 빠른 실행 외곽 박스를 제거해 히어로와 좌우 열 정렬 문제 해결. 카드 정사각형(aspect-ratio:1/1), 데스크톱 6열 배치.

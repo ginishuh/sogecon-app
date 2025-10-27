@@ -15,7 +15,7 @@ const ACTIONS: QuickAction[] = [
   { href: '/events', label: '총동문회 행사', ariaLabel: '총동문회 행사 바로가기', theme: 'amber' },
   { href: '/posts', label: '총동문회 소식', ariaLabel: '총동문회 소식 바로가기', theme: 'sky' },
   { href: '/board?tab=discussion' as Route, label: '자유게시판', ariaLabel: '자유게시판 바로가기', theme: 'slate' },
-  { href: '/board?tab=share' as Route, label: '경조사 게시판', ariaLabel: '경조사 게시판 바로가기', theme: 'rose' },
+  { href: '/board?tab=congrats' as Route, label: '경조사 게시판', ariaLabel: '경조사 게시판 바로가기', theme: 'rose' },
 ];
 
 function ActionIcon({ label }: { label: string }) {

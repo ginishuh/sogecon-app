@@ -14,6 +14,7 @@ const BOARD_CATEGORIES = [
   { key: 'discussion', label: '자유' },
   { key: 'question', label: '질문' },
   { key: 'share', label: '정보' },
+  { key: 'congrats', label: '경조사' },
 ] as const;
 
 type BoardCategory = (typeof BOARD_CATEGORIES)[number]['key'];
@@ -24,9 +25,8 @@ export default function BoardPage() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('tab') ?? 'all').toLowerCase();
   const initialCategory: BoardCategory =
-    (['all','discussion','question','share'].includes(initialTab) ? initialTab :
-      initialTab === 'free' ? 'discussion' :
-      initialTab === 'congrats' ? 'share' : 'all') as BoardCategory;
+    (['all','discussion','question','share','congrats'].includes(initialTab) ? (initialTab as BoardCategory) :
+      initialTab === 'free' ? 'discussion' : 'all');
   const [category, setCategory] = useState<BoardCategory>(initialCategory);
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');

@@ -13,6 +13,7 @@ const BOARD_CATEGORY_OPTIONS = [
   { value: 'discussion', label: '자유' },
   { value: 'question', label: '질문' },
   { value: 'share', label: '정보' },
+  { value: 'congrats', label: '경조사' },
 ] as const;
 
 export default function BoardNewPage() {
