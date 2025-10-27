@@ -29,6 +29,7 @@ from .routers import (
     posts,
     profile,
     rsvps,
+    rum,
     support,
 )
 
@@ -253,3 +254,4 @@ app.include_router(auth.router)
 app.include_router(notifications.router)
 app.include_router(support.router)
 app.include_router(profile.router)
+app.include_router(rum.router)

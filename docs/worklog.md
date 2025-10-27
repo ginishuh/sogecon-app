@@ -480,5 +480,9 @@
 - ci(web): axe 기반 접근성 스모크 테스트 추가(quick-actions 컴포넌트 대상, 변동성 높은 규칙 제외).
 - ci(web): 번들 사이즈 가드 추가 — `.next/static/chunks` JS 총합 ≤ 1000KB 검사 스크립트.
 
+## 2025-10-27 (RUM/Web Vitals)
+- web: web-vitals 수집 컴포넌트(`WebVitalsReporter`) 추가 및 레이아웃에 연결.
+- api: `/rum/vitals` 엔드포인트 추가(웹 비탈 측정값 수신 → 구조화 로그). PII 없이 최소 필드 전송.
+
 ## 2025-10-27 (CI)
 - ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)
