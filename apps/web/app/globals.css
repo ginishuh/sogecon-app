@@ -297,13 +297,13 @@ a:focus-visible { outline: none; text-decoration: underline; }
   .home-quick-actions__grid { @apply grid grid-cols-3 gap-3 md:gap-4 lg:grid-cols-6; }
 
   .home-quick-actions__item {
-    @apply flex flex-col items-center justify-center gap-2 rounded-2xl p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:ring-4 focus-visible:ring-brand-accent;
+    @apply flex flex-col items-center justify-center gap-2 rounded-2xl px-3 py-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:ring-4 focus-visible:ring-brand-accent md:px-4;
     aspect-ratio: 1 / 1; /* 정사각형 카드 */
   }
 
   .home-quick-actions__icon { @apply mb-2 inline-flex h-10 w-10 items-center justify-center text-white; }
 
-  .home-quick-actions__label { @apply font-menu text-sm font-semibold md:text-base; }
+  .home-quick-actions__label { @apply font-menu text-sm font-semibold tracking-tight leading-none md:text-base truncate whitespace-nowrap max-w-full; }
 
   .home-quick-actions__desc { @apply hidden; }
 }
