@@ -473,5 +473,8 @@
 - ci(lighthouse): 수동 실행 디버그 워크플로 추가(`lighthouse-debug`, traces/screenshots 업로드, devtools throttling).
 - ops: 로컬 재현 스크립트 `scripts/lhci-debug.sh` 추가(서버 기동/프리웜/collect 1회 저장). 이슈 #33 추적.
 
+## 2025-10-27 (CI-simplify)
+- ci: 기본 Lighthouse CI 워크플로(`lighthouse.yml`) 제거 — 수동 디버그 워크플로만 유지. (Relates #33)
+
 ## 2025-10-27 (CI)
 - ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)
