@@ -2,7 +2,7 @@
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import Link from 'next/link';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { listPosts, type Post } from '../../services/posts';
@@ -21,7 +21,7 @@ type BoardCategory = (typeof BOARD_CATEGORIES)[number]['key'];
 
 const PAGE_SIZE = 10;
 
-export default function BoardPage() {
+function BoardPageInner() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('tab') ?? 'all').toLowerCase();
   const initialCategory: BoardCategory =
@@ -154,5 +154,13 @@ export default function BoardPage() {
         </button>
       </div>
     </section>
+  );
+}
+
+export default function BoardPage() {
+  return (
+    <Suspense fallback={<section className="mx-auto w-full max-w-3xl px-6 py-6 text-sm text-slate-600">게시판을 불러오는 중…</section>}>
+      <BoardPageInner />
+    </Suspense>
   );
 }

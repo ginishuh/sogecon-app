@@ -198,6 +198,10 @@
 - repo-guards: 빌드 산출물 `.next` 디렉터리 제외(@ts-ignore false positive 방지)
 - pre-push 훅에서 웹 빌드 제거(CI에서만 실행). 과도기 플래그는 폐기
 - 웹: Tailwind v3.4.13로 다운그레이드(안정화), PostCSS 설정 복원(tailwindcss 플러그인)
+
+## 2025-10-27 (빌드 안정화 추가)
+- fix(web/home): hero.tsx `pickHero` 반환 타입을 `Post|null`로 일관화(정렬 결과가 없을 때 `null` 반환)하여 `Post | undefined` 타입 오류 해결.
+- fix(web/board): Next 15 요구사항에 따라 `/board` 페이지를 `<Suspense>` 경계로 감싸 `useSearchParams` 경고/빌드 실패 해소.
 - CI: gitleaks 액션 입력 경고 제거(args 제거) 및 shallow fetch 문제 해결(fetch-depth: 0)
 - CI: Corepack으로 pnpm 버전 고정(10.17.1) — repo-guards/web 잡 모두 적용
 - CI 트리거를 PR 전용으로 전환(push:main 제거), concurrency로 중복 실행 방지
