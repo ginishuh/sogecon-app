@@ -1,0 +1,112 @@
+name: lighthouse-debug
+
+on:
+  workflow_dispatch:
+
+jobs:
+  lhci-debug:
+    name: Lighthouse Debug (traces/screenshots)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.17.1
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install deps (web)
+        run: pnpm -C apps/web install --frozen-lockfile
+
+      - name: Build (web)
+        run: pnpm -C apps/web build
+
+      - name: Start server
+        env:
+          NEXT_PUBLIC_RELAX_CSP: "1"
+          NEXT_PUBLIC_ENABLE_SW: "0"
+        run: pnpm -C apps/web start &
+
+      - name: Wait for server
+        run: |
+          for i in {1..60}; do
+            if curl -sSf http://localhost:3000 >/dev/null; then echo ready; exit 0; fi
+            sleep 2
+          done
+          echo "server did not start" && exit 1
+
+      - name: Prewarm pages
+        run: |
+          for u in \
+            http://localhost:3000/ \
+            http://localhost:3000/about/greeting \
+            http://localhost:3000/about/org \
+            http://localhost:3000/about/history \
+            http://localhost:3000/directory \
+            http://localhost:3000/board; do
+            echo "prewarm $u"; curl -sS "$u" >/dev/null || true
+          done
+
+      - name: Lighthouse CI (debug mobile)
+        id: lhci_mobile
+        uses: treosh/lighthouse-ci-action@v12
+        continue-on-error: true
+        with:
+          configPath: './lighthouserc.mobile.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+        env:
+          LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu --window-size=412,823"
+          LHCI_COLLECT__SETTINGS__THROTTLING_METHOD: devtools
+          LHCI_COLLECT__SETTINGS__DISABLE_STORAGE_RESET: false
+          LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 120000
+          LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_LOAD: 120000
+          NEXT_PUBLIC_RELAX_CSP: "1"
+          NEXT_PUBLIC_ENABLE_SW: "0"
+          NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
+
+      - name: Lighthouse CI (debug desktop)
+        id: lhci_desktop
+        uses: treosh/lighthouse-ci-action@v12
+        continue-on-error: true
+        with:
+          configPath: './lighthouserc.desktop.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+        env:
+          LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu --window-size=1365,1200"
+          LHCI_COLLECT__SETTINGS__THROTTLING_METHOD: devtools
+          LHCI_COLLECT__SETTINGS__DISABLE_STORAGE_RESET: false
+          LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 120000
+          LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_LOAD: 120000
+          NEXT_PUBLIC_RELAX_CSP: "1"
+          NEXT_PUBLIC_ENABLE_SW: "0"
+          NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
+
+      - name: Attach debug note
+        if: ${{ always() }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              'LHCI debug run completed.',
+              '- Traces/screenshots are available in workflow artifacts.',
+              `- Mobile links: ${process.env.LHCI_LINKS_MOBILE || ''}`,
+              `- Desktop links: ${process.env.LHCI_LINKS_DESKTOP || ''}`,
+            ].join('\n');
+            if (context.payload.pull_request) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body });
+            } else {
+              core.info(body);
+            }
