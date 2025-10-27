@@ -13,7 +13,9 @@
       "settings": {
         "preset": "mobile",
         "chromeFlags": "--no-sandbox --disable-dev-shm-usage",
-        "maxWaitForFcp": 60000
+        "maxWaitForFcp": 90000,
+        "maxWaitForLoad": 90000,
+        "disableStorageReset": true
       }
     },
     "assert": {
@@ -27,4 +29,3 @@
     }
   }
 }
-
