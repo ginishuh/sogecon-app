@@ -483,6 +483,7 @@
 ## 2025-10-27 (RUM/Web Vitals)
 - web: web-vitals 수집 컴포넌트(`WebVitalsReporter`) 추가 및 레이아웃에 연결.
 - api: `/rum/vitals` 엔드포인트 추가(웹 비탈 측정값 수신 → 구조화 로그). PII 없이 최소 필드 전송.
+- dev: 레이아웃 import/wiring 및 pnpm-lock 업데이트 반영.
 
 ## 2025-10-27 (CI)
 - ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)

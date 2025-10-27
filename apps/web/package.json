@@ -21,7 +21,8 @@
     "@tanstack/react-query": "5.62.2",
     "next": "15.5.4",
     "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "react-dom": "19.1.1",
+    "web-vitals": "4.2.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.3.1",
