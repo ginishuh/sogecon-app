@@ -75,6 +75,7 @@ jobs:
         env:
           # Chrome stability in CI
           LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu --window-size=412,823"
+          LHCI_COLLECT__SETTINGS__DISABLE_STORAGE_RESET: false
           # Give a bit more time for First Contentful Paint to avoid NO_FCP flakes
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 90000
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_LOAD: 90000
@@ -93,6 +94,7 @@ jobs:
         uses: treosh/lighthouse-ci-action@v12
         env:
           LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu --window-size=1365,1200"
+          LHCI_COLLECT__SETTINGS__DISABLE_STORAGE_RESET: false
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 90000
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_LOAD: 90000
           NEXT_PUBLIC_RELAX_CSP: "1"
