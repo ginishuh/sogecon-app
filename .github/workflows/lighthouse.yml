@@ -72,6 +72,7 @@ jobs:
         id: lhci_mobile
         uses: treosh/lighthouse-ci-action@v12
         continue-on-error: true
+        # TODO(#33): 임시 비차단화. NO_FCP 원인 해결 후 제거하고 게이트 복원(Perf 0.90, runs=3).
         env:
           # Chrome stability in CI
           LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu --window-size=412,823"
@@ -93,6 +94,7 @@ jobs:
         id: lhci_desktop
         uses: treosh/lighthouse-ci-action@v12
         continue-on-error: true
+        # TODO(#33): 임시 비차단화. NO_FCP 원인 해결 후 제거하고 게이트 복원(Perf 0.90, runs=3).
         env:
           LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu --window-size=1365,1200"
           LHCI_COLLECT__SETTINGS__DISABLE_STORAGE_RESET: false

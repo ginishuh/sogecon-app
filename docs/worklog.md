@@ -463,5 +463,11 @@
 ## 2025-10-27 (CI-hotfix 6)
 - ci(lighthouse): 데스크톱 수집 스텝에도 `continue-on-error` 적용 — 원인 분석 완료 시까지 비차단화. (PR #30)
 
+## 2025-10-27 (Copilot 리뷰 반영)
+- web(home): 주석 정합화 — 빠른 실행 3×2/6개로 표기.
+- web(board): 초기 탭 판별을 `BOARD_CATEGORIES` 기반으로 통일(SSOT).
+- web(css): body 배경을 CSS 변수로 통일.
+- ci(lighthouse): continue-on-error 위치에 TODO(#33) 주석 추가(복원 가이드).
+
 ## 2025-10-27 (CI)
 - ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)

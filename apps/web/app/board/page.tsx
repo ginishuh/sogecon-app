@@ -24,8 +24,9 @@ const PAGE_SIZE = 10;
 function BoardPageInner() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('tab') ?? 'all').toLowerCase();
+  const categoryKeys = BOARD_CATEGORIES.map((c) => c.key);
   const initialCategory: BoardCategory =
-    (['all','discussion','question','share','congrats'].includes(initialTab) ? (initialTab as BoardCategory) :
+    (categoryKeys.includes(initialTab as BoardCategory) ? (initialTab as BoardCategory) :
       initialTab === 'free' ? 'discussion' : 'all');
   const [category, setCategory] = useState<BoardCategory>(initialCategory);
   const [page, setPage] = useState(0);

@@ -52,7 +52,7 @@ export default function HomePage() {
       <h1 className="sr-only">서강대 경제대학원 총동문회</h1>
       <HomeHeroCarousel />
 
-      {/* SSOT: 홈 빠른 실행(2×2) */}
+      {/* SSOT: 홈 빠른 실행(3×2, 6개) */}
       <HomeQuickActions />
 
       {/* 소개 프로모 카드(단일) */}
