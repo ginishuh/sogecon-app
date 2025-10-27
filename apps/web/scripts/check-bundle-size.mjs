@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { statSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 function getArg(name, fallback) {
   const idx = process.argv.indexOf(name);
@@ -9,8 +10,11 @@ function getArg(name, fallback) {
 }
 
 const maxKb = Number(getArg('--max-kb', '1000'));
-const root = process.cwd();
-const chunksDir = join(root, '.next', 'static', 'chunks');
+// Resolve project root relative to this script (apps/web)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectDir = join(__dirname, '..');
+const chunksDir = join(projectDir, '.next', 'static', 'chunks');
 
 function listJsSizes(dir) {
   let total = 0;
@@ -39,4 +43,3 @@ try {
   console.error('Bundle size check failed:', e.message);
   process.exit(1);
 }
-

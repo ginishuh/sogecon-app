@@ -479,6 +479,7 @@
 ## 2025-10-27 (CI-a11y+bundle)
 - ci(web): axe 기반 접근성 스모크 테스트 추가(quick-actions 컴포넌트 대상, 변동성 높은 규칙 제외).
 - ci(web): 번들 사이즈 가드 추가 — `.next/static/chunks` JS 총합 ≤ 1000KB 검사 스크립트.
+  - fix: 스크립트가 레포 루트가 아닌 `apps/web/.next`를 대상으로 하도록 경로 수정.
 
 ## 2025-10-27 (RUM/Web Vitals)
 - web: web-vitals 수집 컴포넌트(`WebVitalsReporter`) 추가 및 레이아웃에 연결.
