@@ -202,6 +202,7 @@
 ## 2025-10-27 (빌드 안정화 추가)
 - fix(web/home): hero.tsx `pickHero` 반환 타입을 `Post|null`로 일관화(정렬 결과가 없을 때 `null` 반환)하여 `Post | undefined` 타입 오류 해결.
 - fix(web/board): Next 15 요구사항에 따라 `/board` 페이지를 `<Suspense>` 경계로 감싸 `useSearchParams` 경고/빌드 실패 해소.
+- fix(web/home): 의존성 재설치 후에도 타입이 `Post|null|undefined`로 확장되지 않도록 구조분해(`const [first]=sorted; first ?? null`) 방식으로 최종 처리.
 
 ## 2025-10-27 (repo 위생)
 - chore(repo): 로컬 빌드용 Node 바이너리가 담긴 `.tooling/` 폴더를 `.gitignore`에 추가하여 실수로 추적되지 않도록 함.
