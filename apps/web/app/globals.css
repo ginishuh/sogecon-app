@@ -301,20 +301,27 @@ a:focus-visible { outline: none; text-decoration: underline; }
   }
 
   .home-quick-actions__item {
-    @apply flex flex-col justify-between rounded-2xl border border-neutral-border bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:ring-4 focus-visible:ring-brand-accent;
+    @apply flex flex-col justify-between rounded-2xl p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:ring-4 focus-visible:ring-brand-accent;
   }
 
-  .home-quick-actions__icon {
-    @apply mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary text-white;
-  }
+  .home-quick-actions__icon { @apply mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white; }
 
-  .home-quick-actions__label {
-    @apply font-menu text-base font-semibold text-neutral-ink md:text-lg;
-  }
+  .home-quick-actions__label { @apply font-menu text-base font-semibold md:text-lg; }
 
-  .home-quick-actions__desc {
-    @apply mt-1 text-xs text-neutral-muted;
-  }
+  .home-quick-actions__desc { @apply mt-1 text-xs; }
+}
+
+/* 빠른 실행: 색상 변형(전체 카드 배경 컬러 + 텍스트 흰색) */
+@layer components {
+  .home-quick-actions__item[class*="qa-"] { @apply border-0 text-white; }
+  .home-quick-actions__item.qa-rose { @apply bg-rose-700 hover:bg-rose-600; }
+  .home-quick-actions__item.qa-emerald { @apply bg-emerald-700 hover:bg-emerald-600; }
+  .home-quick-actions__item.qa-sky { @apply bg-sky-700 hover:bg-sky-600; }
+  .home-quick-actions__item.qa-amber { @apply bg-amber-700 hover:bg-amber-600; }
+  .home-quick-actions__item.qa-indigo { @apply bg-indigo-700 hover:bg-indigo-600; }
+  .home-quick-actions__item.qa-slate { @apply bg-slate-800 hover:bg-slate-700; }
+  .home-quick-actions__item[class*="qa-"] .home-quick-actions__label { @apply text-white; }
+  .home-quick-actions__item[class*="qa-"] .home-quick-actions__desc { @apply text-white/90; }
 }
 
 /* 홈: 히어로 이미지 — 모바일 숨김 유지, md 이상에서만 표시 */

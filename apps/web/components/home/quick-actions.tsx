@@ -7,13 +7,16 @@ type QuickAction = {
   label: string;
   description: string;
   ariaLabel?: string;
+  theme: 'rose' | 'emerald' | 'sky' | 'amber' | 'indigo' | 'slate';
 };
 
 const ACTIONS: QuickAction[] = [
-  { href: '/directory', label: '동문 수첩', description: '이름/기수로 검색', ariaLabel: '동문 수첩 바로가기' },
-  { href: '/events', label: '행사', description: '일정 확인/신청', ariaLabel: '행사 바로가기' },
-  { href: '/posts', label: '소식', description: '공지/뉴스 모아보기', ariaLabel: '총동문회 소식 바로가기' },
-  { href: '/board', label: '게시판', description: '자유·질문·정보', ariaLabel: '커뮤니티 게시판 바로가기' },
+  { href: '/about/greeting', label: '총동문회 소개', description: '인사말·연혁·조직', ariaLabel: '총동문회 소개 바로가기', theme: 'indigo' },
+  { href: '/directory', label: '총동문회 수첩', description: '이름/기수로 검색', ariaLabel: '총동문회 수첩 바로가기', theme: 'emerald' },
+  { href: '/events', label: '총동문회 행사', description: '일정 확인/신청', ariaLabel: '총동문회 행사 바로가기', theme: 'amber' },
+  { href: '/posts', label: '총동문회 소식', description: '공지/뉴스 모아보기', ariaLabel: '총동문회 소식 바로가기', theme: 'sky' },
+  { href: '/board?tab=discussion' as Route, label: '자유게시판', description: '자유 주제 토론', ariaLabel: '자유게시판 바로가기', theme: 'slate' },
+  { href: '/board?tab=share' as Route, label: '경조사 게시판', description: '축하/부고 소식', ariaLabel: '경조사 게시판 바로가기', theme: 'rose' },
 ];
 
 function ActionIcon({ label }: { label: string }) {
@@ -68,7 +71,7 @@ export function HomeQuickActions() {
             <Link
               href={item.href}
               aria-label={item.ariaLabel ?? item.label}
-              className="home-quick-actions__item"
+              className={`home-quick-actions__item qa-${item.theme}`}
             >
               <span className="home-quick-actions__icon" aria-hidden="true">
                 <ActionIcon label={item.label} />

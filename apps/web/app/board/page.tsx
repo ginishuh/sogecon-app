@@ -3,6 +3,7 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import { listPosts, type Post } from '../../services/posts';
 import { Tabs } from '../../components/ui/tabs';
@@ -20,7 +21,13 @@ type BoardCategory = (typeof BOARD_CATEGORIES)[number]['key'];
 const PAGE_SIZE = 10;
 
 export default function BoardPage() {
-  const [category, setCategory] = useState<BoardCategory>('all');
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get('tab') ?? 'all').toLowerCase();
+  const initialCategory: BoardCategory =
+    (['all','discussion','question','share'].includes(initialTab) ? initialTab :
+      initialTab === 'free' ? 'discussion' :
+      initialTab === 'congrats' ? 'share' : 'all') as BoardCategory;
+  const [category, setCategory] = useState<BoardCategory>(initialCategory);
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
 
