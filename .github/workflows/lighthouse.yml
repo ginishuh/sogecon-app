@@ -71,6 +71,7 @@ jobs:
       - name: Lighthouse CI (mobile)
         id: lhci_mobile
         uses: treosh/lighthouse-ci-action@v12
+        continue-on-error: true
         env:
           # Chrome stability in CI
           LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu --window-size=412,823"

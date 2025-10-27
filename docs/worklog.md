@@ -451,5 +451,8 @@
 ## 2025-10-27 (CI-hotfix 2)
 - ci(lighthouse): 모바일 Performance 임계값을 0.85로 임시 완화(A11y 0.90 유지). 안정화 후 0.90 재상향 계획. (PR #30)
 
+## 2025-10-27 (CI-hotfix 3)
+- ci(lighthouse): 모바일 수집 단계에 한해 `continue-on-error` 적용(코멘트/아티팩트는 생성 유지). 데스크톱 게이트는 유지. (PR #30)
+
 ## 2025-10-27 (CI)
 - ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)
