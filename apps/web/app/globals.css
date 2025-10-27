@@ -292,9 +292,7 @@ a:focus-visible { outline: none; text-decoration: underline; }
 
 /* 홈: Quick Actions (2×2) */
 @layer components {
-  .home-quick-actions {
-    @apply rounded-3xl bg-white px-6 py-7 shadow-sm md:px-10;
-  }
+  .home-quick-actions { @apply rounded-3xl bg-white/95 px-5 py-7 shadow-soft md:px-12; }
 
   .home-quick-actions__grid { @apply grid grid-cols-3 gap-3 md:gap-4; }
 
@@ -302,9 +300,9 @@ a:focus-visible { outline: none; text-decoration: underline; }
     @apply flex flex-col justify-between rounded-2xl p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:ring-4 focus-visible:ring-brand-accent;
   }
 
-  .home-quick-actions__icon { @apply mb-2 inline-flex h-8 w-8 items-center justify-center text-white; }
+  .home-quick-actions__icon { @apply mb-2 inline-flex h-10 w-10 items-center justify-center text-white; }
 
-  .home-quick-actions__label { @apply font-menu text-base font-semibold md:text-lg; }
+  .home-quick-actions__label { @apply font-menu text-sm font-semibold md:text-base; }
 
   .home-quick-actions__desc { @apply hidden; }
 }

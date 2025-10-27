@@ -21,7 +21,7 @@ const ACTIONS: QuickAction[] = [
 function ActionIcon({ label }: { label: string }) {
   // 간단한 일러스트 스타일의 라인 아이콘 — 장치/테마 무관하게 안전한 색/크기
   // 접근성: 장식 목적이므로 aria-hidden
-  const common = 'h-8 w-8';
+  const common = 'h-10 w-10';
   if (label.includes('수첩')) {
     // 주소록/카드
     return (
