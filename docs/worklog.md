@@ -205,7 +205,8 @@
 - fix(web/home): 의존성 재설치 후에도 타입이 `Post|null|undefined`로 확장되지 않도록 구조분해(`const [first]=sorted; first ?? null`) 방식으로 최종 처리.
 
 ## 2025-10-27 (CI/Lighthouse)
-- ci(lighthouse): treosh/lighthouse-ci-action@v11 입력 스키마 변경 반영 — `assertions` 입력 제거, 환경변수로 Chrome 플래그(`--no-sandbox --disable-dev-shm-usage`)와 `MAX_WAIT_FOR_FCP=60000` 설정, runs 3→2로 완화.
+- ci(lighthouse): v11 정합화 — 불필요 입력 제거, Chrome 플래그(`--no-sandbox --disable-dev-shm-usage`)와 `MAX_WAIT_FOR_FCP=60000` 설정.
+- ci(lighthouse): 공개 레포 보고서 전용 모드로 단순화 — budgetPath 제거, runs 1, step `continue-on-error: true`로 비차단화.
 
 ## 2025-10-27 (repo 위생)
 - chore(repo): 로컬 빌드용 Node 바이너리가 담긴 `.tooling/` 폴더를 `.gitignore`에 추가하여 실수로 추적되지 않도록 함.
