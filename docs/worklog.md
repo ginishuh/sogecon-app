@@ -445,5 +445,8 @@
 - fix(api): 개발환경(dev)에서 로그인 레이트리밋 해제(운영(prod)에서만 적용)
 - chore(web): API_BASE 기본값을 현재 호스트 기반으로 계산(127.0.0.1/localhost 혼용 시 세션 유지)
 
+## 2025-10-27 (CI-hotfix)
+- ci(lighthouse): NO_FCP 완화(프리웜, headless/new+window-size) 및 github-script `core` 재선언 오류 수정. CI 전용 `NEXT_PUBLIC_WEB_API_BASE=http://localhost:3000` 지정으로 미기동 API 대기 제거. (PR #30)
+
 ## 2025-10-27 (CI)
 - ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)

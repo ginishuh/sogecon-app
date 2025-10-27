@@ -54,18 +54,34 @@ jobs:
           done
           echo "server did not start" && exit 1
 
+      - name: Prewarm pages
+        run: |
+          urls=(
+            http://localhost:3000/
+            http://localhost:3000/about/greeting
+            http://localhost:3000/about/org
+            http://localhost:3000/about/history
+            http://localhost:3000/directory
+            http://localhost:3000/board
+          )
+          for u in "${urls[@]}"; do
+            echo "prewarm $u"; curl -sS "$u" >/dev/null || true
+          done
+
       - name: Lighthouse CI (mobile)
         id: lhci_mobile
         uses: treosh/lighthouse-ci-action@v12
         env:
           # Chrome stability in CI
-          LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
+          LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu --window-size=412,823"
           # Give a bit more time for First Contentful Paint to avoid NO_FCP flakes
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 90000
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_LOAD: 90000
           # Relax CSP and disable SW during Lighthouse to avoid interference
           NEXT_PUBLIC_RELAX_CSP: "1"
           NEXT_PUBLIC_ENABLE_SW: "0"
+          # Avoid hitting unopened API port during CI; use same-origin to fail fast
+          NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
         with:
           configPath: './lighthouserc.mobile.json'
           uploadArtifacts: true
@@ -75,11 +91,12 @@ jobs:
         id: lhci_desktop
         uses: treosh/lighthouse-ci-action@v12
         env:
-          LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
+          LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu --window-size=1365,1200"
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 90000
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_LOAD: 90000
           NEXT_PUBLIC_RELAX_CSP: "1"
           NEXT_PUBLIC_ENABLE_SW: "0"
+          NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
         with:
           configPath: './lighthouserc.desktop.json'
           uploadArtifacts: true
@@ -95,7 +112,6 @@ jobs:
           LHCI_ASSERT_DESKTOP: ${{ steps.lhci_desktop.outputs.assertionResults }}
         with:
           script: |
-            const core = require('@actions/core');
             function parseJson(input, fallback) {
               try { return input ? JSON.parse(input) : fallback; } catch { return fallback; }
             }
