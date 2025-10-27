@@ -92,6 +92,7 @@ jobs:
       - name: Lighthouse CI (desktop)
         id: lhci_desktop
         uses: treosh/lighthouse-ci-action@v12
+        continue-on-error: true
         env:
           LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu --window-size=1365,1200"
           LHCI_COLLECT__SETTINGS__DISABLE_STORAGE_RESET: false

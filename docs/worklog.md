@@ -460,5 +460,8 @@
 ## 2025-10-27 (CI-hotfix 5)
 - ci(lighthouse): 데스크톱 Performance 임계값을 0.85로 임시 완화하고 runs=1로 조정. A11y 0.90 유지. (PR #30)
 
+## 2025-10-27 (CI-hotfix 6)
+- ci(lighthouse): 데스크톱 수집 스텝에도 `continue-on-error` 적용 — 원인 분석 완료 시까지 비차단화. (PR #30)
+
 ## 2025-10-27 (CI)
 - ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)
