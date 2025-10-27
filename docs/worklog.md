@@ -457,5 +457,8 @@
 ## 2025-10-27 (CI-hotfix 4)
 - ci(lighthouse): CI에서 `disableStorageReset=false`로 강제(3회 수집 간 SW/캐시 잔존 방지). (PR #30)
 
+## 2025-10-27 (CI-hotfix 5)
+- ci(lighthouse): 데스크톱 Performance 임계값을 0.85로 임시 완화하고 runs=1로 조정. A11y 0.90 유지. (PR #30)
+
 ## 2025-10-27 (CI)
 - ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)
