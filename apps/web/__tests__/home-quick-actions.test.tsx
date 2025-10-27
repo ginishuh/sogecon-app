@@ -5,21 +5,15 @@ import { describe, expect, it } from 'vitest';
 import HomePage from '../app/page';
 
 describe('Home Quick Actions', () => {
-  it('renders four quick actions with correct routes', () => {
+  it('renders six quick actions with correct routes', () => {
     render(<HomePage />);
-    expect(screen.getByRole('heading', { name: '빠른 실행' })).toBeInTheDocument();
-
-    const directory = screen.getByRole('link', { name: '동문 수첩 바로가기' });
-    expect(directory).toHaveAttribute('href', '/directory');
-
-    const events = screen.getByRole('link', { name: '행사 바로가기' });
-    expect(events).toHaveAttribute('href', '/events');
-
-    const posts = screen.getByRole('link', { name: '총동문회 소식 바로가기' });
-    expect(posts).toHaveAttribute('href', '/posts');
-
-    const board = screen.getByRole('link', { name: '커뮤니티 게시판 바로가기' });
-    expect(board).toHaveAttribute('href', '/board');
+    // 헤더는 sr-only이므로 시각적 존재 대신 링크 6개와 경로를 검증
+    expect(screen.getByRole('link', { name: '총동문회 소개 바로가기' })).toHaveAttribute('href', '/about/greeting');
+    expect(screen.getByRole('link', { name: '총동문회 수첩 바로가기' })).toHaveAttribute('href', '/directory');
+    expect(screen.getByRole('link', { name: '총동문회 행사 바로가기' })).toHaveAttribute('href', '/events');
+    expect(screen.getByRole('link', { name: '총동문회 소식 바로가기' })).toHaveAttribute('href', '/posts');
+    expect(screen.getByRole('link', { name: '자유게시판 바로가기' })).toHaveAttribute('href', '/board?tab=discussion');
+    expect(screen.getByRole('link', { name: '경조사 게시판 바로가기' })).toHaveAttribute('href', '/board?tab=congrats');
   });
 
   it('includes greeting preview card and stats at the end', () => {
@@ -34,4 +28,3 @@ describe('Home Quick Actions', () => {
     expect(container.textContent).toContain('등록 회원');
   });
 });
-
