@@ -56,7 +56,7 @@ jobs:
 
       - name: Lighthouse CI (mobile)
         id: lhci_mobile
-        uses: treosh/lighthouse-ci-action@v11
+        uses: treosh/lighthouse-ci-action@v12
         env:
           # Chrome stability in CI
           LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
@@ -73,7 +73,7 @@ jobs:
 
       - name: Lighthouse CI (desktop)
         id: lhci_desktop
-        uses: treosh/lighthouse-ci-action@v11
+        uses: treosh/lighthouse-ci-action@v12
         env:
           LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 90000
@@ -86,23 +86,41 @@ jobs:
           temporaryPublicStorage: true
 
       - name: Comment Lighthouse report links
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ always() && github.event_name == 'pull_request' }}
         uses: actions/github-script@v7
         env:
-          LHCI_LINKS: ${{ steps.lhci_mobile.outputs.links }}\n${{ steps.lhci_desktop.outputs.links }}
+          LHCI_LINKS_MOBILE:  ${{ steps.lhci_mobile.outputs.links }}
+          LHCI_LINKS_DESKTOP: ${{ steps.lhci_desktop.outputs.links }}
+          LHCI_ASSERT_MOBILE: ${{ steps.lhci_mobile.outputs.assertionResults }}
+          LHCI_ASSERT_DESKTOP: ${{ steps.lhci_desktop.outputs.assertionResults }}
         with:
           script: |
-            const linksRaw = (process.env.LHCI_LINKS || '').trim();
-            let body = 'Lighthouse completed (no links output).';
-            if (linksRaw) {
-              try {
-                const parsed = JSON.parse(linksRaw);
-                const lines = Object.entries(parsed).map(([k,v]) => `- ${k}: ${v}`);
-                body = `Lighthouse reports (temporary):\n${lines.join('\n')}`;
-              } catch {
-                body = `Lighthouse reports (raw):\n${linksRaw.split('\n').map(l => `- ${l}`).join('\n')}`;
-              }
+            const core = require('@actions/core');
+            function parseJson(input, fallback) {
+              try { return input ? JSON.parse(input) : fallback; } catch { return fallback; }
             }
+
+            const linksMobile  = parseJson(process.env.LHCI_LINKS_MOBILE, {});
+            const linksDesktop = parseJson(process.env.LHCI_LINKS_DESKTOP, {});
+            const links = { ...linksMobile, ...linksDesktop };
+
+            const assertsMobile  = parseJson(process.env.LHCI_ASSERT_MOBILE, []);
+            const assertsDesktop = parseJson(process.env.LHCI_ASSERT_DESKTOP, []);
+            const asserts = [...assertsMobile, ...assertsDesktop];
+
+            let body = '### Lighthouse CI\n';
+            if (Object.keys(links).length) {
+              body += Object.entries(links).map(([url, report]) => `- ${url} → ${report}`).join('\n') + '\n';
+            } else {
+              body += '_no links output_\n';
+            }
+
+            const failed = asserts.filter(a => a && a.level === 'error' && a.passed === false);
+            if (failed.length) {
+              body += '\n**Assertion failures**\n';
+              body += failed.slice(0, 30).map(a => `- ${a.url || ''} · ${(a.auditTitle || a.name)} → expected ${a.operator} ${a.expected}, actual ${a.actual}`).join('\n');
+            }
+
             try {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,

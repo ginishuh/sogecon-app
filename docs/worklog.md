@@ -444,3 +444,6 @@
 - feat(web): UI 용어 변경 — ‘동문 디렉터리/수첩’ → ‘동문 수첩’로 통일 (텍스트·키워드·CTA·a11y·테스트/스냅샷)
 - fix(api): 개발환경(dev)에서 로그인 레이트리밋 해제(운영(prod)에서만 적용)
 - chore(web): API_BASE 기본값을 현재 호스트 기반으로 계산(127.0.0.1/localhost 혼용 시 세션 유지)
+
+## 2025-10-27 (CI)
+- ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)
