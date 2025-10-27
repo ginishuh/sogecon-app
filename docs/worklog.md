@@ -57,6 +57,7 @@
 - web(home): 빠른 실행 외곽 박스를 제거해 히어로와 좌우 열 정렬 문제 해결. 카드 정사각형(aspect-ratio:1/1), 데스크톱 6열 배치.
 - web(home): 빠른 실행 라벨 줄바꿈 방지(whitespace-nowrap/truncate) 및 카드 내부 좌우 패딩 축소(px-3→md:px-4)로 단일 줄 수용 폭 확보.
 - web(home): 캐러셀 터치 핸들러 TS 오류(e.touches[0] undefined 가능성) null-safe 보강.
+- web(home): hero.tsx pickHero 반환 타입(Post|null) 보장 — 정렬 결과가 빈 배열일 때 null 처리로 빌드 오류 해소.
 - web(posts): 게시글 작성에 ‘hero’ 카테고리 옵션 추가. 게시글 목록의 ‘전체’ 뷰에서는 hero 카테고리 기본 제외.
 - web(home): ‘총동문회 소개’ 단일 프로모 카드 추가(인사말·연혁·조직). 빠른 실행(2×2)은 기존 유지(게시판 포함).
 - test(web): 홈 히어로/동선 테스트를 새 구조에 맞게 업데이트(E2E는 빠른 실행 경유로 /directory 이동).

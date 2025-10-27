@@ -13,11 +13,11 @@ function pickHero(posts: Post[], opts: { allowUnpublished: boolean }): { post: P
   if (published.length > 0) {
     // 서버가 pinned desc, published_at desc로 주지만 방어적으로 정렬 유지
     const sorted = [...published].sort((a, b) => (Number(b.pinned) - Number(a.pinned)) || (Date.parse(b.published_at || '0') - Date.parse(a.published_at || '0')));
-    return { post: sorted[0], unpublished: false };
+    return { post: sorted.length > 0 ? sorted[0] : null, unpublished: false };
   }
   if (opts.allowUnpublished && posts.length > 0) {
     const sorted = [...posts].sort((a, b) => (Number(b.pinned) - Number(a.pinned)) || (Date.parse(b.published_at || '0') - Date.parse(a.published_at || '0')));
-    return { post: sorted[0], unpublished: true };
+    return { post: sorted.length > 0 ? sorted[0] : null, unpublished: true };
   }
   return { post: null, unpublished: false };
 }
@@ -61,4 +61,3 @@ export function HomeHeroMinimal() {
 }
 
 export default HomeHeroMinimal;
-
