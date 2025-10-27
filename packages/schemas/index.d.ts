@@ -533,6 +533,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rum/vitals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ingest Vitals
+         * @description Ingest Web Vitals from client (no PII, sampling handled client-side).
+         *
+         *     For now we log as structured events; storage/aggregation can be added later.
+         */
+        post: operations["ingest_vitals_rum_vitals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -936,6 +958,59 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** WebVitalEvent */
+        WebVitalEvent: {
+            /**
+             * Name
+             * @description Metric name: LCP/INP/CLS/FCP/TTFB
+             */
+            name: string;
+            /**
+             * Id
+             * @description Unique ID per metric instance
+             */
+            id: string;
+            /**
+             * Value
+             * @description Metric value
+             */
+            value: number;
+            /**
+             * Delta
+             * @description Change since last report
+             */
+            delta?: number | null;
+            /**
+             * Rating
+             * @description good|needs-improvement|poor
+             */
+            rating?: string | null;
+            /**
+             * Path
+             * @description Page path
+             */
+            path?: string | null;
+            /**
+             * Navtype
+             * @description Navigation type
+             */
+            navType?: string | null;
+            /**
+             * Device
+             * @description mobile|desktop (heuristic)
+             */
+            device?: string | null;
+            /**
+             * Commit
+             * @description Client commit sha
+             */
+            commit?: string | null;
+            /**
+             * Ts
+             * @description Client timestamp (ms)
+             */
+            ts?: number | null;
         };
     };
     responses: never;
@@ -2012,6 +2087,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MemberRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ingest_vitals_rum_vitals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebVitalEvent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
                 };
             };
             /** @description Validation Error */

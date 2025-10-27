@@ -1719,6 +1719,52 @@
           }
         }
       }
+    },
+    "/rum/vitals": {
+      "post": {
+        "tags": [
+          "rum"
+        ],
+        "summary": "Ingest Vitals",
+        "description": "Ingest Web Vitals from client (no PII, sampling handled client-side).\n\nFor now we log as structured events; storage/aggregation can be added later.",
+        "operationId": "ingest_vitals_rum_vitals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebVitalEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Ingest Vitals Rum Vitals Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2962,6 +3008,116 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WebVitalEvent": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Metric name: LCP/INP/CLS/FCP/TTFB"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique ID per metric instance"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value",
+            "description": "Metric value"
+          },
+          "delta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delta",
+            "description": "Change since last report"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating",
+            "description": "good|needs-improvement|poor"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path",
+            "description": "Page path"
+          },
+          "navType": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Navtype",
+            "description": "Navigation type"
+          },
+          "device": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device",
+            "description": "mobile|desktop (heuristic)"
+          },
+          "commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commit",
+            "description": "Client commit sha"
+          },
+          "ts": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ts",
+            "description": "Client timestamp (ms)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "value"
+        ],
+        "title": "WebVitalEvent"
       }
     }
   }
