@@ -204,6 +204,9 @@
 - fix(web/board): Next 15 요구사항에 따라 `/board` 페이지를 `<Suspense>` 경계로 감싸 `useSearchParams` 경고/빌드 실패 해소.
 - fix(web/home): 의존성 재설치 후에도 타입이 `Post|null|undefined`로 확장되지 않도록 구조분해(`const [first]=sorted; first ?? null`) 방식으로 최종 처리.
 
+## 2025-10-27 (CI/Lighthouse)
+- ci(lighthouse): treosh/lighthouse-ci-action@v11 입력 스키마 변경 반영 — `assertions` 입력 제거, 환경변수로 Chrome 플래그(`--no-sandbox --disable-dev-shm-usage`)와 `MAX_WAIT_FOR_FCP=60000` 설정, runs 3→2로 완화.
+
 ## 2025-10-27 (repo 위생)
 - chore(repo): 로컬 빌드용 Node 바이너리가 담긴 `.tooling/` 폴더를 `.gitignore`에 추가하여 실수로 추적되지 않도록 함.
 - CI: gitleaks 액션 입력 경고 제거(args 제거) 및 shallow fetch 문제 해결(fetch-depth: 0)

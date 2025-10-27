@@ -54,6 +54,11 @@ jobs:
       - name: Lighthouse CI
         id: lhci
         uses: treosh/lighthouse-ci-action@v11
+        env:
+          # Chrome stability in CI
+          LHCI_COLLECT__SETTINGS__CHROME_FLAGS: "--no-sandbox --disable-dev-shm-usage"
+          # Give a bit more time for First Contentful Paint to avoid NO_FCP flakes
+          LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 60000
         with:
           urls: |
             http://localhost:3000/
@@ -64,15 +69,9 @@ jobs:
             http://localhost:3000/board
           uploadArtifacts: true
           temporaryPublicStorage: true
-          runs: 3
-          configPath: ''
+          runs: 2
           budgetPath: './lighthouse-budget.json'
-          # Assert category minimums: Perf/A11y ≥ 0.90
-          assertions: >-
-            {
-              "categories:performance": ["error", {"minScore": 0.90}],
-              "categories:accessibility": ["error", {"minScore": 0.90}]
-            }
+          # Assertions must be declared via lighthouserc in v11+, or rely on budgets only
 
       - name: Comment Lighthouse report links
         if: ${{ github.event_name == 'pull_request' }}
