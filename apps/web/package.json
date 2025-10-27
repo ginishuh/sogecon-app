@@ -21,7 +21,8 @@
     "@tanstack/react-query": "5.62.2",
     "next": "15.5.4",
     "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "react-dom": "19.1.1",
+    "web-vitals": "4.2.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.3.1",
@@ -44,6 +45,7 @@
     "jsdom": "25.0.1",
     "schemas": "workspace:*",
     "vitest": "3.2.4",
-    "puppeteer": "23.7.1"
+    "puppeteer": "23.7.1",
+    "axe-core": "4.9.1"
   }
 }

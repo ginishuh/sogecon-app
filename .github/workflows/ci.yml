@@ -83,6 +83,10 @@ jobs:
           pnpm -C apps/web install --frozen-lockfile
       - name: Build
         run: pnpm -C apps/web build
+      - name: Accessibility smoke (axe)
+        run: pnpm -C apps/web exec vitest run __tests__/a11y-smoke.test.tsx --silent
+      - name: Bundle size check (raw JS total ≤ 1000KB)
+        run: node apps/web/scripts/check-bundle-size.mjs --max-kb 1000
       - name: Dependency audit (pnpm)
         run: pnpm -C apps/web audit --audit-level=high
 
