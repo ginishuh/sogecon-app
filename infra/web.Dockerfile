@@ -36,6 +36,8 @@ ENV NEXT_PUBLIC_WEB_API_BASE=${NEXT_PUBLIC_WEB_API_BASE} \
     NEXT_PUBLIC_RELAX_CSP=${NEXT_PUBLIC_RELAX_CSP} \
     NEXT_PUBLIC_IMAGE_DOMAINS=${NEXT_PUBLIC_IMAGE_DOMAINS}
 
+ENV CI=1
+
 RUN pnpm -C apps/web build \
     && pnpm -C apps/web prune --prod \
     && rm -rf /app/apps/web/.next/cache
