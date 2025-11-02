@@ -74,6 +74,7 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          GITHUB_ACTOR: ${{ github.actor }}
         run: |
           set -euo pipefail
           : "${SSH_PORT:=22}"
@@ -83,11 +84,12 @@ jobs:
           export IMAGE_PREFIX="${IMAGE_PREFIX}"
           export TAG="${TAG}"
           export GHCR_PAT_INNER="${GHCR_PAT}"
+          export GITHUB_ACTOR_INNER="${GITHUB_ACTOR}"
           export API_HEALTH="${{ steps.health.outputs.api_health }}"
           export WEB_HEALTH="${{ steps.health.outputs.site_url }}/"
           export SKIP_MIGRATE="${{ github.event.inputs.skip_migrate }}"
 
-          docker login ghcr.io -u "${GITHUB_ACTOR}" -p "$GHCR_PAT_INNER"
+          echo "$GHCR_PAT_INNER" | docker login ghcr.io -u "$GITHUB_ACTOR_INNER" --password-stdin
           cd /srv/segecon
           echo "[deploy] Pulling images..."
           docker pull "$IMAGE_PREFIX/alumni-api:$TAG"
