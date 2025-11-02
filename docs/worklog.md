@@ -522,3 +522,8 @@
 - api: JWT_SECRET 강제 검증을 prod 환경에서만 수행하도록 조정(CI/OpenAPI 스크립트 호환)
 - docs: `docs/agent_runbook_vps.md`(KR), `docs/agent_runbook_vps_en.md`(EN) 추가. AGENTS.md/CLAUDE.md/README에 링크 연결.
  - web: NEXT_PUBLIC_SITE_URL이 빈 문자열이면 기본값으로 폴백 — Docker 빌드 시 ERR_INVALID_URL 방지
+# Worklog 규칙(요약)
+- 목적: “커밋/머지 단위 1줄 요약”만 남깁니다. 상세 설명은 PR/이슈로 링크하세요.
+- 형식: `YYYY-MM-DD type(scope): subject — PR #NN[, refs #issue]`
+- 길이: 80~120자. 동사 현재형. 불필요한 문장부호/세부 배경 금지.
+- 예시: `2025-11-03 fix(web): Next 런타임 패키징(pnpm 고정) — PR #39`

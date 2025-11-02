@@ -64,6 +64,8 @@ Do NOT disable linters or type checkers globally or per file.
 - Use imperative, present-tense subjects; Korean is fine. Details: `docs/commit_message_convention.md`.
 - The `commit-msg` hook runs `@commitlint/cli` (pinned) via pnpm dlx and must pass locally; CI re-validates recent commits.
 - Non-doc changes must update `docs/worklog.md`; pushes must include the current `docs/dev_log_YYMMDD.md` entry.
+  - Worklog format: one line per commit/merge — `YYYY-MM-DD type(scope): subject — PR #NN[, refs #issue]` (80–120 chars). Details go to PRs/issues.
+  - Dev log format: short daily bullets (3–7 lines). Use the template `docs/dev_log_TEMPLATE.md`.
  - PRs must use the repository PR template `.github/pull_request_template.md`. In Draft, fill only the top sections; before marking Ready for Review, complete all checklists in the template.
 
 ### Planning Docs in PRs

@@ -123,6 +123,12 @@
   - 서브도메인 구성: `lax` + `secure` 권장.
   - 별도 도메인(교차 사이트): `none` + `secure`(HTTPS 필수).
 
+## 커밋/PR 규칙(워크로그/데브로그 형식)
+- 워크로그(`docs/worklog.md`): 커밋/머지당 1줄 요약만 기록합니다.
+  - 형식: `YYYY-MM-DD type(scope): subject — PR #NN[, refs #이슈]` (80–120자)
+  - 세부 내용은 PR/이슈에 남기고, 워크로그는 인덱스 성격으로 유지합니다.
+- 데브로그(`docs/dev_log_YYMMDD.md`): 하루 3–7줄의 불릿로 요약합니다. 템플릿 `docs/dev_log_TEMPLATE.md` 사용을 권장합니다.
+
 ### Next.js 이미지 하드닝
 - Dockerfile에서 corepack으로 pnpm 버전 고정: `corepack prepare pnpm@10.17.1 --activate`.
 - 런타임에서 `pnpm` 의존 제거: 빌드 단계에 의존성을 포함하고 실행은 `node node_modules/next/dist/bin/next start -p 3000` 형태로 최소화.
