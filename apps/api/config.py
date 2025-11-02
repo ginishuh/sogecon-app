@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -85,17 +85,24 @@ class Settings(BaseSettings):
 
     @field_validator("jwt_secret")
     @classmethod
-    def _validate_jwt_secret(cls, v: str) -> str:
-        vv = (v or "").strip()
-        # Reject known placeholder or too-short secrets
-        MIN_LEN = 32
-        if vv in {"change-me", "change-me-to-a-strong-secret", ""} or len(vv) < MIN_LEN:
-            msg = (
-                "JWT_SECRET must be strong ("
-                f"{MIN_LEN}+ chars) and not a placeholder"
-            )
-            raise ValueError(msg)
-        return vv
+    def _normalize_jwt_secret(cls, v: str) -> str:
+        return (v or "").strip()
+
+    @model_validator(mode="after")
+    def _validate_prod_only(self) -> "Settings":
+        # Enforce strong JWT secret only in prod deployments.
+        if (self.app_env or "dev").lower().strip() == "prod":
+            MIN_LEN = 32
+            if (
+                self.jwt_secret in {"change-me", "change-me-to-a-strong-secret", ""}
+                or len(self.jwt_secret) < MIN_LEN
+            ):
+                msg = (
+                    "JWT_SECRET must be strong ("
+                    f"{MIN_LEN}+ chars) and not a placeholder"
+                )
+                raise ValueError(msg)
+        return self
 
 
 @lru_cache(maxsize=1)

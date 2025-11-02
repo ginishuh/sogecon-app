@@ -505,5 +505,6 @@
 - ops: cloud-start 업로드 디렉터리 소유권 시도(1000:1000), deploy-vps 헬스타임아웃(HEALTH_TIMEOUT)
  - ops: deploy-vps HEALTH_TIMEOUT 기본값을 함수 외부로 이동
  - infra: web.Dockerfile에 ARG NODE_VERSION 도입(versions.md 연동 용이)
- - api: COOKIE_SAMESITE/JWT_SECRET 검증 추가; main SameSite 사용 단순화
+- api: COOKIE_SAMESITE/JWT_SECRET 검증 추가; main SameSite 사용 단순화
+ - api: JWT_SECRET 강제 검증을 prod 환경에서만 수행하도록 조정(CI/OpenAPI 스크립트 호환)
  - docs: `docs/agent_runbook_vps.md`(KR), `docs/agent_runbook_vps_en.md`(EN) 추가. AGENTS.md/CLAUDE.md/README에 링크 연결.
