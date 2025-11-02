@@ -511,5 +511,6 @@
 - infra: web.Dockerfile에 ARG NODE_VERSION 도입(versions.md 연동 용이)
  - infra: web.Dockerfile에 corepack prepare pnpm@10.17.1 추가(빌드/런타임) — slim 이미지에서 pnpm 미탑재 오류 해결
 - api: COOKIE_SAMESITE/JWT_SECRET 검증 추가; main SameSite 사용 단순화
- - api: JWT_SECRET 강제 검증을 prod 환경에서만 수행하도록 조정(CI/OpenAPI 스크립트 호환)
- - docs: `docs/agent_runbook_vps.md`(KR), `docs/agent_runbook_vps_en.md`(EN) 추가. AGENTS.md/CLAUDE.md/README에 링크 연결.
+- api: JWT_SECRET 강제 검증을 prod 환경에서만 수행하도록 조정(CI/OpenAPI 스크립트 호환)
+- docs: `docs/agent_runbook_vps.md`(KR), `docs/agent_runbook_vps_en.md`(EN) 추가. AGENTS.md/CLAUDE.md/README에 링크 연결.
+ - web: NEXT_PUBLIC_SITE_URL이 빈 문자열이면 기본값으로 폴백 — Docker 빌드 시 ERR_INVALID_URL 방지
