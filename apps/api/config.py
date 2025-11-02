@@ -64,6 +64,16 @@ class Settings(BaseSettings):
         default=False, alias="SENTRY_SEND_DEFAULT_PII"
     )
 
+    # Session/Cookie 설정 (크로스 도메인 전환 대비)
+    # - COOKIE_SAMESITE: 'lax' | 'strict' | 'none' (기본 'lax')
+    #   별도 도메인 전환 시 교차 사이트 쿠키를 위해 'none' 권장
+    #   (HTTPS 필요)
+    # - COOKIE_SECURE: true/false (기본: APP_ENV == 'prod')
+    # - COOKIE_DOMAIN: 특정 도메인으로 범위를 제한(기본 None=호스트 전용)
+    cookie_same_site: str = Field(default="lax", alias="COOKIE_SAMESITE")
+    cookie_secure: bool | None = Field(default=None, alias="COOKIE_SECURE")
+    cookie_domain: str | None = Field(default=None, alias="COOKIE_DOMAIN")
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

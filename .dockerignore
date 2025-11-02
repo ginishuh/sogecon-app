@@ -12,3 +12,10 @@ logs
 uploads
 dist
 *.log
+
+# Secrets — do not send to Docker build context
+.env
+.env.*
+*.env
+*.env.*
+!.env.example

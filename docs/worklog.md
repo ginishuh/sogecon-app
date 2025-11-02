@@ -493,3 +493,8 @@
 ## 2025-11-02 (Docker deploy)
 - ops: API·웹 Dockerfile 작성 및 빌드/마이그레이션/재기동 스크립트(`cloud-build.sh`, `cloud-migrate.sh`, `cloud-start.sh`) 구현으로 VPS 배포 파이프라인 정비.
 - docs: API/웹 배포 문서를 Docker 기반 절차로 갱신하고 환경변수/시크릿 주입 가이드 추가.
+ - api: 세션 쿠키 플래그(`COOKIE_SAMESITE/SECURE/DOMAIN`) 도입 — 도메인 전환(서브→별도) 시 토글 가능.
+ - ops: buildx/멀티아치 옵션(PLATFORMS, USE_BUILDX) 추가, Nginx 예시 설정 추가(`ops/nginx-examples/`).
+ - scripts: `scripts/deploy-vps.sh` 추가 — 이미지 pull→migrate→재기동→헬스체크 원샷.
+ - env: `.env.api.example`, `.env.web.example` 추가; `.dockerignore`에 `.env*` 차단, `!.env.example` 유지.
+ - ssot: `docs/agents_base*.md`에 서버 배포/환경 규칙(빌드타임/런타임 env 분리, GHCR 권장, 쿠키 플래그) 반영. README 배포 가이드 추가.

@@ -90,7 +90,7 @@
 ## 편집 정책
 - 변경은 `agents_base.md`와 `agents_base_kr.md`를 동시에 업데이트하고, AGENTS.md/CLAUDE.md에서 해당 변경을 참조합니다.
 
-## 개발 환경 & 환경변수(2025‑10‑06)
+## 개발 환경 & 환경변수(2025‑11‑02)
 - API는 로컬 uvicorn으로 실행, PostgreSQL은 Docker Compose로 실행합니다.
   - DB 시작/중지: `make db-up` / `make db-down`
   - 기본 포트: dev `5433`, test `5434`. `infra/.env`에서 다음으로 오버라이드 가능:
@@ -106,3 +106,19 @@
   - 404/410 응답 구독은 자동 무효화합니다.
   - 관리자 테스트 발송: `POST /admin/notifications/test` (payload `{ title, body, url? }`).
   - 관리자 UI: `/admin/notifications`에서 발송/요약/최근 로그 확인.
+
+### 서버 배포 환경변수 및 컨테이너 플로우
+- 컨테이너 우선: `infra/api.Dockerfile`, `infra/web.Dockerfile`로 API/웹 이미지를 빌드합니다.
+  - 빌드 헬퍼: `ops/cloud-build.sh`. Next 공개변수(`NEXT_PUBLIC_*`)는 빌드 인자로 전달합니다.
+  - Next의 공개변수는 빌드타임 고정입니다. 변경 시 재빌드가 필요합니다.
+- 런타임 기동: `ops/cloud-start.sh`(API 127.0.0.1:3001, Web 3000). TLS는 Nginx/Caddy에서 종료.
+- DB 마이그레이션: `ops/cloud-migrate.sh`(Alembic).
+- 이미지 레지스트리: GHCR 권장(`ghcr.io/<owner>/<repo>/alumni-{api,web}:<tag>`). 다른 레지스트리도 무방.
+- 멀티아치: ARM에서 AMD64 서버용을 빌드할 땐 `PLATFORMS=linux/amd64 USE_BUILDX=1` 사용.
+- 환경파일 규칙:
+  - 로컬 개발: 루트 `.env`(API가 로컬 실행 시 자동 로드).
+  - 서버 런타임: `.env.api`(ENV_FILE/API_ENV_FILE로 주입), `.env.web`(선택; 런타임 토글 용도 제한).
+  - 시크릿 커밋 금지. `.dockerignore`로 `.env*`는 빌드 컨텍스트에서 제외하고, `.env.example`/`.env.api.example`/`.env.web.example`만 추적.
+- 쿠키 플래그(API): `COOKIE_SAMESITE`(`lax|strict|none`), `COOKIE_SECURE`(bool), `COOKIE_DOMAIN`.
+  - 서브도메인 구성: `lax` + `secure` 권장.
+  - 별도 도메인(교차 사이트): `none` + `secure`(HTTPS 필수).

@@ -33,11 +33,7 @@ WEB_IMAGE=${WEB_IMAGE:-${IMAGE_PREFIX}/alumni-web:${IMAGE_TAG}}
 echo "API  이미지: ${API_IMAGE}"
 echo "Web  이미지: ${WEB_IMAGE}"
 
-docker build \
-  -f infra/api.Dockerfile \
-  -t "${API_IMAGE}" \
-  .
-
+# Web 빌드 인자 수집(NEXT_PUBLIC_*)
 WEB_BUILD_ARGS=()
 for arg in \
   NEXT_PUBLIC_WEB_API_BASE \
@@ -54,11 +50,37 @@ do
   fi
 done
 
-docker build \
-  "${WEB_BUILD_ARGS[@]}" \
-  -f infra/web.Dockerfile \
-  -t "${WEB_IMAGE}" \
-  .
+USE_BUILDX=${USE_BUILDX:-}
+PLATFORMS=${PLATFORMS:-}
+
+build_cmd_api=(docker build -f infra/api.Dockerfile -t "${API_IMAGE}" .)
+build_cmd_web=(docker build "${WEB_BUILD_ARGS[@]}" -f infra/web.Dockerfile -t "${WEB_IMAGE}" .)
+
+if [[ -n "${USE_BUILDX}" || -n "${PLATFORMS}" ]]; then
+  if ! docker buildx version >/dev/null 2>&1; then
+    echo "docker buildx가 필요합니다. Docker Desktop 또는 buildx 플러그인을 설치하세요." >&2
+    exit 1
+  fi
+  build_cmd_api=(docker buildx build -f infra/api.Dockerfile -t "${API_IMAGE}")
+  build_cmd_web=(docker buildx build -f infra/web.Dockerfile -t "${WEB_IMAGE}" "${WEB_BUILD_ARGS[@]}")
+  if [[ -n "${PLATFORMS}" ]]; then
+    build_cmd_api+=(--platform "${PLATFORMS}")
+    build_cmd_web+=(--platform "${PLATFORMS}")
+  fi
+  if [[ "${PUSH_IMAGES:-0}" == "1" ]]; then
+    build_cmd_api+=(--push)
+    build_cmd_web+=(--push)
+  else
+    # 단일 플랫폼일 때만 --load 사용 가능. 복수 플랫폼이면 push를 사용하세요.
+    build_cmd_api+=(--load)
+    build_cmd_web+=(--load)
+  fi
+  build_cmd_api+=(.)
+  build_cmd_web+=(.)
+fi
+
+"${build_cmd_api[@]}"
+"${build_cmd_web[@]}"
 
 if [[ "${PUSH_IMAGES:-0}" == "1" ]]; then
   echo "docker push 실행"

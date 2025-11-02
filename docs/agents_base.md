@@ -90,7 +90,7 @@ Do NOT disable linters or type checkers globally or per file.
 ## Edit Policy
 - Propose changes in a PR that updates BOTH `agents_base.md` and `agents_base_kr.md`, then reference the change in AGENTS.md/CLAUDE.md.
 
-## Dev Environment & Envs (2025‑10‑06)
+## Dev Environment & Envs (2025‑11‑02)
 - API runs locally with uvicorn; PostgreSQL runs via Docker Compose.
   - Start/stop DBs: `make db-up` / `make db-down`.
   - Default ports: dev `5433`, test `5434`. Override via `infra/.env`:
@@ -106,3 +106,19 @@ Do NOT disable linters or type checkers globally or per file.
   - Subscriptions returning 404/410 are auto‑invalidated.
   - Admin test: `POST /admin/notifications/test` payload `{ title, body, url? }`.
   - Admin UI: `/admin/notifications` shows test form, recent logs, and summary.
+
+### Server deploy envs and container flow
+- Container-first: Build two images (`infra/api.Dockerfile`, `infra/web.Dockerfile`).
+  - Build helper: `ops/cloud-build.sh`. Pass Next.js public envs via build args (`NEXT_PUBLIC_*`).
+  - Next.js public envs are build-time only. Changing them requires a rebuild.
+- Runtime start: `ops/cloud-start.sh` (127.0.0.1:3001 API, 3000 Web; Nginx/Caddy reverse-proxy terminates TLS).
+- DB migrations: `ops/cloud-migrate.sh` (Alembic).
+- Image registry: GHCR (`ghcr.io/<owner>/<repo>/alumni-{api,web}:<tag>`) is recommended; alternatives OK.
+- Multi-arch: if building on ARM for an AMD64 VPS, use `PLATFORMS=linux/amd64 USE_BUILDX=1`.
+- Env files convention:
+  - Local dev: root `.env` (auto-loaded by API only for local runs).
+  - Server runtime: `.env.api` (used via `ENV_FILE`/`API_ENV_FILE`), optional `.env.web` for run-time toggles.
+  - Do not commit secrets. `.dockerignore` excludes `.env*`; `.env.example`, `.env.api.example`, `.env.web.example` are tracked.
+- Cookie flags (API): `COOKIE_SAMESITE` (`lax|strict|none`), `COOKIE_SECURE` (bool), `COOKIE_DOMAIN`.
+  - Subdomain setup: use `lax` + `secure`.
+  - Cross-site (separate domains): use `none` + `secure` (HTTPS required).

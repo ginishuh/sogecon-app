@@ -15,6 +15,10 @@
 - **Node 런타임**: `node 22.17.1`, `pnpm 10.17.1` (CI에서도 동일 버전 고정).
 - **CI 시크릿**: 위 환경 변수는 CI/CD 공급자의 시크릿 저장소에 사전 등록한다.
 
+> 참고 1: `NEXT_PUBLIC_*` 값은 "빌드타임"에 고정됩니다. `WEB_ENV_FILE`로 런타임에 넣어도 값이 바뀌지 않습니다. 도메인을 교체할 때는 반드시 재빌드가 필요합니다.
+> 
+> 참고 2(맥/ARM 환경): 로컬/CI가 ARM이고 서버가 AMD64라면 `PLATFORMS=linux/amd64 USE_BUILDX=1`를 함께 지정해 빌드하세요.
+
 ## 3. 로컬 검증 (필수)
 1. 의존성 설치: `pnpm install`
 2. 빌드 확인: `pnpm -C apps/web build`
@@ -47,3 +51,16 @@
 ## 7. 추후 보강 항목
 - 배포 대상별 구체 명령 (Vercel CLI, Flyctl 등) 템플릿화
 - Lighthouse 예산 자동 검증 (CI 연동) — `ci/web` 작업과 연계
+
+## 8. 임시 도메인(예: segecon.wastelite.kr) 빌드 예시
+```
+IMAGE_PREFIX=ghcr.io/<owner>/<repo> \
+NEXT_PUBLIC_SITE_URL=https://segecon.wastelite.kr \
+NEXT_PUBLIC_WEB_API_BASE=https://api.segecon.wastelite.kr \
+PLATFORMS=linux/amd64 \# 서버가 x86_64면 권장 (ARM 로컬에서 빌드시)
+USE_BUILDX=1 \        # buildx 사용
+PUSH_IMAGES=1 \
+./ops/cloud-build.sh
+```
+
+> 참고: 레포 루트의 `.env.web.example`을 참고해 필요한 `NEXT_PUBLIC_*` 키를 정리하세요.
