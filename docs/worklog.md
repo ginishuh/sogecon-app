@@ -503,7 +503,8 @@
 - ci: deploy 보안 강화 — known_hosts 설정 + 키 파일(0600), build-push 입력(tag) 검증 추가
  - ci: pip-audit 임시 예외 추가(GHSA-7f5h-v6xp-fcq8 / Starlette<0.49.1). FastAPI 상향 대기, 2025-12-31 만료
 - ci: deploy 원격 `docker login`을 `--password-stdin`으로 전환(process list 노출 방지)
- - ci: semgrep 경고 해결 — run 블록에서 `${{ }}` 사용 제거, step-level env로 전달
+- ci: semgrep 경고 해결 — run 블록에서 `${{ }}` 사용 제거, step-level env로 전달
+- ci: create-waiver-issue(workflow_dispatch) 추가 — Starlette GHSA-7f5h-v6xp-fcq8 트래킹 자동화
  - ops: cloud-build 멀티아치 로직 보강(복수 플랫폼은 --push 강제), buildx 사용 시 중복 push 방지
 - ops: cloud-start 업로드 디렉터리 소유권 시도(1000:1000), deploy-vps 헬스타임아웃(HEALTH_TIMEOUT)
  - ops: deploy-vps HEALTH_TIMEOUT 기본값을 함수 외부로 이동
