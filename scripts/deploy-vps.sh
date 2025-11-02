@@ -20,6 +20,7 @@ UPLOADS_DIR="/var/lib/segecon/uploads"
 DO_MIGRATE=1
 API_HEALTH=""
 WEB_HEALTH=""
+HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-60}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -80,8 +81,7 @@ health() {
   local url="$1"; local name="$2"
   if [[ -z "$url" ]]; then return 0; fi
   echo "[health] $name → $url"
-HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-60}
-for i in $(seq 1 "$HEALTH_TIMEOUT"); do
+  for i in $(seq 1 "$HEALTH_TIMEOUT"); do
     code=$(curl -fsS -o /dev/null -w "%{http_code}" "$url" || true)
     if [[ "$code" == "200" ]]; then
       echo "[health] $name OK(200)"; return 0
