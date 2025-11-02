@@ -1,0 +1,109 @@
+name: deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag to deploy (e.g., commit SHA)'
+        required: true
+        type: string
+      environment:
+        description: 'GitHub Environment to use (secrets/approvals)'
+        required: true
+        default: 'prod'
+        type: choice
+        options: [ 'prod' ]
+      skip_migrate:
+        description: 'Skip DB migration step'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.event.inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ github.event.inputs.environment }}
+    env:
+      IMAGE_PREFIX: ghcr.io/${{ github.repository }}
+      TAG: ${{ github.event.inputs.tag }}
+      # For health checks (set these as Environment Variables)
+      SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+      API_BASE: ${{ vars.NEXT_PUBLIC_WEB_API_BASE }}
+    steps:
+      - name: Verify inputs
+        run: |
+          test -n "$TAG" || { echo "tag is required"; exit 1; }
+
+      - name: Prepare health endpoints
+        id: health
+        run: |
+          site="$SITE_URL"; api="$API_BASE"
+          site=${site%/}
+          api=${api%/}
+          echo "site_url=$site" >> $GITHUB_OUTPUT
+          echo "api_health=$api/healthz" >> $GITHUB_OUTPUT
+
+      - name: SSH deploy (pull → migrate → restart → health)
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+        run: |
+          set -euo pipefail
+          : "${SSH_PORT:=22}"
+          : "${GHCR_PAT:?GHCR_PAT secret required for remote GHCR login}"
+          # shellcheck disable=SC2087
+          ssh -o StrictHostKeyChecking=no -i <(printf "%s" "$SSH_KEY") -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" << 'EOF'
+          set -euo pipefail
+          export IMAGE_PREFIX="${IMAGE_PREFIX}"
+          export TAG="${TAG}"
+          export GHCR_PAT_INNER="${GHCR_PAT}"
+          export API_HEALTH="${{ steps.health.outputs.api_health }}"
+          export WEB_HEALTH="${{ steps.health.outputs.site_url }}/"
+          export SKIP_MIGRATE="${{ github.event.inputs.skip_migrate }}"
+
+          docker login ghcr.io -u "${GITHUB_ACTOR}" -p "$GHCR_PAT_INNER"
+          cd /srv/segecon
+          echo "[deploy] Pulling images..."
+          docker pull "$IMAGE_PREFIX/alumni-api:$TAG"
+          docker pull "$IMAGE_PREFIX/alumni-web:$TAG"
+
+          if [ "$SKIP_MIGRATE" != "true" ]; then
+            API_IMAGE="$IMAGE_PREFIX/alumni-api:$TAG" ENV_FILE=.env.api \
+              bash ./ops/cloud-migrate.sh
+          else
+            echo "[deploy] Skip migrate"
+          fi
+
+          API_IMAGE="$IMAGE_PREFIX/alumni-api:$TAG" \
+          WEB_IMAGE="$IMAGE_PREFIX/alumni-web:$TAG" \
+          API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+          bash ./ops/cloud-start.sh
+
+          echo "[deploy] Health checks"
+          if [ -n "$API_HEALTH" ]; then
+            curl -fsS -o /dev/null "$API_HEALTH" || { echo "API health failed"; exit 1; }
+          fi
+          if [ -n "$WEB_HEALTH" ]; then
+            curl -fsS -o /dev/null "$WEB_HEALTH" || { echo "WEB health failed"; exit 1; }
+          fi
+          echo "[deploy] OK"
+          EOF
+
+      - name: Summary
+        run: |
+          echo "Deployed to ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "Tag: $TAG" >> $GITHUB_STEP_SUMMARY
+          echo "API: $IMAGE_PREFIX/alumni-api:$TAG" >> $GITHUB_STEP_SUMMARY
+          echo "WEB: $IMAGE_PREFIX/alumni-web:$TAG" >> $GITHUB_STEP_SUMMARY
+
