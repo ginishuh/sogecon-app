@@ -144,6 +144,10 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
     PUSH_IMAGES=1 ./ops/cloud-build.sh
     ```
   - ARM 맥에서 AMD64 서버용: `PLATFORMS=linux/amd64 USE_BUILDX=1` 추가
+- Web 이미지 빌드 주의(Next.js + pnpm)
+  - `corepack`으로 pnpm 버전 고정: Dockerfile에서 `corepack prepare pnpm@10.17.1 --activate` 사용.
+  - 런타임에서 `pnpm`이 필요 없도록 빌드 단계에서 의존성을 포함시킵니다.
+  - 실행 커맨드: `node node_modules/next/dist/bin/next start -p 3000`(런타임 최소화).
 - 서버 실행(예: `/srv/segecon`에 클론되어 있다고 가정)
   ```bash
   # 1) 이미지 풀
@@ -162,6 +166,26 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
   ```
 - 원클릭 스크립트(서버): `scripts/deploy-vps.sh -t <tag> --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
 - 리버스 프록시: Nginx 예시는 `ops/nginx-examples/` 참고(127.0.0.1:3000/3001로 프록시, TLS는 Nginx에서 처리).
+
+### 보안 헤더/CSP 주의
+- 기본 정책: `apps/web/next.config.js`에서 `Content-Security-Policy`를 설정합니다. 기본값은 `script-src 'self'`로 인라인 스크립트가 차단됩니다.
+- 테스트 임시 완화(선택): 외부 테스트 중 HMR/프리뷰·런타임 초기 스니펫 때문에 막힐 경우, Nginx에서 응답 CSP를 일시 완화할 수 있습니다.
+  - 예시(임시):
+    ```nginx
+    location / {
+      proxy_pass http://127.0.0.1:3000;
+      proxy_hide_header Content-Security-Policy;
+      add_header Content-Security-Policy "default-src 'self'; img-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: wss:; font-src 'self' data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'" always;
+    }
+    ```
+  - 운영 전환 시에는 반드시 nonce/hash 기반 CSP로 되돌리십시오. Nginx 완화는 제거해야 합니다.
+
+### 전용 Postgres 컨테이너(선택)
+- 다른 서비스와 충돌을 피하려면 전용 네트워크/DB 컨테이너를 사용할 수 있습니다.
+  - 네트워크: `segecon_net`
+  - DB 컨테이너: `sogecon-db` (Postgres 16, 내부 네트워크 전용)
+  - 예시 연결: `postgresql+psycopg://<user>:<pass>@sogecon-db:5432/<db>?sslmode=disable`
+  - Alembic는 `ops/cloud-migrate.sh`로 동일 네트워크에서 실행하세요(`--network segecon_net`).
 
 ### VPS 에이전트를 위한 바로가기
 - VPS Agent Runbook (EN): `docs/agent_runbook_vps_en.md`

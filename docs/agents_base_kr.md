@@ -122,3 +122,17 @@
 - 쿠키 플래그(API): `COOKIE_SAMESITE`(`lax|strict|none`), `COOKIE_SECURE`(bool), `COOKIE_DOMAIN`.
   - 서브도메인 구성: `lax` + `secure` 권장.
   - 별도 도메인(교차 사이트): `none` + `secure`(HTTPS 필수).
+
+### Next.js 이미지 하드닝
+- Dockerfile에서 corepack으로 pnpm 버전 고정: `corepack prepare pnpm@10.17.1 --activate`.
+- 런타임에서 `pnpm` 의존 제거: 빌드 단계에 의존성을 포함하고 실행은 `node node_modules/next/dist/bin/next start -p 3000` 형태로 최소화.
+- 전역 스토어/심링크 누락 문제를 피하기 위해 워크스페이스 범위 설치를 사용.
+
+### CSP 정책
+- 기본: 인라인 스크립트 거부(`script-src 'self'`). Next.js 부트 스니펫이 포함될 수 있음.
+- 운영: 전역 `'unsafe-inline'` 금지. 필요한 스니펫만 nonce 또는 hash로 허용(문서화 필수).
+- 테스트 임시: 외부 테스트를 위해 Nginx에서 CSP를 임시 완화할 수 있으나, 운영 전 반드시 제거하고 이슈로 추적.
+
+### DB 분리(선택)
+- 다른 스택과 공존하는 VPS에서는 전용 Docker 네트워크/DB 컨테이너(예: `segecon_net`, `sogecon-db`)로 충돌을 회피.
+- Alembic 마이그레이션은 DB와 같은 네트워크에서 실행.

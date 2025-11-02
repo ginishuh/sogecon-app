@@ -26,15 +26,61 @@ def upgrade() -> None:
     if bind.dialect.name != "postgresql":
         return
 
-    # visibility: 'ALL'|'COHORT'|'PRIVATE' → 'all'|'cohort'|'private'
-    op.execute("ALTER TYPE visibility RENAME VALUE 'ALL' TO 'all'")
-    op.execute("ALTER TYPE visibility RENAME VALUE 'COHORT' TO 'cohort'")
-    op.execute("ALTER TYPE visibility RENAME VALUE 'PRIVATE' TO 'private'")
+    # visibility: 'ALL'|'COHORT'|'PRIVATE' → 'all'|'cohort'|'private' (존재할 때만 변경)
+    op.execute(
+        """
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+            WHERE t.typname = 'visibility' AND e.enumlabel = 'ALL'
+          ) THEN
+            ALTER TYPE visibility RENAME VALUE 'ALL' TO 'all';
+          END IF;
+          IF EXISTS (
+            SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+            WHERE t.typname = 'visibility' AND e.enumlabel = 'COHORT'
+          ) THEN
+            ALTER TYPE visibility RENAME VALUE 'COHORT' TO 'cohort';
+          END IF;
+          IF EXISTS (
+            SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+            WHERE t.typname = 'visibility' AND e.enumlabel = 'PRIVATE'
+          ) THEN
+            ALTER TYPE visibility RENAME VALUE 'PRIVATE' TO 'private';
+          END IF;
+        END
+        $$;
+        """
+    )
 
-    # rsvpstatus: 'GOING'|'WAITLIST'|'CANCEL' → 'going'|'waitlist'|'cancel'
-    op.execute("ALTER TYPE rsvpstatus RENAME VALUE 'GOING' TO 'going'")
-    op.execute("ALTER TYPE rsvpstatus RENAME VALUE 'WAITLIST' TO 'waitlist'")
-    op.execute("ALTER TYPE rsvpstatus RENAME VALUE 'CANCEL' TO 'cancel'")
+    # rsvpstatus: 'GOING'|'WAITLIST'|'CANCEL' → 'going'|'waitlist'|'cancel' (존재할 때만 변경)
+    op.execute(
+        """
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+            WHERE t.typname = 'rsvpstatus' AND e.enumlabel = 'GOING'
+          ) THEN
+            ALTER TYPE rsvpstatus RENAME VALUE 'GOING' TO 'going';
+          END IF;
+          IF EXISTS (
+            SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+            WHERE t.typname = 'rsvpstatus' AND e.enumlabel = 'WAITLIST'
+          ) THEN
+            ALTER TYPE rsvpstatus RENAME VALUE 'WAITLIST' TO 'waitlist';
+          END IF;
+          IF EXISTS (
+            SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+            WHERE t.typname = 'rsvpstatus' AND e.enumlabel = 'CANCEL'
+          ) THEN
+            ALTER TYPE rsvpstatus RENAME VALUE 'CANCEL' TO 'cancel';
+          END IF;
+        END
+        $$;
+        """
+    )
 
 
 def downgrade() -> None:

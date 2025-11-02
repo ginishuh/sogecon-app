@@ -4,21 +4,28 @@ ARG NODE_VERSION=22.17.1
 FROM node:${NODE_VERSION}-slim AS build
 
 ENV NODE_ENV=production \
-    NEXT_TELEMETRY_DISABLED=1
+    NEXT_TELEMETRY_DISABLED=1 \
+    CI=true
 
-RUN corepack enable
+# Use the exact pnpm version required by the app to avoid engine mismatch
+ARG PNPM_VERSION=10.17.1
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 
+# Minimal files for deterministic install in workspace
 COPY pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/package.json
 COPY packages/schemas/package.json packages/schemas/package.json
 
+# Install only web workspace deps (respects the lockfile)
 RUN pnpm -C apps/web install --frozen-lockfile
 
+# Add sources after install to leverage Docker layer caching
 COPY apps/web ./apps/web
 COPY packages/schemas ./packages/schemas
 
+# Build-time public envs
 ARG NEXT_PUBLIC_WEB_API_BASE=""
 ARG NEXT_PUBLIC_SITE_URL=""
 ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY=""
@@ -35,29 +42,27 @@ ENV NEXT_PUBLIC_WEB_API_BASE=${NEXT_PUBLIC_WEB_API_BASE} \
     NEXT_PUBLIC_RELAX_CSP=${NEXT_PUBLIC_RELAX_CSP} \
     NEXT_PUBLIC_IMAGE_DOMAINS=${NEXT_PUBLIC_IMAGE_DOMAINS}
 
+# Build the app. Then create a self-contained deploy dir to avoid global store symlinks.
 RUN pnpm -C apps/web build \
-    && pnpm -C apps/web prune --prod \
-    && rm -rf /app/apps/web/.next/cache
+    && pnpm --filter web deploy --prod --legacy /opt/app_web
 
 FROM node:${NODE_VERSION}-slim AS runtime
 
 ENV NODE_ENV=production \
-    NEXT_TELEMETRY_DISABLED=1
+    NEXT_TELEMETRY_DISABLED=1 \
+    CI=true
 
-RUN corepack enable \
-    && adduser --disabled-password --gecos "" webuser
-
-WORKDIR /app
-
-COPY --from=build /app/apps/web /app/apps/web
-COPY --from=build /app/packages /app/packages
-COPY --from=build /app/pnpm-lock.yaml /app/pnpm-lock.yaml
-COPY --from=build /app/pnpm-workspace.yaml /app/pnpm-workspace.yaml
+RUN adduser --disabled-password --gecos "" webuser
 
 WORKDIR /app/apps/web
+
+WORKDIR /app/apps/web
+# Copy self-contained deployment that includes node_modules
+COPY --from=build /opt/app_web /app/apps/web
 
 USER webuser
 
 EXPOSE 3000
 
-CMD ["pnpm", "start"]
+# Avoid requiring pnpm in runtime; call Next directly
+CMD ["node", "node_modules/next/dist/bin/next", "start", "-p", "3000"]
