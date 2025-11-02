@@ -42,7 +42,6 @@ ENV NEXT_PUBLIC_WEB_API_BASE=${NEXT_PUBLIC_WEB_API_BASE} \
     NEXT_PUBLIC_RELAX_CSP=${NEXT_PUBLIC_RELAX_CSP} \
     NEXT_PUBLIC_IMAGE_DOMAINS=${NEXT_PUBLIC_IMAGE_DOMAINS}
 
-# Build the app. Then create a self-contained deploy dir to avoid global store symlinks.
 RUN pnpm -C apps/web build \
     && pnpm --filter web deploy --prod --legacy /opt/app_web
 
@@ -56,7 +55,6 @@ RUN adduser --disabled-password --gecos "" webuser
 
 WORKDIR /app/apps/web
 
-WORKDIR /app/apps/web
 # Copy self-contained deployment that includes node_modules
 COPY --from=build /opt/app_web /app/apps/web
 
