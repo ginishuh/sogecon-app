@@ -80,7 +80,8 @@ health() {
   local url="$1"; local name="$2"
   if [[ -z "$url" ]]; then return 0; fi
   echo "[health] $name → $url"
-  for i in {1..30}; do
+HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-60}
+for i in $(seq 1 "$HEALTH_TIMEOUT"); do
     code=$(curl -fsS -o /dev/null -w "%{http_code}" "$url" || true)
     if [[ "$code" == "200" ]]; then
       echo "[health] $name OK(200)"; return 0
@@ -103,4 +104,3 @@ if [[ $RC -ne 0 ]]; then
 fi
 
 echo "[deploy] Done"
-

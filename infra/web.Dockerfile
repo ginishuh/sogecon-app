@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22.17.1-slim AS build
+ARG NODE_VERSION=22.17.1
+FROM node:${NODE_VERSION}-slim AS build
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1
@@ -38,7 +39,7 @@ RUN pnpm -C apps/web build \
     && pnpm -C apps/web prune --prod \
     && rm -rf /app/apps/web/.next/cache
 
-FROM node:22.17.1-slim AS runtime
+FROM node:${NODE_VERSION}-slim AS runtime
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1

@@ -500,4 +500,9 @@
 - ssot: `docs/agents_base*.md`에 서버 배포/환경 규칙(빌드타임/런타임 env 분리, GHCR 권장, 쿠키 플래그) 반영. README 배포 가이드 추가.
  - fix: SessionMiddleware `same_site` 타입 내로잉(pyright) — Literal로 안전히 정제.
 - ci: GitHub Actions 워크플로 추가 — `build-push`(GHCR), `deploy`(workflow_dispatch/SSH, prod 환경 보호)
+ - ci: deploy 보안 강화 — known_hosts 설정 + 키 파일(0600), build-push 입력(tag) 검증 추가
+ - ops: cloud-build 멀티아치 로직 보강(복수 플랫폼은 --push 강제), buildx 사용 시 중복 push 방지
+ - ops: cloud-start 업로드 디렉터리 소유권 시도(1000:1000), deploy-vps 헬스타임아웃(HEALTH_TIMEOUT)
+ - infra: web.Dockerfile에 ARG NODE_VERSION 도입(versions.md 연동 용이)
+ - api: COOKIE_SAMESITE/JWT_SECRET 검증 추가; main SameSite 사용 단순화
  - docs: `docs/agent_runbook_vps.md`(KR), `docs/agent_runbook_vps_en.md`(EN) 추가. AGENTS.md/CLAUDE.md/README에 링크 연결.

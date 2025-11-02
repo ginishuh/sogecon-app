@@ -72,8 +72,13 @@ if [[ -n "${USE_BUILDX}" || -n "${PLATFORMS}" ]]; then
     build_cmd_web+=(--push)
   else
     # 단일 플랫폼일 때만 --load 사용 가능. 복수 플랫폼이면 push를 사용하세요.
-    build_cmd_api+=(--load)
-    build_cmd_web+=(--load)
+    if [[ -z "${PLATFORMS}" || "${PLATFORMS}" != *","* ]]; then
+      build_cmd_api+=(--load)
+      build_cmd_web+=(--load)
+    else
+      echo "[build] 다중 플랫폼 빌드에서는 --push를 사용해야 합니다 (PUSH_IMAGES=1)." >&2
+      exit 2
+    fi
   fi
   build_cmd_api+=(.)
   build_cmd_web+=(.)
@@ -82,7 +87,7 @@ fi
 "${build_cmd_api[@]}"
 "${build_cmd_web[@]}"
 
-if [[ "${PUSH_IMAGES:-0}" == "1" ]]; then
+if [[ "${PUSH_IMAGES:-0}" == "1" && -z "${USE_BUILDX}" ]]; then
   echo "docker push 실행"
   docker push "${API_IMAGE}"
   docker push "${WEB_IMAGE}"

@@ -3,7 +3,7 @@ import time
 import uuid
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -57,16 +57,7 @@ app.add_middleware(
 # - 별도 도메인(크로스 사이트) 전환 시에는
 #   COOKIE_SAMESITE=none, COOKIE_SECURE=true 권장
 SameSite = Literal["lax", "strict", "none"]
-_cand = (settings.cookie_same_site or "lax").lower().strip()
-_same_site: SameSite
-if _cand == "lax":
-    _same_site = "lax"
-elif _cand == "strict":
-    _same_site = "strict"
-elif _cand == "none":
-    _same_site = "none"
-else:
-    _same_site = "lax"
+_same_site: SameSite = cast(SameSite, settings.cookie_same_site)
 
 _secure_default = settings.app_env == "prod"
 _https_only = (

@@ -34,6 +34,8 @@ DOCKER_NETWORK=${DOCKER_NETWORK:-bridge}
 RELEASE=${RELEASE:-$(date +%Y%m%d%H%M%S)}
 
 mkdir -p "${UPLOADS_DIR}"
+# 컨테이너 비루트 유저(apiuser/webuser, 통상 UID 1000)에 맞춰 소유권을 시도
+chown 1000:1000 "${UPLOADS_DIR}" 2>/dev/null || echo "[warn] uploads ownership not changed (insufficient permission)"
 
 stop_container() {
   local name=$1

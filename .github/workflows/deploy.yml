@@ -38,6 +38,22 @@ jobs:
       SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
       API_BASE: ${{ vars.NEXT_PUBLIC_WEB_API_BASE }}
     steps:
+      - name: Setup SSH known hosts
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          : "${SSH_PORT:=22}"
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Write SSH key file
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          umask 077
+          printf "%s" "$SSH_KEY" > "$RUNNER_TEMP/deploy_key"
+          echo "SSH_KEY_FILE=$RUNNER_TEMP/deploy_key" >> "$GITHUB_ENV"
       - name: Verify inputs
         run: |
           test -n "$TAG" || { echo "tag is required"; exit 1; }
@@ -62,8 +78,7 @@ jobs:
           set -euo pipefail
           : "${SSH_PORT:=22}"
           : "${GHCR_PAT:?GHCR_PAT secret required for remote GHCR login}"
-          # shellcheck disable=SC2087
-          ssh -o StrictHostKeyChecking=no -i <(printf "%s" "$SSH_KEY") -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" << 'EOF'
+          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" << 'EOF'
           set -euo pipefail
           export IMAGE_PREFIX="${IMAGE_PREFIX}"
           export TAG="${TAG}"
@@ -106,4 +121,3 @@ jobs:
           echo "Tag: $TAG" >> $GITHUB_STEP_SUMMARY
           echo "API: $IMAGE_PREFIX/alumni-api:$TAG" >> $GITHUB_STEP_SUMMARY
           echo "WEB: $IMAGE_PREFIX/alumni-web:$TAG" >> $GITHUB_STEP_SUMMARY
-

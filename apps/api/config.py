@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -73,6 +73,29 @@ class Settings(BaseSettings):
     cookie_same_site: str = Field(default="lax", alias="COOKIE_SAMESITE")
     cookie_secure: bool | None = Field(default=None, alias="COOKIE_SECURE")
     cookie_domain: str | None = Field(default=None, alias="COOKIE_DOMAIN")
+
+    # --- Validators ---
+    @field_validator("cookie_same_site")
+    @classmethod
+    def _validate_same_site(cls, v: str) -> str:
+        vv = (v or "").strip().lower() or "lax"
+        if vv not in {"lax", "strict", "none"}:
+            raise ValueError("COOKIE_SAMESITE must be lax, strict, or none")
+        return vv
+
+    @field_validator("jwt_secret")
+    @classmethod
+    def _validate_jwt_secret(cls, v: str) -> str:
+        vv = (v or "").strip()
+        # Reject known placeholder or too-short secrets
+        MIN_LEN = 32
+        if vv in {"change-me", "change-me-to-a-strong-secret", ""} or len(vv) < MIN_LEN:
+            msg = (
+                "JWT_SECRET must be strong ("
+                f"{MIN_LEN}+ chars) and not a placeholder"
+            )
+            raise ValueError(msg)
+        return vv
 
 
 @lru_cache(maxsize=1)
