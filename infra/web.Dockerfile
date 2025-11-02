@@ -6,7 +6,8 @@ FROM node:${NODE_VERSION}-slim AS build
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1
 
-RUN corepack enable
+RUN corepack enable \
+    && corepack prepare pnpm@10.17.1 --activate
 
 WORKDIR /app
 
@@ -45,6 +46,7 @@ ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1
 
 RUN corepack enable \
+    && corepack prepare pnpm@10.17.1 --activate \
     && adduser --disabled-password --gecos "" webuser
 
 WORKDIR /app
