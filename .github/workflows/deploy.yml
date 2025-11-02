@@ -75,19 +75,24 @@ jobs:
           SSH_PORT: ${{ secrets.SSH_PORT }}
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
           GITHUB_ACTOR: ${{ github.actor }}
+          IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
+          TAG: ${{ env.TAG }}
+          API_HEALTH: ${{ steps.health.outputs.api_health }}
+          WEB_HEALTH: ${{ steps.health.outputs.site_url }}
+          SKIP_MIGRATE: ${{ github.event.inputs.skip_migrate }}
         run: |
           set -euo pipefail
           : "${SSH_PORT:=22}"
           : "${GHCR_PAT:?GHCR_PAT secret required for remote GHCR login}"
-          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" << 'EOF'
+          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" bash -s << EOF
           set -euo pipefail
-          export IMAGE_PREFIX="${IMAGE_PREFIX}"
-          export TAG="${TAG}"
-          export GHCR_PAT_INNER="${GHCR_PAT}"
-          export GITHUB_ACTOR_INNER="${GITHUB_ACTOR}"
-          export API_HEALTH="${{ steps.health.outputs.api_health }}"
-          export WEB_HEALTH="${{ steps.health.outputs.site_url }}/"
-          export SKIP_MIGRATE="${{ github.event.inputs.skip_migrate }}"
+          IMAGE_PREFIX="$IMAGE_PREFIX"
+          TAG="$TAG"
+          GHCR_PAT_INNER="$GHCR_PAT"
+          GITHUB_ACTOR_INNER="$GITHUB_ACTOR"
+          API_HEALTH="$API_HEALTH"
+          WEB_HEALTH="${WEB_HEALTH%/}/"
+          SKIP_MIGRATE="$SKIP_MIGRATE"
 
           echo "$GHCR_PAT_INNER" | docker login ghcr.io -u "$GITHUB_ACTOR_INNER" --password-stdin
           cd /srv/segecon
@@ -118,8 +123,10 @@ jobs:
           EOF
 
       - name: Summary
+        env:
+          DEPLOY_ENV: ${{ github.event.inputs.environment }}
         run: |
-          echo "Deployed to ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "Tag: $TAG" >> $GITHUB_STEP_SUMMARY
-          echo "API: $IMAGE_PREFIX/alumni-api:$TAG" >> $GITHUB_STEP_SUMMARY
-          echo "WEB: $IMAGE_PREFIX/alumni-web:$TAG" >> $GITHUB_STEP_SUMMARY
+          echo "Deployed to $DEPLOY_ENV" >> "$GITHUB_STEP_SUMMARY"
+          echo "Tag: $TAG" >> "$GITHUB_STEP_SUMMARY"
+          echo "API: $IMAGE_PREFIX/alumni-api:$TAG" >> "$GITHUB_STEP_SUMMARY"
+          echo "WEB: $IMAGE_PREFIX/alumni-web:$TAG" >> "$GITHUB_STEP_SUMMARY"

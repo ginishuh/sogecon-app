@@ -42,8 +42,10 @@ jobs:
 
       - name: Set IMAGE_TAG (validate input)
         id: tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          TAG="${{ inputs.tag }}"
+          TAG="$INPUT_TAG"
           if [ -n "$TAG" ]; then
             if echo "$TAG" | grep -Eq '^[A-Za-z0-9._-]+$'; then
               echo "IMAGE_TAG=$TAG" >> "$GITHUB_ENV"
