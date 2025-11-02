@@ -6,6 +6,11 @@
 > - 규칙 변경은 반드시 베이스 문서에서 먼저 수행합니다. 본 파일은 보조 미러입니다.
 > - Update note (2025‑10‑08): Plan-only PRs are prohibited. If a PR contains a plan document, that PR must implement the full plan scope before Ready for Review/merge. See `docs/agents_base.md` → “Planning Docs in PRs”.
 
+### Quick Links for Agents
+- SSOT(EN): `docs/agents_base.md`
+- SSOT(KR): `docs/agents_base_kr.md`
+- VPS 배포 런북: `docs/agent_runbook_vps.md`
+
 ## Agents Base (verbatim copy)
 This section mirrors the English base `docs/agents_base.md` verbatim so this file is self‑contained for agents.
 

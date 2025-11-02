@@ -8,6 +8,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. It is governed by the English base `docs/agents_base.md` (Korean mirror: `docs/agents_base_kr.md`). In case of conflict, the base prevails.
 
+Quick links for server rollouts:
+- VPS Agent Runbook: `docs/agent_runbook_vps.md`
+- Deploy docs: `ops/deploy_api.md`, `ops/deploy_web.md`
+
 ## Architecture Overview
 
 This is a monorepo for the 서강대학교 경제대학원 총동문회 (Sogang GS Economics Alumni) web application with the following structure:

@@ -162,3 +162,8 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
   ```
 - 원클릭 스크립트(서버): `scripts/deploy-vps.sh -t <tag> --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
 - 리버스 프록시: Nginx 예시는 `ops/nginx-examples/` 참고(127.0.0.1:3000/3001로 프록시, TLS는 Nginx에서 처리).
+
+### VPS 에이전트를 위한 바로가기
+- VPS 에이전트 런북: `docs/agent_runbook_vps.md`
+- SSOT(품질/운영 규칙): `docs/agents_base.md`, `docs/agents_base_kr.md`
+- 상세 배포 문서: `ops/deploy_api.md`, `ops/deploy_web.md`
