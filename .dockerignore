@@ -1,0 +1,14 @@
+.git
+node_modules
+apps/web/node_modules
+apps/web/.next
+apps/web/out
+.venv
+__pycache__
+*.pyc
+htmlcov
+artifacts
+logs
+uploads
+dist
+*.log

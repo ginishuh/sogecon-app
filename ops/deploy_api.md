@@ -27,11 +27,12 @@
 
 ## 4. 배포 절차 (예시)
 1. `main` 병합 → CI에서 `pytest`, `pyright`, `ruff` 성공 확인
-2. 컨테이너 이미지 빌드 (`docker build -f infra/api.Dockerfile .`) 또는 서버용 패키지 생성
-3. 배포 환경에 `.env` 또는 시크릿 변수 적용
-4. DB 마이그레이션 적용: `alembic -c apps/api/alembic.ini upgrade head`
-5. 애플리케이션 재시작 (예: `systemctl restart alumni-api`)
-6. 프로빙: `curl https://api.alumni.sogang-econ.kr/healthz` 응답 확인, 주요 엔드포인트 스팟 체크
+2. 컨테이너 이미지 빌드: `IMAGE_PREFIX=registry/alumni PUSH_IMAGES=1 ./ops/cloud-build.sh`
+3. DB 마이그레이션 적용: `API_IMAGE=registry/alumni-api:<태그> ENV_FILE=/etc/secrets/api.env ./ops/cloud-migrate.sh`
+4. 서비스 재시작: `API_IMAGE=... WEB_IMAGE=registry/alumni-web:<태그> API_ENV_FILE=/etc/secrets/api.env WEB_ENV_FILE=/etc/secrets/web.env ./ops/cloud-start.sh`
+5. 프로빙: `curl https://api.alumni.sogang-econ.kr/healthz` 응답 확인, 주요 엔드포인트 스팟 체크
+
+> 참고: `API_ENV_FILE`에는 `DATABASE_URL`, `JWT_SECRET`, `PUSH_*`, `SENTRY_*` 등 필수 시크릿을 포함한다. 컨테이너 업로드 볼륨은 `UPLOADS_DIR=/var/lib/segecon/uploads` 로 기본 설정되어 있으며, 필요 시 커스터마이즈한다.
 
 ## 5. 모니터링 & 알림
 - 구조화 로그(JSON Lines) 수집 시스템에 배포 버전 태그

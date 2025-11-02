@@ -489,3 +489,7 @@
 
 ## 2025-10-27 (CI)
 - ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)
+
+## 2025-11-02 (Docker deploy)
+- ops: API·웹 Dockerfile 작성 및 빌드/마이그레이션/재기동 스크립트(`cloud-build.sh`, `cloud-migrate.sh`, `cloud-start.sh`) 구현으로 VPS 배포 파이프라인 정비.
+- docs: API/웹 배포 문서를 Docker 기반 절차로 갱신하고 환경변수/시크릿 주입 가이드 추가.

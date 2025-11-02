@@ -25,10 +25,12 @@
 
 ## 4. 배포 절차 (예시: CI/CD)
 1. `main` 브랜치 병합 → CI `pnpm -C apps/web build` 성공 여부 확인
-2. 아티팩트 업로드 (정적 또는 Docker 이미지)
-3. 배포 대상 환경에 `NEXT_PUBLIC_*` 환경 변수를 적용
-4. 런타임 재시작 후 `/` 또는 주요 페이지에 대한 헬스체크 수행
+2. 이미지 빌드: `IMAGE_PREFIX=registry/alumni NEXT_PUBLIC_WEB_API_BASE=https://api... NEXT_PUBLIC_SITE_URL=https://alumni... PUSH_IMAGES=1 ./ops/cloud-build.sh`
+3. 런타임 재시작: `API_IMAGE=registry/alumni-api:<태그> WEB_IMAGE=registry/alumni-web:<태그> WEB_ENV_FILE=/etc/secrets/web.env ./ops/cloud-start.sh`
+4. `/` 또는 주요 페이지에 대한 헬스체크 수행
 5. CDN/리버스 프록시 캐시 무효화 (필요 시)
+
+> 참고: `WEB_ENV_FILE`에는 런타임에 필요한 `NEXT_PUBLIC_*` 값과 추가 시크릿(예: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`)을 주입한다. Nginx는 127.0.0.1:${WEB_PORT}로 프록시하며, HTTPS/TLS는 기존 서버 설정을 활용한다.
 
 ## 5. 헬스체크
 - 기본 확인 경로: `GET /` (홈) 또는 SSR 페이지 응답 시간 측정
