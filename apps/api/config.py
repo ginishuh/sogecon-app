@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -63,6 +63,46 @@ class Settings(BaseSettings):
     sentry_send_default_pii: bool = Field(
         default=False, alias="SENTRY_SEND_DEFAULT_PII"
     )
+
+    # Session/Cookie 설정 (크로스 도메인 전환 대비)
+    # - COOKIE_SAMESITE: 'lax' | 'strict' | 'none' (기본 'lax')
+    #   별도 도메인 전환 시 교차 사이트 쿠키를 위해 'none' 권장
+    #   (HTTPS 필요)
+    # - COOKIE_SECURE: true/false (기본: APP_ENV == 'prod')
+    # - COOKIE_DOMAIN: 특정 도메인으로 범위를 제한(기본 None=호스트 전용)
+    cookie_same_site: str = Field(default="lax", alias="COOKIE_SAMESITE")
+    cookie_secure: bool | None = Field(default=None, alias="COOKIE_SECURE")
+    cookie_domain: str | None = Field(default=None, alias="COOKIE_DOMAIN")
+
+    # --- Validators ---
+    @field_validator("cookie_same_site")
+    @classmethod
+    def _validate_same_site(cls, v: str) -> str:
+        vv = (v or "").strip().lower() or "lax"
+        if vv not in {"lax", "strict", "none"}:
+            raise ValueError("COOKIE_SAMESITE must be lax, strict, or none")
+        return vv
+
+    @field_validator("jwt_secret")
+    @classmethod
+    def _normalize_jwt_secret(cls, v: str) -> str:
+        return (v or "").strip()
+
+    @model_validator(mode="after")
+    def _validate_prod_only(self) -> "Settings":
+        # Enforce strong JWT secret only in prod deployments.
+        if (self.app_env or "dev").lower().strip() == "prod":
+            MIN_LEN = 32
+            if (
+                self.jwt_secret in {"change-me", "change-me-to-a-strong-secret", ""}
+                or len(self.jwt_secret) < MIN_LEN
+            ):
+                msg = (
+                    "JWT_SECRET must be strong ("
+                    f"{MIN_LEN}+ chars) and not a placeholder"
+                )
+                raise ValueError(msg)
+        return self
 
 
 @lru_cache(maxsize=1)

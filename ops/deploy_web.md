@@ -15,6 +15,10 @@
 - **Node 런타임**: `node 22.17.1`, `pnpm 10.17.1` (CI에서도 동일 버전 고정).
 - **CI 시크릿**: 위 환경 변수는 CI/CD 공급자의 시크릿 저장소에 사전 등록한다.
 
+> 참고 1: `NEXT_PUBLIC_*` 값은 "빌드타임"에 고정됩니다. `WEB_ENV_FILE`로 런타임에 넣어도 값이 바뀌지 않습니다. 도메인을 교체할 때는 반드시 재빌드가 필요합니다.
+> 
+> 참고 2(맥/ARM 환경): 로컬/CI가 ARM이고 서버가 AMD64라면 `PLATFORMS=linux/amd64 USE_BUILDX=1`를 함께 지정해 빌드하세요.
+
 ## 3. 로컬 검증 (필수)
 1. 의존성 설치: `pnpm install`
 2. 빌드 확인: `pnpm -C apps/web build`
@@ -25,10 +29,12 @@
 
 ## 4. 배포 절차 (예시: CI/CD)
 1. `main` 브랜치 병합 → CI `pnpm -C apps/web build` 성공 여부 확인
-2. 아티팩트 업로드 (정적 또는 Docker 이미지)
-3. 배포 대상 환경에 `NEXT_PUBLIC_*` 환경 변수를 적용
-4. 런타임 재시작 후 `/` 또는 주요 페이지에 대한 헬스체크 수행
+2. 이미지 빌드: `IMAGE_PREFIX=registry/alumni NEXT_PUBLIC_WEB_API_BASE=https://api... NEXT_PUBLIC_SITE_URL=https://alumni... PUSH_IMAGES=1 ./ops/cloud-build.sh`
+3. 런타임 재시작: `API_IMAGE=registry/alumni-api:<태그> WEB_IMAGE=registry/alumni-web:<태그> WEB_ENV_FILE=/etc/secrets/web.env ./ops/cloud-start.sh`
+4. `/` 또는 주요 페이지에 대한 헬스체크 수행
 5. CDN/리버스 프록시 캐시 무효화 (필요 시)
+
+> 참고: `WEB_ENV_FILE`에는 런타임에 필요한 `NEXT_PUBLIC_*` 값과 추가 시크릿(예: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`)을 주입한다. Nginx는 127.0.0.1:${WEB_PORT}로 프록시하며, HTTPS/TLS는 기존 서버 설정을 활용한다.
 
 ## 5. 헬스체크
 - 기본 확인 경로: `GET /` (홈) 또는 SSR 페이지 응답 시간 측정
@@ -45,3 +51,16 @@
 ## 7. 추후 보강 항목
 - 배포 대상별 구체 명령 (Vercel CLI, Flyctl 등) 템플릿화
 - Lighthouse 예산 자동 검증 (CI 연동) — `ci/web` 작업과 연계
+
+## 8. 임시 도메인(예: segecon.wastelite.kr) 빌드 예시
+```
+IMAGE_PREFIX=ghcr.io/<owner>/<repo> \
+NEXT_PUBLIC_SITE_URL=https://segecon.wastelite.kr \
+NEXT_PUBLIC_WEB_API_BASE=https://api.segecon.wastelite.kr \
+PLATFORMS=linux/amd64 \# 서버가 x86_64면 권장 (ARM 로컬에서 빌드시)
+USE_BUILDX=1 \        # buildx 사용
+PUSH_IMAGES=1 \
+./ops/cloud-build.sh
+```
+
+> 참고: 레포 루트의 `.env.web.example`을 참고해 필요한 `NEXT_PUBLIC_*` 키를 정리하세요.

@@ -1,0 +1,64 @@
+name: create-waiver-issue
+
+on:
+  workflow_dispatch:
+    inputs:
+      assignee:
+        description: 'Assign to (GitHub username)'
+        required: false
+        default: 'ginishuh'
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  create-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update waiver issue
+        uses: actions/github-script@v7
+        env:
+          TITLE: Temporary pip-audit waiver: Starlette GHSA-7f5h-v6xp-fcq8 (FastAPI pin) — remove by 2025-12-31
+          LABELS: security,ci,tech-debt
+          OWNER: ${{ github.event.inputs.assignee || 'ginishuh' }}
+          DUE: 2025-12-31
+        with:
+          script: |
+            const title = process.env.TITLE;
+            const labels = process.env.LABELS.split(',').map(s => s.trim()).filter(Boolean);
+            const owner = process.env.OWNER;
+            const due = process.env.DUE;
+            const body = `
+            Summary\n\n- pip-audit reports Starlette advisory GHSA-7f5h-v6xp-fcq8, causing CI failure.\n- Current FastAPI pin requires Starlette < 0.49.1, so immediate upgrade is blocked.\n- Add a temporary waiver in CI to unblock, then remove when FastAPI supports Starlette >= 0.49.1.\n\nScope\n\n- CI: .github/workflows/ci.yml — run pip-audit with \`--ignore-vuln GHSA-7f5h-v6xp-fcq8\`.\n- Docs: docs/worklog.md and docs/dev_log_251102.md note the waiver.\n\nRisk\n\n- Framework transitive vulnerability; mitigated by tracking upstream and removing waiver ASAP.\n\nPlan of record\n\n1) Monitor FastAPI for Starlette >= 0.49.1 support.\n2) Once available, bump requirements and remove the pip-audit ignore.\n3) Verify CI passes in strict mode.\n\nOwner / Expiry\n\n- Owner: @${owner}\n- Expiry: ${due} (remove or escalate by this date).\n\nAcceptance Criteria\n\n- Waiver removed from CI.\n- pip-audit strict passes.\n- Worklog updated with removal note.\n            `.trim();
+
+            // Try to find an open issue with the same title
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const existing = issues.find(i => i.title === title);
+            if (existing) {
+              core.info(`Existing issue found: #${existing.number}`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body: `Update: waiver tracked; ensure removal by ${due}. Assignee: @${owner}.`,
+              });
+              return;
+            }
+
+            const created = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels,
+              assignees: owner ? [owner] : undefined,
+            });
+            core.setOutput('issue_number', created.data.number);
+            core.info(`Created issue #${created.data.number}`);

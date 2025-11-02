@@ -23,7 +23,8 @@ Public monorepo for the Sogang GS Economics Alumni web service. Contains a Next.
 - 저장소 구조
 - 사전 요구사항
 - 빠른 시작(로컬 개발)
-- 환경 변수 가이드
+- 환경 변수 가이드(로컬/서버)
+- 배포 가이드(컨테이너/VPS)
 - 테스트 · 품질 · CI
 - 커밋/PR 규칙
 - 보안 · 개인정보
@@ -88,13 +89,21 @@ make schema-gen
 
 > English quickstart: (1) `make db-up` (2) `make venv && make api-install && alembic ... && make api-dev` (3) `corepack enable && pnpm -C apps/web i && make web-dev` (4) `pnpm -C packages/schemas i && make schema-gen`.
 
-## 환경 변수 가이드(발췌)
-- `DATABASE_URL`: 기본은 개발용 Postgres(`postgresql+psycopg://...:5433/...`), SQLite 사용 시 `sqlite:///./dev.sqlite3`.
-- `NEXT_PUBLIC_WEB_API_BASE`: 웹이 호출하는 API 베이스(기본 `http://localhost:3001`).
-- `CORS_ORIGINS`: 개발 기본 `http://localhost:3000`.
-- Web Push: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`.
-- 도커 포트: `DB_DEV_PORT=5433`, `DB_TEST_PORT=5434` (포트 충돌 시 변경).
-- 샘플과 전체 목록은 `.env.example` 참고.
+## 환경 변수 가이드(로컬/서버)
+- 로컬 개발(API)
+  - 루트 `.env`를 자동 로드합니다(`apps/api/config.py`).
+  - `DATABASE_URL` 기본은 개발용 Postgres(`postgresql+psycopg://...:5433/...`), 선택적으로 SQLite(`sqlite:///./dev.sqlite3`).
+  - CORS: `CORS_ORIGINS`는 JSON 배열 문자열(예: `["http://localhost:3000"]`).
+- 웹(Next.js)
+  - `NEXT_PUBLIC_*`는 “빌드타임 고정”입니다. 값 변경 시 반드시 재빌드가 필요합니다.
+  - 대표 키: `NEXT_PUBLIC_WEB_API_BASE`(API 베이스), `NEXT_PUBLIC_SITE_URL`(공개 URL), `NEXT_PUBLIC_VAPID_PUBLIC_KEY`.
+- 서버 배포(API/Web)
+  - API 런타임 env 파일: `.env.api`(루트), 예시는 `.env.api.example` 참고.
+  - Web 런타임 env 파일(선택): `.env.web`(예시는 `.env.web.example`). 단, `NEXT_PUBLIC_*`는 빌드타임 주입이 원칙.
+  - 쿠키 옵션(교차 도메인 대비): `COOKIE_SAMESITE`(`lax|strict|none`), `COOKIE_SECURE`(bool), `COOKIE_DOMAIN`.
+    - 같은 상위도메인의 서브도메인: `lax` + `secure`
+    - 별도 도메인으로 전환: `none` + `secure`(HTTPS 필수)
+  - 샘플/전체 목록: `.env.example`, `.env.api.example`, `.env.web.example` 참고.
 
 ## 테스트 · 품질 · CI
 - 훅 활성화: `git config core.hooksPath .githooks`.
@@ -112,7 +121,7 @@ make schema-gen
 ## 보안 · 개인정보
 - 보안 이슈: `SECURITY.md`를 따르고, `security@trr.co.kr`로 먼저 보고.
 - Web Push 구독 정보는 민감 데이터로 취급하고 로그에 식별정보를 노출하지 않습니다. 상세 운영 가이드는 `docs/pwa_push.md`.
-- 코드 내 시크릿 금지. `.env`만 사용하고 예제는 `.env.example` 갱신 유지.
+- 코드 내 시크릿 금지. 실제 비밀은 `.env*` 파일에 두고 예제는 `.env.example`/`.env.api.example`/`.env.web.example`로 공유.
 
 ## 자주 묻는 질문(트러블슈팅)
 - 포트 충돌(5433/5434): `.env`의 `DB_DEV_PORT/DB_TEST_PORT` 변경 후 `make db-down && make db-up`.
@@ -125,3 +134,37 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
 
 ---
 문서 기본 언어는 한국어입니다. 사용자 노출 텍스트/README 역시 한국어를 우선합니다. 필요한 경우 간단한 영어 요약을 함께 제공합니다.
+## 배포 가이드(컨테이너/VPS)
+- 컨테이너 빌드/푸시(GHCR 권장)
+  - AMD64 빌드: 
+    ```bash
+    IMAGE_PREFIX=ghcr.io/<owner>/<repo> \
+    NEXT_PUBLIC_SITE_URL=https://segecon.wastelite.kr \
+    NEXT_PUBLIC_WEB_API_BASE=https://api.segecon.wastelite.kr \
+    PUSH_IMAGES=1 ./ops/cloud-build.sh
+    ```
+  - ARM 맥에서 AMD64 서버용: `PLATFORMS=linux/amd64 USE_BUILDX=1` 추가
+- 서버 실행(예: `/srv/segecon`에 클론되어 있다고 가정)
+  ```bash
+  # 1) 이미지 풀
+  docker pull ghcr.io/<owner>/<repo>/alumni-api:<tag>
+  docker pull ghcr.io/<owner>/<repo>/alumni-web:<tag>
+
+  # 2) 마이그레이션(최초/스키마 변경 시)
+  API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:<tag> \
+  ENV_FILE=.env.api ./ops/cloud-migrate.sh
+
+  # 3) 재기동
+  API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:<tag> \
+  WEB_IMAGE=ghcr.io/<owner>/<repo>/alumni-web:<tag> \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  ./ops/cloud-start.sh
+  ```
+- 원클릭 스크립트(서버): `scripts/deploy-vps.sh -t <tag> --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
+- 리버스 프록시: Nginx 예시는 `ops/nginx-examples/` 참고(127.0.0.1:3000/3001로 프록시, TLS는 Nginx에서 처리).
+
+### VPS 에이전트를 위한 바로가기
+- VPS Agent Runbook (EN): `docs/agent_runbook_vps_en.md`
+- VPS 에이전트 런북 (KR): `docs/agent_runbook_vps.md`
+- SSOT(품질/운영 규칙): `docs/agents_base.md`, `docs/agents_base_kr.md`
+- 상세 배포 문서: `ops/deploy_api.md`, `ops/deploy_web.md`

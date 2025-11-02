@@ -489,3 +489,26 @@
 
 ## 2025-10-27 (CI)
 - ci(lighthouse): GH Actions를 @v12로 업그레이드하고 코멘트 파서(links/assertionResults) 분리 파싱 적용, 실패해도 항상 코멘트 남김. 게이트(Perf/A11y ≥ 0.90)는 유지. (PR #30)
+
+## 2025-11-02 (Docker deploy)
+- ops: API·웹 Dockerfile 작성 및 빌드/마이그레이션/재기동 스크립트(`cloud-build.sh`, `cloud-migrate.sh`, `cloud-start.sh`) 구현으로 VPS 배포 파이프라인 정비.
+- docs: API/웹 배포 문서를 Docker 기반 절차로 갱신하고 환경변수/시크릿 주입 가이드 추가.
+ - api: 세션 쿠키 플래그(`COOKIE_SAMESITE/SECURE/DOMAIN`) 도입 — 도메인 전환(서브→별도) 시 토글 가능.
+ - ops: buildx/멀티아치 옵션(PLATFORMS, USE_BUILDX) 추가, Nginx 예시 설정 추가(`ops/nginx-examples/`).
+ - scripts: `scripts/deploy-vps.sh` 추가 — 이미지 pull→migrate→재기동→헬스체크 원샷.
+ - env: `.env.api.example`, `.env.web.example` 추가; `.dockerignore`에 `.env*` 차단, `!.env.example` 유지.
+- ssot: `docs/agents_base*.md`에 서버 배포/환경 규칙(빌드타임/런타임 env 분리, GHCR 권장, 쿠키 플래그) 반영. README 배포 가이드 추가.
+ - fix: SessionMiddleware `same_site` 타입 내로잉(pyright) — Literal로 안전히 정제.
+- ci: GitHub Actions 워크플로 추가 — `build-push`(GHCR), `deploy`(workflow_dispatch/SSH, prod 환경 보호)
+- ci: deploy 보안 강화 — known_hosts 설정 + 키 파일(0600), build-push 입력(tag) 검증 추가
+ - ci: pip-audit 임시 예외 추가(GHSA-7f5h-v6xp-fcq8 / Starlette<0.49.1). FastAPI 상향 대기, 2025-12-31 만료
+- ci: deploy 원격 `docker login`을 `--password-stdin`으로 전환(process list 노출 방지)
+- ci: semgrep 경고 해결 — run 블록에서 `${{ }}` 사용 제거, step-level env로 전달
+- ci: create-waiver-issue(workflow_dispatch) 추가 — Starlette GHSA-7f5h-v6xp-fcq8 트래킹 자동화
+ - ops: cloud-build 멀티아치 로직 보강(복수 플랫폼은 --push 강제), buildx 사용 시 중복 push 방지
+- ops: cloud-start 업로드 디렉터리 소유권 시도(1000:1000), deploy-vps 헬스타임아웃(HEALTH_TIMEOUT)
+ - ops: deploy-vps HEALTH_TIMEOUT 기본값을 함수 외부로 이동
+ - infra: web.Dockerfile에 ARG NODE_VERSION 도입(versions.md 연동 용이)
+- api: COOKIE_SAMESITE/JWT_SECRET 검증 추가; main SameSite 사용 단순화
+ - api: JWT_SECRET 강제 검증을 prod 환경에서만 수행하도록 조정(CI/OpenAPI 스크립트 호환)
+ - docs: `docs/agent_runbook_vps.md`(KR), `docs/agent_runbook_vps_en.md`(EN) 추가. AGENTS.md/CLAUDE.md/README에 링크 연결.

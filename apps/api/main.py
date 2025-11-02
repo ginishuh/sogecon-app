@@ -3,6 +3,7 @@ import time
 import uuid
 from collections.abc import Awaitable, Callable
 from pathlib import Path
+from typing import Literal, cast
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -51,13 +52,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Session cookies (for admin auth). Dev uses HTTP; prod should set https-only.
-cookie_secure = settings.app_env == "prod"
+# Session cookies (for admin auth)
+# - 기본: APP_ENV == 'prod'일 때 Secure 적용
+# - 별도 도메인(크로스 사이트) 전환 시에는
+#   COOKIE_SAMESITE=none, COOKIE_SECURE=true 권장
+SameSite = Literal["lax", "strict", "none"]
+_same_site: SameSite = cast(SameSite, settings.cookie_same_site)
+
+_secure_default = settings.app_env == "prod"
+_https_only = (
+    settings.cookie_secure if settings.cookie_secure is not None else _secure_default
+)
+
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.jwt_secret,
-    same_site="lax",
-    https_only=cookie_secure,
+    same_site=_same_site,
+    https_only=_https_only,
+    domain=settings.cookie_domain or None,
 )
 
 media_root = Path(settings.media_root)

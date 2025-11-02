@@ -1,0 +1,21 @@
+.git
+node_modules
+apps/web/node_modules
+apps/web/.next
+apps/web/out
+.venv
+__pycache__
+*.pyc
+htmlcov
+artifacts
+logs
+uploads
+dist
+*.log
+
+# Secrets — do not send to Docker build context
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
