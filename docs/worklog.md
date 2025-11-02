@@ -497,4 +497,5 @@
  - ops: buildx/멀티아치 옵션(PLATFORMS, USE_BUILDX) 추가, Nginx 예시 설정 추가(`ops/nginx-examples/`).
  - scripts: `scripts/deploy-vps.sh` 추가 — 이미지 pull→migrate→재기동→헬스체크 원샷.
  - env: `.env.api.example`, `.env.web.example` 추가; `.dockerignore`에 `.env*` 차단, `!.env.example` 유지.
- - ssot: `docs/agents_base*.md`에 서버 배포/환경 규칙(빌드타임/런타임 env 분리, GHCR 권장, 쿠키 플래그) 반영. README 배포 가이드 추가.
+- ssot: `docs/agents_base*.md`에 서버 배포/환경 규칙(빌드타임/런타임 env 분리, GHCR 권장, 쿠키 플래그) 반영. README 배포 가이드 추가.
+ - fix: SessionMiddleware `same_site` 타입 내로잉(pyright) — Literal로 안전히 정제.
