@@ -64,6 +64,8 @@ Do NOT disable linters or type checkers globally or per file.
 - Use imperative, present-tense subjects; Korean is fine. Details: `docs/commit_message_convention.md`.
 - The `commit-msg` hook runs `@commitlint/cli` (pinned) via pnpm dlx and must pass locally; CI re-validates recent commits.
 - Non-doc changes must update `docs/worklog.md`; pushes must include the current `docs/dev_log_YYMMDD.md` entry.
+  - Worklog format: one line per commit/merge — `YYYY-MM-DD type(scope): subject — PR #NN[, refs #issue]` (80–120 chars). Details go to PRs/issues.
+  - Dev log format: short daily bullets (3–7 lines). Use the template `docs/dev_log_TEMPLATE.md`.
  - PRs must use the repository PR template `.github/pull_request_template.md`. In Draft, fill only the top sections; before marking Ready for Review, complete all checklists in the template.
 
 ### Planning Docs in PRs
@@ -111,6 +113,10 @@ Do NOT disable linters or type checkers globally or per file.
 - Container-first: Build two images (`infra/api.Dockerfile`, `infra/web.Dockerfile`).
   - Build helper: `ops/cloud-build.sh`. Pass Next.js public envs via build args (`NEXT_PUBLIC_*`).
   - Next.js public envs are build-time only. Changing them requires a rebuild.
+- Next.js image hardening
+  - Pin pnpm via corepack in Dockerfile: `corepack prepare pnpm@10.17.1 --activate`.
+  - Package the runtime so that `pnpm` is not required at runtime. Prefer `node node_modules/next/dist/bin/next start -p 3000` as CMD.
+  - Avoid global stores/symlinks leaking across layers; use workspace‑scoped install in build stage.
 - Runtime start: `ops/cloud-start.sh` (127.0.0.1:3001 API, 3000 Web; Nginx/Caddy reverse-proxy terminates TLS).
 - DB migrations: `ops/cloud-migrate.sh` (Alembic).
 - Image registry: GHCR (`ghcr.io/<owner>/<repo>/alumni-{api,web}:<tag>`) is recommended; alternatives OK.
@@ -122,3 +128,12 @@ Do NOT disable linters or type checkers globally or per file.
 - Cookie flags (API): `COOKIE_SAMESITE` (`lax|strict|none`), `COOKIE_SECURE` (bool), `COOKIE_DOMAIN`.
   - Subdomain setup: use `lax` + `secure`.
   - Cross-site (separate domains): use `none` + `secure` (HTTPS required).
+
+### CSP policy
+- Default: deny inline scripts (`script-src 'self'`). Next.js may emit minimal inline boot scripts.
+- Production: DO NOT add `'unsafe-inline'` globally. Use nonce or hash for required snippets; document the source.
+- Temporary test: If external test requires it, an Nginx override may relax CSP. This MUST be removed before production rollout and tracked by an issue.
+
+### DB isolation (optional)
+- When sharing a VPS with other stacks, create a dedicated Docker network and Postgres container for this app (e.g., `segecon_net`, `sogecon-db`).
+- Run Alembic migrations from the same network as the DB to avoid host/port coupling.
