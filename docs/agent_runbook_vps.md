@@ -1,5 +1,7 @@
 # VPS Agent Runbook (서버 운영자/에이전트용)
 
+> English version: `docs/agent_runbook_vps_en.md`
+
 본 문서는 VPS에 레포를 클론한 뒤 에이전트(Codex CLI/Claude)가 안전하게 배포/재배포 작업을 수행할 수 있도록 표준 절차를 제공합니다. 컨테이너 이미지는 GHCR 기준입니다.
 
 ## 요구 사항
@@ -72,4 +74,3 @@ curl -fsS https://<도메인>/ -o /dev/null
 - Nginx 예시: `ops/nginx-examples/`
 - CI 워크플로: `.github/workflows/build-push.yml`, `.github/workflows/deploy.yml`
 - SSOT(운영/품질 규칙): `docs/agents_base.md`, `docs/agents_base_kr.md`
-

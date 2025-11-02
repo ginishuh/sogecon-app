@@ -500,4 +500,4 @@
 - ssot: `docs/agents_base*.md`에 서버 배포/환경 규칙(빌드타임/런타임 env 분리, GHCR 권장, 쿠키 플래그) 반영. README 배포 가이드 추가.
  - fix: SessionMiddleware `same_site` 타입 내로잉(pyright) — Literal로 안전히 정제.
 - ci: GitHub Actions 워크플로 추가 — `build-push`(GHCR), `deploy`(workflow_dispatch/SSH, prod 환경 보호)
- - docs: `docs/agent_runbook_vps.md` 추가. AGENTS.md/CLAUDE.md/README에 바로가기 링크 연결.
+ - docs: `docs/agent_runbook_vps.md`(KR), `docs/agent_runbook_vps_en.md`(EN) 추가. AGENTS.md/CLAUDE.md/README에 링크 연결.

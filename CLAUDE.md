@@ -9,7 +9,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. It is governed by the English base `docs/agents_base.md` (Korean mirror: `docs/agents_base_kr.md`). In case of conflict, the base prevails.
 
 Quick links for server rollouts:
-- VPS Agent Runbook: `docs/agent_runbook_vps.md`
+- VPS Agent Runbook: `docs/agent_runbook_vps_en.md` (EN), `docs/agent_runbook_vps.md` (KR)
 - Deploy docs: `ops/deploy_api.md`, `ops/deploy_web.md`
 
 ## Architecture Overview

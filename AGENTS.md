@@ -9,7 +9,7 @@
 ### Quick Links for Agents
 - SSOT(EN): `docs/agents_base.md`
 - SSOT(KR): `docs/agents_base_kr.md`
-- VPS 배포 런북: `docs/agent_runbook_vps.md`
+- VPS Runbook: `docs/agent_runbook_vps_en.md` (EN), `docs/agent_runbook_vps.md` (KR)
 
 ## Agents Base (verbatim copy)
 This section mirrors the English base `docs/agents_base.md` verbatim so this file is self‑contained for agents.
