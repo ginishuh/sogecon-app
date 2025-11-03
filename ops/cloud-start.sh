@@ -29,7 +29,7 @@ API_CONTAINER=${API_CONTAINER:-alumni-api}
 WEB_CONTAINER=${WEB_CONTAINER:-alumni-web}
 API_PORT=${API_PORT:-3001}
 WEB_PORT=${WEB_PORT:-3000}
-UPLOADS_DIR=${UPLOADS_DIR:-/var/lib/segecon/uploads}
+UPLOADS_DIR=${UPLOADS_DIR:-/var/lib/sogecon/uploads}
 DOCKER_NETWORK=${DOCKER_NETWORK:-bridge}
 RELEASE=${RELEASE:-$(date +%Y%m%d%H%M%S)}
 

@@ -576,3 +576,4 @@
 2025-11-03 infra/docs: segecon→sogecon 표기 통일(네트워크/도메인 예시)
 - compose: 프로젝트명 `sogecon-local-dev`
 - docs/env: `segecon_net`→`sogecon_net`, 예시 도메인 `sogecon.wastelite.kr`로 정정
+ - ops: 기본 업로드 경로 `/var/lib/sogecon/uploads`로 통일
