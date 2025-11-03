@@ -554,3 +554,4 @@
   - SQLite 분기/의존 제거(`apps/api/db.py`, 테스트 픽스처 PG 전용화)
   - 배포 스크립트에 `DOCKER_NETWORK` 지원 추가 및 CI deploy 워크플로 연동
   - README/.env 예시/런북/가이드에서 “PostgreSQL만 지원”으로 문구 통일
+- chore(make): 탭 인덴트 수정(info-venv, seed-data, ghcr-login, dev-containers) — 로컬 make 타깃 실행 오류 해결
