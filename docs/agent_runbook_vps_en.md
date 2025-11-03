@@ -5,13 +5,13 @@ This runbook helps an on‑box agent (Codex CLI/Claude) deploy and redeploy the 
 ## Requirements
 - Docker installed; ability to `docker login ghcr.io` (via PAT or injected token)
 - Reverse proxy (Nginx/Caddy) forwarding 443 → 127.0.0.1:3000 (Web) and 127.0.0.1:3001 (API)
-- Repo path on server: `/srv/segecon` (recommended)
+- Repo path on server: `/srv/sogecon-app` (recommended)
 
 ## 1) One‑time setup
 ```bash
-sudo mkdir -p /srv/segecon && sudo chown $USER /srv/segecon
-git clone https://github.com/ginishuh/sogecon-app.git /srv/segecon
-cd /srv/segecon
+sudo mkdir -p /srv/sogecon-app && sudo chown $USER /srv/sogecon-app
+git clone https://github.com/ginishuh/sogecon-app.git /srv/sogecon-app
+cd /srv/sogecon-app
 
 # Secrets (repo root; do NOT commit)
 cp .env.api.example .env.api   # fill JWT_SECRET, DATABASE_URL, CORS_ORIGINS, etc.
@@ -39,7 +39,7 @@ Checklist (quick)
 - [ ] Pull images → migrate → restart order
 - [ ] Health 200 (allow warm‑up ≤90s)
 ```bash
-cd /srv/segecon
+cd /srv/sogecon-app
 PREFIX=ghcr.io/<owner>/<repo>
 TAG=<commit-sha-or-release>
 

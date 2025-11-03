@@ -209,6 +209,11 @@
 - ci(lighthouse): 공개 레포 정책에 맞춰 강한 품질 게이트로 전환 — lighthouserc.mobile/desktop.json 도입, 각 3-run, Perf/A11y ≥ 0.90 어서션, 모바일/데스크톱 이중 측정. 워크플로는 configPath 기반으로 단순화.
  - ci(lighthouse): NO_FCP 대응 — 레이아웃에 `viewport` 메타 추가, 수집/서버 기동 단계 모두 `NEXT_PUBLIC_RELAX_CSP=1`·`NEXT_PUBLIC_ENABLE_SW=0` 적용, 대기시간 `MAX_WAIT_FOR_FCP/LOAD=90000`으로 상향. lighthouserc.*.json에 `disableStorageReset: true` 추가.
 
+## 2025-11-03 (ops/ci)
+- ci(workflow): main 자동 빌드 path 필터 추가(`apps/**`, `infra/**`, `ops/**`); 태그/수동 트리거 유지.
+- docs(runbook): VPS 런북(한/영) 서버 경로를 `/srv/sogecon-app`으로 통일.
+- chore(ops): `scripts/deploy-vps.sh` 안내 주석의 서버 경로 최신화.
+
 ## 2025-10-27 (repo 위생)
 - chore(repo): 로컬 빌드용 Node 바이너리가 담긴 `.tooling/` 폴더를 `.gitignore`에 추가하여 실수로 추적되지 않도록 함.
 - CI: gitleaks 액션 입력 경고 제거(args 제거) 및 shallow fetch 문제 해결(fetch-depth: 0)

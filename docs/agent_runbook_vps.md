@@ -7,13 +7,13 @@
 ## 요구 사항
 - Docker 설치 및 `docker login ghcr.io` 권한(PAT 또는 GitHub Actions에서 전달)
 - Nginx/Caddy 등 리버스 프록시(127.0.0.1:3000/3001 프록시)
-- 레포 위치: `/srv/segecon` (권장)
+- 레포 위치: `/srv/sogecon-app` (권장)
 
 ## 1) 최초 준비(1회)
 ```bash
-sudo mkdir -p /srv/segecon && sudo chown $USER /srv/segecon
-git clone https://github.com/ginishuh/sogecon-app.git /srv/segecon
-cd /srv/segecon
+sudo mkdir -p /srv/sogecon-app && sudo chown $USER /srv/sogecon-app
+git clone https://github.com/ginishuh/sogecon-app.git /srv/sogecon-app
+cd /srv/sogecon-app
 
 # 시크릿 파일 준비(레포 루트)
 cp .env.api.example .env.api   # JWT_SECRET/DATABASE_URL/CORS_ORIGINS 등 값 채우기
@@ -41,7 +41,7 @@ sudo chown 1000:1000 /var/lib/segecon/uploads
 - [ ] 이미지 pull → 마이그레이션 → 재기동 순서
 - [ ] 헬스체크 200(워밍업 ≤90s 허용)
 ```bash
-cd /srv/segecon
+cd /srv/sogecon-app
 export PREFIX=ghcr.io/<owner>/<repo>
 export TAG=<커밋SHA7 또는 릴리스 태그>
 

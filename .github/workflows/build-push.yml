@@ -3,6 +3,11 @@ name: build-push
 on:
   push:
     branches: [ main ]
+    # Auto-build only when these paths change on main
+    paths:
+      - 'apps/**'
+      - 'infra/**'
+      - 'ops/**'
     tags: [ 'v*', 'release-*' ]
   workflow_dispatch:
     inputs:

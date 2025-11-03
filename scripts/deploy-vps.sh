@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Deploy alumni api/web containers on a VPS.
 # - Prereqs: docker, images in a registry (e.g., GHCR), valid docker login
-# - Defaults assume repo cloned under /srv/segecon and images under ghcr.io/ginishuh/sogecon-app
+# - Defaults assume repo cloned under /srv/sogecon-app and images under ghcr.io/ginishuh/sogecon-app
 #
 # Usage:
 #   bash scripts/deploy-vps.sh -t <tag> [--prefix ghcr.io/org/repo] [--env .env.api] [--web-env .env.web] \
