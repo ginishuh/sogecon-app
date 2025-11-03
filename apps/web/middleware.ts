@@ -2,20 +2,12 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { buildCspDirective } from './lib/csp';
+import { generateNonce } from './lib/nonce';
 
 const isProd = process.env.NODE_ENV === 'production';
 const relaxCsp = !isProd || process.env.NEXT_PUBLIC_RELAX_CSP === '1';
 const analyticsId = process.env.NEXT_PUBLIC_ANALYTICS_ID;
 const apiBase = process.env.NEXT_PUBLIC_WEB_API_BASE;
-
-function generateNonce(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(16));
-  let binary = '';
-  bytes.forEach((value) => {
-    binary += String.fromCharCode(value);
-  });
-  return btoa(binary);
-}
 
 // 개발 시 RSC Flight 요청을 로그에서 구분하기 위한 헤더를 유지한다.
 export function middleware(req: NextRequest) {

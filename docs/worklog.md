@@ -451,6 +451,7 @@
   - GA 스크립트/전송 도메인을 자동 허용, Script 컴포넌트에 nonce 전달
 - test(web): 홈 페이지 스위트가 QueryClient/`matchMedia` 스텁을 사용하도록 정비, `pnpm -C apps/web test` 전부 통과 (#40)
 - chore(web): vitest 이미지 모킹에서 DOM 미지원 속성을 안전하게 제거 (#40)
+- refactor(web): nonce 생성 유틸 분리, 레이아웃 nonce 주입 보강 및 CSP 테스트/문서 업데이트 (#40)
 - docs: README, `docs/security_hardening.md`에 운영 CSP 가이드를 nonce 기반으로 갱신
 
 ## 2025-10-27 (CI-hotfix)

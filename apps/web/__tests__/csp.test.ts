@@ -27,4 +27,9 @@ describe('buildCspDirective', () => {
     expect(csp).toContain('https://www.google-analytics.com');
     expect(csp).toContain('https://api.example.com');
   });
+
+  it('잘못된 API Origin은 무시한다', () => {
+    const csp = buildCspDirective({ nonce: 'n', relaxCsp: false, apiBase: 'not-a-url' });
+    expect(csp).not.toContain('not-a-url');
+  });
 });

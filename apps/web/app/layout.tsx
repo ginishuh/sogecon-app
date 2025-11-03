@@ -72,15 +72,13 @@ export const viewport: Viewport = {
   viewportFit: 'cover'
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: {
   children: ReactNode;
 }) {
-  const getRequestHeaders: () => Headers = nextHeaders;
-  const requestHeaders = getRequestHeaders();
-  const nonceValue = requestHeaders.get('x-nonce');
-  const nonce = nonceValue ?? undefined;
+  const headersList = await nextHeaders();
+  const nonce = headersList.get('x-nonce') ?? undefined;
 
   return (
     <html lang="ko" className={`${fontSans.variable} ${fontMenu.variable} ${fontKoPubDotum.variable} antialiased`}>
