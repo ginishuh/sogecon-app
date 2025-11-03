@@ -33,6 +33,11 @@ GitHub Environment `prod` (suggested)
 - Secrets: `SSH_HOST`, `SSH_USER`, `SSH_KEY`, optional `SSH_PORT`, `GHCR_PAT` (read:packages)
 
 ## 3) Deploy path B — manual on the server
+Checklist (quick)
+- [ ] Dedicated network exists (`segecon_net`)
+- [ ] `.env.api` uses container DNS in `DATABASE_URL` (e.g., `sogecon-db`)
+- [ ] Pull images → migrate → restart order
+- [ ] Health 200 (allow warm‑up ≤90s)
 ```bash
 cd /srv/segecon
 PREFIX=ghcr.io/<owner>/<repo>
@@ -54,9 +59,19 @@ API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
 DOCKER_NETWORK=segecon_net \
   bash ./ops/cloud-start.sh
 
-# 4) Health checks
-curl -fsS https://api.<domain>/healthz -o /dev/null
-curl -fsS https://<domain>/ -o /dev/null
+# 4) Health checks (retry up to 90s)
+for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://api.<domain>/healthz || true); [ "$code" = 200 ] && break; sleep 1; done
+for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://<domain>/ || true); [ "$code" = 200 ] && break; sleep 1; done
+
+## Emergency rollback
+```bash
+PREV=<stable-tag>
+docker pull $PREFIX/alumni-api:$PREV
+docker pull $PREFIX/alumni-web:$PREV
+API_IMAGE=$PREFIX/alumni-api:$PREV WEB_IMAGE=$PREFIX/alumni-web:$PREV \
+  DOCKER_NETWORK=segecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  bash ./ops/cloud-start.sh
+```
 ```
 
 ## 4) Cookie/domain switches

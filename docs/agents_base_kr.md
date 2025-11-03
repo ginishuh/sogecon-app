@@ -58,6 +58,12 @@
 - Pyright strict, Ruff 복잡도 검사, ESLint로 TS 규칙 강제.
 - Python 도구(ruff/pyright/pytest)는 반드시 레포의 `.venv`에서 실행합니다. `make venv`, `make api-install`, `make test-api` 타겟을 사용하세요.
 
+### 배포·운영(정책)
+- 배포 모델: 불변(immutable) 컨테이너 이미지. 서버에서 `git pull`만으로 앱이 갱신되지 않습니다. 이미지를 pull하고(필요 시) Alembic 적용 후 컨테이너 재기동으로 배포합니다.
+- 데이터베이스: PostgreSQL 전용(`postgresql+psycopg://` 강제). 전용 Docker 네트워크에서 컨테이너 DNS(예: `sogecon-db`)를 사용하고, `DATABASE_URL`에 고정 IP/localhost는 지양합니다.
+- 마이그레이션: DB와 동일 네트워크에서 Alembic 실행. 파괴적 변경은 PR에 다운타임/락 리스크 라벨·메모를 포함합니다.
+- 헬스/준비 상태: `/healthz` 200을 기준으로 하며, 재기동 직후 짧은 워밍업 구간(≤90초)은 허용합니다. CI/CD는 이 구간에 재시도를 수행해야 합니다.
+
 ## 커밋/PR 규칙
 - 모든 커밋은 Conventional Commits 형식을 따릅니다: `type(scope): subject`(헤더 72자 제한).
 - type: `feat|fix|refactor|perf|test|chore|build|ci|docs`, scope: `api|web|schemas|infra|docs|ops|ci|build`.
@@ -140,5 +146,5 @@
 - 테스트 임시: 외부 테스트를 위해 Nginx에서 CSP를 임시 완화할 수 있으나, 운영 전 반드시 제거하고 이슈로 추적.
 
 ### DB 분리(선택)
-- 다른 스택과 공존하는 VPS에서는 전용 Docker 네트워크/DB 컨테이너(예: `segecon_net`, `sogecon-db`)로 충돌을 회피.
-- Alembic 마이그레이션은 DB와 같은 네트워크에서 실행.
+- 다른 스택과 공존하는 VPS에서는 전용 Docker 네트워크/DB 컨테이너(예: `segecon_net`, `sogecon-db`)로 충돌을 회피합니다.
+- Alembic 마이그레이션은 DB와 같은 네트워크에서 실행해야 합니다.

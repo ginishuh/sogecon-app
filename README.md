@@ -136,6 +136,23 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
 ---
 문서 기본 언어는 한국어입니다. 사용자 노출 텍스트/README 역시 한국어를 우선합니다. 필요한 경우 간단한 영어 요약을 함께 제공합니다.
 ## 배포 가이드(컨테이너/VPS)
+- TL;DR(운영)
+  - 순서: 태그 선택 → 이미지 pull → Alembic → 재기동 → 헬스체크(최대 90초 재시도).
+  - 수동 예시(서버):
+    ```bash
+    TAG=<sha>
+    docker pull ghcr.io/<owner>/<repo>/alumni-api:$TAG
+    docker pull ghcr.io/<owner>/<repo>/alumni-web:$TAG
+    docker network inspect segecon_net >/dev/null 2>&1 || docker network create segecon_net
+    API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:$TAG ENV_FILE=.env.api DOCKER_NETWORK=segecon_net ./ops/cloud-migrate.sh
+    API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:$TAG WEB_IMAGE=ghcr.io/<owner>/<repo>/alumni-web:$TAG \
+      DOCKER_NETWORK=segecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web ./ops/cloud-start.sh
+    # 헬스(2xx 기대, 재기동 직후 5xx 허용 구간: ≤90s)
+    for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://api.<도메인>/healthz || true); [ "$code" = 200 ] && break; sleep 1; done
+    for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://<도메인>/ || true); [ "$code" = 200 ] && break; sleep 1; done
+    ```
+  - 원클릭: `scripts/deploy-vps.sh -t <tag> --network segecon_net --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
+
 - 컨테이너 빌드/푸시(GHCR 권장)
   - AMD64 빌드: 
     ```bash
@@ -185,10 +202,26 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
   - DB 컨테이너: `sogecon-db` (Postgres 16, 내부 네트워크 전용)
   - 예시 연결: `postgresql+psycopg://<user>:<pass>@sogecon-db:5432/<db>?sslmode=disable`
   - Alembic는 `ops/cloud-migrate.sh`를 DB 컨테이너와 동일 네트워크에서 실행하세요.
-    예시:
     ```bash
     DOCKER_NETWORK=segecon_net ./ops/cloud-migrate.sh
     ```
+
+### 롤백(요약)
+- 직전 안정 태그로 이미지 pull → 재기동으로 복구합니다(대부분의 변경에서 DB downgrade 불필요).
+  ```bash
+  PREV=<stable-tag>
+  docker pull ghcr.io/<owner>/<repo>/alumni-api:$PREV
+  docker pull ghcr.io/<owner>/<repo>/alumni-web:$PREV
+  API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:$PREV WEB_IMAGE=ghcr.io/<owner>/<repo>/alumni-web:$PREV \
+    DOCKER_NETWORK=segecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web ./ops/cloud-start.sh
+  ```
+
+### Nginx 502 완화 팁
+- 재기동 직후 잠깐의 502는 정상일 수 있습니다. 필요 시 업스트림 타임아웃을 보수적으로 조정합니다.
+  ```nginx
+  proxy_connect_timeout 10s;
+  proxy_read_timeout 30s;
+  ```
 
 ### VPS 에이전트를 위한 바로가기
 - VPS Agent Runbook (EN): `docs/agent_runbook_vps_en.md`

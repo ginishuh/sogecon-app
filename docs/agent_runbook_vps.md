@@ -35,6 +35,11 @@ sudo chown 1000:1000 /var/lib/segecon/uploads
 - Secrets: `SSH_HOST`, `SSH_USER`, `SSH_KEY`, (옵션) `SSH_PORT`, `GHCR_PAT`(read:packages)
 
 ## 3) 배포 경로 B — 서버에서 직접 배포(수동)
+체크리스트(요약)
+- [ ] 전용 네트워크 존재(`segecon_net`)
+- [ ] `.env.api`에 `DATABASE_URL=postgresql+psycopg://…@sogecon-db:5432/…`
+- [ ] 이미지 pull → 마이그레이션 → 재기동 순서
+- [ ] 헬스체크 200(워밍업 ≤90s 허용)
 ```bash
 cd /srv/segecon
 export PREFIX=ghcr.io/<owner>/<repo>
@@ -57,8 +62,18 @@ DOCKER_NETWORK=segecon_net \
   bash ./ops/cloud-start.sh
 
 # 4) 헬스체크
-curl -fsS https://api.<도메인>/healthz -o /dev/null
-curl -fsS https://<도메인>/ -o /dev/null
+for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://api.<도메인>/healthz || true); [ "$code" = 200 ] && break; sleep 1; done
+for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://<도메인>/ || true); [ "$code" = 200 ] && break; sleep 1; done
+
+## 비상 절차(롤백)
+```bash
+PREV=<stable-tag>
+docker pull $PREFIX/alumni-api:$PREV
+docker pull $PREFIX/alumni-web:$PREV
+API_IMAGE=$PREFIX/alumni-api:$PREV WEB_IMAGE=$PREFIX/alumni-web:$PREV \
+  DOCKER_NETWORK=segecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  bash ./ops/cloud-start.sh
+```
 ```
 
 ## 4) 쿠키/도메인 전환 스위치
