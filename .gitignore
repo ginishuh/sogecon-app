@@ -6,9 +6,11 @@ node_modules/
 dist/
 coverage/
 .pytest_cache/
+.pnpm-store/
 .tsbuildinfo
 apps/web/tsconfig.tsbuildinfo
 apps/web/tsconfig.eslint.tsbuildinfo
+apps/web/out/
 .env
 .env.*
 !.env.example
@@ -25,6 +27,11 @@ apps/api/migrations/__pycache__/
 .api-dev.pid
 .web-dev.pid
 logs/
+*.log
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 cookies.txt
 cookies-*.txt
 # Local tooling (e.g., pinned Node for builds)
