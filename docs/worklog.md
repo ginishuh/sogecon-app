@@ -570,3 +570,4 @@
 
 2025-11-03 ci: deploy 워크플로 원격 클린업 env 전달 수정
 - `.github/workflows/deploy.yml`: SSH cleanup 단계에서 `IMAGE_PREFIX`/`KEEP_IMAGES`를 원격 환경에 전달하고 `set -u` 가드를 추가
+  - 후속 수정: ssh 인자 앞에 env를 두지 않고 `env VAR=... bash -s` 형태로 원격에 전달하도록 변경
