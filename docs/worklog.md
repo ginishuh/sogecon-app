@@ -453,6 +453,7 @@
 - chore(web): vitest 이미지 모킹에서 DOM 미지원 속성을 안전하게 제거 (#40)
 - refactor(web): nonce 생성 유틸 분리, 레이아웃 nonce 주입 보강 및 CSP 테스트/문서 업데이트 (#40)
 - fix(ci): create-waiver-issue 워크플로우에 push(main) 트리거 + noop job 추가 (#40)
+- fix(ci): deploy 워크플로우에서 GHCR_PAT 미설정 시 GITHUB_TOKEN으로 폴백, packages:read 권한 부여 (#40)
 - docs: README, `docs/security_hardening.md`에 운영 CSP 가이드를 nonce 기반으로 갱신
 
 ## 2025-10-27 (CI-hotfix)

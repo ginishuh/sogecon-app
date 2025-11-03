@@ -21,6 +21,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: deploy-${{ github.event.inputs.environment }}
@@ -83,7 +84,12 @@ jobs:
         run: |
           set -euo pipefail
           : "${SSH_PORT:=22}"
-          : "${GHCR_PAT:?GHCR_PAT secret required for remote GHCR login}"
+          GHCR_PAT=${GHCR_PAT:-}
+          if [ -z "$GHCR_PAT" ]; then
+            GHCR_PAT="$GITHUB_TOKEN"
+            echo "[deploy] GHCR_PAT not provided; falling back to GITHUB_TOKEN"
+          fi
+          : "${GHCR_PAT:?GHCR credential is required for remote GHCR login}"
           ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" bash -s << EOF
           set -euo pipefail
           IMAGE_PREFIX="$IMAGE_PREFIX"
