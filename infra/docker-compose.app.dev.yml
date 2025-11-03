@@ -1,5 +1,6 @@
 services:
   api_dev:
+    profiles: ["dev"]
     build:
       context: .
       dockerfile: infra/api.Dockerfile
@@ -13,12 +14,13 @@ services:
       - ./apps/api:/app/apps/api:cached
       - ./uploads:/app/uploads
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     depends_on:
       - postgres
     command: ["uvicorn","apps.api.main:app","--host","0.0.0.0","--port","3001","--reload"]
 
   web_dev:
+    profiles: ["dev"]
     image: node:22.17.1-slim
     working_dir: /app
     environment:
@@ -30,7 +32,7 @@ services:
     volumes:
       - .:/app:cached
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     # Next dev(HMR); corepack로 pnpm 준비 후 워크스페이스 설치
     command: >-
       bash -lc "corepack enable && corepack prepare pnpm@10.17.1 --activate \
@@ -38,4 +40,3 @@ services:
       && pnpm -C apps/web dev --host"
     depends_on:
       - api_dev
-

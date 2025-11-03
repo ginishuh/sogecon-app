@@ -1,3 +1,5 @@
+name: segecon-local-dev
+
 services:
   postgres:
     image: postgres:16
@@ -6,7 +8,7 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: devpass
     ports:
-      - "${DB_DEV_PORT:-5433}:5432"
+      - "127.0.0.1:${DB_DEV_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -16,6 +18,7 @@ services:
       retries: 5
       start_period: 15s
     restart: unless-stopped
+    profiles: ["dev"]
 
   api_dev:
     build:
@@ -31,12 +34,13 @@ services:
       - ./apps/api:/app/apps/api:cached
       - ./uploads:/app/uploads
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     depends_on:
       postgres:
         condition: service_healthy
     command: ["uvicorn","apps.api.main:app","--host","0.0.0.0","--port","3001","--reload"]
     restart: unless-stopped
+    profiles: ["dev"]
 
   web_dev:
     image: node:22.17.1-slim
@@ -51,7 +55,7 @@ services:
     volumes:
       - .:/app:cached
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       api_dev:
         condition: service_started
@@ -60,6 +64,7 @@ services:
       && pnpm -C apps/web install \
       && pnpm -C apps/web dev -H 0.0.0.0"
     restart: unless-stopped
+    profiles: ["dev"]
 
   postgres_test:
     image: postgres:16
@@ -69,7 +74,7 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: devpass
     ports:
-      - "${DB_TEST_PORT:-5434}:5432"
+      - "127.0.0.1:${DB_TEST_PORT:-5434}:5432"
     volumes:
       - pgdata_test:/var/lib/postgresql/data
     healthcheck:
@@ -79,6 +84,7 @@ services:
       retries: 5
       start_period: 15s
     restart: unless-stopped
+    profiles: ["dev"]
 
 volumes:
   pgdata:

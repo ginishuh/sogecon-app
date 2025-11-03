@@ -94,10 +94,11 @@ make schema-gen
 아무것도 설치하지 않고 컨테이너만으로 로컬 개발을 올리려면:
 
 ```
-docker compose up -d
+docker compose --profile dev up -d
 ```
 
-- Web: http://localhost:3000, API: http://localhost:3001/healthz
+- Web: http://localhost:3000, API: http://localhost:3001/healthz (모두 127.0.0.1 바인딩)
+- dev 프로필 전용이며, 운영 서버에서는 실행하지 마세요.
 - 컨테이너는 `restart: unless-stopped`로 설정되어 Docker 재시작 시 자동 복구됩니다.
 
 ## 환경 변수 가이드(로컬/서버)
