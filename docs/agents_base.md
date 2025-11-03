@@ -58,6 +58,12 @@ Do NOT disable linters or type checkers globally or per file.
 - Pyright runs in strict mode; Ruff enforces complexity; ESLint enforces TS rules above.
 - Python tools (ruff, pyright, pytest) MUST run from the project `.venv`. Make targets (`make venv`, `make api-install`, `make test-api`) are provided.
 
+### Deploy & Operations (Policy)
+- Deploy model: immutable container images. Pulling git on the server does not update running apps; deploy by pulling images + (if needed) Alembic + restart.
+- Database: PostgreSQL only using `postgresql+psycopg://` (enforced in code). Use container DNS names on a dedicated Docker network (e.g., `segecon_net`, `sogecon-db`). Avoid fixed IP/localhost in `DATABASE_URL`.
+- Migrations: run Alembic from the same Docker network as the DB. Destructive changes must be labeled and noted in the PR; prefer online-safe patterns.
+- Health/readiness: `/healthz` must return 200. A brief warm‑up window (≤90s) after restart is acceptable; CI/CD should retry during this window.
+
 ## Commit & PR Conventions
 - Follow Conventional Commits for all commits: `type(scope): subject` with a 72-char header.
 - Allowed types: `feat|fix|refactor|perf|test|chore|build|ci|docs`; scopes: `api|web|schemas|infra|docs|ops|ci|build`.
