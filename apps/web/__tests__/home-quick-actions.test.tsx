@@ -1,12 +1,13 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it } from 'vitest';
 
 import HomePage from '../app/page';
+import { renderWithProviders } from '../tests/render-with-providers';
 
 describe('Home Quick Actions', () => {
   it('renders six quick actions with correct routes', () => {
-    render(<HomePage />);
+    renderWithProviders(<HomePage />);
     // 헤더는 sr-only이므로 시각적 존재 대신 링크 6개와 경로를 검증
     expect(screen.getByRole('link', { name: '총동문회 소개 바로가기' })).toHaveAttribute('href', '/about/greeting');
     expect(screen.getByRole('link', { name: '총동문회 수첩 바로가기' })).toHaveAttribute('href', '/directory');
@@ -17,7 +18,7 @@ describe('Home Quick Actions', () => {
   });
 
   it('includes greeting preview card and stats at the end', () => {
-    const { container } = render(<HomePage />);
+    const { container } = renderWithProviders(<HomePage />);
     // Check greeting call-to-action
     expect(screen.getByRole('heading', { name: '회장 인사말' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '전문 보기' })).toHaveAttribute('href', '/about/greeting');

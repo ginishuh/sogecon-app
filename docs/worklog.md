@@ -445,6 +445,15 @@
 - fix(api): 개발환경(dev)에서 로그인 레이트리밋 해제(운영(prod)에서만 적용)
 - chore(web): API_BASE 기본값을 현재 호스트 기반으로 계산(127.0.0.1/localhost 혼용 시 세션 유지)
 
+## 2025-11-03
+- feat(web): 미들웨어에서 요청별 nonce를 생성하고 `Content-Security-Policy`에 `'nonce-...'`를 주입하도록 개선 (#40)
+  - relax 환경(`NEXT_PUBLIC_RELAX_CSP=1`, 비프로덕션)에서만 `unsafe-inline`/`unsafe-eval`/localhost WS 허용
+  - GA 스크립트/전송 도메인을 자동 허용, Script 컴포넌트에 nonce 전달
+- test(web): 홈 페이지 스위트가 QueryClient/`matchMedia` 스텁을 사용하도록 정비, `pnpm -C apps/web test` 전부 통과 (#40)
+- chore(web): vitest 이미지 모킹에서 DOM 미지원 속성을 안전하게 제거 (#40)
+- refactor(web): nonce 생성 유틸 분리, 레이아웃 nonce 주입 보강 및 CSP 테스트/문서 업데이트 (#40)
+- docs: README, `docs/security_hardening.md`에 운영 CSP 가이드를 nonce 기반으로 갱신
+
 ## 2025-10-27 (CI-hotfix)
 - ci(lighthouse): NO_FCP 완화(프리웜, headless/new+window-size) 및 github-script `core` 재선언 오류 수정. CI 전용 `NEXT_PUBLIC_WEB_API_BASE=http://localhost:3000` 지정으로 미기동 API 대기 제거. (PR #30)
 
