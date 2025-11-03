@@ -64,6 +64,11 @@
 - 마이그레이션: DB와 동일 네트워크에서 Alembic 실행. 파괴적 변경은 PR에 다운타임/락 리스크 라벨·메모를 포함합니다.
 - 헬스/준비 상태: `/healthz` 200을 기준으로 하며, 재기동 직후 짧은 워밍업 구간(≤90초)은 허용합니다. CI/CD는 이 구간에 재시도를 수행해야 합니다.
 
+### Docker Compose(개발 전용)
+- 루트 `compose.yaml`은 로컬 개발 전용입니다. `profiles: ["dev"]`가 필요하고, 포트는 `127.0.0.1`로만 바인딩됩니다.
+- 운영 서버에서는 compose dev를 절대 실행하지 마세요. 운영은 `ops/cloud-start.sh`를 사용합니다.
+- 보조 스크립트 `scripts/compose-dev-up.sh`가 prod 환경 흔적(`.env.api`의 `APP_ENV=prod`, 실행 중인 `alumni-*` 컨테이너, `segecon_net` 네트워크 등)을 감지하면 실행을 거부합니다.
+
 ## 커밋/PR 규칙
 - 모든 커밋은 Conventional Commits 형식을 따릅니다: `type(scope): subject`(헤더 72자 제한).
 - type: `feat|fix|refactor|perf|test|chore|build|ci|docs`, scope: `api|web|schemas|infra|docs|ops|ci|build`.

@@ -89,11 +89,15 @@ make schema-gen
 
 > English quickstart: (1) `make db-up` (2) `make venv && make api-install && alembic ... && make api-dev` (3) `corepack enable && pnpm -C apps/web i && make web-dev` (4) `pnpm -C packages/schemas i && make schema-gen`.
 
-### 초간단: Docker Compose로 한 번에(스크립트/Make 없이)
+### 초간단: Docker Compose로 한 번에(스크립트/Make 없이) ![DEV ONLY](https://img.shields.io/badge/DEV-ONLY-orange)
 
 아무것도 설치하지 않고 컨테이너만으로 로컬 개발을 올리려면:
 
 ```
+# 가드 스크립트(운영 서버에서 오작동 방지)
+./scripts/compose-dev-up.sh
+
+# 또는 직접 실행(로컬 전용)
 docker compose --profile dev up -d
 ```
 
