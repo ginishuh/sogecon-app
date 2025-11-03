@@ -22,10 +22,15 @@ vi.mock('../hooks/useAuth', () => ({
   }),
 }));
 
-const pushMock = vi.fn();
+let currentSearchParams = new URLSearchParams();
+const pushMock = vi.fn((url: string) => {
+  const query = url.split('?')[1] ?? '';
+  currentSearchParams = new URLSearchParams(query);
+});
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
+  useSearchParams: () => currentSearchParams,
 }));
 
 function renderWithClient(element: React.ReactNode) {
@@ -44,6 +49,7 @@ describe('BoardPage', () => {
     pushMock.mockReset();
     listPostsMock.mockReset();
     createPostMock.mockReset();
+    currentSearchParams = new URLSearchParams();
   });
 
   it('목록을 렌더링하고 검색으로 필터링한다', async () => {

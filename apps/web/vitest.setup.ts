@@ -15,3 +15,24 @@ vi.mock('next/image', () => ({
 vi.mock('next/font/local', () => ({
   default: () => ({ variable: '--font-sans' }),
 }));
+
+if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
+  window.matchMedia = (query: string): MediaQueryList => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {
+      /* noop */
+    },
+    removeListener: () => {
+      /* noop */
+    },
+    addEventListener: () => {
+      /* noop */
+    },
+    removeEventListener: () => {
+      /* noop */
+    },
+    dispatchEvent: () => false,
+  });
+}
