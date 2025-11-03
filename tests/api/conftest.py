@@ -29,7 +29,7 @@ def client(tmp_path: Path) -> Generator[TestClient, None, None]:
     if not candidate:
         candidate = "postgresql+psycopg://app:devpass@localhost:5434/appdb_test"
 
-    if not candidate.startswith("postgresql"):
+    if not candidate.lower().startswith("postgresql+psycopg://"):
         raise RuntimeError("TEST_DB_URL/DATABASE_URL must be postgresql+psycopg:// ...")
 
     url = make_url(candidate)

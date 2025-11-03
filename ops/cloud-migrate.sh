@@ -39,7 +39,7 @@ if [[ -n "${DATABASE_URL:-}" ]]; then
   DOCKER_ARGS+=(-e "DATABASE_URL=${DATABASE_URL}")
 fi
 
-echo "[migrate] image=${API_IMAGE} env=${ENV_FILE:-<none>} network=${DOCKER_NETWORK:-bridge}"
+echo "[migrate] image=${API_IMAGE} env=${ENV_FILE:-<none>} network=${DOCKER_NETWORK:-<none>}"
 docker run "${DOCKER_ARGS[@]}" \
   "${API_IMAGE}" \
   bash -lc "${ALEMBIC_CMD}"

@@ -184,8 +184,11 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
   - 네트워크: `segecon_net`
   - DB 컨테이너: `sogecon-db` (Postgres 16, 내부 네트워크 전용)
   - 예시 연결: `postgresql+psycopg://<user>:<pass>@sogecon-db:5432/<db>?sslmode=disable`
-  - Alembic는 `ops/cloud-migrate.sh`를 DB 컨테이너와 동일 네트워크에서 실행하세요 (예:
-    `DOCKER_NETWORK=segecon_net ./ops/cloud-migrate.sh`).
+  - Alembic는 `ops/cloud-migrate.sh`를 DB 컨테이너와 동일 네트워크에서 실행하세요.
+    예시:
+    ```bash
+    DOCKER_NETWORK=segecon_net ./ops/cloud-migrate.sh
+    ```
 
 ### VPS 에이전트를 위한 바로가기
 - VPS Agent Runbook (EN): `docs/agent_runbook_vps_en.md`
