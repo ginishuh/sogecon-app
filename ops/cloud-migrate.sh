@@ -6,7 +6,7 @@ set -euo pipefail
 #   API_IMAGE      : 마이그레이션을 수행할 API 이미지 (필수)
 #   ENV_FILE       : Alembic 실행에 사용할 환경변수 파일 (기본 deploy/api.env)
 #   ALEMBIC_CMD    : 커스텀 Alembic 커맨드 (기본 upgrade head)
-#   DOCKER_NETWORK : 동일 네트워크에서 실행할 경우 지정 (예: segecon_net)
+#   DOCKER_NETWORK : 동일 네트워크에서 실행할 경우 지정 (예: sogecon_net)
 
 if [[ -z "${API_IMAGE:-}" ]]; then
   echo "API_IMAGE 변수를 지정해야 합니다." >&2

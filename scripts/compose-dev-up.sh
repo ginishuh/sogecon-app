@@ -18,9 +18,9 @@ is_server_prod() {
     return 0
   fi
   # 3) Dedicated network used in prod
-  if docker network ls --format '{{.Name}}' | grep -Eq '^segecon_net$'; then
-    return 0
-  fi
+if docker network ls --format '{{.Name}}' | grep -Eq '^sogecon_net$'; then
+  return 0
+fi
   return 1
 }
 

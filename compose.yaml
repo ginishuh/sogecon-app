@@ -1,4 +1,4 @@
-name: segecon-local-dev
+name: sogecon-local-dev
 
 services:
   postgres:

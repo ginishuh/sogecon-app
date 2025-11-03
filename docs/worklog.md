@@ -569,6 +569,10 @@
 - `components/figma-header.tsx` Drawer 상단에 로그인 버튼(비로그인 시) 또는 세션 상태(`HeaderAuth`) 표시 추가
 
 2025-11-03 ci: deploy 워크플로 원격 클린업 env 전달 수정
-- `.github/workflows/deploy.yml`: SSH cleanup 단계에서 `IMAGE_PREFIX`/`KEEP_IMAGES`를 원격 환경에 전달하고 `set -u` 가드를 추가
+ - `.github/workflows/deploy.yml`: SSH cleanup 단계에서 `IMAGE_PREFIX`/`KEEP_IMAGES`를 원격 환경에 전달하고 `set -u` 가드를 추가
   - 후속 수정: ssh 인자 앞에 env를 두지 않고 `env VAR=... bash -s` 형태로 원격에 전달하도록 변경
   - 추가: deploy ssh 스텝에도 `IMAGE_PREFIX` 존재 가드 추가
+
+2025-11-03 infra/docs: segecon→sogecon 표기 통일(네트워크/도메인 예시)
+- compose: 프로젝트명 `sogecon-local-dev`
+- docs/env: `segecon_net`→`sogecon_net`, 예시 도메인 `sogecon.wastelite.kr`로 정정

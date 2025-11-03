@@ -99,7 +99,7 @@ Do NOT disable linters or type checkers globally or per file.
 
 ### Local Run Modes (Dev vs Mirror)
 - Dev profile (local only): use the root `compose.yaml` with `docker compose --profile dev up -d` for hot reload (Next.js dev + uvicorn --reload). Never run the dev profile on servers; the helper script `scripts/compose-dev-up.sh` includes a production guard.
-- Mirror mode (prod parity): to validate deploy behavior locally, run the same scripts used on VPS: pull immutable images → Alembic migrate → restart via `ops/cloud-*.sh` or `scripts/deploy-vps.sh`. Use a dedicated Docker network (e.g., `segecon_net`) and container DNS (e.g., `sogecon-db`) in `DATABASE_URL`.
+- Mirror mode (prod parity): to validate deploy behavior locally, run the same scripts used on VPS: pull immutable images → Alembic migrate → restart via `ops/cloud-*.sh` or `scripts/deploy-vps.sh`. Use a dedicated Docker network (e.g., `sogecon_net`) and container DNS (e.g., `sogecon-db`) in `DATABASE_URL`.
 - Switching modes: stop current containers before switching; dev→mirror: `docker compose --profile dev down`; mirror→dev: `docker rm -f alumni-api alumni-web` then start dev profile.
 
 ## Commit & PR Conventions

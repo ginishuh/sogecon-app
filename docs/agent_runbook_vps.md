@@ -31,12 +31,12 @@ sudo chown 1000:1000 /var/lib/segecon/uploads
    - 워크플로가 VPS에 SSH 접속 후 `pull → migrate → restart → health` 순서로 실행
 
 필요한 GitHub 설정(Environments: `prod`)
-- Variables(vars): `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_WEB_API_BASE`, 필요 시 `NEXT_PUBLIC_*`, (권장) `DOCKER_NETWORK`(예: `segecon_net`)
+- Variables(vars): `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_WEB_API_BASE`, 필요 시 `NEXT_PUBLIC_*`, (권장) `DOCKER_NETWORK`(예: `sogecon_net`)
 - Secrets: `SSH_HOST`, `SSH_USER`, `SSH_KEY`, (옵션) `SSH_PORT`, `GHCR_PAT`(read:packages)
 
 ## 3) 배포 경로 B — 서버에서 직접 배포(수동)
 체크리스트(요약)
-- [ ] 전용 네트워크 존재(`segecon_net`)
+- [ ] 전용 네트워크 존재(`sogecon_net`)
 - [ ] `.env.api`에 `DATABASE_URL=postgresql+psycopg://…@sogecon-db:5432/…`
 - [ ] 이미지 pull → 마이그레이션 → 재기동 순서
 - [ ] 헬스체크 200(워밍업 ≤90s 허용)
@@ -50,15 +50,15 @@ docker pull $PREFIX/alumni-api:$TAG
 docker pull $PREFIX/alumni-web:$TAG
 
 # 2) DB 마이그레이션(스키마 변경이 있을 때)
-docker network inspect segecon_net >/dev/null 2>&1 || docker network create segecon_net
-API_IMAGE=$PREFIX/alumni-api:$TAG ENV_FILE=.env.api DOCKER_NETWORK=segecon_net \
+docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
+API_IMAGE=$PREFIX/alumni-api:$TAG ENV_FILE=.env.api DOCKER_NETWORK=sogecon_net \
   bash ./ops/cloud-migrate.sh
 
 # 3) 서비스 재시작
 API_IMAGE=$PREFIX/alumni-api:$TAG \
 WEB_IMAGE=$PREFIX/alumni-web:$TAG \
 API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
-DOCKER_NETWORK=segecon_net \
+DOCKER_NETWORK=sogecon_net \
   bash ./ops/cloud-start.sh
 
 # 4) 헬스체크
@@ -71,7 +71,7 @@ PREV=<stable-tag>
 docker pull $PREFIX/alumni-api:$PREV
 docker pull $PREFIX/alumni-web:$PREV
 API_IMAGE=$PREFIX/alumni-api:$PREV WEB_IMAGE=$PREFIX/alumni-web:$PREV \
-  DOCKER_NETWORK=segecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
   bash ./ops/cloud-start.sh
 ```
 ```

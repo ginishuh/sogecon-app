@@ -27,7 +27,7 @@ make ghcr-login
 ```
 # 프리픽스는 기본적으로 origin 원격을 기준으로 ghcr.io/<owner>/<repo> 로 추정됩니다.
 make deploy-local TAG=e29de67 \
-  DOCKER_NETWORK=segecon_net \  # 선택: 로컬 전용 네트워크 사용 시
+DOCKER_NETWORK=sogecon_net \  # 선택: 로컬 전용 네트워크 사용 시
   API_HEALTH=http://localhost:3001/healthz \  # 선택
   WEB_HEALTH=http://localhost:3000/           # 선택
 ```

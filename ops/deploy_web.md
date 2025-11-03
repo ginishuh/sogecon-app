@@ -52,11 +52,11 @@
 - 배포 대상별 구체 명령 (Vercel CLI, Flyctl 등) 템플릿화
 - Lighthouse 예산 자동 검증 (CI 연동) — `ci/web` 작업과 연계
 
-## 8. 임시 도메인(예: segecon.wastelite.kr) 빌드 예시
+## 8. 임시 도메인(예: sogecon.wastelite.kr) 빌드 예시
 ```
 IMAGE_PREFIX=ghcr.io/<owner>/<repo> \
-NEXT_PUBLIC_SITE_URL=https://segecon.wastelite.kr \
-NEXT_PUBLIC_WEB_API_BASE=https://api.segecon.wastelite.kr \
+NEXT_PUBLIC_SITE_URL=https://sogecon.wastelite.kr \
+NEXT_PUBLIC_WEB_API_BASE=https://api.sogecon.wastelite.kr \
 PLATFORMS=linux/amd64 \# 서버가 x86_64면 권장 (ARM 로컬에서 빌드시)
 USE_BUILDX=1 \        # buildx 사용
 PUSH_IMAGES=1 \

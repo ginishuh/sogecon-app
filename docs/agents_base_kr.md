@@ -60,7 +60,7 @@
 
 ### 로컬 실행 모드(Dev vs Mirror)
 - Dev 프로필(로컬 전용): 루트 `compose.yaml`에서 `docker compose --profile dev up -d`로 기동합니다. Next dev(HMR) + uvicorn `--reload`로 코드 변경이 즉시 반영됩니다. 서버(운영)에서 dev 프로필 실행은 금지하며, `scripts/compose-dev-up.sh`에 생산 환경 가드가 포함되어 있습니다.
-- 미러 모드(운영 동일성 검증): VPS와 동일한 스크립트 흐름(불변 이미지 pull → Alembic migrate → 재기동)을 로컬에서 실행합니다. `ops/cloud-*.sh` 또는 `scripts/deploy-vps.sh` 사용, 전용 네트워크(`segecon_net`)와 컨테이너 DNS(`sogecon-db`)를 `DATABASE_URL`에 사용하세요.
+  - 미러 모드(운영 동일성 검증): VPS와 동일한 스크립트 흐름(불변 이미지 pull → Alembic migrate → 재기동)을 로컬에서 실행합니다. `ops/cloud-*.sh` 또는 `scripts/deploy-vps.sh` 사용, 전용 네트워크(`sogecon_net`)와 컨테이너 DNS(`sogecon-db`)를 `DATABASE_URL`에 사용하세요.
 - 모드 전환: 전환 전 반드시 현재 컨테이너를 내려주세요. dev→mirror: `docker compose --profile dev down`; mirror→dev: `docker rm -f alumni-api alumni-web` 후 dev 프로필 기동.
 
 ### 배포·운영(정책)
@@ -72,7 +72,7 @@
 ### Docker Compose(개발 전용)
 - 루트 `compose.yaml`은 로컬 개발 전용입니다. `profiles: ["dev"]`가 필요하고, 포트는 `127.0.0.1`로만 바인딩됩니다.
 - 운영 서버에서는 compose dev를 절대 실행하지 마세요. 운영은 `ops/cloud-start.sh`를 사용합니다.
-- 보조 스크립트 `scripts/compose-dev-up.sh`가 prod 환경 흔적(`.env.api`의 `APP_ENV=prod`, 실행 중인 `alumni-*` 컨테이너, `segecon_net` 네트워크 등)을 감지하면 실행을 거부합니다.
+  - 보조 스크립트 `scripts/compose-dev-up.sh`가 prod 환경 흔적(`.env.api`의 `APP_ENV=prod`, 실행 중인 `alumni-*` 컨테이너, `sogecon_net` 네트워크 등)을 감지하면 실행을 거부합니다.
 
 ## 커밋/PR 규칙
 - 모든 커밋은 Conventional Commits 형식을 따릅니다: `type(scope): subject`(헤더 72자 제한).

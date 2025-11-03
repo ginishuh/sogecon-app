@@ -100,10 +100,10 @@ make schema-gen
   - 주의: dev 프로필 전용입니다(운영 서버에서 실행 금지).
 
 - 운영 미러 모드(VPS와 동일 흐름 검증)
-  - 사전: `docker network create segecon_net || true`, `.env.api` 준비(`APP_ENV=prod`, 강한 `JWT_SECRET`, `DATABASE_URL=...@sogecon-db:5432/...`).
+  - 사전: `docker network create sogecon_net || true`, `.env.api` 준비(`APP_ENV=prod`, 강한 `JWT_SECRET`, `DATABASE_URL=...@sogecon-db:5432/...`).
   - 실행(예시):
     - `bash scripts/deploy-vps.sh -t <TAG> -p ghcr.io/<owner>/<repo> \
-      --network segecon_net --uploads "$PWD/uploads" -e .env.api -w "" \
+      --network sogecon_net --uploads "$PWD/uploads" -e .env.api -w "" \
       --api-health http://localhost:3001/healthz --web-health http://localhost:3000/`
   - 특성: GHCR에 빌드된 이미지를 그대로 실행(배포 동작·보안·CORS 검증에 적합).
 
@@ -169,22 +169,22 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
     TAG=<sha>
     docker pull ghcr.io/<owner>/<repo>/alumni-api:$TAG
     docker pull ghcr.io/<owner>/<repo>/alumni-web:$TAG
-    docker network inspect segecon_net >/dev/null 2>&1 || docker network create segecon_net
-    API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:$TAG ENV_FILE=.env.api DOCKER_NETWORK=segecon_net ./ops/cloud-migrate.sh
+    docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
+    API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:$TAG ENV_FILE=.env.api DOCKER_NETWORK=sogecon_net ./ops/cloud-migrate.sh
     API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:$TAG WEB_IMAGE=ghcr.io/<owner>/<repo>/alumni-web:$TAG \
-      DOCKER_NETWORK=segecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web ./ops/cloud-start.sh
+      DOCKER_NETWORK=sogecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web ./ops/cloud-start.sh
     # 헬스(2xx 기대, 재기동 직후 5xx 허용 구간: ≤90s)
     for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://api.<도메인>/healthz || true); [ "$code" = 200 ] && break; sleep 1; done
     for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://<도메인>/ || true); [ "$code" = 200 ] && break; sleep 1; done
     ```
-  - 원클릭: `scripts/deploy-vps.sh -t <tag> --network segecon_net --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
+  - 원클릭: `scripts/deploy-vps.sh -t <tag> --network sogecon_net --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
 
 - 컨테이너 빌드/푸시(GHCR 권장)
   - AMD64 빌드: 
     ```bash
     IMAGE_PREFIX=ghcr.io/<owner>/<repo> \
-    NEXT_PUBLIC_SITE_URL=https://segecon.wastelite.kr \
-    NEXT_PUBLIC_WEB_API_BASE=https://api.segecon.wastelite.kr \
+    NEXT_PUBLIC_SITE_URL=https://sogecon.wastelite.kr \
+    NEXT_PUBLIC_WEB_API_BASE=https://api.sogecon.wastelite.kr \
     PUSH_IMAGES=1 ./ops/cloud-build.sh
     ```
   - ARM 맥에서 AMD64 서버용: `PLATFORMS=linux/amd64 USE_BUILDX=1` 추가
@@ -224,12 +224,12 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
 
 ### 전용 Postgres 컨테이너(선택)
 - 다른 서비스와 충돌을 피하려면 전용 네트워크/DB 컨테이너를 사용할 수 있습니다.
-  - 네트워크: `segecon_net`
+  - 네트워크: `sogecon_net`
   - DB 컨테이너: `sogecon-db` (Postgres 16, 내부 네트워크 전용)
   - 예시 연결: `postgresql+psycopg://<user>:<pass>@sogecon-db:5432/<db>?sslmode=disable`
   - Alembic는 `ops/cloud-migrate.sh`를 DB 컨테이너와 동일 네트워크에서 실행하세요.
     ```bash
-    DOCKER_NETWORK=segecon_net ./ops/cloud-migrate.sh
+    DOCKER_NETWORK=sogecon_net ./ops/cloud-migrate.sh
     ```
 
 ### 롤백(요약)
@@ -239,7 +239,7 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
   docker pull ghcr.io/<owner>/<repo>/alumni-api:$PREV
   docker pull ghcr.io/<owner>/<repo>/alumni-web:$PREV
   API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:$PREV WEB_IMAGE=ghcr.io/<owner>/<repo>/alumni-web:$PREV \
-    DOCKER_NETWORK=segecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web ./ops/cloud-start.sh
+    DOCKER_NETWORK=sogecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web ./ops/cloud-start.sh
   ```
 
 ### Nginx 502 완화 팁
