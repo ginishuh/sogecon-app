@@ -139,11 +139,23 @@ jobs:
           bash ./ops/cloud-start.sh
 
           echo "[deploy] Health checks"
-          if [ -n "\$API_HEALTH" ]; then
-            curl -fsS -o /dev/null "\$API_HEALTH" || { echo "API health failed"; exit 1; }
-          fi
-          if [ -n "\$WEB_HEALTH" ]; then
-            curl -fsS -o /dev/null "\$WEB_HEALTH" || { echo "WEB health failed"; exit 1; }
+          wait_200() {
+            local name="$1"; local url="$2"; local timeout="${3:-60}"; local code="";
+            if [ -z "$url" ]; then return 0; fi
+            echo "[health] $name → $url"
+            for i in $(seq 1 "$timeout"); do
+              code=$(curl -sf -o /dev/null -w "%{http_code}" "$url" || true)
+              if [ "$code" = "200" ]; then echo "[health] $name OK(200)"; return 0; fi
+              sleep 1
+            done
+            echo "[health] $name failed; last code=$code" >&2; return 1
+          }
+
+          RC=0
+          wait_200 api "\$API_HEALTH" 90 || RC=1
+          wait_200 web "\$WEB_HEALTH" 90 || RC=1
+          if [ $RC -ne 0 ]; then
+            echo "[deploy] One or more health checks failed" >&2; exit 1
           fi
           echo "[deploy] OK"
           EOF
