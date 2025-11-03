@@ -131,7 +131,7 @@ Do NOT disable linters or type checkers globally or per file.
 ## Development Commands
 
 ### Database
-- `make db-up` - Start PostgreSQL container (`docker compose -f infra/docker-compose.dev.yml up -d`)
+- `make db-up` - Start PostgreSQL containers (dev+test) via root compose dev profile
 - `make db-down` - Stop PostgreSQL container
 - Database migrations: `alembic -c apps/api/alembic.ini upgrade head`
 

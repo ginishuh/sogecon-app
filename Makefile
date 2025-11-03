@@ -18,7 +18,7 @@ DB_TEST_PORT ?= 5434
 # - 타임아웃은 WAIT_FOR_PG_TIMEOUT(기본 90초)
 define wait_for_pg
 	@echo "[db] Waiting for $(1) to be healthy..."
-	@CID=$$(docker compose -f infra/docker-compose.dev.yml ps -q $(1)); \
+	@CID=$$(docker compose --profile dev ps -q $(1)); \
 	if [ -z "$$CID" ]; then \
 		echo "[db] Error: container for $(1) not found"; exit 1; \
 	fi; \
@@ -33,7 +33,7 @@ define wait_for_pg
 		echo "[db] $(1) is healthy"; \
 	else \
 		echo "[db] Health not healthy in time; fallback to pg_isready..."; \
-		timeout $${WAIT_FOR_PG_TIMEOUT:-60} bash -c 'until docker compose -f infra/docker-compose.dev.yml exec -T $(1) pg_isready -U app -d $(2) >/dev/null 2>&1; do sleep 2; done' || { \
+		timeout $${WAIT_FOR_PG_TIMEOUT:-60} bash -c 'until docker compose --profile dev exec -T $(1) pg_isready -U app -d $(2) >/dev/null 2>&1; do sleep 2; done' || { \
 			echo "[db] Timeout waiting for $(1) to be ready"; exit 1; \
 		}; \
 	fi
@@ -51,31 +51,30 @@ api-install:
 	"$(VENV_BIN)/pip" install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
 
 db-up:
-	@echo "[db] Starting PostgreSQL containers..."
-	@docker compose -f infra/docker-compose.dev.yml up -d postgres postgres_test || { \
-		echo "[db] Failed to start containers. Checking Docker status..."; \
+	@echo "[db] Starting PostgreSQL dev container..."
+	@docker compose --profile dev up -d postgres postgres_test || { \
+		echo "[db] Failed to start dev DB. Checking Docker status..."; \
 		docker version >/dev/null 2>&1 || { echo "[db] Error: Docker is not running. Please start Docker first."; exit 1; }; \
 		exit 1; \
 	}
 	$(call wait_for_pg,postgres,appdb)
-	$(call wait_for_pg,postgres_test,appdb_test)
-	@echo "[db] PostgreSQL containers are ready (dev:5433, test:5434)"
+	@echo "[db] PostgreSQL dev is ready (localhost:$(DB_DEV_PORT))"
 
 db-down:
-	docker compose -f infra/docker-compose.dev.yml down
+	docker compose --profile dev stop postgres postgres_test || true
 
 db-test-up:
-	docker compose -f infra/docker-compose.dev.yml up -d postgres_test
+	docker compose --profile dev up -d postgres_test
 
 # --- Schema reset helpers (DANGER) ---
 db-reset: db-up
 	@echo "[db] Dropping and recreating schema 'public' on dev DB (localhost:$(DB_DEV_PORT)/appdb)"
-	docker compose -f infra/docker-compose.dev.yml exec -T postgres psql -U app -d appdb -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO app; GRANT ALL ON SCHEMA public TO public;"
+	docker compose --profile dev exec -T postgres psql -U app -d appdb -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO app; GRANT ALL ON SCHEMA public TO public;"
 	@echo "[db] Done. You can now run: make api-migrate"
 
 db-test-reset: db-test-up
 	@echo "[db] Dropping and recreating schema 'public' on test DB (localhost:$(DB_TEST_PORT)/appdb_test)"
-	docker compose -f infra/docker-compose.dev.yml exec -T postgres_test psql -U app -d appdb_test -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO app; GRANT ALL ON SCHEMA public TO public;"
+	docker compose --profile dev exec -T postgres_test psql -U app -d appdb_test -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO app; GRANT ALL ON SCHEMA public TO public;"
 	@echo "[db] Done. You can now run: make api-migrate-test"
 
 db-reset-all: db-reset db-test-reset
@@ -226,14 +225,15 @@ deploy-local:
 .PHONY: dev-containers-up dev-containers-down dev-containers-logs
 
 dev-containers-up:
-	@echo "[dev] Starting Postgres + api_dev + web_dev (docker compose)"
-	@docker compose -f infra/docker-compose.dev.yml -f infra/docker-compose.app.dev.yml up -d postgres || true
+	@echo "[dev] Starting Postgres + Postgres(test) + api_dev + web_dev (docker compose)"
+	@docker compose --profile dev up -d postgres postgres_test || true
 	$(call wait_for_pg,postgres,appdb)
-	@docker compose -f infra/docker-compose.dev.yml -f infra/docker-compose.app.dev.yml up -d api_dev web_dev
+	$(call wait_for_pg,postgres_test,appdb_test)
+	@docker compose --profile dev up -d api_dev web_dev
 	@echo "[dev] Containers are up → http://localhost:3000 (web), http://localhost:3001/healthz (api)"
 
 dev-containers-down:
-	@docker compose -f infra/docker-compose.dev.yml -f infra/docker-compose.app.dev.yml down
+	@docker compose --profile dev down
 
 dev-containers-logs:
-	@docker compose -f infra/docker-compose.dev.yml -f infra/docker-compose.app.dev.yml logs -f --since=1m api_dev web_dev
+	@docker compose --profile dev logs -f --since=1m api_dev web_dev

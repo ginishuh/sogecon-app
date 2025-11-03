@@ -12,7 +12,7 @@
 
 ## 1) 로컬 PostgreSQL 기동(권장)
 ```
-make db-up   # infra/docker-compose.dev.yml → dev: localhost:5433, test: 5434
+make db-up   # root compose(dev): dev 5433 + test 5434
 ```
 
 ## 2) GHCR 로그인
@@ -58,7 +58,7 @@ curl -I http://localhost:3001/healthz
 
 ## (옵션) Dev 컨테이너 모드 — 핫리로드로 개발
 - 목적: 로컬에서도 컨테이너를 띄워놓고(VPS와 동일 네트워킹) 코드 변경을 즉시 반영해 개발합니다.
-- 구성: `infra/docker-compose.app.dev.yml` — `api_dev(uvicorn --reload)` + `web_dev(pnpm dev)`
+- 구성: root `compose.yaml` dev 프로필 — `api_dev(uvicorn --reload)` + `web_dev(pnpm dev)`
 
 실행(Compose만 사용):
 ```

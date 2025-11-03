@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     )
 
     # 데이터베이스: 무조건 PostgreSQL(psycopg 드라이버)만 지원
-    # 개발 기본값은 docker-compose.dev.yml의 포트 5433 기준
+    # 개발 기본값은 루트 compose dev 프로필의 포트 5433 기준
     database_url: str = Field(
         default="postgresql+psycopg://app:devpass@localhost:5433/appdb",
         alias="DATABASE_URL",

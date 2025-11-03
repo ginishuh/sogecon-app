@@ -577,3 +577,7 @@
 - compose: 프로젝트명 `sogecon-local-dev`
 - docs/env: `segecon_net`→`sogecon_net`, 예시 도메인 `sogecon.wastelite.kr`로 정정
  - ops: 기본 업로드 경로 `/var/lib/sogecon/uploads`로 통일
+
+2025-11-03 dev: 테스트 DB 자동 기동 해제
+- Makefile `db-up`에서 `postgres_test` 제외(개발 기본은 dev DB만 기동). 테스트는 `make db-test-up`으로 분리
+변경(요청 반영): infra compose 제거, root compose(dev)에서 dev+test DB 동시 기동으로 회귀. 테스트 DB는 루트 compose의 `postgres_test`만 사용

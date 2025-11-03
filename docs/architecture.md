@@ -9,7 +9,7 @@
 - **프런트엔드 (`apps/web`)**: Next.js(App Router) 기반의 SSR/SSG 혼합 아키텍처. Tailwind CSS, PWA 설정을 포함하며 한국어 UI를 기본값으로 제공한다. 모바일 웹 우선(모바일 퍼스트)로 반응형을 설계한다. UI 일관성/접근성/성능 기준은 `docs/design_system.md`(디자인 시스템 v1)를 따른다.
 - **백엔드 API (`apps/api`)**: FastAPI + SQLAlchemy 조합으로 RESTful API를 제공한다. Pydantic 스키마(`schemas.py`)가 요청/응답 검증과 문서화를 담당한다.
 - **인증/권한(개발 단계)**: 학번 기반 세션 쿠키 인증. 관리자(/auth) + 멤버(/auth/member) 로그인 제공. `MemberAuth` 모델에서 `student_id`/`password`로 인증. 작성/관리 라우트는 `require_admin`, 구독 저장/삭제는 `require_member`로 보호. 쿠키는 HttpOnly + SameSite=Lax(개발), 운영에서는 Secure 적용.
-- **데이터 스토어**: PostgreSQL 16만 사용한다(`infra/docker-compose.dev.yml` 참조). 모든 환경에서 `postgresql+psycopg://` 스킴을 강제한다.
+- **데이터 스토어**: PostgreSQL 16만 사용한다(루트 `compose.yaml` dev 프로필 참조). 모든 환경에서 `postgresql+psycopg://` 스킴을 강제한다.
 - **스키마 공유 (`packages/schemas`)**: FastAPI에서 생성한 `openapi.json`을 TypeScript DTO로 변환하여 프런트엔드에서 타입 안정성을 확보한다.
 
 ## 도메인 모델
@@ -110,7 +110,7 @@
 
 ### 로컬 개발 환경(확정 사항)
 - API: 로컬 uvicorn(`make api-dev`, 포트 3001). DB만 Docker Compose 사용.
-- DB: `infra/docker-compose.dev.yml` — 기본 포트 dev `5433`, test `5434`.
+- DB: 루트 `compose.yaml` — 기본 포트 dev `5433`, test `5434`.
   - 포트 충돌 시 `infra/.env`의 `DB_DEV_PORT`, `DB_TEST_PORT`로 오버라이드.
   - `.env`의 `DATABASE_URL`이 실제 포트와 일치해야 함.
 - CORS: `CORS_ORIGINS`는 JSON 배열 문자열로 관리.

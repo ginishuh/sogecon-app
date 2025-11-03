@@ -76,7 +76,7 @@ services:
 
   postgres_test:
     image: postgres:16
-    profiles: ["test"]
+    profiles: ["dev", "test"]
     environment:
       POSTGRES_DB: appdb_test
       POSTGRES_USER: app

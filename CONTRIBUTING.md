@@ -9,7 +9,7 @@ Thanks for supporting the 서강대학교 경제대학원 총동문회 app. Cont
 
 ### DB
 ```
-docker compose -f infra/docker-compose.dev.yml up -d
+docker compose --profile dev up -d postgres postgres_test
 ```
 
 ### API

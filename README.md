@@ -45,7 +45,7 @@ apps/
   api/     # FastAPI
 packages/
   schemas/ # OpenAPI → TypeScript DTO 생성
-infra/     # docker-compose.dev.yml (Postgres 16)
+infra/     # Dockerfiles and deployment scripts (no dev compose)
 ops/       # CI/자동화 스크립트
 docs/      # 아키텍처/버전/보안/작업로그 문서
 ```
@@ -63,7 +63,7 @@ cp .env.example .env
 
 1) 데이터베이스(PostgreSQL 필수)
 ```bash
-make db-up  # docker compose -f infra/docker-compose.dev.yml up -d
+make db-up  # docker compose --profile dev up -d postgres postgres_test
 ```
 
 2) API 서버(.venv 권장)

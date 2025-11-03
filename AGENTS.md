@@ -110,7 +110,7 @@ Do NOT disable linters or type checkers globally or per file.
 - `apps/web`: Next.js App Router frontend with Tailwind configuration and PWA assets in `public/`.
 - `apps/api`: FastAPI backend. `routers/` provides CRUD stubs, `models.py` and `schemas.py` define the domain, and `migrations/` stores the Alembic history.
 - `packages/schemas`: Scripts that convert the API `openapi.json` into TypeScript DTOs.
-- `infra/docker-compose.dev.yml`: Development PostgreSQL 16 container.
+- 루트 `compose.yaml`(profiles: dev): Development PostgreSQL 16 containers(dev/test)
 - `ops/`: Placeholder for cloud automation scripts.
 - `docs/`: Track notes in `todo.md`, `worklog.md`, and date-based `dev_log_YYMMDD.md` files. Core technical design decisions live in [`docs/architecture.md`](docs/architecture.md) (Korean).
 
@@ -162,6 +162,6 @@ Do NOT disable linters or type checkers globally or per file.
 
 ## Security & Configuration Tips
 - Do not commit `.env`; keep the example file updated instead.
- - Database: PostgreSQL only. Use `infra/docker-compose.dev.yml` for local dev (port 5433/5434).
+ - Database: PostgreSQL only. Use root `compose.yaml` dev profile for local dev (port 5433/5434).
 - Report security issues to `security@trr.co.kr` per `SECURITY.md` guidance.
  - See `docs/security_hardening.md` for security headers, SAST/Dependency audit, and CI policy.

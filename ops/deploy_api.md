@@ -2,7 +2,7 @@
 
 ## 1. 목적
 - FastAPI 백엔드(`apps/api`)를 프로덕션 환경에 안전하게 배포하고, 실패 시 빠르게 롤백하기 위한 표준 운영 문서를 정의한다.
-- 데이터베이스는 PostgreSQL 16만 지원한다(`infra/docker-compose.dev.yml`). 모든 환경에서 `postgresql+psycopg://` 스킴을 사용한다.
+- 데이터베이스는 PostgreSQL 16만 지원한다(루트 `compose.yaml`). 모든 환경에서 `postgresql+psycopg://` 스킴을 사용한다.
 
 ## 2. 필수 환경 변수
 - `APP_ENV`: `dev` / `staging` / `prod`
