@@ -1,0 +1,90 @@
+name: segecon-local-dev
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: appdb
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: devpass
+    ports:
+      - "127.0.0.1:${DB_DEV_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d appdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    profiles: ["dev"]
+
+  api_dev:
+    build:
+      context: .
+      dockerfile: infra/api.Dockerfile
+    environment:
+      APP_ENV: dev
+      WATCHFILES_FORCE_POLLING: "1"  # WSL2 변경 감지 안정화
+      DATABASE_URL: postgresql+psycopg://app:devpass@postgres:5432/appdb
+      CORS_ORIGINS: '["http://localhost:3000"]'
+      JWT_SECRET: change-me
+    volumes:
+      - ./apps/api:/app/apps/api:cached
+      - ./uploads:/app/uploads
+    ports:
+      - "127.0.0.1:3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["uvicorn","apps.api.main:app","--host","0.0.0.0","--port","3001","--reload"]
+    restart: unless-stopped
+    profiles: ["dev"]
+
+  web_dev:
+    image: node:22.17.1-slim
+    working_dir: /app
+    environment:
+      NODE_ENV: development
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_WEB_API_BASE: http://localhost:3001
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_ENABLE_SW: "1"
+    volumes:
+      - .:/app:cached
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api_dev:
+        condition: service_started
+    command: >-
+      bash -lc "corepack enable && corepack prepare pnpm@10.17.1 --activate \
+      && pnpm -C apps/web install \
+      && pnpm -C apps/web dev -H 0.0.0.0"
+    restart: unless-stopped
+    profiles: ["dev"]
+
+  postgres_test:
+    image: postgres:16
+    profiles: ["test"]
+    environment:
+      POSTGRES_DB: appdb_test
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: devpass
+    ports:
+      - "127.0.0.1:${DB_TEST_PORT:-5434}:5432"
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d appdb_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  pgdata_test:

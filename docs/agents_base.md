@@ -64,6 +64,11 @@ Do NOT disable linters or type checkers globally or per file.
 - Migrations: run Alembic from the same Docker network as the DB. Destructive changes must be labeled and noted in the PR; prefer online-safe patterns.
 - Health/readiness: `/healthz` must return 200. A brief warm‑up window (≤90s) after restart is acceptable; CI/CD should retry during this window.
 
+### Docker Compose (Dev‑only)
+- The root `compose.yaml` is for local development only. It requires the `dev` profile and binds ports to `127.0.0.1`.
+- NEVER run compose dev on production hosts. Use `ops/cloud-start.sh` instead.
+- A guard helper `scripts/compose-dev-up.sh` aborts when it detects a prod‑like server (e.g., `.env.api` with `APP_ENV=prod`, running `alumni-*` containers, or `segecon_net`).
+
 ## Commit & PR Conventions
 - Follow Conventional Commits for all commits: `type(scope): subject` with a 72-char header.
 - Allowed types: `feat|fix|refactor|perf|test|chore|build|ci|docs`; scopes: `api|web|schemas|infra|docs|ops|ci|build`.

@@ -89,6 +89,18 @@ make schema-gen
 
 > English quickstart: (1) `make db-up` (2) `make venv && make api-install && alembic ... && make api-dev` (3) `corepack enable && pnpm -C apps/web i && make web-dev` (4) `pnpm -C packages/schemas i && make schema-gen`.
 
+### 초간단: Docker Compose로 한 번에(스크립트/Make 없이) ![DEV ONLY](https://img.shields.io/badge/DEV-ONLY-orange)
+
+로컬에서 컨테이너만으로 개발 환경을 올리려면(루트 `compose.yaml` 사용):
+
+```
+docker compose --profile dev up -d
+```
+
+- Web: http://localhost:3000, API: http://localhost:3001/healthz (모두 127.0.0.1 바인딩)
+- dev 프로필 전용입니다(운영 서버에서 실행 금지).
+- 컨테이너는 `restart: unless-stopped`로 Docker 재시작 시 자동 복구됩니다.
+
 ## 환경 변수 가이드(로컬/서버)
 - 로컬 개발(API)
   - 루트 `.env`를 자동 로드합니다(`apps/api/config.py`).
