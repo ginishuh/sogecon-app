@@ -174,8 +174,16 @@ jobs:
         run: |
           set -euo pipefail
           : "${SSH_PORT:=22}"
-          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" bash -s << 'EOF'
+          # Escape env for safe remote export (no local expansion inside heredoc)
+          printf -v IMAGE_PREFIX_ESC '%q' "$IMAGE_PREFIX"
+          printf -v KEEP_IMAGES_ESC '%q' "${KEEP_IMAGES:-8}"
+
+          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" \
+            IMAGE_PREFIX=$IMAGE_PREFIX_ESC \
+            KEEP_IMAGES=$KEEP_IMAGES_ESC \
+            "$SSH_USER@$SSH_HOST" bash -s << 'EOF'
           set -euo pipefail
+          : "${IMAGE_PREFIX:?IMAGE_PREFIX is required}"
           KEEP="${KEEP_IMAGES:-8}"
           API_REPO="$IMAGE_PREFIX/alumni-api"
           WEB_REPO="$IMAGE_PREFIX/alumni-web"

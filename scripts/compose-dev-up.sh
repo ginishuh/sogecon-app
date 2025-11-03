@@ -32,5 +32,8 @@ if is_server_prod; then
 fi
 
 echo "[dev] Starting local dev containers (profile=dev)"
+# Host UID/GID propagation so bind-mounted files are not owned by root
+export UID=${UID:-$(id -u)}
+export GID=${GID:-$(id -g)}
+echo "[dev] Using UID:GID=${UID}:${GID}"
 exec docker compose --profile dev up -d "$@"
-

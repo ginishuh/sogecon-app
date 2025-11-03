@@ -76,4 +76,11 @@ make dev-containers-down        # 종료
 - WSL2 파일시스템에서는 변경 감지 이슈가 있어 `WATCHFILES_FORCE_POLLING=1`를 API 컨테이너에 설정했습니다.
 - Web 컨테이너는 `node:22-slim`에서 `pnpm`을 corepack으로 준비 후 `pnpm -C apps/web dev`로 기동합니다.
 
+### 권한 이슈 예방(컨테이너 파일 소유권)
+- dev 컨테이너가 바인드 마운트에 파일을 쓸 때 root 소유물이 생기지 않도록, 루트 `compose.yaml`의 `web_dev` 서비스는 `user: "${UID:-1000}:${GID:-1000}"`로 실행됩니다. `scripts/compose-dev-up.sh`가 UID/GID를 자동 주입합니다.
+- 과거 실행으로 root 소유물이 남아 있으면 다음 스크립트로 복구하세요(호스트 sudo 불필요):
+  ```bash
+  ./scripts/fix-web-perms.sh
+  ```
+
  

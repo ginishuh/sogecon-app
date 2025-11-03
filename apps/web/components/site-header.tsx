@@ -77,7 +77,7 @@ export function SiteHeader() {
         </Link>
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-md border border-neutral-border px-3 py-2 text-sm text-neutral-ink transition hover:bg-brand-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent md:hidden"
+          className="site-header__hamburger inline-flex items-center justify-center rounded-md border border-neutral-border px-3 py-2 text-sm text-neutral-ink transition hover:bg-brand-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent md:hidden"
           aria-controls="primary-navigation"
           aria-expanded={open}
           aria-label={open ? '전체 메뉴 닫기' : '전체 메뉴 열기'}
@@ -94,7 +94,7 @@ export function SiteHeader() {
           </svg>
         </button>
         {/* col-2: 주요 링크 */}
-        <div className="hidden md:block">
+        <div className="site-header__desktop-nav hidden md:block">
           <nav aria-label="주 메뉴" className="text-sm text-neutral-muted font-menu">
             <ul className="flex items-center gap-5">
               {PRIMARY_LINKS.map((link) => (
@@ -108,7 +108,7 @@ export function SiteHeader() {
           </nav>
         </div>
         {/* col-3: 드롭다운(롤아웃) */}
-        <div className="hidden items-center gap-6 md:flex font-menu">
+        <div className="site-header__desktop-menus hidden items-center gap-6 md:flex font-menu">
           <NavDropdown label="총동문회 소개" items={ABOUT_LINKS} />
           <NavDropdown label="고객 지원" items={SUPPORT_LINKS} />
           <RequireAdmin fallback={null}>
@@ -118,7 +118,7 @@ export function SiteHeader() {
           </RequireAdmin>
         </div>
         {/* col-4: 세션/로그인 */}
-        <div className="hidden items-center justify-end gap-4 md:flex">
+        <div className="site-header__auth hidden items-center justify-end gap-4 md:flex">
           <NotifyCTA />
           {status === 'authorized' ? (
             <HeaderAuth />

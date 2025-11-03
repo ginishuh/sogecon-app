@@ -45,13 +45,19 @@ services:
   web_dev:
     image: node:22.17.1-slim
     working_dir: /app
+    # 컨테이너가 호스트 UID/GID로 실행되도록 지정해 .next 등 생성 파일의 소유권이 root가 되지 않도록 함
+    user: "${UID:-1000}:${GID:-1000}"
     environment:
       NODE_ENV: development
       CI: "true"
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_WEB_API_BASE: http://localhost:3001
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
-      NEXT_PUBLIC_ENABLE_SW: "1"
+      NEXT_PUBLIC_ENABLE_SW: "0"
+      # corepack/pnpm가 root 권한 없이도 동작하도록 임시 홈/캐시 경로 지정
+      HOME: /tmp/devhome
+      COREPACK_HOME: /tmp/devhome/corepack
+      PNPM_HOME: /tmp/devhome/pnpm
     volumes:
       - .:/app:cached
     ports:
@@ -60,9 +66,11 @@ services:
       api_dev:
         condition: service_started
     command: >-
-      bash -lc "corepack enable && corepack prepare pnpm@10.17.1 --activate \
-      && pnpm -C apps/web install \
-      && pnpm -C apps/web dev -H 0.0.0.0"
+      bash -lc "mkdir -p \"$${COREPACK_HOME}\" \"$${PNPM_HOME}\" && export PATH=\"$${PNPM_HOME}:$${PATH}\" \
+      && cd apps/web \
+      && corepack pnpm -v \
+      && corepack pnpm install \
+      && corepack pnpm dev -H 0.0.0.0"
     restart: unless-stopped
     profiles: ["dev"]
 

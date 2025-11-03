@@ -27,6 +27,9 @@ importers:
       '@eslint/eslintrc':
         specifier: 3.3.1
         version: 3.3.1
+      '@next/eslint-plugin-next':
+        specifier: 15.5.2
+        version: 15.5.2
       '@testing-library/jest-dom':
         specifier: 6.6.3
         version: 6.6.3
@@ -69,6 +72,9 @@ importers:
       eslint-plugin-promise:
         specifier: 7.2.1
         version: 7.2.1(eslint@9.36.0(jiti@2.6.1))
+      eslint-plugin-react-hooks:
+        specifier: 5.2.0
+        version: 5.2.0(eslint@9.36.0(jiti@2.6.1))
       jsdom:
         specifier: 25.0.1
         version: 25.0.1

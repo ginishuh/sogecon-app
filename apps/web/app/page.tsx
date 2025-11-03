@@ -2,9 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import React from 'react';
 import { HomeQuickActions } from '../components/home/quick-actions';
-import NoticePreview from '../components/home/notice-preview';
 import HomeHeroCarousel from '../components/home/hero-carousel';
-import AboutPromoCard from '../components/home/about-card';
 
 type HighlightCard = {
   href: Route;
@@ -50,19 +48,15 @@ export default function HomePage() {
     <div className="flex flex-col gap-16">
       {/* 접근성/SEO용 H1 — 시각적 타이포는 캡션으로 대체 */}
       <h1 className="sr-only">서강대 경제대학원 총동문회</h1>
-      <HomeHeroCarousel />
-
-      {/* SSOT: 홈 빠른 실행(3×2, 6개) */}
+      {/* 새 톤: 히어로(풀블리드) → 6개 메뉴 버튼 */}
+      <div className="full-bleed">
+        <HomeHeroCarousel />
+      </div>
       <HomeQuickActions />
 
-      {/* 소개 프로모 카드(단일) */}
-      <AboutPromoCard />
+      {/* 추가 섹션(About/공지/스냅숏)은 새 톤 기준에선 하단으로 이동하거나 별도 페이지에서 안내 */}
 
-      {/* SSOT: 공지사항 프리뷰 리스트 */}
-      {/* 시안 느낌(심플 리스트)만 적용, 콘텐츠는 SSOT 도메인(공지) */}
-      {/* 테스트에서는 네트워크를 호출하지 않고 폴백 데이터를 사용함 */}
-      {/* 실제 서버에서는 category=notice가 지원되면 해당 목록을 사용 */}
-      <NoticePreview />
+      {/* 공지 프리뷰는 제거됨(상단 단순화). 필요 시 별도 "소식" 페이지 참조 */}
 
       <section aria-labelledby="home-updates" className="flex flex-col gap-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

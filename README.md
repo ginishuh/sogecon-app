@@ -254,3 +254,32 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
 - VPS 에이전트 런북 (KR): `docs/agent_runbook_vps.md`
 - SSOT(품질/운영 규칙): `docs/agents_base.md`, `docs/agents_base_kr.md`
 - 상세 배포 문서: `ops/deploy_api.md`, `ops/deploy_web.md`
+
+---
+
+## 개발 컨테이너 산출물(root 소유 방지)
+
+개발용 Next 컨테이너(`web_dev`)가 바인드 마운트에 빌드 산출물을 쓰는 과정에서, 컨테이너가 root UID/GID로 동작하면 레포 안에 root 소유 파일이 생길 수 있습니다. 이 레포는 기본적으로 “컨테이너만 실행”해도, “호스트에서 실행”해도 root 소유물이 생기지 않도록 아래 방식을 사용합니다.
+
+- 컨테이너 사용자 매핑: 루트 `compose.yaml`의 `web_dev` 서비스는 `user: "${UID:-1000}:${GID:-1000}"`로 설정되어 호스트 사용자와 동일 UID/GID로 동작합니다. `scripts/compose-dev-up.sh`가 `UID/GID`를 자동 전달합니다.
+- pnpm/corepack 캐시: 컨테이너 내부 `HOME`을 `/tmp/devhome`으로 지정해 루트 홈 경로를 사용하지 않습니다.
+- 1회 복구 스크립트(옵션): 과거에 root 소유물이 남아 있다면 아래 스크립트로 소유권을 되돌릴 수 있습니다(호스트 sudo 불필요).
+  ```bash
+  ./scripts/fix-web-perms.sh  # node_modules/.next/.pnpm-store 등을 현재 계정으로 chown
+  ```
+
+권장 실행 흐름(컨테이너 전용)
+```bash
+./scripts/compose-dev-up.sh web_dev   # dev 프로필로 web_dev 기동(UID/GID 전달)
+open http://localhost:3000
+```
+
+호스트(dev)로 실행하고 싶을 때
+```bash
+corepack enable && pnpm -C apps/web install
+pnpm -C apps/web dev
+```
+
+문제 해결: 포트/권한 에러가 발생하면
+- 포트가 점유된 경우: `kill $(cat apps/web/.web-dev.pid) 2>/dev/null || true`
+- 권한 에러(EACCES 등): `./scripts/fix-web-perms.sh` 실행 후 다시 기동

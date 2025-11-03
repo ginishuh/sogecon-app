@@ -338,6 +338,44 @@ a:focus-visible { outline: none; text-decoration: underline; }
   .home-hero__caption { @apply absolute bottom-3 left-3 max-w-[88%] truncate rounded-lg bg-black/85 px-3 py-1.5 text-sm font-bold text-white md:text-base; }
 }
 
+/* Figma 프리뷰 전용 헤더 단순화 — 데스크톱에도 햄버거를 노출하고, 우측 내비/인증 영역은 감춤 */
+@layer components {
+  body.is-figma-preview .site-header__desktop-nav,
+  body.is-figma-preview .site-header__desktop-menus,
+  body.is-figma-preview .site-header__auth {
+    display: none !important;
+  }
+  body.is-figma-preview .site-header__hamburger {
+    display: inline-flex !important;
+  }
+}
+
+/* Figma 프리뷰 — 모바일 레이아웃 보정(히어로 풀블리드 + 3×2 빠른 실행) */
+@media (max-width: 767px) {
+  /* 히어로를 뷰포트 가로폭으로 확장(컨테이너 패딩 무시) */
+  body.is-figma-preview .home-hero--image-only {
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    border-radius: 0 !important;
+  }
+  body.is-figma-preview .home-hero__figure { border-radius: 0 !important; }
+  body.is-figma-preview .home-hero__caption {
+    left: 12px; right: 12px; bottom: 10px; border-radius: 8px;
+    max-width: none;
+  }
+
+  /* 빠른 실행: 좌우 여백 복원 + 3×2 간격 축소 */
+  body.is-figma-preview .home-quick-actions { padding-left: 1rem; padding-right: 1rem; }
+  body.is-figma-preview .home-quick-actions__grid { gap: 0.5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.is-figma-preview .home-quick-actions__item { border-radius: 1rem; padding-top: 0.75rem; padding-bottom: 0.75rem; }
+}
+
+/* 공용: full-bleed 컨테이너(메인 컨테이너 패딩/폭을 무시하고 뷰포트 끝까지 확장) */
+@layer components {
+  .full-bleed { margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); }
+  .full-bleed .home-hero--image-only, .full-bleed .home-hero__figure { border-radius: 0 !important; }
+}
+
 /* 홈: 히어로 캐러셀 */
 @layer components {
   .hero-carousel { @apply relative; }

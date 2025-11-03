@@ -555,3 +555,18 @@
   - 배포 스크립트에 `DOCKER_NETWORK` 지원 추가 및 CI deploy 워크플로 연동
   - README/.env 예시/런북/가이드에서 “PostgreSQL만 지원”으로 문구 통일
 - chore(make): 탭 인덴트 수정(info-venv, seed-data, ghcr-login, dev-containers) — 로컬 make 타깃 실행 오류 해결
+2025-11-03 web: 홈 레이아웃 전환(피그마 톤)
+- 헤더를 미니멀(로고+타이틀+햄버거)로 교체: `components/figma-header.tsx`, `components/header-gate.tsx`
+- 홈을 "히어로(풀블리드) → 6개 메뉴"로 단순화: `app/page.tsx`
+- full-bleed 유틸리티/프리뷰 CSS 정리: `app/globals.css`
+
+2025-11-03 dev: 컨테이너 산출물 root 소유 방지
+- compose: `web_dev.user: "${UID}:${GID}"` 설정, pnpm/corepack 캐시 HOME 격리
+- 스크립트: `scripts/compose-dev-up.sh`에 UID/GID 주입, `scripts/fix-web-perms.sh` 추가
+- 문서: README와 `docs/agent_runbook_wsl2.md`에 운영 지침/복구 절차 추가
+
+2025-11-03 web: 헤더 Drawer에 로그인 복구
+- `components/figma-header.tsx` Drawer 상단에 로그인 버튼(비로그인 시) 또는 세션 상태(`HeaderAuth`) 표시 추가
+
+2025-11-03 ci: deploy 워크플로 원격 클린업 env 전달 수정
+- `.github/workflows/deploy.yml`: SSH cleanup 단계에서 `IMAGE_PREFIX`/`KEEP_IMAGES`를 원격 환경에 전달하고 `set -u` 가드를 추가
