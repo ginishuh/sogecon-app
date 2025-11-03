@@ -454,6 +454,7 @@
 - refactor(web): nonce 생성 유틸 분리, 레이아웃 nonce 주입 보강 및 CSP 테스트/문서 업데이트 (#40)
 - fix(ci): create-waiver-issue 워크플로우에 push(main) 트리거 + noop job 추가 (#40)
 - fix(ci): deploy 워크플로우에서 GHCR_PAT 미설정 시 선행 검증, 원격 환경 변수 전송 시 쉘 이스케이프 강화, 서비스 경로 `/srv/sogecon-app` 반영 (#40)
+- fix(ci): create-waiver-issue 워크플로 env 값에 따옴표 추가 (YAML 파서 오류 예방)
 - docs: README, `docs/security_hardening.md`에 운영 CSP 가이드를 nonce 기반으로 갱신
 
 ## 2025-10-27 (CI-hotfix)
