@@ -17,6 +17,7 @@ IMAGE_PREFIX="${IMAGE_PREFIX_DEFAULT}"
 ENV_FILE=".env.api"
 WEB_ENV_FILE=".env.web"
 UPLOADS_DIR="/var/lib/segecon/uploads"
+NET_NAME=""
 DO_MIGRATE=1
 API_HEALTH=""
 WEB_HEALTH=""
@@ -34,6 +35,8 @@ while [[ $# -gt 0 ]]; do
       WEB_ENV_FILE="$2"; shift 2;;
     --uploads)
       UPLOADS_DIR="$2"; shift 2;;
+    --network)
+      NET_NAME="$2"; shift 2;;
     --skip-migrate)
       DO_MIGRATE=0; shift 1;;
     --api-health)
@@ -66,14 +69,20 @@ echo "[deploy] Pull images"
 docker pull "$API_IMAGE"
 docker pull "$WEB_IMAGE"
 
+if [[ -n "$NET_NAME" ]]; then
+  echo "[deploy] Ensure network: $NET_NAME"
+  docker network inspect "$NET_NAME" >/dev/null 2>&1 || docker network create "$NET_NAME"
+fi
+
 if [[ "$DO_MIGRATE" -eq 1 ]]; then
   echo "[deploy] Run DB migration"
-  ENV_FILE="$ENV_FILE" API_IMAGE="$API_IMAGE" bash "$ROOT_DIR/ops/cloud-migrate.sh"
+  ENV_FILE="$ENV_FILE" API_IMAGE="$API_IMAGE" DOCKER_NETWORK="$NET_NAME" bash "$ROOT_DIR/ops/cloud-migrate.sh"
 fi
 
 echo "[deploy] Restart containers"
 API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
   API_ENV_FILE="$ENV_FILE" WEB_ENV_FILE="$WEB_ENV_FILE" \
+  DOCKER_NETWORK="$NET_NAME" \
   UPLOADS_DIR="$UPLOADS_DIR" \
   bash "$ROOT_DIR/ops/cloud-start.sh"
 

@@ -35,6 +35,7 @@ jobs:
     env:
       IMAGE_PREFIX: ghcr.io/${{ github.repository }}
       TAG: ${{ github.event.inputs.tag }}
+      DOCKER_NETWORK: ${{ vars.DOCKER_NETWORK }}
       # For health checks (set these as Environment Variables)
       SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
       API_BASE: ${{ vars.NEXT_PUBLIC_WEB_API_BASE }}
@@ -81,12 +82,14 @@ jobs:
           API_HEALTH: ${{ steps.health.outputs.api_health }}
           WEB_HEALTH: ${{ steps.health.outputs.site_url }}
           SKIP_MIGRATE: ${{ github.event.inputs.skip_migrate }}
+          DOCKER_NETWORK: ${{ env.DOCKER_NETWORK }}
+          DEPLOY_ENV: ${{ github.event.inputs.environment }}
         run: |
           set -euo pipefail
           : "${SSH_PORT:=22}"
           GHCR_PAT=${GHCR_PAT:-}
           if [ -z "$GHCR_PAT" ]; then
-            echo "[deploy] GHCR_PAT secret is required (GitHub Environment: ${{ github.event.inputs.environment }})" >&2
+            echo "[deploy] GHCR_PAT secret is required (GitHub Environment: ${DEPLOY_ENV})" >&2
             exit 1
           fi
 
@@ -99,6 +102,7 @@ jobs:
           printf -v API_HEALTH_ESC '%q' "$API_HEALTH"
           printf -v WEB_HEALTH_ESC '%q' "$WEB_HEALTH_CLEAN"
           printf -v SKIP_MIGRATE_ESC '%q' "$SKIP_MIGRATE"
+          printf -v DOCKER_NETWORK_ESC '%q' "${DOCKER_NETWORK:-}"
 
           ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" bash -s <<EOF
           set -euo pipefail
@@ -109,6 +113,7 @@ jobs:
           API_HEALTH=$API_HEALTH_ESC
           WEB_HEALTH=$WEB_HEALTH_ESC
           SKIP_MIGRATE=$SKIP_MIGRATE_ESC
+          DOCKER_NETWORK_INNER=$DOCKER_NETWORK_ESC
 
           echo "\$GHCR_PAT_INNER" | docker login ghcr.io -u "\$GITHUB_ACTOR_INNER" --password-stdin
           cd /srv/sogecon-app
@@ -116,8 +121,12 @@ jobs:
           docker pull "\$IMAGE_PREFIX/alumni-api:\$TAG"
           docker pull "\$IMAGE_PREFIX/alumni-web:\$TAG"
 
+          if [ -n "\$DOCKER_NETWORK_INNER" ]; then
+            docker network inspect "\$DOCKER_NETWORK_INNER" >/dev/null 2>&1 || docker network create "\$DOCKER_NETWORK_INNER"
+          fi
+
           if [ "\$SKIP_MIGRATE" != "true" ]; then
-            API_IMAGE="\$IMAGE_PREFIX/alumni-api:\$TAG" ENV_FILE=.env.api \
+            API_IMAGE="\$IMAGE_PREFIX/alumni-api:\$TAG" ENV_FILE=.env.api DOCKER_NETWORK="\$DOCKER_NETWORK_INNER" \
               bash ./ops/cloud-migrate.sh
           else
             echo "[deploy] Skip migrate"
@@ -125,6 +134,7 @@ jobs:
 
           API_IMAGE="\$IMAGE_PREFIX/alumni-api:\$TAG" \
           WEB_IMAGE="\$IMAGE_PREFIX/alumni-web:\$TAG" \
+          DOCKER_NETWORK="\$DOCKER_NETWORK_INNER" \
           API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
           bash ./ops/cloud-start.sh
 

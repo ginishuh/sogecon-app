@@ -538,3 +538,11 @@
 - 형식: `YYYY-MM-DD type(scope): subject — PR #NN[, refs #issue]`
 - 길이: 80~120자. 동사 현재형. 불필요한 문장부호/세부 배경 금지.
 - 예시: `2025-11-03 fix(web): Next 런타임 패키징(pnpm 고정) — PR #39`
+## 2025-11-03
+
+- ops/api/docs: PostgreSQL 전용 정책 강제 및 네트워크 안정화
+  - API 설정(`apps/api/config.py`)에서 `postgresql+psycopg://` 강제 검증 추가, 기본값을 dev Postgres(5433)로 변경
+  - Alembic 기본 URL을 Postgres로 변경(`apps/api/alembic.ini`)
+  - SQLite 분기/의존 제거(`apps/api/db.py`, 테스트 픽스처 PG 전용화)
+  - 배포 스크립트에 `DOCKER_NETWORK` 지원 추가 및 CI deploy 워크플로 연동
+  - README/.env 예시/런북/가이드에서 “PostgreSQL만 지원”으로 문구 통일

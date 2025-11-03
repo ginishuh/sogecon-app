@@ -6,7 +6,7 @@
 > - Update (2025‑10‑08): Plan‑only PRs are prohibited; if a PR includes a plan document, the same PR must implement its full scope before Ready for Review/merge. See `docs/agents_base.md` → “Planning Docs in PRs”.
 > - 본 문서는 보조 안내이며 SSOT가 아닙니다. 규칙 변경은 베이스에서 먼저 진행하세요.
 
-Context: Monorepo for Sogang GS Economics Alumni app. This guide includes the English base content inline so it is self‑contained for agents. Frontend: Next.js App Router (TypeScript, Tailwind, PWA/Web Push). Backend: FastAPI + SQLAlchemy + Alembic. Local DB defaults to SQLite; Postgres via docker-compose for dev. See [`docs/architecture.md`](../docs/architecture.md) for the consolidated technical design (Korean).
+Context: Monorepo for Sogang GS Economics Alumni app. This guide includes the English base content inline so it is self‑contained for agents. Frontend: Next.js App Router (TypeScript, Tailwind, PWA/Web Push). Backend: FastAPI + SQLAlchemy + Alembic. Database is PostgreSQL only (local dev via docker-compose). See [`docs/architecture.md`](../docs/architecture.md) for the consolidated technical design (Korean).
 
 Language and Communication (base, verbatim)
 - Primary language: Korean for internal docs and code comments.
@@ -108,7 +108,7 @@ Architecture and data flow
 - packages/schemas: Generates TypeScript DTOs from OpenAPI (run via `make schema-gen`).
 
 Backend conventions (FastAPI/SQLAlchemy/Pydantic)
-- Settings come from environment with aliases: `DATABASE_URL`, `APP_ENV`, `JWT_SECRET`, `CORS_ORIGINS` (`apps/api/config.py`). Default DB is `sqlite:///./dev.sqlite3`.
+- Settings come from environment with aliases: `DATABASE_URL`, `APP_ENV`, `JWT_SECRET`, `CORS_ORIGINS` (`apps/api/config.py`). Database must use `postgresql+psycopg://`.
 - DB session is provided via `Depends(get_db)` from `apps/api/db.py` (sessionmaker with `future=True`).
 - SQLAlchemy models live in `apps/api/models.py`. Pydantic schemas in `apps/api/schemas.py`. Always convert ORM to Pydantic with `ModelRead.model_validate(orm_obj)` in routers (see `members.list_members`).
 - Enums: use `models.RSVPStatus(payload.status)` when setting enum fields (see `events.create_rsvp`).
@@ -121,7 +121,7 @@ Frontend conventions (Next.js)
 - PWA/Web Push: `app/sw-register.tsx` registers `/sw.js` from `public/`. Follow `docs/pwa_push.md` for subscription/notification flow.
 
 Developer workflows (local)
-- DB: `make db-up` to start Postgres via `infra/docker-compose.dev.yml` (optional; SQLite works by default). `make db-down` to stop.
+- DB: `make db-up` to start Postgres via `infra/docker-compose.dev.yml` (required). `make db-down` to stop.
 - API: create venv, install `apps/api/requirements*.txt`, run `make api-dev` (uvicorn on 3001). Apply migrations: `alembic -c apps/api/alembic.ini upgrade head`.
 - Web: `corepack enable && pnpm -C apps/web install`, then `make web-dev` (Next.js on 3000).
 - Schemas: `make schema-gen` to regenerate TS types from OpenAPI (requires API reachable).

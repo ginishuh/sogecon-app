@@ -216,7 +216,7 @@ Activate custom git hooks with: `git config core.hooksPath .githooks`
 - Never commit secrets or production credentials
 - Use `.env` files (not committed) for local configuration
 - Report security issues to `security@trr.co.kr` per SECURITY.md
-- Default development uses SQLite, production uses PostgreSQL
+- Database: PostgreSQL only (local dev via docker-compose)
 
 ## Testing Strategy
 

@@ -157,6 +157,6 @@ Do NOT disable linters or type checkers globally or per file.
 
 ## Security & Configuration Tips
 - Do not commit `.env`; keep the example file updated instead.
-- Default database is SQLite (`sqlite:///./dev.sqlite3`); PostgreSQL follows `infra/docker-compose.dev.yml`.
+ - Database: PostgreSQL only. Use `infra/docker-compose.dev.yml` for local dev (port 5433/5434).
 - Report security issues to `security@trr.co.kr` per `SECURITY.md` guidance.
  - See `docs/security_hardening.md` for security headers, SAST/Dependency audit, and CI policy.

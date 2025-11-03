@@ -19,33 +19,29 @@ from apps.api.main import app
 
 @pytest.fixture()
 def client(tmp_path: Path) -> Generator[TestClient, None, None]:
-    # 테스트 DB 선택: 기본은 SQLite, TEST_DB=pg이면 TEST_DB_URL/DATABASE_URL 사용
-    test_db = os.environ.get("TEST_DB", "sqlite").lower()
-    engine_url: str
-    engine_kwargs: dict = {"future": True}
+    # 테스트 DB: PostgreSQL만 허용. 기본은 로컬 5434(appdb_test)
+    test_db = os.environ.get("TEST_DB", "pg").lower()
+    if test_db != "pg":
+        raise RuntimeError("Tests require PostgreSQL. Set TEST_DB=pg.")
 
-    if test_db == "pg":
-        candidate = os.environ.get("TEST_DB_URL") or os.environ.get("DATABASE_URL")
-        if not candidate or not candidate.startswith("postgresql"):
-            # 안전 폴백: 설정이 없으면 SQLite 사용
-            db_path = tmp_path / "test.sqlite3"
-            engine_url = f"sqlite:///{db_path}"
-            engine_kwargs["connect_args"] = {"check_same_thread": False}
-        else:
-            url = make_url(candidate)
-            db_name = (url.database or "").lower()
-            if "test" not in db_name and os.environ.get("TEST_DB_FORCE") != "1":
-                msg = (
-                    "Refusing to run tests on non-test database. "
-                    "Use TEST_DB_URL pointing to a dedicated DB (name contains 'test') "
-                    "or set TEST_DB_FORCE=1."
-                )
-                raise RuntimeError(msg)
-            engine_url = candidate
-    else:
-        db_path = tmp_path / "test.sqlite3"
-        engine_url = f"sqlite:///{db_path}"
-        engine_kwargs["connect_args"] = {"check_same_thread": False}
+    engine_kwargs: dict = {"future": True}
+    candidate = os.environ.get("TEST_DB_URL") or os.environ.get("DATABASE_URL")
+    if not candidate:
+        candidate = "postgresql+psycopg://app:devpass@localhost:5434/appdb_test"
+
+    if not candidate.lower().startswith("postgresql+psycopg://"):
+        raise RuntimeError("TEST_DB_URL/DATABASE_URL must be postgresql+psycopg:// ...")
+
+    url = make_url(candidate)
+    db_name = (url.database or "").lower()
+    if "test" not in db_name and os.environ.get("TEST_DB_FORCE") != "1":
+        msg = (
+            "Refusing to run tests on non-test database. "
+            "Use TEST_DB_URL pointing to a dedicated DB (name contains 'test') "
+            "or set TEST_DB_FORCE=1."
+        )
+        raise RuntimeError(msg)
+    engine_url = candidate
 
     engine = create_engine(engine_url, **engine_kwargs)
     TestingSessionLocal = sessionmaker(

@@ -40,6 +40,20 @@ jobs:
     needs: repo-guards
     if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: appdb_test
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: devpass
+        ports:
+          - "5434:5432"
+        options: >-
+          --health-cmd="pg_isready -U app -d appdb_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -57,9 +71,20 @@ jobs:
       - name: Pytest collect guard
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
+          TEST_DB: pg
+          TEST_DB_URL: postgresql+psycopg://app:devpass@localhost:5434/appdb_test
         run: python ops/ci/pytest_guard.py
       - name: Run tests
-        run: pytest -q
+        env:
+          TEST_DB: pg
+          TEST_DB_URL: postgresql+psycopg://app:devpass@localhost:5434/appdb_test
+        run: |
+          echo "[ci] wait for Postgres (localhost:5434/appdb_test)"
+          for i in {1..30}; do
+            (echo > /dev/tcp/127.0.0.1/5434) >/dev/null 2>&1 && break || true
+            sleep 1
+          done
+          pytest -q
       - name: Security scan (bandit)
         run: bandit -r apps/api -x apps/api/migrations -q
       - name: Dependency audit (pip-audit)

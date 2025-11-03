@@ -61,7 +61,7 @@ docs/      # 아키텍처/버전/보안/작업로그 문서
 cp .env.example .env
 ```
 
-1) 데이터베이스(선택: Postgres 컨테이너 또는 SQLite)
+1) 데이터베이스(PostgreSQL 필수)
 ```bash
 make db-up  # docker compose -f infra/docker-compose.dev.yml up -d
 ```
@@ -92,7 +92,8 @@ make schema-gen
 ## 환경 변수 가이드(로컬/서버)
 - 로컬 개발(API)
   - 루트 `.env`를 자동 로드합니다(`apps/api/config.py`).
-  - `DATABASE_URL` 기본은 개발용 Postgres(`postgresql+psycopg://...:5433/...`), 선택적으로 SQLite(`sqlite:///./dev.sqlite3`).
+  - `DATABASE_URL` 기본은 개발용 Postgres(`postgresql+psycopg://...:5433/...`).
+  - 강제 정책: SQLite 등 비-PostgreSQL 백엔드는 지원하지 않습니다.
   - CORS: `CORS_ORIGINS`는 JSON 배열 문자열(예: `["http://localhost:3000"]`).
 - 웹(Next.js)
   - `NEXT_PUBLIC_*`는 “빌드타임 고정”입니다. 값 변경 시 반드시 재빌드가 필요합니다.
@@ -183,7 +184,11 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
   - 네트워크: `segecon_net`
   - DB 컨테이너: `sogecon-db` (Postgres 16, 내부 네트워크 전용)
   - 예시 연결: `postgresql+psycopg://<user>:<pass>@sogecon-db:5432/<db>?sslmode=disable`
-  - Alembic는 `ops/cloud-migrate.sh`로 동일 네트워크에서 실행하세요(`--network segecon_net`).
+  - Alembic는 `ops/cloud-migrate.sh`를 DB 컨테이너와 동일 네트워크에서 실행하세요.
+    예시:
+    ```bash
+    DOCKER_NETWORK=segecon_net ./ops/cloud-migrate.sh
+    ```
 
 ### VPS 에이전트를 위한 바로가기
 - VPS Agent Runbook (EN): `docs/agent_runbook_vps_en.md`

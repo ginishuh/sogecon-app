@@ -29,7 +29,7 @@ sudo chown 1000:1000 /var/lib/segecon/uploads
    - The workflow SSHes into the VPS and runs: pull → migrate → restart → health checks
 
 GitHub Environment `prod` (suggested)
-- Variables: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_WEB_API_BASE`, and other `NEXT_PUBLIC_*` as needed.
+- Variables: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_WEB_API_BASE`, and other `NEXT_PUBLIC_*` as needed. (Recommended) `DOCKER_NETWORK` (e.g., `segecon_net`).
 - Secrets: `SSH_HOST`, `SSH_USER`, `SSH_KEY`, optional `SSH_PORT`, `GHCR_PAT` (read:packages)
 
 ## 3) Deploy path B — manual on the server
@@ -43,13 +43,15 @@ docker pull $PREFIX/alumni-api:$TAG
 docker pull $PREFIX/alumni-web:$TAG
 
 # 2) DB migration (when schema changed)
-API_IMAGE=$PREFIX/alumni-api:$TAG ENV_FILE=.env.api \
+docker network inspect segecon_net >/dev/null 2>&1 || docker network create segecon_net
+API_IMAGE=$PREFIX/alumni-api:$TAG ENV_FILE=.env.api DOCKER_NETWORK=segecon_net \
   bash ./ops/cloud-migrate.sh
 
 # 3) Restart services
 API_IMAGE=$PREFIX/alumni-api:$TAG \
 WEB_IMAGE=$PREFIX/alumni-web:$TAG \
 API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+DOCKER_NETWORK=segecon_net \
   bash ./ops/cloud-start.sh
 
 # 4) Health checks
