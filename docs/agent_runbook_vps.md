@@ -31,7 +31,7 @@ sudo chown 1000:1000 /var/lib/segecon/uploads
    - 워크플로가 VPS에 SSH 접속 후 `pull → migrate → restart → health` 순서로 실행
 
 필요한 GitHub 설정(Environments: `prod`)
-- Variables(vars): `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_WEB_API_BASE`, 필요 시 `NEXT_PUBLIC_*`
+- Variables(vars): `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_WEB_API_BASE`, 필요 시 `NEXT_PUBLIC_*`, (권장) `DOCKER_NETWORK`(예: `segecon_net`)
 - Secrets: `SSH_HOST`, `SSH_USER`, `SSH_KEY`, (옵션) `SSH_PORT`, `GHCR_PAT`(read:packages)
 
 ## 3) 배포 경로 B — 서버에서 직접 배포(수동)
@@ -45,13 +45,15 @@ docker pull $PREFIX/alumni-api:$TAG
 docker pull $PREFIX/alumni-web:$TAG
 
 # 2) DB 마이그레이션(스키마 변경이 있을 때)
-API_IMAGE=$PREFIX/alumni-api:$TAG ENV_FILE=.env.api \
+docker network inspect segecon_net >/dev/null 2>&1 || docker network create segecon_net
+API_IMAGE=$PREFIX/alumni-api:$TAG ENV_FILE=.env.api DOCKER_NETWORK=segecon_net \
   bash ./ops/cloud-migrate.sh
 
 # 3) 서비스 재시작
 API_IMAGE=$PREFIX/alumni-api:$TAG \
 WEB_IMAGE=$PREFIX/alumni-web:$TAG \
 API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+DOCKER_NETWORK=segecon_net \
   bash ./ops/cloud-start.sh
 
 # 4) 헬스체크

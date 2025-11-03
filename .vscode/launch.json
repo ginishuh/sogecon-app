@@ -5,7 +5,7 @@
   "configurations": [
   
     {
-      "name": "API: FastAPI (SQLite dev)",
+      "name": "API: FastAPI (Postgres local)",
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
@@ -18,8 +18,10 @@
         "--reload"
       ],
       "env": {
-        "DATABASE_URL": "sqlite:///./dev.sqlite3"
+        "DATABASE_URL": "postgresql+psycopg://app:devpass@localhost:5433/appdb"
       },
+      "preLaunchTask": "DB: Up",
+      "postDebugTask": "DB: Down",
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": true
@@ -74,8 +76,8 @@
   ],
   "compounds": [
     {
-      "name": "Dev: API(SQLite) + Web",
-      "configurations": ["API: FastAPI (SQLite dev)", "Web: Next.js dev (pnpm)"]
+      "name": "Dev: API(Postgres local) + Web",
+      "configurations": ["API: FastAPI (Postgres local)", "Web: Next.js dev (pnpm)"]
     },
     {
       "name": "Dev: API(Postgres) + Web",

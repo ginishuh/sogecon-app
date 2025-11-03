@@ -11,7 +11,12 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    database_url: str = Field(default="sqlite:///./dev.sqlite3", alias="DATABASE_URL")
+    # 데이터베이스: 무조건 PostgreSQL(psycopg 드라이버)만 지원
+    # 개발 기본값은 docker-compose.dev.yml의 포트 5433 기준
+    database_url: str = Field(
+        default="postgresql+psycopg://app:devpass@localhost:5433/appdb",
+        alias="DATABASE_URL",
+    )
     app_env: str = Field(default="dev", alias="APP_ENV")
     release: str = Field(default="", alias="RELEASE")
     jwt_secret: str = Field(default="change-me", alias="JWT_SECRET")
@@ -102,6 +107,22 @@ class Settings(BaseSettings):
                     f"{MIN_LEN}+ chars) and not a placeholder"
                 )
                 raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def _enforce_postgres_only(self) -> "Settings":
+        """SQLite 등 비-PostgreSQL 백엔드를 금지한다.
+
+        운영/개발 공통 정책: 연결 문자열은 반드시
+        `postgresql+psycopg://` 스킴을 사용해야 한다.
+        """
+        url = (self.database_url or "").strip()
+        required_prefix = "postgresql+psycopg://"
+        if not url.lower().startswith(required_prefix):
+            raise ValueError(
+                "DATABASE_URL must use PostgreSQL (psycopg) — e.g., "
+                "postgresql+psycopg://USER:PASS@HOST:5432/DB"
+            )
         return self
 
 
