@@ -161,6 +161,48 @@ jobs:
           echo "[deploy] OK"
           EOF
 
+      - name: SSH cleanup images (always)
+        if: always()
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
+          TAG: ${{ env.TAG }}
+          KEEP_IMAGES: ${{ vars.KEEP_IMAGES }}
+        run: |
+          set -euo pipefail
+          : "${SSH_PORT:=22}"
+          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" bash -s << 'EOF'
+          set -euo pipefail
+          KEEP="${KEEP_IMAGES:-8}"
+          API_REPO="$IMAGE_PREFIX/alumni-api"
+          WEB_REPO="$IMAGE_PREFIX/alumni-web"
+          CURRENT_API=$(docker inspect -f '{{.Config.Image}}' alumni-api 2>/dev/null || true)
+          CURRENT_WEB=$(docker inspect -f '{{.Config.Image}}' alumni-web 2>/dev/null || true)
+
+          cleanup_repo() {
+            local repo="$1"; local keep="$2"; shift 2 || true
+            mapfile -t imgs < <(docker image ls "$repo" --format '{{.Repository}}:{{.Tag}}' | grep -v '<none>' || true)
+            if [ "${#imgs[@]}" -le "$keep" ]; then return 0; fi
+            for img in "${imgs[@]:$keep}"; do
+              if [ "$img" = "$CURRENT_API" ] || [ "$img" = "$CURRENT_WEB" ]; then
+                echo "[cleanup] skip in-use: $img"; continue
+              fi
+              echo "[cleanup] remove: $img"
+              docker image rm -f "$img" || true
+            done
+          }
+
+          echo "[cleanup] keep last $KEEP images per repo (excluding running)"
+          cleanup_repo "$API_REPO" "$KEEP"
+          cleanup_repo "$WEB_REPO" "$KEEP"
+
+          # remove dangling layers older than one week
+          docker image prune -af --filter until=168h || true
+          EOF
+
       - name: Summary
         env:
           DEPLOY_ENV: ${{ github.event.inputs.environment }}
