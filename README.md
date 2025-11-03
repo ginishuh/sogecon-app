@@ -91,19 +91,15 @@ make schema-gen
 
 ### 초간단: Docker Compose로 한 번에(스크립트/Make 없이) ![DEV ONLY](https://img.shields.io/badge/DEV-ONLY-orange)
 
-아무것도 설치하지 않고 컨테이너만으로 로컬 개발을 올리려면:
+로컬에서 컨테이너만으로 개발 환경을 올리려면(루트 `compose.yaml` 사용):
 
 ```
-# 가드 스크립트(운영 서버에서 오작동 방지)
-./scripts/compose-dev-up.sh
-
-# 또는 직접 실행(로컬 전용)
 docker compose --profile dev up -d
 ```
 
 - Web: http://localhost:3000, API: http://localhost:3001/healthz (모두 127.0.0.1 바인딩)
-- dev 프로필 전용이며, 운영 서버에서는 실행하지 마세요.
-- 컨테이너는 `restart: unless-stopped`로 설정되어 Docker 재시작 시 자동 복구됩니다.
+- dev 프로필 전용입니다(운영 서버에서 실행 금지).
+- 컨테이너는 `restart: unless-stopped`로 Docker 재시작 시 자동 복구됩니다.
 
 ## 환경 변수 가이드(로컬/서버)
 - 로컬 개발(API)

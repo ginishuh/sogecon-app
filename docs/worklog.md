@@ -460,8 +460,9 @@
 - docs: `docs/agent_runbook_wsl2.md` 추가 — 로컬 배포 미러링 가이드
 - infra: `infra/docker-compose.app.dev.yml` 추가 — `api_dev`(uvicorn --reload) + `web_dev`(pnpm dev) 컨테이너로 핫리로드 개발 지원
 - ops(make): `dev-containers-up|down|logs` 타깃 추가 — 컨테이너 기반 개발 편의
-- compose: 루트 `compose.yaml` 추가 — `docker compose up -d` 한 번으로 Postgres+API+Web 기동(스크립트/Make 불필요). `restart: unless-stopped` 기본값으로 자동 재기동
+ - compose: 루트 `compose.yaml` 추가 — `docker compose up -d` 한 번으로 Postgres+API+Web 기동(스크립트/Make 불필요). `restart: unless-stopped` 기본값으로 자동 재기동
 - cleanup: 자동기동 스크립트(`scripts/auto-up.sh`), direnv(`.envrc`), git hooks(`.githooks/post-merge`, `post-checkout`) 제거 — Compose 단일 진입점으로 단순화
+ - ops(compose): dev 프로필/127.0.0.1 바인딩 확정, README 실행 예시를 `docker compose --profile dev up -d`로 단순화 (#40)
 
 ## 2025-10-27 (CI-hotfix)
 - ci(lighthouse): NO_FCP 완화(프리웜, headless/new+window-size) 및 github-script `core` 재선언 오류 수정. CI 전용 `NEXT_PUBLIC_WEB_API_BASE=http://localhost:3000` 지정으로 미기동 API 대기 제거. (PR #30)
