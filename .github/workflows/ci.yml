@@ -81,7 +81,7 @@ jobs:
         run: |
           echo "[ci] wait for Postgres (localhost:5434/appdb_test)"
           for i in {1..30}; do
-            pg_isready -h localhost -p 5434 -U app -d appdb_test >/dev/null 2>&1 && break
+            (echo > /dev/tcp/127.0.0.1/5434) >/dev/null 2>&1 && break || true
             sleep 1
           done
           pytest -q
