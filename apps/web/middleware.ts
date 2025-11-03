@@ -1,23 +1,43 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-// Dev-only lightweight logger to surface RSC "flight" requests in server logs.
-// Helps when Network tab doesn't show the failing request (e.g., due to SW or filters).
+import { buildCspDirective } from './lib/csp';
+import { generateNonce } from './lib/nonce';
+
+const isProd = process.env.NODE_ENV === 'production';
+const relaxCsp = !isProd || process.env.NEXT_PUBLIC_RELAX_CSP === '1';
+const analyticsId = process.env.NEXT_PUBLIC_ANALYTICS_ID;
+const apiBase = process.env.NEXT_PUBLIC_WEB_API_BASE;
+
+// 개발 시 RSC Flight 요청을 로그에서 구분하기 위한 헤더를 유지한다.
 export function middleware(req: NextRequest) {
-  if (process.env.NODE_ENV !== 'production') {
+  const requestHeaders = new Headers(req.headers);
+  const nonce = generateNonce();
+  requestHeaders.set('x-nonce', nonce);
+
+  if (!isProd) {
     const url = req.nextUrl;
     const isFlight = url.searchParams.has('__flight__');
     const accept = req.headers.get('accept') || '';
     if (isFlight || accept.includes('text/x-component')) {
-      const headers = new Headers(req.headers);
-      headers.set('x-rsc-flight', '1');
-      return NextResponse.next({ request: { headers } });
+      requestHeaders.set('x-rsc-flight', '1');
     }
   }
-  return NextResponse.next();
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set(
+    'Content-Security-Policy',
+    buildCspDirective({
+      nonce,
+      relaxCsp,
+      analyticsId,
+      apiBase,
+    }),
+  );
+  return response;
 }
 
-// Exclude static assets to reduce noise
+// 정적 자산은 제외해 불필요한 헤더 계산을 줄인다.
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js).*)'],
 };

@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
+import { headers as nextHeaders } from 'next/headers';
 import type { ReactNode } from 'react';
 
 import { ServiceWorkerRegister } from './sw-register';
@@ -71,11 +72,14 @@ export const viewport: Viewport = {
   viewportFit: 'cover'
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: {
   children: ReactNode;
 }) {
+  const headersList = await nextHeaders();
+  const nonce = headersList.get('x-nonce') ?? undefined;
+
   return (
     <html lang="ko" className={`${fontSans.variable} ${fontMenu.variable} ${fontKoPubDotum.variable} antialiased`}>
       <body>
@@ -85,7 +89,7 @@ export default function RootLayout({
         {/* CI/운영 안정화를 위해 SW는 명시적 플래그가 있을 때만 등록 */}
         {process.env.NEXT_PUBLIC_ENABLE_SW === '1' ? <ServiceWorkerRegister /> : null}
         <Providers>
-          <Analytics />
+          <Analytics nonce={nonce} />
           <WebVitalsReporter />
           <HeaderGate />
           <main id="main-content" role="main" tabIndex={-1}>

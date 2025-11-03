@@ -21,6 +21,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: deploy-${{ github.event.inputs.environment }}
@@ -85,47 +86,63 @@ jobs:
         run: |
           set -euo pipefail
           : "${SSH_PORT:=22}"
-          : "${GHCR_PAT:?GHCR_PAT secret required for remote GHCR login}"
-          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" bash -s << EOF
-          set -euo pipefail
-          IMAGE_PREFIX="$IMAGE_PREFIX"
-          TAG="$TAG"
-          GHCR_PAT_INNER="$GHCR_PAT"
-          GITHUB_ACTOR_INNER="$GITHUB_ACTOR"
-          API_HEALTH="$API_HEALTH"
-          WEB_HEALTH="${WEB_HEALTH%/}/"
-          SKIP_MIGRATE="$SKIP_MIGRATE"
-          DOCKER_NETWORK_INNER="${DOCKER_NETWORK:-}"
-
-          echo "$GHCR_PAT_INNER" | docker login ghcr.io -u "$GITHUB_ACTOR_INNER" --password-stdin
-          cd /srv/segecon
-          echo "[deploy] Pulling images..."
-          docker pull "$IMAGE_PREFIX/alumni-api:$TAG"
-          docker pull "$IMAGE_PREFIX/alumni-web:$TAG"
-
-          if [ -n "$DOCKER_NETWORK_INNER" ]; then
-            docker network inspect "$DOCKER_NETWORK_INNER" >/dev/null 2>&1 || docker network create "$DOCKER_NETWORK_INNER"
+          GHCR_PAT=${GHCR_PAT:-}
+          if [ -z "$GHCR_PAT" ]; then
+            echo "[deploy] GHCR_PAT secret is required (GitHub Environment: ${{ github.event.inputs.environment }})" >&2
+            exit 1
           fi
 
-          if [ "$SKIP_MIGRATE" != "true" ]; then
-            API_IMAGE="$IMAGE_PREFIX/alumni-api:$TAG" ENV_FILE=.env.api DOCKER_NETWORK="$DOCKER_NETWORK_INNER" \
+          WEB_HEALTH_CLEAN="${WEB_HEALTH%/}/"
+
+          printf -v IMAGE_PREFIX_ESC '%q' "$IMAGE_PREFIX"
+          printf -v TAG_ESC '%q' "$TAG"
+          printf -v GHCR_PAT_ESC '%q' "$GHCR_PAT"
+          printf -v GITHUB_ACTOR_ESC '%q' "$GITHUB_ACTOR"
+          printf -v API_HEALTH_ESC '%q' "$API_HEALTH"
+          printf -v WEB_HEALTH_ESC '%q' "$WEB_HEALTH_CLEAN"
+          printf -v SKIP_MIGRATE_ESC '%q' "$SKIP_MIGRATE"
+          printf -v DOCKER_NETWORK_ESC '%q' "${DOCKER_NETWORK:-}"
+
+          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" bash -s <<EOF
+          set -euo pipefail
+          IMAGE_PREFIX=$IMAGE_PREFIX_ESC
+          TAG=$TAG_ESC
+          GHCR_PAT_INNER=$GHCR_PAT_ESC
+          GITHUB_ACTOR_INNER=$GITHUB_ACTOR_ESC
+          API_HEALTH=$API_HEALTH_ESC
+          WEB_HEALTH=$WEB_HEALTH_ESC
+          SKIP_MIGRATE=$SKIP_MIGRATE_ESC
+          DOCKER_NETWORK_INNER=$DOCKER_NETWORK_ESC
+
+          echo "\$GHCR_PAT_INNER" | docker login ghcr.io -u "\$GITHUB_ACTOR_INNER" --password-stdin
+          cd /srv/sogecon-app
+          echo "[deploy] Pulling images..."
+          docker pull "\$IMAGE_PREFIX/alumni-api:\$TAG"
+          docker pull "\$IMAGE_PREFIX/alumni-web:\$TAG"
+
+          if [ -n "\$DOCKER_NETWORK_INNER" ]; then
+            docker network inspect "\$DOCKER_NETWORK_INNER" >/dev/null 2>&1 || docker network create "\$DOCKER_NETWORK_INNER"
+          fi
+
+          if [ "\$SKIP_MIGRATE" != "true" ]; then
+            API_IMAGE="\$IMAGE_PREFIX/alumni-api:\$TAG" ENV_FILE=.env.api DOCKER_NETWORK="\$DOCKER_NETWORK_INNER" \
               bash ./ops/cloud-migrate.sh
           else
             echo "[deploy] Skip migrate"
           fi
 
-          API_IMAGE="$IMAGE_PREFIX/alumni-api:$TAG" \
-          WEB_IMAGE="$IMAGE_PREFIX/alumni-web:$TAG" \
-          DOCKER_NETWORK="$DOCKER_NETWORK_INNER" \
+          API_IMAGE="\$IMAGE_PREFIX/alumni-api:\$TAG" \
+          WEB_IMAGE="\$IMAGE_PREFIX/alumni-web:\$TAG" \
+          DOCKER_NETWORK="\$DOCKER_NETWORK_INNER" \
           API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
           bash ./ops/cloud-start.sh
 
           echo "[deploy] Health checks"
-          if [ -n "$API_HEALTH" ]; then
-            curl -fsS -o /dev/null "$API_HEALTH" || { echo "API health failed"; exit 1; }
+          if [ -n "\$API_HEALTH" ]; then
+            curl -fsS -o /dev/null "\$API_HEALTH" || { echo "API health failed"; exit 1; }
           fi
-          if [ -n "$WEB_HEALTH" ]; then
-            curl -fsS -o /dev/null "$WEB_HEALTH" || { echo "WEB health failed"; exit 1; }
+          if [ -n "\$WEB_HEALTH" ]; then
+            curl -fsS -o /dev/null "\$WEB_HEALTH" || { echo "WEB health failed"; exit 1; }
           fi
           echo "[deploy] OK"
           EOF

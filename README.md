@@ -169,17 +169,15 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
 - 리버스 프록시: Nginx 예시는 `ops/nginx-examples/` 참고(127.0.0.1:3000/3001로 프록시, TLS는 Nginx에서 처리).
 
 ### 보안 헤더/CSP 주의
-- 기본 정책: `apps/web/next.config.js`에서 `Content-Security-Policy`를 설정합니다. 기본값은 `script-src 'self'`로 인라인 스크립트가 차단됩니다.
-- 테스트 임시 완화(선택): 외부 테스트 중 HMR/프리뷰·런타임 초기 스니펫 때문에 막힐 경우, Nginx에서 응답 CSP를 일시 완화할 수 있습니다.
-  - 예시(임시):
-    ```nginx
-    location / {
-      proxy_pass http://127.0.0.1:3000;
-      proxy_hide_header Content-Security-Policy;
-      add_header Content-Security-Policy "default-src 'self'; img-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: wss:; font-src 'self' data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'" always;
-    }
-    ```
-  - 운영 전환 시에는 반드시 nonce/hash 기반 CSP로 되돌리십시오. Nginx 완화는 제거해야 합니다.
+- 운영 기본: `apps/web/middleware.ts`에서 요청마다 nonce를 생성하고 `Content-Security-Policy` 헤더를 주입합니다. 프로덕션(`NODE_ENV=production` 및 `NEXT_PUBLIC_RELAX_CSP` 미설정)에서는 `script-src 'self' 'nonce-<...>' https://www.googletagmanager.com` 형태가 적용되어 인라인 스크립트는 nonce가 없으면 차단됩니다. Next.js가 FOUC 방지를 위해 인라인 `<style>`을 삽입하므로 `style-src 'self' 'unsafe-inline'`은 유지합니다.
+- 개발/프리뷰 완화: `NODE_ENV !== 'production'`이거나 `NEXT_PUBLIC_RELAX_CSP=1`일 때는 HMR/DevTools용으로 `unsafe-inline`, `unsafe-eval`, `ws:` 등이 자동 허용됩니다. 테스트 목적으로 CSP를 임시 완화해야 한다면 프록시 대신 환경변수를 사용하세요.
+- 리버스 프록시: Nginx 등 프록시는 `Content-Security-Policy` 헤더를 덮어쓰지 말고 그대로 전달해야 합니다. 운영 배포 시 프록시에 `proxy_hide_header Content-Security-Policy;` 같은 완화 설정이 남아있지 않은지 반드시 확인하십시오.
+- Google Analytics: `NEXT_PUBLIC_ANALYTICS_ID`가 설정되면 `https://www.googletagmanager.com` 스크립트와 `https://www.google-analytics.com` 전송 도메인이 자동 허용됩니다.
+
+#### 운영 체크리스트
+- [ ] `pnpm -C apps/web build` 후 `pnpm -C apps/web start` + reverse proxy 구성에서 브라우저 DevTools → Network 헤더로 CSP 적용 상태를 확인합니다.
+- [ ] `style-src 'unsafe-inline'`을 그대로 둘 경우, 인라인 스타일 삽입이 필요한 컴포넌트만 사용하는지(Next 빌트인 스타일 태그) 정기적으로 점검하고 별도 인라인 스니펫을 추가하지 않도록 리뷰합니다.
+- [ ] relax 모드(`NEXT_PUBLIC_RELAX_CSP=1`)는 개발/사내 환경에서만 사용하고, 운영에서는 제거했는지 배포 전 체크합니다.
 
 ### 전용 Postgres 컨테이너(선택)
 - 다른 서비스와 충돌을 피하려면 전용 네트워크/DB 컨테이너를 사용할 수 있습니다.
