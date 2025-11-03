@@ -89,17 +89,31 @@ make schema-gen
 
 > English quickstart: (1) `make db-up` (2) `make venv && make api-install && alembic ... && make api-dev` (3) `corepack enable && pnpm -C apps/web i && make web-dev` (4) `pnpm -C packages/schemas i && make schema-gen`.
 
-### 초간단: Docker Compose로 한 번에(스크립트/Make 없이) ![DEV ONLY](https://img.shields.io/badge/DEV-ONLY-orange)
+### 로컬 실행 모드(요약)
 
-로컬에서 컨테이너만으로 개발 환경을 올리려면(루트 `compose.yaml` 사용):
+두 가지 모드가 있습니다 — 목적에 맞게 선택하세요.
 
-```
-docker compose --profile dev up -d
-```
+- 개발(dev 프로필, 핫리로드) — 기본 권장
+  - 올리기: `docker compose --profile dev up -d`
+  - 내리기: `docker compose --profile dev down`
+  - 특성: `api_dev(uvicorn --reload)` + `web_dev(Next dev/HMR)`로 변경 즉시 반영.
+  - 주의: dev 프로필 전용입니다(운영 서버에서 실행 금지).
 
-- Web: http://localhost:3000, API: http://localhost:3001/healthz (모두 127.0.0.1 바인딩)
-- dev 프로필 전용입니다(운영 서버에서 실행 금지).
-- 컨테이너는 `restart: unless-stopped`로 Docker 재시작 시 자동 복구됩니다.
+- 운영 미러 모드(VPS와 동일 흐름 검증)
+  - 사전: `docker network create segecon_net || true`, `.env.api` 준비(`APP_ENV=prod`, 강한 `JWT_SECRET`, `DATABASE_URL=...@sogecon-db:5432/...`).
+  - 실행(예시):
+    - `bash scripts/deploy-vps.sh -t <TAG> -p ghcr.io/<owner>/<repo> \
+      --network segecon_net --uploads "$PWD/uploads" -e .env.api -w "" \
+      --api-health http://localhost:3001/healthz --web-health http://localhost:3000/`
+  - 특성: GHCR에 빌드된 이미지를 그대로 실행(배포 동작·보안·CORS 검증에 적합).
+
+모드 전환
+- dev → 미러: `docker compose --profile dev down` 후 위 “운영 미러 모드” 실행
+- 미러 → dev: `docker rm -f alumni-api alumni-web || true` 후 `docker compose --profile dev up -d`
+
+참고
+- 루트 `compose.yaml`의 dev 프로필은 로컬 개발 전용입니다.
+- VPS 표준 배포 경로는 `docs/agent_runbook_vps*.md`와 `ops/cloud-*.sh` 스크립트를 따르세요.
 
 ## 환경 변수 가이드(로컬/서버)
 - 로컬 개발(API)

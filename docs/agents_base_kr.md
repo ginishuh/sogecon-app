@@ -58,6 +58,11 @@
 - Pyright strict, Ruff 복잡도 검사, ESLint로 TS 규칙 강제.
 - Python 도구(ruff/pyright/pytest)는 반드시 레포의 `.venv`에서 실행합니다. `make venv`, `make api-install`, `make test-api` 타겟을 사용하세요.
 
+### 로컬 실행 모드(Dev vs Mirror)
+- Dev 프로필(로컬 전용): 루트 `compose.yaml`에서 `docker compose --profile dev up -d`로 기동합니다. Next dev(HMR) + uvicorn `--reload`로 코드 변경이 즉시 반영됩니다. 서버(운영)에서 dev 프로필 실행은 금지하며, `scripts/compose-dev-up.sh`에 생산 환경 가드가 포함되어 있습니다.
+- 미러 모드(운영 동일성 검증): VPS와 동일한 스크립트 흐름(불변 이미지 pull → Alembic migrate → 재기동)을 로컬에서 실행합니다. `ops/cloud-*.sh` 또는 `scripts/deploy-vps.sh` 사용, 전용 네트워크(`segecon_net`)와 컨테이너 DNS(`sogecon-db`)를 `DATABASE_URL`에 사용하세요.
+- 모드 전환: 전환 전 반드시 현재 컨테이너를 내려주세요. dev→mirror: `docker compose --profile dev down`; mirror→dev: `docker rm -f alumni-api alumni-web` 후 dev 프로필 기동.
+
 ### 배포·운영(정책)
 - 배포 모델: 불변(immutable) 컨테이너 이미지. 서버에서 `git pull`만으로 앱이 갱신되지 않습니다. 이미지를 pull하고(필요 시) Alembic 적용 후 컨테이너 재기동으로 배포합니다.
 - 데이터베이스: PostgreSQL 전용(`postgresql+psycopg://` 강제). 전용 Docker 네트워크에서 컨테이너 DNS(예: `sogecon-db`)를 사용하고, `DATABASE_URL`에 고정 IP/localhost는 지양합니다.

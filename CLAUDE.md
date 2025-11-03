@@ -97,6 +97,11 @@ Do NOT disable linters or type checkers globally or per file.
 - Pyright runs in strict mode; Ruff enforces complexity; ESLint enforces TS rules above.
 - Python tools (ruff, pyright, pytest) MUST run from the project `.venv`. Make targets (`make venv`, `make api-install`, `make test-api`) are provided.
 
+### Local Run Modes (Dev vs Mirror)
+- Dev profile (local only): use the root `compose.yaml` with `docker compose --profile dev up -d` for hot reload (Next.js dev + uvicorn --reload). Never run the dev profile on servers; the helper script `scripts/compose-dev-up.sh` includes a production guard.
+- Mirror mode (prod parity): to validate deploy behavior locally, run the same scripts used on VPS: pull immutable images → Alembic migrate → restart via `ops/cloud-*.sh` or `scripts/deploy-vps.sh`. Use a dedicated Docker network (e.g., `segecon_net`) and container DNS (e.g., `sogecon-db`) in `DATABASE_URL`.
+- Switching modes: stop current containers before switching; dev→mirror: `docker compose --profile dev down`; mirror→dev: `docker rm -f alumni-api alumni-web` then start dev profile.
+
 ## Commit & PR Conventions
 - Follow Conventional Commits for all commits: `type(scope): subject` with a 72-char header.
 - Allowed types: `feat|fix|refactor|perf|test|chore|build|ci|docs`; scopes: `api|web|schemas|infra|docs|ops|ci|build`.
