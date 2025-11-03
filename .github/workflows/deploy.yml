@@ -83,12 +83,13 @@ jobs:
           WEB_HEALTH: ${{ steps.health.outputs.site_url }}
           SKIP_MIGRATE: ${{ github.event.inputs.skip_migrate }}
           DOCKER_NETWORK: ${{ env.DOCKER_NETWORK }}
+          DEPLOY_ENV: ${{ github.event.inputs.environment }}
         run: |
           set -euo pipefail
           : "${SSH_PORT:=22}"
           GHCR_PAT=${GHCR_PAT:-}
           if [ -z "$GHCR_PAT" ]; then
-            echo "[deploy] GHCR_PAT secret is required (GitHub Environment: ${{ github.event.inputs.environment }})" >&2
+            echo "[deploy] GHCR_PAT secret is required (GitHub Environment: ${DEPLOY_ENV})" >&2
             exit 1
           fi
 
