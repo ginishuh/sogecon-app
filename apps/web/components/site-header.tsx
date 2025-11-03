@@ -55,7 +55,7 @@ export function SiteHeader() {
         <Link href="/" className="flex items-center gap-2 md:gap-3 text-brand-primary md:col-span-2 min-w-0" aria-label="총동문회 홈으로 이동">
           {/* 심볼 */}
           <Image
-            src="/images/brand/seogang.svg"
+            src="/images/brand/sogang.svg"
             alt=""
             width={24}
             height={34}
@@ -64,7 +64,7 @@ export function SiteHeader() {
           />
           {/* 한글 로고 */}
           <Image
-            src="/images/brand/seogang_korean_logo.svg"
+            src="/images/brand/sogang_korean_logo.svg"
             alt="서강대학교"
             width={112}
             height={24}
