@@ -450,6 +450,7 @@
   - relax 환경(`NEXT_PUBLIC_RELAX_CSP=1`, 비프로덕션)에서만 `unsafe-inline`/`unsafe-eval`/localhost WS 허용
   - GA 스크립트/전송 도메인을 자동 허용, Script 컴포넌트에 nonce 전달
 - test(web): 홈 페이지 스위트가 QueryClient/`matchMedia` 스텁을 사용하도록 정비, `pnpm -C apps/web test` 전부 통과 (#40)
+- chore(web): vitest 이미지 모킹에서 DOM 미지원 속성을 안전하게 제거 (#40)
 - docs: README, `docs/security_hardening.md`에 운영 CSP 가이드를 nonce 기반으로 갱신
 
 ## 2025-10-27 (CI-hotfix)
