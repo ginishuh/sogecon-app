@@ -98,11 +98,11 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
+          TAR_NAME: ${{ steps.pack.outputs.tar }}
         run: |
           set -euo pipefail
           : "${SSH_PORT:=22}"
-          TAR="${{ steps.pack.outputs.tar }}"
-          scp -i "$SSH_KEY_FILE" -P "$SSH_PORT" "$TAR" "$SSH_USER@$SSH_HOST:/srv/sogecon-app/_tmp/"
+          scp -i "$SSH_KEY_FILE" -P "$SSH_PORT" "$TAR_NAME" "$SSH_USER@$SSH_HOST:/srv/sogecon-app/_tmp/"
 
       - name: Remote deploy (extract → web-deploy.sh → health)
         env:
@@ -157,6 +157,8 @@ jobs:
           EOF
 
       - name: Summary
+        env:
+          DEPLOY_ENV: ${{ github.event.inputs.environment }}
         run: |
           echo "Deployed Next.js standalone via systemd" >> "$GITHUB_STEP_SUMMARY"
-          echo "Environment: ${{ github.event.inputs.environment }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Environment: $DEPLOY_ENV" >> "$GITHUB_STEP_SUMMARY"
