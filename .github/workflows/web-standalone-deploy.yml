@@ -131,7 +131,7 @@ jobs:
             SERVER_JS="$STAGE_DIR/apps/web/.next/standalone/apps/web/server.js"; \
             test -f "$SERVER_JS" || { echo "[remote] standalone server.js missing" >&2; exit 1; }; \
             if command -v node >/dev/null 2>&1; then node --check "$SERVER_JS" >/dev/null 2>&1 || { echo "[remote] server.js syntax check failed" >&2; exit 1; }; node -v || true; else echo "[remote] node not found; ensure Node 22.17.1 is installed (asdf recommended)" >&2; fi; \
-            cd /srv/sogecon-app; RELEASE_BASE=/opt/sogecon/web SERVICE_NAME=sogecon-web REPO_ROOT="$STAGE_DIR" bash ./ops/web-deploy.sh; \
+            cd /srv/sogecon-app; CI=1 RELEASE_BASE=/opt/sogecon/web SERVICE_NAME=sogecon-web REPO_ROOT="$STAGE_DIR" bash ./ops/web-deploy.sh; \
             URL="$SITE_URL"; [ -n "$URL" ] || URL="http://127.0.0.1:3000/"; \
             echo "[remote] health: $URL"; \
             for i in $(seq 1 60); do code=$(curl -sf -o /dev/null -w "%{http_code}" "$URL" || true); [ "$code" = 200 ] && { echo "[remote] OK(200)"; exit 0; }; sleep 1; done; \

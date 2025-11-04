@@ -33,9 +33,14 @@ ln -sfn "$prev" "$RELEASE_BASE/current"
 info "current → $prev 로 전환 완료"
 
 if command -v systemctl >/dev/null 2>&1; then
-  sudo systemctl restart "$SERVICE_NAME"
-  sleep 1
-  sudo systemctl --no-pager --full status "$SERVICE_NAME" | sed -n '1,20p' || true
+  if sudo -n true 2>/dev/null; then
+    sudo systemctl restart "$SERVICE_NAME"
+    sleep 1
+    sudo systemctl --no-pager --full status "$SERVICE_NAME" | sed -n '1,20p' || true
+  else
+    warn "sudo 비밀번호가 필요합니다. sudoers NOPASSWD를 구성하거나 수동으로 재시작하세요."
+    info "롤백 완료. 서비스 재시작: sudo systemctl restart $SERVICE_NAME"
+  fi
 else
   info "systemctl이 없어 서비스 재시작을 건너뜁니다. 수동으로 재시작하세요: $SERVICE_NAME"
 fi

@@ -85,6 +85,15 @@ if command -v curl >/dev/null 2>&1; then
     code=$(curl -sf -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/ || true)
     if [ "$code" = "200" ]; then
       info "OK (200)"
+      # 7) 오래된 릴리스 정리(최근 5개만 유지)
+      if [ -d "$RELEASE_BASE/releases" ]; then
+        info "오래된 릴리스 정리 (최근 5개 유지)"
+        (
+          set -euo pipefail
+          cd "$RELEASE_BASE/releases"
+          ls -1t | tail -n +6 | xargs -r rm -rf
+        ) || warn "릴리스 정리 중 경고 발생"
+      fi
       exit 0
     fi
     sleep 1
