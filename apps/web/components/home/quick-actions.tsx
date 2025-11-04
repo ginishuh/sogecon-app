@@ -43,7 +43,6 @@ const ACTIONS: QuickAction[] = [
     label: '행사 일정',
     ariaLabel: '행사 일정 바로가기',
     bgColor: 'bg-yellow-600',
-    bgColor: 'bg-yellow-600',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -70,7 +69,6 @@ const ACTIONS: QuickAction[] = [
     label: '자유게시판',
     ariaLabel: '자유게시판 바로가기',
     bgColor: 'bg-action-discussion',
-    bgColor: 'bg-action-discussion',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -80,9 +78,6 @@ const ACTIONS: QuickAction[] = [
   },
   {
     href: '/board?tab=congrats' as Route,
-    label: '경조사 게시판',
-    ariaLabel: '경조사 게시판 바로가기',
-    bgColor: 'bg-slate-700',
     label: '경조사 게시판',
     ariaLabel: '경조사 게시판 바로가기',
     bgColor: 'bg-slate-700',
@@ -100,7 +95,6 @@ export function HomeQuickActions() {
   return (
     <section aria-labelledby="home-quick-actions" className="mt-8">
       <h2 id="home-quick-actions" className="sr-only">빠른 실행</h2>
-      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
       <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
         {ACTIONS.map((item) => (
           <Link

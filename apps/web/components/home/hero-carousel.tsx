@@ -212,6 +212,19 @@ export default function HomeHeroCarousel() {
                   </h2>
                   <p className="text-[15px] leading-6 text-white/90 line-clamp-2">{s.description}</p>
                 </div>
+              {/* 텍스트 컨텐츠 — 반응형 정렬: 모바일(중앙), 데스크톱(하단 좌측) */}
+              <div className="absolute inset-0 flex items-center justify-center px-14 md:px-6 md:items-end md:justify-start md:pb-6 md:pt-16 lg:pt-24">
+                <div className="text-center md:text-left max-w-full">
+                  <h2 className="text-[28px] md:text-[30px] lg:text-[32px] font-medium leading-tight tracking-tight text-white mb-2">
+                    {s.title}
+                    {s.unpublished && isAdmin ? (
+                      <span className="ml-2 rounded bg-amber-400/90 px-1.5 py-0.5 text-[11px] font-semibold text-black align-middle">
+                        관리자 미리보기
+                      </span>
+                    ) : null}
+                  </h2>
+                  <p className="text-[15px] leading-6 text-white/90 line-clamp-2">{s.description}</p>
+                </div>
               </div>
             </div>
           ))}
