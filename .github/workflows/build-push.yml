@@ -42,6 +42,7 @@ jobs:
       PLATFORMS: linux/amd64
       USE_BUILDX: 1
       PUSH_IMAGES: 1
+      SKIP_WEB: 1
     steps:
       - uses: actions/checkout@v4
 
@@ -72,7 +73,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push API/Web images
+      - name: Build and push images (API only)
         run: |
           ./ops/cloud-build.sh
 
@@ -81,4 +82,4 @@ jobs:
           echo "Image prefix: $IMAGE_PREFIX" >> $GITHUB_STEP_SUMMARY
           echo "Tag: $IMAGE_TAG" >> $GITHUB_STEP_SUMMARY
           echo "API: $IMAGE_PREFIX/alumni-api:$IMAGE_TAG" >> $GITHUB_STEP_SUMMARY
-          echo "WEB: $IMAGE_PREFIX/alumni-web:$IMAGE_TAG" >> $GITHUB_STEP_SUMMARY
+          echo "WEB: (skipped; standalone deploy path)" >> $GITHUB_STEP_SUMMARY

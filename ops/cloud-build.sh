@@ -84,13 +84,25 @@ if [[ -n "${USE_BUILDX}" || -n "${PLATFORMS}" ]]; then
   build_cmd_web+=(.)
 fi
 
-"${build_cmd_api[@]}"
-"${build_cmd_web[@]}"
+SKIP_API=${SKIP_API:-0}
+SKIP_WEB=${SKIP_WEB:-0}
+
+if [[ "$SKIP_API" != "1" ]]; then
+  "${build_cmd_api[@]}"
+else
+  echo "[build] Skipping API image build (SKIP_API=1)"
+fi
+
+if [[ "$SKIP_WEB" != "1" ]]; then
+  "${build_cmd_web[@]}"
+else
+  echo "[build] Skipping Web image build (SKIP_WEB=1)"
+fi
 
 if [[ "${PUSH_IMAGES:-0}" == "1" && -z "${USE_BUILDX}" ]]; then
   echo "docker push 실행"
-  docker push "${API_IMAGE}"
-  docker push "${WEB_IMAGE}"
+  if [[ "$SKIP_API" != "1" ]]; then docker push "${API_IMAGE}"; fi
+  if [[ "$SKIP_WEB" != "1" ]]; then docker push "${WEB_IMAGE}"; fi
 fi
 
 echo "빌드 완료"
