@@ -135,7 +135,7 @@ export default function HomeHeroCarousel() {
 
   return (
     <section
-      className="relative h-[193px] md:h-[400px] lg:h-[591px] overflow-hidden rounded-2xl shadow-xl"
+      className="relative h-[218px] md:h-[400px] lg:h-[591px] overflow-hidden rounded-2xl shadow-xl"
       aria-label="홈 배너"
       role="region"
       aria-roledescription="carousel"
@@ -180,16 +180,18 @@ export default function HomeHeroCarousel() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
               {/* 텍스트 컨텐츠 */}
-              <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-8 md:pt-16 lg:pt-24">
-                <h2 className="text-[28px] md:text-[30px] lg:text-[32px] font-medium leading-tight tracking-tight text-white mb-2">
-                  {s.title}
-                  {s.unpublished && isAdmin ? (
-                    <span className="ml-2 rounded bg-amber-400/90 px-1.5 py-0.5 text-[11px] font-semibold text-black align-middle">
-                      관리자 미리보기
-                    </span>
-                  ) : null}
-                </h2>
-                <p className="text-[15px] leading-6 text-white/90 line-clamp-2">{s.description}</p>
+              <div className="absolute inset-0 flex items-center justify-center px-14 md:px-6 md:items-end md:justify-start md:pb-6 md:pt-16 lg:pt-24">
+                <div className="text-center md:text-left max-w-full">
+                  <h2 className="text-[28px] md:text-[30px] lg:text-[32px] font-medium leading-tight tracking-tight text-white mb-2">
+                    {s.title}
+                    {s.unpublished && isAdmin ? (
+                      <span className="ml-2 rounded bg-amber-400/90 px-1.5 py-0.5 text-[11px] font-semibold text-black align-middle">
+                        관리자 미리보기
+                      </span>
+                    ) : null}
+                  </h2>
+                  <p className="text-[15px] leading-6 text-white/90 line-clamp-2">{s.description}</p>
+                </div>
               </div>
             </div>
           ))}
