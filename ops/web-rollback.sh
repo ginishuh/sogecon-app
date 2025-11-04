@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Sogecon Web — 롤백 스크립트
+# 최신 이전 릴리스로 symlink(current)를 전환하고 서비스를 재시작합니다.
+
+RELEASE_BASE=${RELEASE_BASE:-/opt/sogecon/web}
+SERVICE_NAME=${SERVICE_NAME:-sogecon-web}
+
+info() { echo "[info] $*"; }
+die() { echo "[error] $*" >&2; exit 1; }
+
+rel_dir="$RELEASE_BASE/releases"
+[ -d "$rel_dir" ] || die "릴리스 디렉터리가 없습니다: $rel_dir"
+
+mapfile -t rels < <(ls -1 "$rel_dir" | sort -r)
+if [ ${#rels[@]} -lt 2 ]; then
+  die "롤백할 이전 릴리스가 없습니다. (현재 릴리스만 존재)"
+fi
+
+current_target=$(readlink -f "$RELEASE_BASE/current" 2>/dev/null || true)
+prev=""
+for r in "${rels[@]}"; do
+  path="$rel_dir/$r"
+  [ "$path" = "$current_target" ] && continue
+  prev="$path"
+  break
+done
+
+[ -n "$prev" ] || die "이전 릴리스를 찾지 못했습니다."
+
+ln -sfn "$prev" "$RELEASE_BASE/current"
+info "current → $prev 로 전환 완료"
+
+if command -v systemctl >/dev/null 2>&1; then
+  sudo systemctl restart "$SERVICE_NAME"
+  sleep 1
+  sudo systemctl --no-pager --full status "$SERVICE_NAME" | sed -n '1,20p' || true
+else
+  info "systemctl이 없어 서비스 재시작을 건너뜁니다. 수동으로 재시작하세요: $SERVICE_NAME"
+fi
+
+exit 0
+

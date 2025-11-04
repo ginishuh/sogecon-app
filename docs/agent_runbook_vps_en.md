@@ -79,7 +79,53 @@ API_IMAGE=$PREFIX/alumni-api:$PREV WEB_IMAGE=$PREFIX/alumni-web:$PREV \
 - Cross‑site domains: `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true` (HTTPS required).
 - Location: `.env.api` → applied by `SessionMiddleware` in `apps/api/main.py`.
 
-## 5) Troubleshooting
+## 5) Web without container (Next.js standalone + systemd + Nginx)
+
+Run the Next.js `standalone` build as a systemd service. DB/API containers remain unchanged.
+
+One‑time setup
+- Pin Node: `asdf plugin add nodejs && asdf install nodejs 22.17.1 && asdf global nodejs 22.17.1`
+- systemd unit: `sudo cp ops/systemd/sogecon-web.service /etc/systemd/system/ && sudo systemctl enable sogecon-web`
+- Nginx proxy: see `ops/nginx/nginx-site-web.conf` (adjust server_name, cert paths)
+- Release dirs: `sudo mkdir -p /opt/sogecon/web/releases && sudo chown $USER /opt/sogecon/web -R`
+
+Deploy steps
+1) Build at repo root: `pnpm -C apps/web install && pnpm -C apps/web build`
+2) Rollout + symlink switch: `bash ops/web-deploy.sh` (env: `RELEASE_BASE`, `SERVICE_NAME`)
+3) Verify: `systemctl status sogecon-web` (active), `curl -i http://127.0.0.1:3000/` (200)
+
+Rollback
+- Switch to previous release and restart: `bash ops/web-rollback.sh`
+
+Directory layout (example)
+```
+/opt/sogecon/web/
+  ├── current -> releases/20251104183010
+  └── releases/
+      └── 20251104183010/   (.next/standalone + apps/web/.next/static + apps/web/public)
+```
+
+Notes
+- `NEXT_PUBLIC_*` values are build‑time; rebuild when changing them.
+- Keep security headers consistent between Next and Nginx.
+- On failures, check `journalctl -u sogecon-web -e` and Nginx error logs.
+
+### GitHub Actions deploy (recommended)
+- Workflow: `.github/workflows/web-standalone-deploy.yml`
+- Trigger: GitHub → Actions → `web-standalone-deploy` → Run workflow (environment=`prod`)
+- GitHub Environment `prod` must define
+  - Secrets: `SSH_HOST`, `SSH_USER`, `SSH_KEY` (PEM), optional `SSH_PORT`
+  - Variables: `NEXT_PUBLIC_SITE_URL` (for health check)
+- Server prerequisites: one‑time setup above and a repo clone at `/srv/sogecon-app`.
+
+### Path policy (/opt vs in‑repo)
+- Default (recommended): deploy releases to `/opt/sogecon/web`, operate via `/opt/sogecon/web/current` symlink
+  - Pros: clean separation from repo tree, safer rollouts/rollbacks, simpler permissions
+  - Cons: one‑time path/permissions setup, backup/monitoring split
+- Alternative (in repo): `RELEASE_BASE=/srv/sogecon-app/.releases/web`
+  - How‑to: pass `RELEASE_BASE` to `ops/web-deploy.sh` and update `WorkingDirectory` in `ops/systemd/sogecon-web.service` accordingly
+
+## 6) Troubleshooting
 - Next public envs not applied: `NEXT_PUBLIC_*` are build‑time only — rebuild required.
 - Uploads permission error: ensure `/var/lib/segecon/uploads` owner uid 1000.
 - Health check fails: verify Nginx upstream to 127.0.0.1:3000/3001 and TLS cert paths.
