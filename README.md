@@ -161,9 +161,17 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
 
 ---
 문서 기본 언어는 한국어입니다. 사용자 노출 텍스트/README 역시 한국어를 우선합니다. 필요한 경우 간단한 영어 요약을 함께 제공합니다.
-## 배포 가이드(컨테이너/VPS)
-- TL;DR(운영)
-  - 순서: 태그 선택 → 이미지 pull → Alembic → 재기동 → 헬스체크(최대 90초 재시도).
+## 배포 가이드(Prod: Web standalone + systemd, API/DB 컨테이너)
+
+권장 운영 구성은 “Web(Next.js) 비컨테이너 + systemd + Nginx”이며, API/DB는 컨테이너로 유지합니다. 기존 “Web 컨테이너” 경로도 병행 지원하지만, 단순성·관찰성·롤백 속도 측면에서 standalone 구성을 권장합니다.
+
+- 원클릭(권장): GitHub Actions → `web-standalone-deploy` → environment=`prod`
+  - CI가 `apps/web`을 `output: 'standalone'`으로 빌드 → 아카이브 업로드(SCP) → 원격에서 `ops/web-deploy.sh` 실행(릴리스 디렉터리 전개 + `current` 링크 전환 + systemd 재시작) → 헬스체크
+  - 서버 1회 준비: Node 22.17.1(asdf), `/opt/sogecon/web/releases`, Nginx 프록시(127.0.0.1:3000), systemd 유닛(`ops/systemd/sogecon-web.service`) 설치, sudoers(NOPASSWD) 설정
+  - 상세: `docs/agent_runbook_vps.md` (KR) / `_en.md` (EN)
+
+- TL;DR(컨테이너 경로 — 병행 지원)
+  - 순서: 태그 선택 → 이미지 pull → Alembic → 재기동 → 헬스체크(최대 90초 재시도)
   - 수동 예시(서버):
     ```bash
     TAG=<sha>
@@ -178,6 +186,27 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
     for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://<도메인>/ || true); [ "$code" = 200 ] && break; sleep 1; done
     ```
   - 원클릭: `scripts/deploy-vps.sh -t <tag> --network sogecon_net --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
+
+### Web standalone(systemd) 수동 절차(요약)
+서버에 레포가 `/srv/sogecon-app`로 클론되어 있다고 가정합니다. CI 없이 수동으로 전개하려면:
+```bash
+# 1) 로컬/CI에서 빌드
+pnpm -C apps/web install && pnpm -C apps/web build  # output: 'standalone'
+tar -C . -czf web-standalone-<sha7>.tar.gz \
+  apps/web/.next/standalone apps/web/.next/static apps/web/public
+
+# 2) 서버 업로드 후 전개
+scp web-standalone-<sha7>.tar.gz <user>@<host>:/srv/sogecon-app/_tmp/
+ssh <user>@<host>
+cd /srv/sogecon-app/_tmp && mkdir -p web-standalone-<sha7> && \
+  tar -xzf web-standalone-<sha7>.tar.gz -C web-standalone-<sha7>
+
+# 3) 릴리스 전환 + 재시작
+cd /srv/sogecon-app
+CI=1 RELEASE_BASE=/opt/sogecon/web SERVICE_NAME=sogecon-web \
+REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
+```
+참고 파일: `ops/web-deploy.sh`, `ops/web-rollback.sh`, `ops/systemd/sogecon-web.service`, `ops/nginx/nginx-site-web.conf`
 
 - 컨테이너 빌드/푸시(GHCR 권장)
   - AMD64 빌드: 
@@ -214,7 +243,7 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
 ### 보안 헤더/CSP 주의
 - 운영 기본: `apps/web/middleware.ts`에서 요청마다 nonce를 생성하고 `Content-Security-Policy` 헤더를 주입합니다. 프로덕션(`NODE_ENV=production` 및 `NEXT_PUBLIC_RELAX_CSP` 미설정)에서는 `script-src 'self' 'nonce-<...>' https://www.googletagmanager.com` 형태가 적용되어 인라인 스크립트는 nonce가 없으면 차단됩니다. Next.js가 FOUC 방지를 위해 인라인 `<style>`을 삽입하므로 `style-src 'self' 'unsafe-inline'`은 유지합니다.
 - 개발/프리뷰 완화: `NODE_ENV !== 'production'`이거나 `NEXT_PUBLIC_RELAX_CSP=1`일 때는 HMR/DevTools용으로 `unsafe-inline`, `unsafe-eval`, `ws:` 등이 자동 허용됩니다. 테스트 목적으로 CSP를 임시 완화해야 한다면 프록시 대신 환경변수를 사용하세요.
-- 리버스 프록시: Nginx 등 프록시는 `Content-Security-Policy` 헤더를 덮어쓰지 말고 그대로 전달해야 합니다. 운영 배포 시 프록시에 `proxy_hide_header Content-Security-Policy;` 같은 완화 설정이 남아있지 않은지 반드시 확인하십시오.
+- 리버스 프록시: Nginx 등 프록시는 `Content-Security-Policy` 헤더를 덮어쓰지 말고 그대로 전달해야 합니다. 운영 배포 시 프록시에 `proxy_hide_header Content-Security-Policy;` 같은 완화 설정이 남아있지 않은지 반드시 확인하십시오. 샘플 Nginx에는 CSP 예시/HSTS/XSS 헤더 주석이 포함되어 있습니다(`ops/nginx/nginx-site-web.conf`).
 - Google Analytics: `NEXT_PUBLIC_ANALYTICS_ID`가 설정되면 `https://www.googletagmanager.com` 스크립트와 `https://www.google-analytics.com` 전송 도메인이 자동 허용됩니다.
 
 #### 운영 체크리스트
@@ -252,7 +281,7 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
 ### VPS 에이전트를 위한 바로가기
 - VPS Agent Runbook (EN): `docs/agent_runbook_vps_en.md`
 - VPS 에이전트 런북 (KR): `docs/agent_runbook_vps.md`
-- SSOT(품질/운영 규칙): `docs/agents_base.md`, `docs/agents_base_kr.md`
+- SSOT(품질/운영 규칙): `docs/agents_base.md`, `docs/agents_base_kr.md` (규칙 변경은 SSOT 먼저 수정)
 - 상세 배포 문서: `ops/deploy_api.md`, `ops/deploy_web.md`
 
 ---
