@@ -34,6 +34,8 @@ yarn-debug.log*
 yarn-error.log*
 cookies.txt
 cookies-*.txt
+# Local temp workspace (do not commit CI artifacts)
+_tmp/
 # Local release artifacts (standalone packaging for web)
 .releases/
 # Local tooling (e.g., pinned Node for builds)
