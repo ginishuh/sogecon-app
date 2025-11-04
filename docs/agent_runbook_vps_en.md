@@ -89,6 +89,16 @@ One‑time setup
 - Nginx proxy: see `ops/nginx/nginx-site-web.conf` (adjust server_name, cert paths)
 - Release dirs: `sudo mkdir -p /opt/sogecon/web/releases && sudo chown $USER /opt/sogecon/web -R`
 
+### sudoers (for passwordless restarts)
+To avoid prompts during deploy/rollback:
+```
+sudo visudo -f /etc/sudoers.d/sogecon-web
+```
+Example (adjust user/service names):
+```
+sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart sogecon-web, /bin/systemctl status sogecon-web
+```
+
 Deploy steps
 1) Build at repo root: `pnpm -C apps/web install && pnpm -C apps/web build`
 2) Rollout + symlink switch: `bash ops/web-deploy.sh` (env: `RELEASE_BASE`, `SERVICE_NAME`)
@@ -109,6 +119,17 @@ Notes
 - `NEXT_PUBLIC_*` values are build‑time; rebuild when changing them.
 - Keep security headers consistent between Next and Nginx.
 - On failures, check `journalctl -u sogecon-web -e` and Nginx error logs.
+
+### Maintenance
+- Clean old releases (older than 30 days):
+  - `find /opt/sogecon/web/releases -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +`
+- Logs/rotation:
+  - App: `journalctl -u sogecon-web -f`
+  - Nginx: `/var/log/nginx/access.log`, `/var/log/nginx/error.log` (logrotate)
+  - Journal size: tune `SystemMaxUse` in `/etc/systemd/journald.conf`
+- Monitoring ideas:
+  - systemd state/restart count: `systemctl show -p ActiveState,RestartCount sogecon-web`
+  - External health probe for `/` endpoint (expect 200)
 
 ### GitHub Actions deploy (recommended)
 - Workflow: `.github/workflows/web-standalone-deploy.yml`

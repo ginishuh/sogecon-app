@@ -10,7 +10,12 @@ set -euo pipefail
 
 RELEASE_BASE=${RELEASE_BASE:-/opt/sogecon/web}
 SERVICE_NAME=${SERVICE_NAME:-sogecon-web}
-REPO_ROOT=${REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
+# CI 환경에서는 전개 원본(staging) 경로를 반드시 명시적으로 전달해야 합니다.
+if [ -n "${CI:-}" ]; then
+  : "${REPO_ROOT:?REPO_ROOT must be set in CI (standalone staging root)}"
+else
+  REPO_ROOT=${REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
+fi
 
 WEB_DIR="$REPO_ROOT/apps/web"
 STANDALONE_DIR="$WEB_DIR/.next/standalone"
@@ -59,10 +64,16 @@ info "심볼릭 링크 업데이트: $RELEASE_BASE/current → $REL_DIR"
 # 5) systemd 재시작
 if command -v systemctl >/dev/null 2>&1; then
   info "systemd 데몬 리로드 및 서비스 재시작: $SERVICE_NAME"
-  sudo systemctl daemon-reload || true
-  sudo systemctl restart "$SERVICE_NAME"
-  sleep 1
-  sudo systemctl --no-pager --full status "$SERVICE_NAME" | sed -n '1,20p' || true
+  # NOPASSWD sudoers 필요. 문서: docs/agent_runbook_vps.md 참조.
+  if sudo -n true 2>/dev/null; then
+    sudo systemctl daemon-reload || true
+    sudo systemctl restart "$SERVICE_NAME"
+    sleep 1
+    sudo systemctl --no-pager --full status "$SERVICE_NAME" | sed -n '1,20p' || true
+  else
+    warn "sudo 비밀번호가 필요합니다. sudoers NOPASSWD를 구성하거나 수동으로 재시작하세요."
+    systemctl --no-pager --full status "$SERVICE_NAME" 2>/dev/null || true
+  fi
 else
   warn "systemctl을 찾지 못했습니다. 서비스는 수동으로 재시작하세요: $SERVICE_NAME"
 fi

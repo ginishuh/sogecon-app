@@ -114,47 +114,28 @@ jobs:
         run: |
           set -euo pipefail
           : "${SSH_PORT:=22}"
-          TAR="$TAR_NAME"; STAGE="/srv/sogecon-app/_tmp/${TAR%.tar.gz}"
-          printf -v TAR_ESC '%q' "$TAR"
-          printf -v STAGE_ESC '%q' "$STAGE"
-          printf -v SITE_ESC '%q' "${SITE_URL%/}/"
+          # Validate inputs (defense-in-depth)
+          [[ "$TAR_NAME" =~ ^web-standalone-[a-f0-9]{7}\.tar\.gz$ ]] || { echo "Invalid TAR_NAME format" >&2; exit 1; }
+          SITE_URL_CLEAN="${SITE_URL%/}/"
 
-          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            TAR_NAME=$TAR_ESC STAGE_DIR=$STAGE_ESC SITE_URL=$SITE_ESC bash -s << 'EOF'
-          set -euo pipefail
-          mkdir -p /srv/sogecon-app/_tmp
-          cd /srv/sogecon-app/_tmp
-          echo "[remote] artifact: $TAR_NAME"
-          mkdir -p "$STAGE_DIR"
-          tar -xzf "$TAR_NAME" -C "$STAGE_DIR"
-
-          test -f "$STAGE_DIR/apps/web/.next/standalone/apps/web/server.js" || {
-            echo "[remote] standalone server.js missing" >&2; exit 1; }
-
-          # Optional: verify Node runtime
-          if command -v node >/dev/null 2>&1; then
-            node -v || true
-          else
-            echo "[remote] node not found; ensure Node 22.17.1 is installed (asdf recommended)" >&2
-          fi
-
-          # Run deploy script from repo checked out on server
-          cd /srv/sogecon-app
-          RELEASE_BASE=/opt/sogecon/web \
-          SERVICE_NAME=sogecon-web \
-          REPO_ROOT="$STAGE_DIR" \
-          bash ./ops/web-deploy.sh
-
-          # Health check via domain (if provided) else localhost:3000
-          URL="$SITE_URL"; [ -n "$URL" ] || URL="http://127.0.0.1:3000/"
-          echo "[remote] health: $URL"
-          for i in $(seq 1 60); do
-            code=$(curl -sf -o /dev/null -w "%{http_code}" "$URL" || true)
-            [ "$code" = 200 ] && { echo "[remote] OK(200)"; exit 0; }
-            sleep 1
-          done
-          echo "[remote] health failed" >&2; exit 1
-          EOF
+          # Pass values via stdin to avoid env/arg injection
+          printf '%s\n%s\n' "$TAR_NAME" "$SITE_URL_CLEAN" | \
+          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'set -euf -o pipefail; \
+            IFS= read -r TAR_NAME; IFS= read -r SITE_URL; \
+            [[ "$TAR_NAME" =~ ^web-standalone-[a-f0-9]{7}\.tar\.gz$ ]] || { echo "[remote] Invalid TAR_NAME" >&2; exit 1; }; \
+            mkdir -p /srv/sogecon-app/_tmp; cd /srv/sogecon-app/_tmp; \
+            STAGE_DIR="/srv/sogecon-app/_tmp/${TAR_NAME%.tar.gz}"; \
+            echo "[remote] artifact: $TAR_NAME"; \
+            mkdir -p "$STAGE_DIR"; \
+            tar -xzf "$TAR_NAME" -C "$STAGE_DIR"; \
+            SERVER_JS="$STAGE_DIR/apps/web/.next/standalone/apps/web/server.js"; \
+            test -f "$SERVER_JS" || { echo "[remote] standalone server.js missing" >&2; exit 1; }; \
+            if command -v node >/dev/null 2>&1; then node --check "$SERVER_JS" >/dev/null 2>&1 || { echo "[remote] server.js syntax check failed" >&2; exit 1; }; node -v || true; else echo "[remote] node not found; ensure Node 22.17.1 is installed (asdf recommended)" >&2; fi; \
+            cd /srv/sogecon-app; RELEASE_BASE=/opt/sogecon/web SERVICE_NAME=sogecon-web REPO_ROOT="$STAGE_DIR" bash ./ops/web-deploy.sh; \
+            URL="$SITE_URL"; [ -n "$URL" ] || URL="http://127.0.0.1:3000/"; \
+            echo "[remote] health: $URL"; \
+            for i in $(seq 1 60); do code=$(curl -sf -o /dev/null -w "%{http_code}" "$URL" || true); [ "$code" = 200 ] && { echo "[remote] OK(200)"; exit 0; }; sleep 1; done; \
+            echo "[remote] health failed" >&2; exit 1'
 
       - name: Summary
         env:

@@ -14,8 +14,8 @@ Group=sogecon
 WorkingDirectory=/opt/sogecon/web/current
 Environment=NODE_ENV=production
 Environment=PORT=3000
-# API 접근 주소(프록시를 쓰는 경우 내부 주소 사용 권장)
-Environment=NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:3001
+# 주의: NEXT_PUBLIC_* 변수는 빌드 타임에 고정됩니다. 런타임에서 변경해도 반영되지 않습니다.
+# 빌드 시점에 .env.local/.env.production 등을 통해 고정하세요.
 # Next.js standalone 진입점(릴리스 루트 기준)
 ExecStart=/usr/bin/node apps/web/server.js
 Restart=always

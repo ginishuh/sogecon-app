@@ -91,6 +91,16 @@ API_IMAGE=$PREFIX/alumni-api:$PREV WEB_IMAGE=$PREFIX/alumni-web:$PREV \
 - Nginx 프록시: `ops/nginx/nginx-site-web.conf` 참고(도메인/인증서 경로 수정 후 적용)
 - 릴리스 경로 생성: `sudo mkdir -p /opt/sogecon/web/releases && sudo chown $USER /opt/sogecon/web -R`
 
+### sudoers 설정(무중단 배포/롤백용)
+systemd 재시작에 비밀번호 프롬프트가 발생하지 않도록, 전용 sudoers 항목을 추가합니다.
+```
+sudo visudo -f /etc/sudoers.d/sogecon-web
+```
+내용 예시(사용자/서비스명에 맞게 조정):
+```
+sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart sogecon-web, /bin/systemctl status sogecon-web
+```
+
 배포 절차
 1. 레포 루트에서 웹 빌드: `pnpm -C apps/web install && pnpm -C apps/web build`
 2. 산출물 전개/링크 전환: `bash ops/web-deploy.sh` (환경변수: `RELEASE_BASE`, `SERVICE_NAME` 커스터마이즈 가능)
@@ -111,6 +121,17 @@ API_IMAGE=$PREFIX/alumni-api:$PREV WEB_IMAGE=$PREFIX/alumni-web:$PREV \
 - `NEXT_PUBLIC_*` 값은 빌드 타임에 고정됩니다. 환경 변경 시 빌드 재실행 필요.
 - 보안 헤더는 Next와 Nginx 모두 설정되므로 중복/충돌 항목을 점검하세요.
 - 헬스 실패 시 `journalctl -u sogecon-web -e` 및 Nginx 에러 로그를 확인하세요.
+
+### 유지보수(운영 팁)
+- 오래된 릴리스 정리(30일 이상):
+  - `find /opt/sogecon/web/releases -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +`
+- 로그 확인/로테이션:
+  - 앱: `journalctl -u sogecon-web -f`
+  - Nginx: `/var/log/nginx/access.log`, `/var/log/nginx/error.log` (logrotate 기본 적용)
+  - journal 용량 제한: `/etc/systemd/journald.conf`의 `SystemMaxUse` 등 조정
+- 모니터링 초안:
+  - systemd 상태/재시작 횟수: `systemctl show -p ActiveState,RestartCount sogecon-web`
+  - 헬스엔드포인트를 크론/외부 모니터로 주기 확인(200 응답)
 
 ### GitHub Actions 배포(권장)
 - 워크플로: `.github/workflows/web-standalone-deploy.yml`

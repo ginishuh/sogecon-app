@@ -18,7 +18,7 @@ if [ ${#rels[@]} -lt 2 ]; then
   die "롤백할 이전 릴리스가 없습니다. (현재 릴리스만 존재)"
 fi
 
-current_target=$(readlink -f "$RELEASE_BASE/current" 2>/dev/null || true)
+current_target=$(readlink -f "$RELEASE_BASE/current" 2>/dev/null | sed 's:/*$::' || true)
 prev=""
 for r in "${rels[@]}"; do
   path="$rel_dir/$r"
@@ -41,4 +41,3 @@ else
 fi
 
 exit 0
-
