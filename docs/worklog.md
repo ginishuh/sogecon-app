@@ -51,6 +51,13 @@
   - 회원가입 버튼: border-brand-primary, text-brand-primary, hover:bg-brand-primary/5
   - 사용자 추가 아이콘 (+ 표시) 포함
   - `/signup` 라우트로 연결 (페이지는 향후 구현 예정)
+- Web: 코드 리뷰 피드백 반영 (접근성, 안전성, 유지보수성 개선)
+  - 날짜 포맷팅: Intl.DateTimeFormat('ko-KR') 사용으로 TZ/포맷 안전성 확보, NaN 처리 추가
+  - 접근성: 햄버거 버튼에 aria-haspopup="menu" 추가, aria-controls 제거 (실효성 개선)
+  - 접근성: 캐러셀 인디케이터를 표준 버튼 패턴으로 변경 (role="tablist"/role="tab" 제거, aria-current 사용)
+  - 브랜드 컬러: HEX 직접 지정을 Tailwind 테마 토큰으로 치환 (bg-brand-primary, bg-action-discussion 등)
+  - UX: useQuery 로딩/에러 상태에 대한 사용자 피드백 추가 (스피너, 에러 메시지)
+  - 코드 정리: 미사용 trackRef 제거
 
 ## 2025-10-24
 
