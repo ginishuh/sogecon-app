@@ -97,8 +97,13 @@ jobs:
               fi; \
             fi; \
             if command -v nginx >/dev/null 2>&1; then \
+              # Install template (fallback/default) and production vhost if present in repo
               sudo cp /srv/sogecon-app/ops/nginx/nginx-site-web.conf /etc/nginx/sites-available/sogecon-web.conf; \
               sudo ln -sf /etc/nginx/sites-available/sogecon-web.conf /etc/nginx/sites-enabled/sogecon-web.conf; \
+              if [ -f /srv/sogecon-app/ops/nginx/sogecon.conf ]; then \
+                sudo cp /srv/sogecon-app/ops/nginx/sogecon.conf /etc/nginx/sites-available/sogecon.conf; \
+                sudo ln -sf /etc/nginx/sites-available/sogecon.conf /etc/nginx/sites-enabled/sogecon.conf; \
+              fi; \
               sudo nginx -t && sudo systemctl reload nginx || true; \
             else \
               echo "[bootstrap] nginx not found; skipping site install"; \

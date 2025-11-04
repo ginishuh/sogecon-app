@@ -1,0 +1,82 @@
+name: web-show-nginx
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'GitHub Environment (secrets/approvals)'
+        required: true
+        default: 'prod'
+        type: choice
+        options: ['prod']
+
+permissions:
+  contents: read
+
+jobs:
+  show:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH known hosts
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          : "${SSH_PORT:=22}"
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Write SSH key file
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          umask 077
+          printf "%s" "$SSH_KEY" > "$RUNNER_TEMP/deploy_key"
+          echo "SSH_KEY_FILE=$RUNNER_TEMP/deploy_key" >> "$GITHUB_ENV"
+
+      - name: Fetch active nginx site config from server
+        id: fetch
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          set -euo pipefail
+          : "${SSH_PORT:=22}"
+          # Grab active site config and test output (requires sudo)
+          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'set -euo pipefail; \
+            sudo nginx -t || true; \
+            sudo cat /etc/nginx/sites-available/sogecon-web.conf' > server-sogecon-web.conf
+          # Compute hashes
+          LOCAL_MD5=$(md5sum ops/nginx/nginx-site-web.conf | awk "{print $1}")
+          REMOTE_MD5=$(md5sum server-sogecon-web.conf | awk "{print $1}")
+          echo "local_md5=$LOCAL_MD5" >> $GITHUB_OUTPUT
+          echo "remote_md5=$REMOTE_MD5" >> $GITHUB_OUTPUT
+          # Unified diff for summary
+          diff -u ops/nginx/nginx-site-web.conf server-sogecon-web.conf > nginx.diff || true
+
+      - name: Attach config and diff as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nginx-config-and-diff
+          path: |
+            server-sogecon-web.conf
+            ops/nginx/nginx-site-web.conf
+            nginx.diff
+
+      - name: Summary
+        run: |
+          echo "Server vs Repo nginx config MD5:" >> $GITHUB_STEP_SUMMARY
+          echo "- local: ${{ steps.fetch.outputs.local_md5 }}" >> $GITHUB_STEP_SUMMARY
+          echo "- remote: ${{ steps.fetch.outputs.remote_md5 }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Top of remote config (first 50 lines):" >> $GITHUB_STEP_SUMMARY
+          echo '\n```nginx' >> $GITHUB_STEP_SUMMARY
+          head -n 50 server-sogecon-web.conf >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+

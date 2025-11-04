@@ -206,7 +206,7 @@ cd /srv/sogecon-app
 CI=1 RELEASE_BASE=/srv/www/sogecon SERVICE_NAME=sogecon-web \
 REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
 ```
-참고 파일: `ops/web-deploy.sh`, `ops/web-rollback.sh`, `ops/systemd/sogecon-web.service`, `ops/nginx/nginx-site-web.conf`
+참고 파일: `ops/web-deploy.sh`, `ops/web-rollback.sh`, `ops/systemd/sogecon-web.service`, `ops/nginx/sogecon.conf`, `ops/nginx/nginx-site-web.conf`
 
 - 컨테이너 빌드/푸시(GHCR 권장)
   - AMD64 빌드: 
@@ -243,7 +243,7 @@ REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
 ### 보안 헤더/CSP 주의
 - 운영 기본: `apps/web/middleware.ts`에서 요청마다 nonce를 생성하고 `Content-Security-Policy` 헤더를 주입합니다. 프로덕션(`NODE_ENV=production` 및 `NEXT_PUBLIC_RELAX_CSP` 미설정)에서는 `script-src 'self' 'nonce-<...>' https://www.googletagmanager.com` 형태가 적용되어 인라인 스크립트는 nonce가 없으면 차단됩니다. Next.js가 FOUC 방지를 위해 인라인 `<style>`을 삽입하므로 `style-src 'self' 'unsafe-inline'`은 유지합니다.
 - 개발/프리뷰 완화: `NODE_ENV !== 'production'`이거나 `NEXT_PUBLIC_RELAX_CSP=1`일 때는 HMR/DevTools용으로 `unsafe-inline`, `unsafe-eval`, `ws:` 등이 자동 허용됩니다. 테스트 목적으로 CSP를 임시 완화해야 한다면 프록시 대신 환경변수를 사용하세요.
-- 리버스 프록시: Nginx 등 프록시는 `Content-Security-Policy` 헤더를 덮어쓰지 말고 그대로 전달해야 합니다. 운영 배포 시 프록시에 `proxy_hide_header Content-Security-Policy;` 같은 완화 설정이 남아있지 않은지 반드시 확인하십시오. 샘플 Nginx에는 CSP 예시/HSTS/XSS 헤더 주석이 포함되어 있습니다(`ops/nginx/nginx-site-web.conf`).
+- 리버스 프록시: Nginx 등 프록시는 `Content-Security-Policy` 헤더를 덮어쓰지 말고 그대로 전달해야 합니다. 운영 배포 시 프록시에 `proxy_hide_header Content-Security-Policy;` 같은 완화 설정이 남아있지 않은지 반드시 확인하십시오. 샘플 Nginx에는 CSP 예시/HSTS/XSS 헤더 주석이 포함되어 있습니다(`ops/nginx/nginx-site-web.conf`). 운영 vhost는 `ops/nginx/sogecon.conf`를 SSOT로 관리합니다.
 - Google Analytics: `NEXT_PUBLIC_ANALYTICS_ID`가 설정되면 `https://www.googletagmanager.com` 스크립트와 `https://www.google-analytics.com` 전송 도메인이 자동 허용됩니다.
 
 #### 운영 체크리스트
