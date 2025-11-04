@@ -11,6 +11,8 @@ TARGETS=(
   apps/web/.next
   apps/web/node_modules
   packages/schemas/node_modules
+  # 업로드 볼륨(컨테이너에서 작성된 파일 소유권 복구)
+  uploads
 )
 
 UID_NUM=${UID:-$(id -u)}

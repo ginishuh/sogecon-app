@@ -586,3 +586,6 @@
 2025-11-03 dev: 테스트 DB 자동 기동 해제
 - Makefile `db-up`에서 `postgres_test` 제외(개발 기본은 dev DB만 기동). 테스트는 `make db-test-up`으로 분리
 변경(요청 반영): infra compose 제거, root compose(dev)에서 dev+test DB 동시 기동으로 회귀. 테스트 DB는 루트 compose의 `postgres_test`만 사용
+
+## 2025-11-04
+- dev: `scripts/fix-web-perms.sh`에 `uploads`를 대상에 포함 — 컨테이너에서 생성된 업로드 파일 소유권을 사용자 계정으로 복구하도록 범위 확장
