@@ -63,6 +63,10 @@ const config: Config = {
           muted: '#5d6673',
           border: '#d8d3cc',
         },
+        // 퀵 액션 전용 컬러 (Figma 디자인)
+        action: {
+          discussion: '#b08968', // 자유게시판
+        },
       },
       fontFamily: {
         // next/font가 주입하는 CSS 변수 기반 — 전역에서 html.className에 설정

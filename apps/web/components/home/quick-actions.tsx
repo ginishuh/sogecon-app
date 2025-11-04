@@ -16,7 +16,7 @@ const ACTIONS: QuickAction[] = [
     href: '/about/greeting' as Route,
     label: '총동문회 소개',
     ariaLabel: '총동문회 소개 바로가기',
-    bgColor: 'bg-[#8a1e2d]',
+    bgColor: 'bg-brand-primary',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -29,7 +29,7 @@ const ACTIONS: QuickAction[] = [
     href: '/directory',
     label: '동문 수첩',
     ariaLabel: '동문 수첩 바로가기',
-    bgColor: 'bg-[#6c1722]',
+    bgColor: 'bg-brand-primaryDark',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -67,7 +67,7 @@ const ACTIONS: QuickAction[] = [
     href: '/board?tab=discussion' as Route,
     label: '자유게시판',
     ariaLabel: '자유게시판 바로가기',
-    bgColor: 'bg-[#b08968]',
+    bgColor: 'bg-action-discussion',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">

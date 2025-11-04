@@ -85,7 +85,7 @@ export function SiteHeader() {
         <button
           type="button"
           className="site-header__hamburger inline-flex items-center justify-center rounded-full size-10 text-neutral-ink transition hover:bg-neutral-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
-          aria-controls="primary-navigation"
+          aria-haspopup="menu"
           aria-expanded={open}
           aria-label={open ? '전체 메뉴 닫기' : '전체 메뉴 열기'}
           onClick={() => setOpen((prev) => !prev)}

@@ -55,9 +55,9 @@ export default function HomeHeroCarousel() {
   const isAdmin = auth.status === 'authorized' && auth.data?.kind === 'admin';
   const q = useQuery<Post[]>({ queryKey: ['posts', 'hero', 8, 0], queryFn: () => listPosts({ category: 'hero', limit: 8 }) });
   const slides = useMemo(() => buildSlides(q.data ?? [], { allowUnpublished: !!isAdmin, max: 5 }), [q.data, isAdmin]);
+  const isLoading = q.isLoading;
 
   const [index, setIndex] = useState(0);
-  const trackRef = useRef<HTMLDivElement | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef<number>(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -141,6 +141,19 @@ export default function HomeHeroCarousel() {
       aria-roledescription="carousel"
       aria-live="off"
     >
+      {/* 로딩 인디케이터 */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-neutral-surface flex items-center justify-center z-20">
+          <div className="flex items-center gap-2 text-neutral-muted">
+            <svg className="animate-spin h-5 w-5 text-brand-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <span>로딩 중...</span>
+          </div>
+        </div>
+      )}
+
       <div
         className="relative h-full"
         onTouchStart={onTouchStart}
@@ -153,7 +166,6 @@ export default function HomeHeroCarousel() {
       >
         {/* 슬라이드 트랙 */}
         <div
-          ref={trackRef}
           className="flex h-full transition-transform duration-500 ease-in-out"
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
@@ -224,13 +236,12 @@ export default function HomeHeroCarousel() {
 
       {/* 인디케이터 */}
       {slides.length > 1 ? (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10" role="tablist" aria-label="배너 선택">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10" aria-label="배너 선택">
           {slides.map((_, i) => (
             <button
               key={`dot-${i}`}
-              role="tab"
-              aria-selected={i === index}
               aria-label={`${i + 1}번째 배너 보기`}
+              aria-current={i === index ? 'true' : undefined}
               className={`h-2 rounded-full transition-all ${
                 i === index ? 'bg-white w-6' : 'bg-white/50 w-2'
               }`}
