@@ -135,7 +135,7 @@ export default function HomeHeroCarousel() {
 
   return (
     <section
-      className="relative h-[591px] overflow-hidden rounded-2xl shadow-xl"
+      className="relative h-[193px] md:h-[400px] lg:h-[591px] overflow-hidden rounded-2xl shadow-xl"
       aria-label="홈 배너"
       role="region"
       aria-roledescription="carousel"
@@ -180,8 +180,8 @@ export default function HomeHeroCarousel() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
               {/* 텍스트 컨텐츠 */}
-              <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-24">
-                <h2 className="text-[32px] font-medium leading-tight tracking-tight text-white mb-2">
+              <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-8 md:pt-16 lg:pt-24">
+                <h2 className="text-[28px] md:text-[30px] lg:text-[32px] font-medium leading-tight tracking-tight text-white mb-2">
                   {s.title}
                   {s.unpublished && isAdmin ? (
                     <span className="ml-2 rounded bg-amber-400/90 px-1.5 py-0.5 text-[11px] font-semibold text-black align-middle">
@@ -189,7 +189,7 @@ export default function HomeHeroCarousel() {
                     </span>
                   ) : null}
                 </h2>
-                <p className="text-[15px] leading-6 text-white/90">{s.description}</p>
+                <p className="text-[15px] leading-6 text-white/90 line-clamp-2">{s.description}</p>
               </div>
             </div>
           ))}
@@ -203,7 +203,7 @@ export default function HomeHeroCarousel() {
               className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-white/30 backdrop-blur-sm hover:bg-white/40 transition-colors"
               onClick={prev}
             >
-              <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+              <svg aria-hidden="true" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                 <path d="M15 6l-6 6 6 6"/>
               </svg>
             </button>
@@ -212,7 +212,7 @@ export default function HomeHeroCarousel() {
               className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-white/30 backdrop-blur-sm hover:bg-white/40 transition-colors"
               onClick={next}
             >
-              <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+              <svg aria-hidden="true" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                 <path d="M9 6l6 6-6 6"/>
               </svg>
             </button>
@@ -229,8 +229,8 @@ export default function HomeHeroCarousel() {
               role="tab"
               aria-selected={i === index}
               aria-label={`${i + 1}번째 배너 보기`}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                i === index ? 'bg-white' : 'bg-white/50'
+              className={`h-2 rounded-full transition-all ${
+                i === index ? 'bg-white w-6' : 'bg-white/50 w-2'
               }`}
               onClick={() => go(i)}
             />

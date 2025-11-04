@@ -95,13 +95,13 @@ export function HomeQuickActions() {
   return (
     <section aria-labelledby="home-quick-actions" className="mt-8">
       <h2 id="home-quick-actions" className="sr-only">빠른 실행</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
         {ACTIONS.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             aria-label={item.ariaLabel ?? item.label}
-            className={`relative flex flex-col items-center justify-center h-32 rounded-2xl shadow-md transition-transform hover:scale-105 ${item.bgColor}`}
+            className={`relative flex flex-col items-center justify-center h-[107px] rounded-2xl shadow-md transition-transform hover:scale-105 ${item.bgColor}`}
           >
             {/* 아이콘 */}
             <div className="text-white mb-2" aria-hidden="true">
