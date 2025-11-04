@@ -44,6 +44,13 @@
 - Web: 날짜 포맷팅 버그 수정 — formatToParts() 필터 로직 오류로 "20251104." 출력되던 문제 해결, "2025.11.04" 정상 출력
 
 - ops(web): 릴리스 기본 경로 `/opt/sogecon/web` → `/srv/www/sogecon` 전환(유닛/스크립트/워크플로/문서 갱신)
+## 2025-11-04
+
+- Web(Nav): 모바일 메뉴 회원가입 버튼 추가 (Figma 디자인 반영)
+  - 로그인 + 회원가입 버튼 나란히 배치 (flex-1, gap-2)
+  - 회원가입 버튼: border-brand-primary, text-brand-primary, hover:bg-brand-primary/5
+  - 사용자 추가 아이콘 (+ 표시) 포함
+  - `/signup` 라우트로 연결 (페이지는 향후 구현 예정)
 
 ## 2025-10-24
 
