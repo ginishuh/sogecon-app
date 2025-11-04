@@ -67,7 +67,13 @@ docker compose up -d   # Postgres + api_dev + web_dev 한 번에 기동
 
 수동(make 유틸):
 ```
-make dev-containers-up          # Postgres(5433) → api_dev:3001 → web_dev:3000
+# VPS 유사 모드(권장): DB(dev/test) + api_dev만
+make dev-api-up                 # Postgres(5433) + Postgres(test:5434) + api_dev:3001
+make dev-api-logs               # API 로그 팔로우
+make dev-api-down               # 세 서비스 중지
+
+# 전체(dev 웹 포함): 필요할 때만
+make dev-containers-up          # Postgres + api_dev + web_dev
 make dev-containers-logs        # 최근 1분 로그 팔로우
 make dev-containers-down        # 종료
 ```

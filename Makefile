@@ -237,3 +237,27 @@ dev-containers-down:
 
 dev-containers-logs:
 	@docker compose --profile dev logs -f --since=1m api_dev web_dev
+
+# --- Dev API parity stack (VPS-like: postgres + postgres_test + api_dev) ---
+.PHONY: dev-api-up dev-api-down dev-api-logs dev-api-status
+
+dev-api-up:
+	@echo "[dev] Ensuring web_dev is not running (standalone web is run outside compose)"
+	@docker compose --profile dev stop web_dev >/dev/null 2>&1 || true
+	@docker compose --profile dev rm -f web_dev >/dev/null 2>&1 || true
+	@echo "[dev] Starting Postgres(dev/test)"
+	@docker compose --profile dev up -d postgres postgres_test || true
+	$(call wait_for_pg,postgres,appdb)
+	$(call wait_for_pg,postgres_test,appdb_test)
+	@echo "[dev] Starting api_dev"
+	@docker compose --profile dev up -d api_dev
+	@echo "[dev] Ready → API http://localhost:3001/healthz | DB 5433(dev), 5434(test)"
+
+dev-api-down:
+	@docker compose --profile dev stop api_dev postgres postgres_test || true
+
+dev-api-logs:
+	@docker compose --profile dev logs -f --since=1m api_dev
+
+dev-api-status:
+	@docker ps --format '{{.Names}}\t{{.Status}}\t{{.Ports}}' | rg '(api_dev|postgres(_test)?)' || true
