@@ -4,7 +4,7 @@ set -euo pipefail
 # Sogecon Web — 롤백 스크립트
 # 최신 이전 릴리스로 symlink(current)를 전환하고 서비스를 재시작합니다.
 
-RELEASE_BASE=${RELEASE_BASE:-/opt/sogecon/web}
+RELEASE_BASE=${RELEASE_BASE:-/srv/www/sogecon}
 SERVICE_NAME=${SERVICE_NAME:-sogecon-web}
 
 info() { echo "[info] $*"; }

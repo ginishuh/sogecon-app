@@ -26,6 +26,10 @@ jobs:
       NODE_VERSION: '22.17.1'
       PNPM_VERSION: '10.17.1'
       SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+      # Next.js 빌드타임 공개 변수
+      NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+      NEXT_PUBLIC_WEB_API_BASE: ${{ vars.NEXT_PUBLIC_WEB_API_BASE }}
+      NEXT_PUBLIC_IMAGE_DOMAINS: ${{ vars.NEXT_PUBLIC_IMAGE_DOMAINS }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -134,11 +138,18 @@ jobs:
             SERVER_JS="$STAGE_DIR/apps/web/.next/standalone/apps/web/server.js"; \
             test -f "$SERVER_JS" || { echo "[remote] standalone server.js missing" >&2; exit 1; }; \
             if command -v node >/dev/null 2>&1; then node --check "$SERVER_JS" >/dev/null 2>&1 || { echo "[remote] server.js syntax check failed" >&2; exit 1; }; node -v || true; else echo "[remote] node not found; ensure Node 22.17.1 is installed (asdf recommended)" >&2; fi; \
-            cd /srv/sogecon-app; CI=1 RELEASE_BASE=/opt/sogecon/web SERVICE_NAME=sogecon-web REPO_ROOT="$STAGE_DIR" bash ./ops/web-deploy.sh; \
+            cd /srv/sogecon-app; CI=1 RELEASE_BASE=/srv/www/sogecon SERVICE_NAME=sogecon-web REPO_ROOT="$STAGE_DIR" bash ./ops/web-deploy.sh; \
             URL="$SITE_URL"; [ -n "$URL" ] || URL="http://127.0.0.1:3000/"; \
             echo "[remote] health: $URL"; \
-            for i in $(seq 1 60); do code=$(curl -sf -o /dev/null -w "%{http_code}" "$URL" || true); [ "$code" = 200 ] && { echo "[remote] OK(200)"; exit 0; }; sleep 1; done; \
-            echo "[remote] health failed" >&2; exit 1'
+            ok=0; for i in $(seq 1 60); do code=$(curl -sf -o /dev/null -w "%{http_code}" "$URL" || true); if [ "$code" = 200 ]; then ok=1; break; fi; sleep 1; done; \
+            [ "$ok" = 1 ] || { echo "[remote] health failed" >&2; exit 1; }; \
+            echo "[remote] OK(200)"; \
+            # Cleanup legacy path after success (safe rename; manual removal later)
+            if [ -d /opt/sogecon/web ]; then \
+              TS=$(date +%Y%m%d%H%M%S); \
+              echo "[remote] moving legacy /opt/sogecon/web → /opt/sogecon/web.backup.$TS"; \
+              sudo mv /opt/sogecon/web "/opt/sogecon/web.backup.$TS" || true; \
+            fi'
 
       - name: Summary
         env:

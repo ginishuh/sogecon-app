@@ -1,0 +1,38 @@
+<svg width="960" height="640" viewBox="0 0 960 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">서강대 경제대학원 총동문회 웹 런치 일러스트</title>
+  <desc id="desc">노트북과 모바일 화면이 동시에 열린 모습 위로 불꽃과 리본이 떠 있는 축하 장면</desc>
+  <defs>
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fdf7f1"/>
+      <stop offset="100%" stop-color="#f1e4d7"/>
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8a1e2d"/>
+      <stop offset="100%" stop-color="#b43a48"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="640" fill="url(#bgGradient)"/>
+  <g transform="translate(120 120)">
+    <rect x="80" y="60" width="420" height="280" rx="28" fill="#fff" stroke="#d9ccc2" stroke-width="4"/>
+    <rect x="120" y="100" width="340" height="160" rx="18" fill="#f9f5f1"/>
+    <rect x="120" y="280" width="340" height="28" rx="10" fill="#8a1e2d"/>
+    <rect x="170" y="118" width="180" height="18" rx="9" fill="#8a1e2d" opacity="0.9"/>
+    <rect x="170" y="146" width="220" height="16" rx="8" fill="#d9a47a" opacity="0.6"/>
+    <rect x="170" y="172" width="200" height="16" rx="8" fill="#d9a47a" opacity="0.45"/>
+    <rect x="170" y="198" width="160" height="16" rx="8" fill="#d9a47a" opacity="0.35"/>
+    <rect x="530" y="120" width="170" height="260" rx="24" fill="#fff" stroke="#d9ccc2" stroke-width="4"/>
+    <rect x="550" y="160" width="130" height="32" rx="12" fill="#8a1e2d"/>
+    <rect x="550" y="208" width="130" height="20" rx="10" fill="#d9a47a" opacity="0.6"/>
+    <rect x="550" y="236" width="110" height="20" rx="10" fill="#d9a47a" opacity="0.45"/>
+    <rect x="550" y="264" width="90" height="20" rx="10" fill="#d9a47a" opacity="0.35"/>
+    <path d="M260 360L290 400L230 400Z" fill="#8a1e2d"/>
+    <circle cx="640" cy="90" r="16" fill="url(#accentGradient)"/>
+    <circle cx="680" cy="110" r="10" fill="#f7b267"/>
+    <circle cx="610" cy="80" r="10" fill="#f7b267"/>
+    <path d="M120 40C120 24 140 14 152 24C164 10 186 20 186 36C186 52 160 72 152 82C144 72 120 52 120 40Z" fill="#f7b267"/>
+    <path d="M420 28C437 20 454 30 452 48C466 42 482 52 480 70C478 88 448 110 436 120C428 106 404 86 404 70C404 54 410 36 420 28Z" fill="#b43a48" opacity="0.85"/>
+    <path d="M520 356C488 330 488 292 516 274C534 262 560 262 580 270" stroke="#f3c089" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M540 360C518 340 518 306 542 292" stroke="#d9a47a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M590 356C608 340 608 306 588 292" stroke="#d78655" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

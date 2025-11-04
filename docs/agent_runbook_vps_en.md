@@ -87,7 +87,7 @@ One‑time setup
 - Pin Node: `asdf plugin add nodejs && asdf install nodejs 22.17.1 && asdf global nodejs 22.17.1`
 - systemd unit: `sudo cp ops/systemd/sogecon-web.service /etc/systemd/system/ && sudo systemctl enable sogecon-web`
 - Nginx proxy: see `ops/nginx/nginx-site-web.conf` (adjust server_name, cert paths)
-- Release dirs: `sudo mkdir -p /opt/sogecon/web/releases && sudo chown $USER /opt/sogecon/web -R`
+- Release dirs: `sudo mkdir -p /srv/www/sogecon/releases && sudo chown $USER /srv/www/sogecon -R`
 
 ### sudoers (for passwordless restarts)
 To avoid prompts during deploy/rollback:
@@ -109,7 +109,7 @@ Rollback
 
 Directory layout (example)
 ```
-/opt/sogecon/web/
+/srv/www/sogecon/
   ├── current -> releases/20251104183010
   └── releases/
       └── 20251104183010/   (.next/standalone + apps/web/.next/static + apps/web/public)
@@ -122,7 +122,7 @@ Notes
 
 ### Maintenance
 - Clean old releases (older than 30 days):
-  - `find /opt/sogecon/web/releases -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +`
+  - `find /srv/www/sogecon/releases -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +`
 - Logs/rotation:
   - App: `journalctl -u sogecon-web -f`
   - Nginx: `/var/log/nginx/access.log`, `/var/log/nginx/error.log` (logrotate)
@@ -140,7 +140,7 @@ Notes
 - Server prerequisites: one‑time setup above and a repo clone at `/srv/sogecon-app`.
 
 ### Path policy (/opt vs in‑repo)
-- Default (recommended): deploy releases to `/opt/sogecon/web`, operate via `/opt/sogecon/web/current` symlink
+- Default (recommended): deploy releases to `/srv/www/sogecon`, operate via `/srv/www/sogecon/current` symlink
   - Pros: clean separation from repo tree, safer rollouts/rollbacks, simpler permissions
   - Cons: one‑time path/permissions setup, backup/monitoring split
 - Alternative (in repo): `RELEASE_BASE=/srv/sogecon-app/.releases/web`

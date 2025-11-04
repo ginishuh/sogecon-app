@@ -63,6 +63,14 @@ jobs:
               fi; \
             fi; \
             node -v || true; \
+            # Create dedicated service account (no-login) if missing
+            if ! id -u sogecon >/dev/null 2>&1; then \
+              if command -v adduser >/dev/null 2>&1; then \
+                sudo adduser --system --group --home /srv/www/sogecon --no-create-home --shell /usr/sbin/nologin sogecon; \
+              else \
+                sudo useradd -r -M -d /srv/www/sogecon -s /usr/sbin/nologin -U sogecon; \
+              fi; \
+            fi; \
             # Ensure repo present at /srv/sogecon-app
             if [ ! -d /srv/sogecon-app/.git ]; then \
               sudo mkdir -p /srv/sogecon-app; \
@@ -72,8 +80,11 @@ jobs:
               cd /srv/sogecon-app && git pull --ff-only || true; \
             fi; \
             # Release dir and permissions
-            sudo mkdir -p /opt/sogecon/web/releases; \
-            sudo chown "$USER":"$USER" /opt/sogecon/web -R; \
+            sudo mkdir -p /srv/www/sogecon/releases; \
+            sudo chown "$USER":"$USER" /srv/www/sogecon -R; \
+            # Ensure the service user can read releases (dirs 755, files 644)
+            sudo find /srv/www/sogecon -type d -exec chmod 755 {} \;; \
+            sudo find /srv/www/sogecon -type f -exec chmod 644 {} \; || true; \
             # Systemd unit from repo clone
             cd /srv/sogecon-app; \
             sudo cp ops/systemd/sogecon-web.service /etc/systemd/system/sogecon-web.service; \

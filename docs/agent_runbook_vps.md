@@ -89,7 +89,7 @@ API_IMAGE=$PREFIX/alumni-api:$PREV WEB_IMAGE=$PREFIX/alumni-web:$PREV \
 - Node 고정 설치: `asdf plugin add nodejs && asdf install nodejs 22.17.1 && asdf global nodejs 22.17.1`
 - systemd 유닛 배치: `sudo cp ops/systemd/sogecon-web.service /etc/systemd/system/ && sudo systemctl enable sogecon-web`
 - Nginx 프록시: `ops/nginx/nginx-site-web.conf` 참고(도메인/인증서 경로 수정 후 적용)
-- 릴리스 경로 생성: `sudo mkdir -p /opt/sogecon/web/releases && sudo chown $USER /opt/sogecon/web -R`
+- 릴리스 경로 생성: `sudo mkdir -p /srv/www/sogecon/releases && sudo chown $USER /srv/www/sogecon -R`
 
 ### sudoers 설정(무중단 배포/롤백용)
 systemd 재시작에 비밀번호 프롬프트가 발생하지 않도록, 전용 sudoers 항목을 추가합니다.
@@ -111,7 +111,7 @@ sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart
 
 디렉터리 구조(예시)
 ```
-/opt/sogecon/web/
+/srv/www/sogecon/
   ├── current -> releases/20251104183010
   └── releases/
       └── 20251104183010/   (.next/standalone 전개본 + apps/web/.next/static + apps/web/public)
@@ -124,7 +124,7 @@ sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart
 
 ### 유지보수(운영 팁)
 - 오래된 릴리스 정리(30일 이상):
-  - `find /opt/sogecon/web/releases -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +`
+  - `find /srv/www/sogecon/releases -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +`
 - 로그 확인/로테이션:
   - 앱: `journalctl -u sogecon-web -f`
   - Nginx: `/var/log/nginx/access.log`, `/var/log/nginx/error.log` (logrotate 기본 적용)
@@ -142,7 +142,7 @@ sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart
 - 서버 선행 준비: 위 사전 준비(1회)와 `/srv/sogecon-app` 레포 클론 필요.
 
 ### 경로 정책(/opt vs 레포 내부)
-- 기본(권장): `/opt/sogecon/web`에 릴리스 전개, `/opt/sogecon/web/current` 심볼릭 링크 운용
+- 기본(권장): `/srv/www/sogecon`에 릴리스 전개, `/srv/www/sogecon/current` 심볼릭 링크 운용
   - 장점: 운영/롤백이 레포 작업트리와 분리되어 안전, 권한 관리 용이
   - 단점: 초기 경로/권한 준비 필요, 백업/모니터링 경로가 분리됨
 - 대안(레포 내부): `RELEASE_BASE=/srv/sogecon-app/.releases/web`

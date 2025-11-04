@@ -8,10 +8,10 @@ Type=simple
 User=sogecon
 Group=sogecon
 # `web-deploy.sh`가 관리하는 릴리스 심볼릭 링크 경로
-# 기본 경로는 /opt/sogecon/web/current 입니다.
+# 기본 경로는 /srv/www/sogecon/current 입니다.
 # 레포 내부에 릴리스를 두려면 ops/web-deploy.sh 의 RELEASE_BASE 를 변경하고,
 # 여기 WorkingDirectory 도 동일한 경로로 맞추세요 (예: /srv/sogecon-app/.releases/web/current).
-WorkingDirectory=/opt/sogecon/web/current
+WorkingDirectory=/srv/www/sogecon/current
 Environment=NODE_ENV=production
 Environment=PORT=3000
 # 주의: NEXT_PUBLIC_* 변수는 빌드 타임에 고정됩니다. 런타임에서 변경해도 반영되지 않습니다.

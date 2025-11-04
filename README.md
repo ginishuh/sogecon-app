@@ -167,7 +167,7 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
 
 - 원클릭(권장): GitHub Actions → `web-standalone-deploy` → environment=`prod`
   - CI가 `apps/web`을 `output: 'standalone'`으로 빌드 → 아카이브 업로드(SCP) → 원격에서 `ops/web-deploy.sh` 실행(릴리스 디렉터리 전개 + `current` 링크 전환 + systemd 재시작) → 헬스체크
-  - 서버 1회 준비: Node 22.17.1(asdf), `/opt/sogecon/web/releases`, Nginx 프록시(127.0.0.1:3000), systemd 유닛(`ops/systemd/sogecon-web.service`) 설치, sudoers(NOPASSWD) 설정
+  - 서버 1회 준비: Node 22.17.1(asdf), `/srv/www/sogecon/releases`, Nginx 프록시(127.0.0.1:3000), systemd 유닛(`ops/systemd/sogecon-web.service`) 설치, sudoers(NOPASSWD) 설정
   - 상세: `docs/agent_runbook_vps.md` (KR) / `_en.md` (EN)
 
 - TL;DR(컨테이너 경로 — 병행 지원)
@@ -203,7 +203,7 @@ cd /srv/sogecon-app/_tmp && mkdir -p web-standalone-<sha7> && \
 
 # 3) 릴리스 전환 + 재시작
 cd /srv/sogecon-app
-CI=1 RELEASE_BASE=/opt/sogecon/web SERVICE_NAME=sogecon-web \
+CI=1 RELEASE_BASE=/srv/www/sogecon SERVICE_NAME=sogecon-web \
 REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
 ```
 참고 파일: `ops/web-deploy.sh`, `ops/web-rollback.sh`, `ops/systemd/sogecon-web.service`, `ops/nginx/nginx-site-web.conf`

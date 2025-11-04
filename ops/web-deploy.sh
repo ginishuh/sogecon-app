@@ -2,13 +2,13 @@
 set -euo pipefail
 
 # Sogecon Web — Next.js standalone 배포 스크립트
-# - 릴리스 디렉터리 구조: /opt/sogecon/web/releases/<ts>
-# - 심볼릭 링크: /opt/sogecon/web/current → 최신 릴리스
-# - 기본 RELEASE_BASE 는 /opt/sogecon/web 입니다. 레포 내부로 두려면
+# - 릴리스 디렉터리 구조: /srv/www/sogecon/releases/<ts>
+# - 심볼릭 링크: /srv/www/sogecon/current → 최신 릴리스
+# - 기본 RELEASE_BASE 는 /srv/www/sogecon 입니다. 레포 내부로 두려면
 #   RELEASE_BASE=/srv/sogecon-app/.releases/web 와 같이 지정하고 systemd 유닛도 동일 경로로 변경하세요.
 # - 전개 대상: .next/standalone/*, .next/static, public
 
-RELEASE_BASE=${RELEASE_BASE:-/opt/sogecon/web}
+RELEASE_BASE=${RELEASE_BASE:-/srv/www/sogecon}
 SERVICE_NAME=${SERVICE_NAME:-sogecon-web}
 # CI 환경에서는 전개 원본(staging) 경로를 반드시 명시적으로 전달해야 합니다.
 if [ -n "${CI:-}" ]; then
@@ -56,6 +56,9 @@ rsync -a --delete "$STATIC_DIR/" "$REL_DIR/apps/web/.next/static/"
 # 3) public 복사
 info "public → $REL_DIR/apps/web/public 복사"
 rsync -a --delete "$PUBLIC_DIR/" "$REL_DIR/apps/web/public/"
+
+# 3.5) 권한 정리 — 서비스 계정(sogecon)이 읽을 수 있도록 디렉터리 755, 파일 644
+chmod -R u=rwX,go=rX "$REL_DIR" || true
 
 # 4) 심볼릭 링크 전환 (원자적)
 ln -sfn "$REL_DIR" "$RELEASE_BASE/current"
