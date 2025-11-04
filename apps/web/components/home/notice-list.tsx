@@ -21,15 +21,9 @@ function formatDate(dateStr: string): string {
   // formatToParts()로 "2025.11.04" 형식 생성 (regex 대신 명시적 파싱)
   const parts = formatter.formatToParts(date);
   return parts
-<<<<<<< HEAD
     .filter((p) => p.type !== 'literal')
     .map((p) => p.value)
     .join('.');
-=======
-    .filter((p) => p.type !== 'literal' || p.value === '.')
-    .map((p) => p.value)
-    .join('');
->>>>>>> e606dde (refactor(web): 코드 품질 개선 및 회원가입→계정 활성화 변경)
 }
 
 export function HomeNoticeList() {
