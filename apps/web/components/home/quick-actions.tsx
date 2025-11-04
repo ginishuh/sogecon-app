@@ -13,10 +13,23 @@ type QuickAction = {
 
 const ACTIONS: QuickAction[] = [
   {
+    href: '/about/greeting' as Route,
+    label: '총동문회 소개',
+    ariaLabel: '총동문회 소개 바로가기',
+    bgColor: 'bg-[#8a1e2d]',
+    showPlusIcon: true,
+    icon: (
+      <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M4 13.33L16 4l12 9.33v13.34a2.67 2.67 0 0 1-2.67 2.66H6.67A2.67 2.67 0 0 1 4 26.67V13.33Z" />
+        <path d="M12 29.33V16h8v13.33" />
+      </svg>
+    )
+  },
+  {
     href: '/directory',
     label: '동문 수첩',
     ariaLabel: '동문 수첩 바로가기',
-    bgColor: 'bg-[#8a1e2d]',
+    bgColor: 'bg-[#6c1722]',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -28,7 +41,7 @@ const ACTIONS: QuickAction[] = [
     href: '/events',
     label: '행사 일정',
     ariaLabel: '행사 일정 바로가기',
-    bgColor: 'bg-[#6c1722]',
+    bgColor: 'bg-yellow-600',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -38,16 +51,15 @@ const ACTIONS: QuickAction[] = [
     )
   },
   {
-    href: '/board?tab=gallery' as Route,
-    label: '갤러리',
-    ariaLabel: '갤러리 바로가기',
-    bgColor: 'bg-yellow-600',
+    href: '/posts',
+    label: '총동문회 소식',
+    ariaLabel: '총동문회 소식 바로가기',
+    bgColor: 'bg-teal-700',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="4" y="4" width="24" height="24" rx="2.67" />
-        <circle cx="13.33" cy="13.33" r="2.67" />
-        <path d="M8 24l8-8 8 8" />
+        <rect x="2.67" y="2.67" width="21.33" height="26.66" rx="2.67" />
+        <path d="M24 8h5.33v16a2.67 2.67 0 0 1-2.66 2.67H24V8Z" />
       </svg>
     )
   },
@@ -65,27 +77,14 @@ const ACTIONS: QuickAction[] = [
   },
   {
     href: '/board?tab=congrats' as Route,
-    label: '가입인사',
-    ariaLabel: '가입인사 바로가기',
-    bgColor: 'bg-teal-700',
+    label: '경조사 게시판',
+    ariaLabel: '경조사 게시판 바로가기',
+    bgColor: 'bg-slate-700',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M8 20l8 8M24 8l-8 8M20 24h4v-4" />
         <circle cx="16" cy="16" r="2.67" />
-      </svg>
-    )
-  },
-  {
-    href: '/posts',
-    label: '동문 소식',
-    ariaLabel: '동문 소식 바로가기',
-    bgColor: 'bg-slate-700',
-    showPlusIcon: true,
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="2.67" y="2.67" width="21.33" height="26.66" rx="2.67" />
-        <path d="M24 8h5.33v16a2.67 2.67 0 0 1-2.66 2.67H24V8Z" />
       </svg>
     )
   }
