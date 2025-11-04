@@ -98,42 +98,48 @@ export default function Drawer({ open, onClose, title, side = 'left', className,
 
   return (
     <div aria-hidden={!open} className="fixed inset-0 z-50">
-      {/* Backdrop (비포커스) */}
-      <div aria-hidden="true" className="absolute inset-0 bg-black/30" onClick={onClose} />
+      {/* Backdrop */}
+      <div aria-hidden="true" className="absolute inset-0 bg-black/50" onClick={onClose} />
       {/* Panel */}
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
-        aria-label={labelledBy ? undefined : title}
+        aria-label={labelledBy ? undefined : '메뉴'}
         tabIndex={-1}
         className={cn(
-          'absolute top-0 h-full w-80 max-w-[80vw] bg-white shadow-xl outline-none z-10',
+          'absolute top-0 h-full bg-white shadow-xl outline-none z-10 flex flex-col',
           side === 'left' ? 'left-0' : 'right-0',
           className
         )}
       >
-        {(title || true) && (
-          <div className="flex items-center justify-between border-b border-slate-200 p-3">
-            {title ? (
-              <h2 id={labelledBy} className="text-sm font-medium text-slate-800">
-                {title}
-              </h2>
-            ) : (
-              <span className="sr-only" id={labelledBy}>메뉴</span>
-            )}
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded p-2 text-slate-600 hover:bg-slate-100"
-              aria-label="닫기"
-            >
-              닫기
-            </button>
+        {/* 헤더 */}
+        <div className="flex items-center gap-2 p-4 shrink-0">
+          {/* 로고 */}
+          <div className="flex items-center gap-2">
+            <svg className="size-10 text-brand-primary" viewBox="0 0 28 40" fill="currentColor">
+              <path d="M14 0L0 8v24l14 8 14-8V8L14 0z" />
+            </svg>
+            <div className="text-sm font-semibold text-neutral-ink leading-tight">
+              <div>서강대학교</div>
+              <div>경제대학원 총동문회</div>
+            </div>
           </div>
-        )}
-        <div className="p-3">{children}</div>
+          {/* 닫기 버튼 */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto rounded opacity-70 hover:opacity-100 text-neutral-ink size-4 flex items-center justify-center"
+            aria-label="닫기"
+          >
+            <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 4L4 12M4 4l8 8" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+        {/* 컨텐츠 */}
+        <div className="flex-1 overflow-y-auto px-4 pb-4">{children}</div>
       </div>
     </div>
   );

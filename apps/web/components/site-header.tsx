@@ -9,7 +9,6 @@ import { HeaderAuth } from './header-auth';
 import { NotifyCTA } from './notify-cta';
 import { RequireAdmin } from './require-admin';
 import { useAuth } from '../hooks/useAuth';
-import { LoginInline } from './login-inline';
 import Drawer from './ui/drawer';
 import { NavDropdown } from './ui/nav-dropdown';
 
@@ -24,16 +23,24 @@ const PRIMARY_LINKS: LinkItem[] = [
   { href: '/events', label: '행사' }
 ];
 
+// Drawer 메뉴 섹션
+const MENU_LINKS: LinkItem[] = [
+  { href: '/', label: '홈' },
+  { href: '/board', label: '게시판' },
+  { href: '/events', label: '행사 일정' },
+  { href: '/directory', label: '동문 수첩' }
+];
+
 const ABOUT_LINKS: LinkItem[] = [
-  { href: '/about/greeting', label: '회장 인사말' },
+  { href: '/about/greeting', label: '인사말' },
   { href: '/about/org', label: '조직도' },
-  { href: '/about/history', label: '역대 회장단' }
+  { href: '/about/history', label: '연혁' }
 ];
 
 const SUPPORT_LINKS: LinkItem[] = [
-  { href: '/faq', label: 'FAQ' },
-  { href: '/privacy', label: '개인정보 처리방침' },
-  { href: '/terms', label: '이용약관' }
+  { href: '/faq', label: '자주 묻는 질문' },
+  { href: '/terms', label: '이용약관' },
+  { href: '/privacy', label: '개인정보처리방침' }
 ];
 
 const ADMIN_LINKS: LinkItem[] = [
@@ -77,15 +84,15 @@ export function SiteHeader() {
         </Link>
         <button
           type="button"
-          className="site-header__hamburger inline-flex items-center justify-center rounded-md border border-neutral-border px-3 py-2 text-sm text-neutral-ink transition hover:bg-brand-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent md:hidden"
-          aria-controls="primary-navigation"
+          className="site-header__hamburger inline-flex items-center justify-center rounded-full size-10 text-neutral-ink transition hover:bg-neutral-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+          aria-haspopup="menu"
           aria-expanded={open}
           aria-label={open ? '전체 메뉴 닫기' : '전체 메뉴 열기'}
           onClick={() => setOpen((prev) => !prev)}
           ref={toggleBtnRef}
         >
           <span className="sr-only">메뉴 토글</span>
-          <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="size-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             {open ? (
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             ) : (
@@ -127,94 +134,134 @@ export function SiteHeader() {
           )}
         </div>
       </div>
-      {/* 모바일 내비: Drawer 연동 */}
-      <Drawer open={open} onClose={closeMenu} title="전체 메뉴" side="right">
-        <nav id="primary-navigation" aria-label="모바일 주 메뉴" className="flex h-full flex-col gap-4 overflow-y-auto p-4 text-sm text-neutral-muted font-menu">
+      {/* Drawer 메뉴 */}
+      <Drawer open={open} onClose={closeMenu} side="right" className="w-[285px]">
+        <nav id="primary-navigation" aria-label="전체 메뉴" className="flex h-full flex-col gap-6 overflow-y-auto">
+          {/* 로그인/계정 활성화 버튼 */}
           {status === 'unauthorized' && (
-            <div className="mb-2">
+            <div className="flex gap-2 border-b border-neutral-border pb-4">
               <Link
                 href="/login"
                 onClick={closeMenu}
-                className="block rounded-md bg-slate-900 px-3 py-2 text-center text-sm text-white hover:bg-slate-800"
+                className="flex-1 flex items-center justify-center gap-2 rounded-[10px] bg-brand-primary px-3 py-2.5 text-white text-base hover:bg-[#6c1722] transition-colors"
               >
+                <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 14a6 6 0 0 1 12 0" strokeLinecap="round" />
+                </svg>
                 로그인
+              </Link>
+              <Link
+                href="/activate"
+                onClick={closeMenu}
+                className="flex-1 flex items-center justify-center gap-2 rounded-[10px] border border-brand-primary px-3 py-2.5 text-brand-primary text-base hover:bg-brand-primary/5 transition-colors"
+              >
+                <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="7" width="10" height="7" rx="1" />
+                  <path d="M5 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round" />
+                </svg>
+                계정 활성화
               </Link>
             </div>
           )}
-          <ul className="grid gap-3" aria-label="주요 링크">
-            {PRIMARY_LINKS.map((link) => (
-              <li key={link.href}>
-                <Link
-                  className="block rounded-md border border-neutral-border px-3 py-2 hover:border-brand-primary hover:text-brand-primary"
-                  href={link.href}
-                  onClick={closeMenu}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <section aria-label="총동문회 소개 링크" className="space-y-2">
-            <h2 className="text-xs font-semibold uppercase text-neutral-muted">총동문회 소개</h2>
-            <ul className="grid gap-2">
+
+          {/* 메뉴 섹션 */}
+          <section aria-label="메뉴" className="space-y-0">
+            <h2 className="text-xs font-medium text-neutral-muted px-3 mb-2">메뉴</h2>
+            <ul>
+              {MENU_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-base hover:bg-neutral-surface transition-colors"
+                    href={link.href}
+                    onClick={closeMenu}
+                  >
+                    {link.label === '홈' && (
+                      <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M3 10l7-7 7 7v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-8z" />
+                        <path d="M9 17v-6h2v6" />
+                      </svg>
+                    )}
+                    {link.label === '게시판' && (
+                      <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M3 3h14v11a1 1 0 0 1-1 1H3V3z" />
+                        <path d="M6 7h8M6 10h8" />
+                      </svg>
+                    )}
+                    {link.label === '행사 일정' && (
+                      <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="3" y="4" width="14" height="12" rx="1" />
+                        <path d="M6 2v4M14 2v4M3 8h14" />
+                      </svg>
+                    )}
+                    {link.label === '동문 수첩' && (
+                      <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M4 2h10a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" />
+                        <path d="M7 6h6M7 10h4" />
+                      </svg>
+                    )}
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* 소개 섹션 */}
+          <section aria-label="소개" className="space-y-0">
+            <h2 className="text-xs font-medium text-neutral-muted px-3 mb-2">소개</h2>
+            <ul>
               {ABOUT_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
-                    className="block rounded-md px-3 py-2 hover:bg-brand-surface hover:text-brand-primary"
+                    className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-base hover:bg-neutral-surface transition-colors"
                     href={link.href}
                     onClick={closeMenu}
                   >
+                    <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM4 18a6 6 0 0 1 12 0" />
+                    </svg>
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
           </section>
-          <section aria-label="고객 지원 링크" className="space-y-2">
-            <h2 className="text-xs font-semibold uppercase text-neutral-muted">고객 지원</h2>
-            <ul className="grid gap-2">
+
+          {/* 정보 섹션 */}
+          <section aria-label="정보" className="space-y-0 border-t border-neutral-border pt-4">
+            <h2 className="text-xs font-medium text-neutral-muted px-3 mb-2">정보</h2>
+            <ul>
               {SUPPORT_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
-                    className="block rounded-md px-3 py-2 hover:bg-brand-surface hover:text-brand-primary"
+                    className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-base hover:bg-neutral-surface transition-colors"
                     href={link.href}
                     onClick={closeMenu}
                   >
+                    {link.label === '자주 묻는 질문' && (
+                      <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <circle cx="10" cy="10" r="7" />
+                        <path d="M10 14v.01M10 11a2 2 0 0 1 2-2" />
+                      </svg>
+                    )}
+                    {link.label === '이용약관' && (
+                      <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M5 3h10a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+                        <path d="M7 7h6M7 10h6M7 13h4" />
+                      </svg>
+                    )}
+                    {link.label === '개인정보처리방침' && (
+                      <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="5" y="8" width="10" height="9" rx="1" />
+                        <path d="M7 8V6a3 3 0 0 1 6 0v2" />
+                      </svg>
+                    )}
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
           </section>
-          <RequireAdmin fallback={null}>
-            <section aria-label="관리자 링크" className="space-y-2">
-              <h2 className="text-xs font-semibold uppercase text-neutral-muted">관리자</h2>
-              <ul className="grid gap-2">
-                {ADMIN_LINKS.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      className="block rounded-md px-3 py-2 hover:bg-brand-surface hover:text-brand-primary"
-                      href={link.href}
-                      onClick={closeMenu}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </RequireAdmin>
-          <div className="mt-auto flex flex-col gap-2 border-t border-neutral-border pt-4">
-            <NotifyCTA />
-            {status === 'unauthorized' ? (
-              <section aria-label="빠른 로그인" className="rounded border border-neutral-border p-3">
-                <h3 className="mb-2 text-xs font-semibold text-neutral-muted">빠른 로그인</h3>
-                <LoginInline onSuccess={closeMenu} />
-              </section>
-            ) : (
-              <HeaderAuth />
-            )}
-          </div>
         </nav>
       </Drawer>
     </header>
