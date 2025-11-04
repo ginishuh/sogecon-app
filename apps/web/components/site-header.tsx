@@ -137,7 +137,11 @@ export function SiteHeader() {
       {/* Drawer 메뉴 */}
       <Drawer open={open} onClose={closeMenu} side="right" className="w-[285px]">
         <nav id="primary-navigation" aria-label="전체 메뉴" className="flex h-full flex-col gap-6 overflow-y-auto">
+<<<<<<< HEAD
           {/* 로그인/계정 활성화 버튼 */}
+=======
+          {/* 로그인 버튼 */}
+>>>>>>> 0a11e1b (feat(web): 데스크톱 햄버거 메뉴 구현)
           {status === 'unauthorized' && (
             <div className="flex gap-2 border-b border-neutral-border pb-4">
               <Link
