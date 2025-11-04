@@ -46,11 +46,12 @@
 - ops(web): 릴리스 기본 경로 `/opt/sogecon/web` → `/srv/www/sogecon` 전환(유닛/스크립트/워크플로/문서 갱신)
 ## 2025-11-04
 
-- Web(Nav): 모바일 메뉴 회원가입 버튼 추가 (Figma 디자인 반영)
-  - 로그인 + 회원가입 버튼 나란히 배치 (flex-1, gap-2)
-  - 회원가입 버튼: border-brand-primary, text-brand-primary, hover:bg-brand-primary/5
-  - 사용자 추가 아이콘 (+ 표시) 포함
-  - `/signup` 라우트로 연결 (페이지는 향후 구현 예정)
+- dev: `scripts/fix-web-perms.sh`에 `uploads`를 대상에 포함 — 컨테이너에서 생성된 업로드 파일 소유권을 사용자 계정으로 복구하도록 범위 확장
+- Web(Nav): 모바일 메뉴 버튼 구성 변경 (Figma 디자인 반영)
+  - 로그인 + 계정 활성화 버튼 나란히 배치 (flex-1, gap-2)
+  - 계정 활성화 버튼: border-brand-primary, text-brand-primary, hover:bg-brand-primary/5
+  - 잠금 아이콘 포함
+  - `/activate` 라우트로 연결 (토큰 기반 계정 활성화)
 - Web: 코드 리뷰 피드백 반영 (접근성, 안전성, 유지보수성 개선)
   - 날짜 포맷팅: Intl.DateTimeFormat('ko-KR') 사용으로 TZ/포맷 안전성 확보, NaN 처리 추가
   - 접근성: 햄버거 버튼에 aria-haspopup="menu" 추가, aria-controls 제거 (실효성 개선)
@@ -58,6 +59,12 @@
   - 브랜드 컬러: HEX 직접 지정을 Tailwind 테마 토큰으로 치환 (bg-brand-primary, bg-action-discussion 등)
   - UX: useQuery 로딩/에러 상태에 대한 사용자 피드백 추가 (스피너, 에러 메시지)
   - 코드 정리: 미사용 trackRef 제거
+- Web: GitHub Copilot 코드 리뷰 피드백 반영
+  - Docs: worklog.md 중복 2025-11-04 헤더 통합
+  - 날짜 포맷: formatToParts() 사용으로 regex 대체 (명시적 파싱)
+  - 스타일: quick-actions.tsx에서 cn() 유틸리티 사용으로 클래스 병합 개선
+  - 텍스트 자르기: hero-carousel에서 truncateAtWordBoundary() 함수로 단어 경계 고려
+  - 가독성: 캐러셀 반응형 포지셔닝에 설명 주석 추가 (모바일 중앙, 데스크톱 하단 좌측)
 
 ## 2025-10-24
 

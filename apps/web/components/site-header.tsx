@@ -160,7 +160,6 @@ export function SiteHeader() {
                   <path d="M5 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round" />
                 </svg>
                 계정 활성화
-                
               </Link>
             </div>
           )}
