@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import React from 'react';
+import { cn } from '../../lib/cn';
 
 type QuickAction = {
   href: Route;
@@ -100,7 +101,10 @@ export function HomeQuickActions() {
             key={item.href}
             href={item.href}
             aria-label={item.ariaLabel ?? item.label}
-            className={`relative flex flex-col items-center justify-center h-[107px] rounded-2xl shadow-md transition-transform hover:scale-105 ${item.bgColor}`}
+            className={cn(
+              'relative flex flex-col items-center justify-center h-[107px] rounded-2xl shadow-md transition-transform hover:scale-105',
+              item.bgColor
+            )}
           >
             {/* 아이콘 */}
             <div className="text-white mb-2" aria-hidden="true">

@@ -17,8 +17,12 @@ function formatDate(dateStr: string): string {
     timeZone: 'Asia/Seoul'
   });
 
-  // "2025. 11. 04." → "2025.11.04" 형식으로 변환
-  return formatter.format(date).replace(/\.\s/g, '.').replace(/\.$/, '');
+  // formatToParts()로 "2025.11.04" 형식 생성 (regex 대신 명시적 파싱)
+  const parts = formatter.formatToParts(date);
+  return parts
+    .filter((p) => p.type !== 'literal' || p.value === '.')
+    .map((p) => p.value)
+    .join('');
 }
 
 export function HomeNoticeList() {

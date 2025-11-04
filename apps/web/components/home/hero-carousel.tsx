@@ -8,6 +8,19 @@ import { useAuth } from '../../hooks/useAuth';
 
 type Slide = { id: string; image: string; title: string; description: string; unpublished?: boolean };
 
+// 단어 경계를 고려한 텍스트 자르기 (최대 maxLength 이내에서 마지막 완전한 단어까지)
+function truncateAtWordBoundary(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+
+  const truncated = text.substring(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+
+  // 공백이 없으면 그냥 자르기 (단일 긴 단어)
+  if (lastSpace === -1) return truncated;
+
+  return truncated.substring(0, lastSpace);
+}
+
 function buildSlides(posts: Post[], opts: { allowUnpublished: boolean; max: number }): Slide[] {
   const now = Date.now();
   const isPublished = (p: Post) => !!p.published_at && Date.parse(p.published_at) <= now;
@@ -22,7 +35,7 @@ function buildSlides(posts: Post[], opts: { allowUnpublished: boolean; max: numb
     id: `post-${p.id}`,
     image: p.cover_image || '/images/home/hero-launch.svg',
     title: p.title || '공지 · 행사 · 동문 수첩을 한 곳에서',
-    description: p.content ? p.content.substring(0, 100) : '우수 교수의 지속적 학술과 연구방향의 강화, 충실한 교육',
+    description: p.content ? truncateAtWordBoundary(p.content, 100) : '우수 교수의 지속적 학술과 연구방향의 강화, 충실한 교육',
     unpublished: !isPublished(p)
   }));
 
@@ -191,7 +204,7 @@ export default function HomeHeroCarousel() {
               {/* 그라디언트 오버레이 */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
-              {/* 텍스트 컨텐츠 */}
+              {/* 텍스트 컨텐츠 — 반응형 정렬: 모바일(중앙), 데스크톱(하단 좌측) */}
               <div className="absolute inset-0 flex items-center justify-center px-14 md:px-6 md:items-end md:justify-start md:pb-6 md:pt-16 lg:pt-24">
                 <div className="text-center md:text-left max-w-full">
                   <h2 className="text-[28px] md:text-[30px] lg:text-[32px] font-medium leading-tight tracking-tight text-white mb-2">

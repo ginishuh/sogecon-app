@@ -137,7 +137,7 @@ export function SiteHeader() {
       {/* Drawer 메뉴 */}
       <Drawer open={open} onClose={closeMenu} side="right" className="w-[285px]">
         <nav id="primary-navigation" aria-label="전체 메뉴" className="flex h-full flex-col gap-6 overflow-y-auto">
-          {/* 로그인/회원가입 버튼 */}
+          {/* 로그인/계정 활성화 버튼 */}
           {status === 'unauthorized' && (
             <div className="flex gap-2 border-b border-neutral-border pb-4">
               <Link
@@ -151,15 +151,15 @@ export function SiteHeader() {
                 로그인
               </Link>
               <Link
-                href={"/signup" as Route}
+                href="/activate"
                 onClick={closeMenu}
                 className="flex-1 flex items-center justify-center gap-2 rounded-[10px] border border-brand-primary px-3 py-2.5 text-brand-primary text-base hover:bg-brand-primary/5 transition-colors"
               >
                 <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 14a6 6 0 0 1 12 0" strokeLinecap="round" />
-                  <path d="M12 5h4M14 3v4" strokeLinecap="round" />
+                  <rect x="3" y="7" width="10" height="7" rx="1" />
+                  <path d="M5 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round" />
                 </svg>
-                회원가입
+                계정 활성화
               </Link>
             </div>
           )}
