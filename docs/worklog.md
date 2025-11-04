@@ -1,3 +1,11 @@
+## 2025-11-04
+
+- Web(Nav): 모바일 메뉴 회원가입 버튼 추가 (Figma 디자인 반영)
+  - 로그인 + 회원가입 버튼 나란히 배치 (flex-1, gap-2)
+  - 회원가입 버튼: border-brand-primary, text-brand-primary, hover:bg-brand-primary/5
+  - 사용자 추가 아이콘 (+ 표시) 포함
+  - `/signup` 라우트로 연결 (페이지는 향후 구현 예정)
+
 ## 2025-10-24
 
 - e2e 린트 엄격 복구 + 테스트 코드 린트 제거 — see #29
