@@ -81,7 +81,74 @@ API_IMAGE=$PREFIX/alumni-api:$PREV WEB_IMAGE=$PREFIX/alumni-web:$PREV \
 - 별도 도메인(교차 사이트): `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true` (HTTPS 필수)
 - 설정 위치: `.env.api` → `apps/api/main.py`의 `SessionMiddleware`에 반영됨
 
-## 5) 트러블슈팅
+## 5) 웹 비컨테이너(Next.js standalone + systemd + Nginx)
+
+컨테이너 대신 Next.js `standalone` 산출물을 systemd 서비스로 구동합니다. DB/API는 기존 컨테이너 구성을 유지합니다.
+
+사전 준비(1회)
+- Node 고정 설치: `asdf plugin add nodejs && asdf install nodejs 22.17.1 && asdf global nodejs 22.17.1`
+- systemd 유닛 배치: `sudo cp ops/systemd/sogecon-web.service /etc/systemd/system/ && sudo systemctl enable sogecon-web`
+- Nginx 프록시: `ops/nginx/nginx-site-web.conf` 참고(도메인/인증서 경로 수정 후 적용)
+- 릴리스 경로 생성: `sudo mkdir -p /opt/sogecon/web/releases && sudo chown $USER /opt/sogecon/web -R`
+
+### sudoers 설정(무중단 배포/롤백용)
+systemd 재시작에 비밀번호 프롬프트가 발생하지 않도록, 전용 sudoers 항목을 추가합니다.
+```
+sudo visudo -f /etc/sudoers.d/sogecon-web
+```
+내용 예시(사용자/서비스명에 맞게 조정):
+```
+sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart sogecon-web, /bin/systemctl status sogecon-web
+```
+
+배포 절차
+1. 레포 루트에서 웹 빌드: `pnpm -C apps/web install && pnpm -C apps/web build`
+2. 산출물 전개/링크 전환: `bash ops/web-deploy.sh` (환경변수: `RELEASE_BASE`, `SERVICE_NAME` 커스터마이즈 가능)
+3. 상태 확인: `systemctl status sogecon-web` (active), `curl -i http://127.0.0.1:3000/` (200)
+
+롤백 절차
+- 직전 릴리스로 링크 전환 및 재시작: `bash ops/web-rollback.sh`
+
+디렉터리 구조(예시)
+```
+/opt/sogecon/web/
+  ├── current -> releases/20251104183010
+  └── releases/
+      └── 20251104183010/   (.next/standalone 전개본 + apps/web/.next/static + apps/web/public)
+```
+
+주의사항
+- `NEXT_PUBLIC_*` 값은 빌드 타임에 고정됩니다. 환경 변경 시 빌드 재실행 필요.
+- 보안 헤더는 Next와 Nginx 모두 설정되므로 중복/충돌 항목을 점검하세요.
+- 헬스 실패 시 `journalctl -u sogecon-web -e` 및 Nginx 에러 로그를 확인하세요.
+
+### 유지보수(운영 팁)
+- 오래된 릴리스 정리(30일 이상):
+  - `find /opt/sogecon/web/releases -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +`
+- 로그 확인/로테이션:
+  - 앱: `journalctl -u sogecon-web -f`
+  - Nginx: `/var/log/nginx/access.log`, `/var/log/nginx/error.log` (logrotate 기본 적용)
+  - journal 용량 제한: `/etc/systemd/journald.conf`의 `SystemMaxUse` 등 조정
+- 모니터링 초안:
+  - systemd 상태/재시작 횟수: `systemctl show -p ActiveState,RestartCount sogecon-web`
+  - 헬스엔드포인트를 크론/외부 모니터로 주기 확인(200 응답)
+
+### GitHub Actions 배포(권장)
+- 워크플로: `.github/workflows/web-standalone-deploy.yml`
+- 트리거: GitHub → Actions → `web-standalone-deploy` → Run workflow (environment=`prod`)
+- GitHub Environment `prod`에 필요한 값
+  - Secrets: `SSH_HOST`, `SSH_USER`, `SSH_KEY`(PEM), `SSH_PORT`(옵션)
+  - Variables: `NEXT_PUBLIC_SITE_URL` (헬스체크에 사용)
+- 서버 선행 준비: 위 사전 준비(1회)와 `/srv/sogecon-app` 레포 클론 필요.
+
+### 경로 정책(/opt vs 레포 내부)
+- 기본(권장): `/opt/sogecon/web`에 릴리스 전개, `/opt/sogecon/web/current` 심볼릭 링크 운용
+  - 장점: 운영/롤백이 레포 작업트리와 분리되어 안전, 권한 관리 용이
+  - 단점: 초기 경로/권한 준비 필요, 백업/모니터링 경로가 분리됨
+- 대안(레포 내부): `RELEASE_BASE=/srv/sogecon-app/.releases/web`
+  - 사용 시 조치: `ops/web-deploy.sh` 실행 시 `RELEASE_BASE` 환경변수 지정, `ops/systemd/sogecon-web.service`의 `WorkingDirectory`를 동일 경로로 변경
+
+## 6) 트러블슈팅
 - 웹 공개변수 반영 안 됨: Next `NEXT_PUBLIC_*`는 빌드타임 고정 — 반드시 재빌드 필요
 - 업로드 권한 오류: `/var/lib/segecon/uploads` 소유자/권한 확인(UID 1000)
 - 헬스체크 실패: Nginx 프록시 대상(127.0.0.1:3000/3001)·TLS 인증서 경로 확인

@@ -28,6 +28,9 @@ const nextConfig = {
   poweredByHeader: false,
   // Ensure Next resolves configs within this workspace (monorepo safe)
   outputFileTracingRoot: path.resolve(__dirname, '../../'),
+  // standalone 빌드 산출물을 생성하여 서버(systemd)에서 직접 구동
+  // 참고: 이 모드는 런타임에 node_modules 설치 없이 동작하도록 번들합니다.
+  output: 'standalone',
   async headers() {
     return [
       {

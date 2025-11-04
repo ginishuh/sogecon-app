@@ -1,5 +1,7 @@
 ## 2025-11-04
 
+- ops(web): Next.js standalone 전환용 설정/스크립트 추가 — refs #46
+- ci(ops): `web-standalone-deploy` 워크플로 추가(빌드→SCP→원격 배포) — refs #46
 - dev: `scripts/fix-web-perms.sh`에 `uploads`를 대상에 포함 — 컨테이너에서 생성된 업로드 파일 소유권을 사용자 계정으로 복구하도록 범위 확장
 - Web(Nav): 모바일 메뉴 버튼 구성 변경 (Figma 디자인 반영)
   - 로그인 + 계정 활성화 버튼 나란히 배치 (flex-1, gap-2)

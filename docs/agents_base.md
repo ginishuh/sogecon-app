@@ -58,13 +58,16 @@ Do NOT disable linters or type checkers globally or per file.
 - Pyright runs in strict mode; Ruff enforces complexity; ESLint enforces TS rules above.
 - Python tools (ruff, pyright, pytest) MUST run from the project `.venv`. Make targets (`make venv`, `make api-install`, `make test-api`) are provided.
 
-### Local Run Modes (Dev vs Mirror)
+-### Local Run Modes (Dev vs Mirror)
 - Dev profile (local only): use the root `compose.yaml` with `docker compose --profile dev up -d` for hot reload (Next.js dev + uvicorn --reload). Never run the dev profile on servers; the helper script `scripts/compose-dev-up.sh` includes a production guard.
 - Mirror mode (prod parity): to validate deploy behavior locally, run the same scripts used on VPS: pull immutable images → Alembic migrate → restart via `ops/cloud-*.sh` or `scripts/deploy-vps.sh`. Use a dedicated Docker network (e.g., `segecon_net`) and container DNS (e.g., `sogecon-db`) in `DATABASE_URL`.
+- Web standalone parity (local): to mirror production web runtime, build Next.js with `output: 'standalone'` and stage a local release: `pnpm -C apps/web build` → `RELEASE_BASE=$(pwd)/.releases/web bash ops/web-deploy.sh` → run `PORT=4300 node .releases/web/current/apps/web/server.js`.
 - Switching modes: stop current containers before switching; dev→mirror: `docker compose --profile dev down`; mirror→dev: `docker rm -f alumni-api alumni-web` then start dev profile.
 
 ### Deploy & Operations (Policy)
-- Deploy model: immutable container images. Pulling git on the server does not update running apps; deploy by pulling images + (if needed) Alembic + restart.
+- Deploy model (recommended):
+  - Web (Next.js): artifact‑based deploy using Next "standalone" output + `systemd` + Nginx. Rollout is a symlink switch (`current` → new release) and `systemctl restart`.
+  - API/DB: immutable container images (pull → Alembic → restart). Git pulls on servers do not update running apps.
 - Database: PostgreSQL only using `postgresql+psycopg://` (enforced in code). Use container DNS names on a dedicated Docker network (e.g., `segecon_net`, `sogecon-db`). Avoid fixed IP/localhost in `DATABASE_URL`.
 - Migrations: run Alembic from the same Docker network as the DB. Destructive changes must be labeled and noted in the PR; prefer online-safe patterns.
 - Health/readiness: `/healthz` must return 200. A brief warm‑up window (≤90s) after restart is acceptable; CI/CD should retry during this window.
@@ -125,11 +128,15 @@ Do NOT disable linters or type checkers globally or per file.
   - Admin test: `POST /admin/notifications/test` payload `{ title, body, url? }`.
   - Admin UI: `/admin/notifications` shows test form, recent logs, and summary.
 
-### Server deploy envs and container flow
-- Container-first: Build two images (`infra/api.Dockerfile`, `infra/web.Dockerfile`).
-  - Build helper: `ops/cloud-build.sh`. Pass Next.js public envs via build args (`NEXT_PUBLIC_*`).
-  - Next.js public envs are build-time only. Changing them requires a rebuild.
-- Next.js image hardening
+### Server deploy envs and flows
+- Web standalone (recommended):
+  - Next.js config: `apps/web/next.config.js` with `output: 'standalone'`; Node 22.17.1 pinned.
+  - Systemd + Nginx: sample unit `ops/systemd/sogecon-web.service` and site `ops/nginx/nginx-site-web.conf`.
+  - CI/CD: workflow `.github/workflows/web-standalone-deploy.yml` builds the artifact, uploads via SCP, then runs `ops/web-deploy.sh` remotely (release dir → `current` symlink → restart). Sudoers NOPASSWD is required for `systemctl` (see runbook).
+  - Build‑time envs: `NEXT_PUBLIC_*` are build‑time only; changing them requires a rebuild.
+- Container flow (supported): Build `infra/api.Dockerfile` and `infra/web.Dockerfile`.
+  - Build helper: `ops/cloud-build.sh` (pass `NEXT_PUBLIC_*` as build args).
+  - Next.js image hardening
   - Pin pnpm via corepack in Dockerfile: `corepack prepare pnpm@10.17.1 --activate`.
   - Package the runtime so that `pnpm` is not required at runtime. Prefer `node node_modules/next/dist/bin/next start -p 3000` as CMD.
   - Avoid global stores/symlinks leaking across layers; use workspace‑scoped install in build stage.

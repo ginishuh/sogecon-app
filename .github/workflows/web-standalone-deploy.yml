@@ -1,0 +1,145 @@
+name: web-standalone-deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'GitHub Environment (secrets/approvals)'
+        required: true
+        default: 'prod'
+        type: choice
+        options: ['prod']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-standalone-deploy-${{ github.event.inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ github.event.inputs.environment }}
+    env:
+      NODE_VERSION: '22.17.1'
+      PNPM_VERSION: '10.17.1'
+      SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Pin pnpm via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@${PNPM_VERSION} --activate
+          pnpm -v
+
+      - name: Install deps (web)
+        run: pnpm -C apps/web install --frozen-lockfile
+
+      - name: Build Next.js (standalone)
+        run: pnpm -C apps/web build
+
+      - name: Verify standalone artifact
+        run: |
+          test -f apps/web/.next/standalone/apps/web/server.js || {
+            echo "server.js not found in standalone output" >&2; exit 1; }
+
+      - name: Package artifact
+        id: pack
+        run: |
+          set -euo pipefail
+          SHA7=$(git rev-parse --short=7 HEAD)
+          TAR="web-standalone-${SHA7}.tar.gz"
+          tar -C . -czf "$TAR" \
+            apps/web/.next/standalone \
+            apps/web/.next/static \
+            apps/web/public
+          echo "tar=$TAR" >> $GITHUB_OUTPUT
+
+      - name: Setup SSH known hosts
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          : "${SSH_PORT:=22}"
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Write SSH key file
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          umask 077
+          printf "%s" "$SSH_KEY" > "$RUNNER_TEMP/deploy_key"
+          echo "SSH_KEY_FILE=$RUNNER_TEMP/deploy_key" >> "$GITHUB_ENV"
+
+      - name: Ensure remote temp dir
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          set -euo pipefail
+          : "${SSH_PORT:=22}"
+          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'mkdir -p /srv/sogecon-app/_tmp'
+
+      - name: Upload artifact to server (SCP)
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          TAR_NAME: ${{ steps.pack.outputs.tar }}
+        run: |
+          set -euo pipefail
+          : "${SSH_PORT:=22}"
+          scp -i "$SSH_KEY_FILE" -P "$SSH_PORT" "$TAR_NAME" "$SSH_USER@$SSH_HOST:/srv/sogecon-app/_tmp/"
+
+      - name: Remote deploy (extract → web-deploy.sh → health)
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          TAR_NAME: ${{ steps.pack.outputs.tar }}
+          SITE_URL: ${{ env.SITE_URL }}
+        run: |
+          set -euo pipefail
+          : "${SSH_PORT:=22}"
+          # Validate inputs (defense-in-depth)
+          [[ "$TAR_NAME" =~ ^web-standalone-[a-f0-9]{7}\.tar\.gz$ ]] || { echo "Invalid TAR_NAME format" >&2; exit 1; }
+          SITE_URL_CLEAN="${SITE_URL%/}/"
+
+          # Pass values via stdin to avoid env/arg injection
+          printf '%s\n%s\n' "$TAR_NAME" "$SITE_URL_CLEAN" | \
+          ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'set -euf -o pipefail; \
+            IFS= read -r TAR_NAME; IFS= read -r SITE_URL; \
+            [[ "$TAR_NAME" =~ ^web-standalone-[a-f0-9]{7}\.tar\.gz$ ]] || { echo "[remote] Invalid TAR_NAME" >&2; exit 1; }; \
+            mkdir -p /srv/sogecon-app/_tmp; cd /srv/sogecon-app/_tmp; \
+            STAGE_DIR="/srv/sogecon-app/_tmp/${TAR_NAME%.tar.gz}"; \
+            echo "[remote] artifact: $TAR_NAME"; \
+            mkdir -p "$STAGE_DIR"; \
+            tar -xzf "$TAR_NAME" -C "$STAGE_DIR"; \
+            SERVER_JS="$STAGE_DIR/apps/web/.next/standalone/apps/web/server.js"; \
+            test -f "$SERVER_JS" || { echo "[remote] standalone server.js missing" >&2; exit 1; }; \
+            if command -v node >/dev/null 2>&1; then node --check "$SERVER_JS" >/dev/null 2>&1 || { echo "[remote] server.js syntax check failed" >&2; exit 1; }; node -v || true; else echo "[remote] node not found; ensure Node 22.17.1 is installed (asdf recommended)" >&2; fi; \
+            cd /srv/sogecon-app; CI=1 RELEASE_BASE=/opt/sogecon/web SERVICE_NAME=sogecon-web REPO_ROOT="$STAGE_DIR" bash ./ops/web-deploy.sh; \
+            URL="$SITE_URL"; [ -n "$URL" ] || URL="http://127.0.0.1:3000/"; \
+            echo "[remote] health: $URL"; \
+            for i in $(seq 1 60); do code=$(curl -sf -o /dev/null -w "%{http_code}" "$URL" || true); [ "$code" = 200 ] && { echo "[remote] OK(200)"; exit 0; }; sleep 1; done; \
+            echo "[remote] health failed" >&2; exit 1'
+
+      - name: Summary
+        env:
+          DEPLOY_ENV: ${{ github.event.inputs.environment }}
+        run: |
+          echo "Deployed Next.js standalone via systemd" >> "$GITHUB_STEP_SUMMARY"
+          echo "Environment: $DEPLOY_ENV" >> "$GITHUB_STEP_SUMMARY"
