@@ -20,9 +20,9 @@ function formatDate(dateStr: string): string {
   // formatToParts()로 "2025.11.04" 형식 생성 (regex 대신 명시적 파싱)
   const parts = formatter.formatToParts(date);
   return parts
-    .filter((p) => p.type !== 'literal' || p.value === '.')
+    .filter((p) => p.type !== 'literal')
     .map((p) => p.value)
-    .join('');
+    .join('.');
 }
 
 export function HomeNoticeList() {
