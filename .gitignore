@@ -38,6 +38,10 @@ cookies-*.txt
 _tmp/
 # Local release artifacts (standalone packaging for web)
 .releases/
+# Local analysis/build artifacts (do not commit)
+artifacts/
+htmlcov/
+apps/web/.lighthouseci/
 # Local tooling (e.g., pinned Node for builds)
 .tooling/
 # Windows ADS 메타파일(탐색기 복사 시 생성될 수 있음)

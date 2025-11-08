@@ -1,5 +1,7 @@
 ## 2025-11-08
 
+- chore(git): artifacts 디렉터리 언트래킹 및 ignore 추가, `.gitattributes`로 LF 정규화 — 히스토리 리라이트는 추후 옵션으로 보류
+
 - fix(web): LHCI NO_FCP 문제 해결 및 CI 게이트 복원 — fixes #33
   - Hero Carousel, Notice List에 Skeleton 적용으로 초기 페인트 보장
   - 이미지 최적화: blur placeholder, 첫 2개 이미지 우선 로드, 반응형 sizes
