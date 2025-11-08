@@ -12,6 +12,9 @@
   - HeroSkeleton: role/aria-label 추가로 접근성 강화
   - Skeleton 주석 명확화: 목표와 동작 방식 상세화
 
+## 2025-11-08 (추가)
+- fix(api): 이슈 #38 해결 - FastAPI 0.121.0 업그레이드, pip-audit waiver 제거
+
 ## 2025-11-04
 
 - ops(web): Next.js standalone 전환용 설정/스크립트 추가 — refs #46
