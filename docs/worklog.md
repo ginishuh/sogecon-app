@@ -6,6 +6,11 @@
   - 폰트 최적화: preconnect, font-display: swap 적용
   - LHCI 게이트 복원: desktop runs=3, Perf/A11y 0.90, continue-on-error 제거
   - UI Skeleton 컴포넌트 추가로 로딩 상태 개선
+- refactor(web): 폰트 로딩 최적화 및 Skeleton 개선
+  - layout.tsx: 중복 font-face 규칙 제거 (fonts.ts에서 display: swap으로 관리)
+  - HeroSkeleton: animate-pulse 적용으로 자연스러운 로딩 표현
+  - HeroSkeleton: role/aria-label 추가로 접근성 강화
+  - Skeleton 주석 명확화: 목표와 동작 방식 상세화
 
 ## 2025-11-04
 

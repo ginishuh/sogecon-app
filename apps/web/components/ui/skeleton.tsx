@@ -18,17 +18,23 @@ export function Skeleton({ className }: SkeletonProps) {
 
 export function HeroSkeleton() {
   return (
-    <div className="relative h-[218px] md:h-[400px] lg:h-[591px] overflow-hidden rounded-2xl shadow-xl">
-      {/* 배경 스크린 Skeleton */}
-      <div className="absolute inset-0 bg-neutral-surface">
+    <div 
+      className="relative h-[218px] md:h-[400px] lg:h-[591px] overflow-hidden rounded-2xl shadow-xl"
+      role="img"
+      aria-label="히어로 배너 로딩 중"
+    >
+      {/* 배경 스크린 Skeleton - 페이드 애니메이션으로 자연스러운 로딩 표현 */}
+      <div className="absolute inset-0 bg-neutral-surface animate-pulse">
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
       </div>
       
-      {/* 텍스트 스크린 */}
+      {/* 텍스트 스크린 - 실제 콘텐츠와 유사한 레이아웃 */}
       <div className="absolute inset-0 flex items-center justify-center px-14 md:px-6 md:items-end md:justify-start md:pb-6 md:pt-16 lg:pt-24">
         <div className="text-center md:text-left max-w-full">
-          <div className="h-8 w-64 md:h-9 lg:h-10 bg-white/30 rounded-md mb-2" />
-          <div className="h-6 w-full md:w-96 bg-white/20 rounded-md" />
+          {/* 제목 스크린 - 실제 텍스트 크기와 유사 */}
+          <div className="h-8 w-64 md:h-9 lg:h-10 bg-white/30 rounded-md mb-2 animate-pulse" />
+          {/* 설명 스크린 - 2줄 분량을 표현 */}
+          <div className="h-6 w-full md:w-96 bg-white/20 rounded-md animate-pulse" />
         </div>
       </div>
     </div>
