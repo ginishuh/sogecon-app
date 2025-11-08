@@ -1,3 +1,12 @@
+## 2025-11-08
+
+- fix(web): LHCI NO_FCP 문제 해결 및 CI 게이트 복원 — fixes #33
+  - Hero Carousel, Notice List에 Skeleton 적용으로 초기 페인트 보장
+  - 이미지 최적화: blur placeholder, 첫 2개 이미지 우선 로드, 반응형 sizes
+  - 폰트 최적화: preconnect, font-display: swap 적용
+  - LHCI 게이트 복원: desktop runs=3, Perf/A11y 0.90, continue-on-error 제거
+  - UI Skeleton 컴포넌트 추가로 로딩 상태 개선
+
 ## 2025-11-04
 
 - ops(web): Next.js standalone 전환용 설정/스크립트 추가 — refs #46

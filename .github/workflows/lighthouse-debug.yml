@@ -61,7 +61,6 @@ jobs:
       - name: Lighthouse CI (debug mobile)
         id: lhci_mobile
         uses: treosh/lighthouse-ci-action@v12
-        continue-on-error: true
         with:
           configPath: './lighthouserc.mobile.json'
           uploadArtifacts: true
@@ -79,7 +78,6 @@ jobs:
       - name: Lighthouse CI (debug desktop)
         id: lhci_desktop
         uses: treosh/lighthouse-ci-action@v12
-        continue-on-error: true
         with:
           configPath: './lighthouserc.desktop.json'
           uploadArtifacts: true

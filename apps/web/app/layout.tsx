@@ -82,6 +82,33 @@ export default async function RootLayout({
 
   return (
     <html lang="ko" className={`${fontSans.variable} ${fontMenu.variable} ${fontKoPubDotum.variable} antialiased`}>
+      <head>
+        {/* 폰트 preconnect 추가 */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* 이미지 preconnect */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+        {/* 폰트 display 설정 */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @font-face {
+              font-family: 'Inter';
+              font-display: swap;
+              src: local('Inter');
+            }
+            @font-face {
+              font-family: 'JetBrains Mono';
+              font-display: swap;
+              src: local('JetBrains Mono');
+            }
+            @font-face {
+              font-family: 'KoPub Dotum';
+              font-display: swap;
+              src: local('KoPub Dotum');
+            }
+          `
+        }} />
+      </head>
       <body>
         <a className="skip-link" href="#main-content">
           본문 바로가기

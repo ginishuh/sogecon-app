@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query';
 import { listPosts, type Post } from '../../services/posts';
 import { useAuth } from '../../hooks/useAuth';
+import { HeroSkeleton } from '../ui/skeleton';
 
 type Slide = { id: string; image: string; title: string; description: string; unpublished?: boolean };
 
@@ -69,7 +70,7 @@ export default function HomeHeroCarousel() {
   const q = useQuery<Post[]>({ queryKey: ['posts', 'hero', 8, 0], queryFn: () => listPosts({ category: 'hero', limit: 8 }) });
   const slides = useMemo(() => buildSlides(q.data ?? [], { allowUnpublished: !!isAdmin, max: 5 }), [q.data, isAdmin]);
   const isLoading = q.isLoading;
-
+  
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef<number>(0);
@@ -125,6 +126,11 @@ export default function HomeHeroCarousel() {
     if (index >= slides.length) setIndex(0);
   }, [slides.length, index]);
 
+  // 초기 렌더링 시 Skeleton 표시, 데이터가 있으면 실제 콘텐츠 표시
+  if (isLoading || slides.length === 0) {
+    return <HeroSkeleton />;
+  }
+
   // 터치 스와이프
   const onTouchStart = (e: React.TouchEvent) => {
     const t = e.touches.item(0);
@@ -154,19 +160,6 @@ export default function HomeHeroCarousel() {
       aria-roledescription="carousel"
       aria-live="off"
     >
-      {/* 로딩 인디케이터 */}
-      {isLoading && (
-        <div className="absolute inset-0 bg-neutral-surface flex items-center justify-center z-20">
-          <div className="flex items-center gap-2 text-neutral-muted">
-            <svg className="animate-spin h-5 w-5 text-brand-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            <span>로딩 중...</span>
-          </div>
-        </div>
-      )}
-
       <div
         className="relative h-full"
         onTouchStart={onTouchStart}
@@ -196,8 +189,10 @@ export default function HomeHeroCarousel() {
                   alt=""
                   fill
                   className="object-cover"
-                  sizes="100vw"
-                  priority={i === 0}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
+                  priority={i === 0 || i === 1} // 첫 2개 이미지 우선 로드
+                  placeholder="blur"
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                 />
               </div>
 
