@@ -82,6 +82,13 @@ export default async function RootLayout({
 
   return (
     <html lang="ko" className={`${fontSans.variable} ${fontMenu.variable} ${fontKoPubDotum.variable} antialiased`}>
+      <head>
+        {/* 폰트 preconnect 추가 */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* 이미지 preconnect */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+      </head>
       <body>
         <a className="skip-link" href="#main-content">
           본문 바로가기

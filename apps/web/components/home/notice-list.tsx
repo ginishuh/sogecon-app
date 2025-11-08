@@ -4,6 +4,7 @@ import Link from 'next/link';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { listPosts, type Post } from '../../services/posts';
+import { NoticeSkeleton } from '../ui/skeleton';
 
 // 날짜 포맷팅 함수 (Intl.DateTimeFormat 사용으로 TZ/포맷 안전성 확보)
 function formatDate(dateStr: string): string {
@@ -54,15 +55,13 @@ export function HomeNoticeList() {
       {/* 공지사항 목록 */}
       <div className="border-t border-neutral-border">
         {isLoading ? (
-          <div className="py-8 text-center text-neutral-muted">
-            <div className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5 text-brand-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              <span>로딩 중...</span>
-            </div>
-          </div>
+          <ul className="divide-y divide-neutral-border">
+            {Array.from({ length: 5 }, (_, i) => (
+              <li key={`skeleton-${i}`}>
+                <NoticeSkeleton />
+              </li>
+            ))}
+          </ul>
         ) : isError ? (
           <div className="py-8 text-center text-state-error">
             공지사항을 불러오는데 실패했습니다.
