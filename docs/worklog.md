@@ -1,5 +1,9 @@
 ## 2025-11-11
 
+- build(ci): 번들 크기 제한 1000KB → 1100KB로 완화
+  - .github/workflows/ci.yml 업데이트
+  - 댓글 기능 등 신규 기능 추가로 번들 증가 (1010KB)
+  - 향후 기능 추가 여유 확보
 - build(schemas): 댓글 API 추가에 따른 OpenAPI 스키마 재생성
   - packages/schemas/openapi.json, index.d.ts 업데이트
   - CommentCreate, CommentRead 스키마 추가
