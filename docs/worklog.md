@@ -1,5 +1,9 @@
 ## 2025-11-11
 
+- build(ci): Node.js 버전 22.21.1로 CI 워크플로우 동기화
+  - ops/ci/check_versions.py: expected_engines 업데이트
+  - .github/workflows/dto-verify.yml, e2e.yml, ci.yml: node-version 업데이트
+  - CI 실패 수정: repo-guards, verify-dto, e2e
 - refactor(web): apiFetch 이중 캐스트 제거 — 오버로드로 DELETE는 void, 나머지는 T 반환
   - apps/web/lib/api.ts: parseOk에서 204는 return만으로 종료
   - apps/web/services/comments.ts: deleteComment에서 제네릭 제거

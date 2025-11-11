@@ -56,7 +56,7 @@ def check_package_json() -> None:
 
     # Engines guidance to keep local runtime consistent
     engines = data.get("engines", {})
-    expected_engines = {"node": "22.17.1", "pnpm": "10.17.1"}
+    expected_engines = {"node": "22.21.1", "pnpm": "10.17.1"}
     if not engines:
         problems.append(
             "apps/web/package.json engines missing (expected node/pnpm pins)"
