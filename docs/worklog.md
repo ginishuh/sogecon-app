@@ -1,3 +1,10 @@
+## 2025-11-11
+
+- web(home): hero-carousel 로딩 오버레이 제거 — HeroSkeleton 단일 처리로 dead code 정리(리뷰 반영)
+- build(api): fastapi 버전 0.118.0으로 고정 — versions.md와 일치화, version-lock 통과
+- sec(api): starlette 0.49.1로 상향 — GHSA-7f5h-v6xp-fcq8 취약점(pip-audit) 대응
+- build(api): fastapi 0.120.1로 상향 및 starlette 핀 제거 — pip-audit/verify-dto 모두 통과하도록 종속성 정합성 정리; check_versions.py/versions.md 동기화
+
 ## 2025-11-08
 
 - chore(git): artifacts 디렉터리 언트래킹 및 ignore 추가, `.gitattributes`로 LF 정규화 — 히스토리 리라이트는 추후 옵션으로 보류
@@ -44,6 +51,28 @@
 - Web: 날짜 포맷팅 버그 수정 — formatToParts() 필터 로직 오류로 "20251104." 출력되던 문제 해결, "2025.11.04" 정상 출력
 
 - ops(web): 릴리스 기본 경로 `/opt/sogecon/web` → `/srv/www/sogecon` 전환(유닛/스크립트/워크플로/문서 갱신)
+## 2025-11-04
+
+- dev: `scripts/fix-web-perms.sh`에 `uploads`를 대상에 포함 — 컨테이너에서 생성된 업로드 파일 소유권을 사용자 계정으로 복구하도록 범위 확장
+- Web(Nav): 모바일 메뉴 버튼 구성 변경 (Figma 디자인 반영)
+  - 로그인 + 계정 활성화 버튼 나란히 배치 (flex-1, gap-2)
+  - 계정 활성화 버튼: border-brand-primary, text-brand-primary, hover:bg-brand-primary/5
+  - 잠금 아이콘 포함
+  - `/activate` 라우트로 연결 (토큰 기반 계정 활성화)
+- Web: 코드 리뷰 피드백 반영 (접근성, 안전성, 유지보수성 개선)
+  - 날짜 포맷팅: Intl.DateTimeFormat('ko-KR') 사용으로 TZ/포맷 안전성 확보, NaN 처리 추가
+  - 접근성: 햄버거 버튼에 aria-haspopup="menu" 추가, aria-controls 제거 (실효성 개선)
+  - 접근성: 캐러셀 인디케이터를 표준 버튼 패턴으로 변경 (role="tablist"/role="tab" 제거, aria-current 사용)
+  - 브랜드 컬러: HEX 직접 지정을 Tailwind 테마 토큰으로 치환 (bg-brand-primary, bg-action-discussion 등)
+  - UX: useQuery 로딩/에러 상태에 대한 사용자 피드백 추가 (스피너, 에러 메시지)
+  - 코드 정리: 미사용 trackRef 제거
+- Web: GitHub Copilot 코드 리뷰 피드백 반영
+  - Docs: worklog.md 중복 2025-11-04 헤더 통합
+  - 날짜 포맷: formatToParts() 사용으로 regex 대체 (명시적 파싱)
+  - 스타일: quick-actions.tsx에서 cn() 유틸리티 사용으로 클래스 병합 개선
+  - 텍스트 자르기: hero-carousel에서 truncateAtWordBoundary() 함수로 단어 경계 고려
+  - 가독성: 캐러셀 반응형 포지셔닝에 설명 주석 추가 (모바일 중앙, 데스크톱 하단 좌측)
+- Web: 날짜 포맷팅 버그 수정 — formatToParts() 필터 로직 오류로 "20251104." 출력되던 문제 해결, "2025.11.04" 정상 출력
 
 ## 2025-10-24
 
@@ -95,6 +124,7 @@
 - web(global): 화면 전체 배경(Body)을 살구 그라데이션→흰색(#fff)으로 변경.
 - web(home): 히어로 이미지 하단 가독성 강화를 위해 어두운 그라데이션 오버레이 추가, 캡션은 흰색 볼드 텍스트로 변경.
 - web(home): 요청에 따라 그라데이션 제거. 캡션 영역만 검은색 바(bg-black/85) + 흰색 볼드 텍스트로 변경.
+## 2025-11-04
 - web(home): Figma 디자인 기반 메인페이지 전면 개편 — 히어로 캐러셀, 퀵 액션 타일, 공지사항 리스트로 단순화
   - 히어로 캐러셀: 591px 고정 높이, 풀블리드 이미지 배경, 하단 텍스트 오버레이(제목 32px + 설명 15px), 그라디언트 배경
   - 퀵 액션 타일: 6개 버튼 그리드(동문 수첩, 행사 일정, 갤러리, 자유게시판, 가입인사, 동문 소식), 브랜드 컬러, 우상단 + 아이콘

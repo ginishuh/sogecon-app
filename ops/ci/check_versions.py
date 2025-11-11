@@ -97,7 +97,7 @@ def check_requirements() -> None:
 
     expected_req = {
         "apps/api/requirements.txt": [
-            "fastapi==0.118.0",
+            "fastapi==0.120.1",
             "uvicorn[standard]==0.37.0",
             "sqlalchemy==2.0.43",
             "psycopg[binary]==3.2.10",

@@ -70,7 +70,7 @@ export default function HomeHeroCarousel() {
   const q = useQuery<Post[]>({ queryKey: ['posts', 'hero', 8, 0], queryFn: () => listPosts({ category: 'hero', limit: 8 }) });
   const slides = useMemo(() => buildSlides(q.data ?? [], { allowUnpublished: !!isAdmin, max: 5 }), [q.data, isAdmin]);
   const isLoading = q.isLoading;
-  
+
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef<number>(0);
