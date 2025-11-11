@@ -1,5 +1,9 @@
 ## 2025-11-11
 
+- build(schemas): 댓글 API 추가에 따른 OpenAPI 스키마 재생성
+  - packages/schemas/openapi.json, index.d.ts 업데이트
+  - CommentCreate, CommentRead 스키마 추가
+  - /comments/ 엔드포인트 추가 (list, create, delete)
 - perf(web): 번들 크기 최적화 - 동적 import 적용
   - CommentsSection 컴포넌트를 동적 import (board/[id]/page.tsx)
   - DrawerMenu 컴포넌트를 동적 import (site-header.tsx, figma-header.tsx)

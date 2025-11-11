@@ -108,6 +108,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/comments/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Comments
+         * @description 특정 게시글의 댓글 목록 조회
+         */
+        get: operations["list_comments_comments__get"];
+        put?: never;
+        /**
+         * Create Comment
+         * @description 댓글 작성 (회원 또는 관리자)
+         */
+        post: operations["create_comment_comments__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/comments/{comment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Comment
+         * @description 댓글 삭제 (본인 또는 관리자)
+         */
+        delete: operations["delete_comment_comments__comment_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/events/": {
         parameters: {
             query?: never;
@@ -574,6 +618,33 @@ export interface components {
             /** New Password */
             new_password: string;
         };
+        /** CommentCreate */
+        CommentCreate: {
+            /** Content */
+            content: string;
+            /** Post Id */
+            post_id: number;
+            /** Author Id */
+            author_id?: number | null;
+        };
+        /** CommentRead */
+        CommentRead: {
+            /** Content */
+            content: string;
+            /** Id */
+            id: number;
+            /** Post Id */
+            post_id: number;
+            /** Author Id */
+            author_id: number;
+            /** Author Name */
+            author_name?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /** ContactPayload */
         ContactPayload: {
             /** Subject */
@@ -843,6 +914,8 @@ export interface components {
             id: number;
             /** Author Id */
             author_id: number;
+            /** Author Name */
+            author_name?: string | null;
         };
         /** PruneLogsPayload */
         PruneLogsPayload: {
@@ -1272,6 +1345,99 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PostRead"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_comments_comments__get: {
+        parameters: {
+            query: {
+                post_id: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_comment_comments__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_comment_comments__comment_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
