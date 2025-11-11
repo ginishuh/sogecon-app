@@ -8,8 +8,7 @@
 - pnpm: 10.17.1 (`apps/web/package.json#packageManager`, `.npmrc` engine-strict; CI는 Corepack으로 pin)
 
 ## Backend (apps/api)
-- fastapi==0.118.0
-- starlette==0.49.1  # security fix (GHSA-7f5h-v6xp-fcq8)
+- fastapi==0.120.1
 - uvicorn[standard]==0.37.0
 - sqlalchemy==2.0.43
 - psycopg[binary]==3.2.10
@@ -41,4 +40,4 @@
 - autoprefixer: 10.4.21
 - postcss: 8.5.6
 
-변경 시에는 본 문서와 실제 파일(`apps/api/requirements*.txt`, `apps/web/package.json`)을 동시 업데이트하고, PR에서 `ops/ci/check_versions.py`가 통과하는지 확인하세요.
+ 변경 시에는 본 문서와 실제 파일(`apps/api/requirements*.txt`, `apps/web/package.json`)을 동시 업데이트하고, PR에서 `ops/ci/check_versions.py`가 통과하는지 확인하세요. FastAPI가 Starlette 버전을 관리하므로 Starlette는 별도 핀 고정하지 않습니다.
