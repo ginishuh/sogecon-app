@@ -6,8 +6,7 @@ import { ApiError } from '../../../lib/api';
 import { getPost } from '../../../services/posts';
 
 const CommentsSection = dynamic(
-  () => import('../../../components/comments-section').then((mod) => ({ default: mod.CommentsSection })),
-  { ssr: false }
+  () => import('../../../components/comments-section').then((mod) => ({ default: mod.CommentsSection }))
 );
 
 type PageProps = {

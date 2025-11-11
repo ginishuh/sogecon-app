@@ -3,6 +3,7 @@
 - perf(web): 번들 크기 최적화 - 동적 import 적용
   - CommentsSection 컴포넌트를 동적 import (board/[id]/page.tsx)
   - DrawerMenu 컴포넌트를 동적 import (site-header.tsx, figma-header.tsx)
+  - board/[id]/page.tsx에서 ssr: false 옵션 제거 (Server Component에서 불가)
   - 초기 번들 크기 약 5KB 감소 예상 (1005KB → 1000KB 이하)
 - fix(web): notifications.ts deleteSubscription에서 DELETE 오버로드 제네릭 제거
   - apiFetch DELETE 오버로드는 제네릭 없이 호출해야 함
