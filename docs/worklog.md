@@ -1,5 +1,10 @@
 ## 2025-11-11
 
+- web: Figma 디자인에 맞춰 메인 페이지 및 메뉴 리디자인 — fixes #50
+  - 헤더: sogang_korean_logo.svg 제거, 텍스트 "서강대학교 경제대학원 총동문회"로 변경
+  - 드로워: 상단 로고를 sogang.svg 이미지로 교체
+  - 퀵 액션 타일: Figma 디자인 순서/색상/라벨 적용 (동문 수첩, 행사 일정, 갤러리, 자유게시판, 가입인사, 동문 소식)
+  - 메인 페이지: 공지사항 아래 "동문회장 인사말" 섹션 추가
 - web(home): hero-carousel 로딩 오버레이 제거 — HeroSkeleton 단일 처리로 dead code 정리(리뷰 반영)
 - build(api): fastapi 버전 0.118.0으로 고정 — versions.md와 일치화, version-lock 통과
 - sec(api): starlette 0.49.1로 상향 — GHSA-7f5h-v6xp-fcq8 취약점(pip-audit) 대응
