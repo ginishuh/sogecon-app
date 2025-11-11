@@ -1,5 +1,7 @@
 ## 2025-11-11
 
+- fix(web): notifications.ts deleteSubscription에서 DELETE 오버로드 제네릭 제거
+  - apiFetch DELETE 오버로드는 제네릭 없이 호출해야 함
 - fix(web): PostCard href 타입을 Route로 변경하여 Next.js 타입 에러 해결
   - apps/web/components/post-card.tsx: href 타입을 string에서 Route로 변경
 - fix(api,web): CI 실패 수정 (bandit assert, TS 타입 에러)
