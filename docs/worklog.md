@@ -3,8 +3,10 @@
 - web: 메인 페이지 및 메뉴 리디자인 — fixes #50
   - 헤더: sogang_korean_logo.svg 제거, 텍스트 "서강대학교 경제대학원 총동문회"로 변경
   - 드로워: 상단 로고를 sogang.svg 이미지로 교체
+  - 햄버거 메뉴: 평면 구조로 재설계, 로그인 상태별 버튼 변경 (로그인/계정활성화 ↔ 내 정보/로그아웃), 펼침/접힘 기능 추가
   - 퀵 액션 타일: 기존 구성 유지 (총동문회 소개, 동문 수첩, 행사 일정, 총동문회 소식, 자유게시판, 경조사 게시판)
   - 메인 페이지: 공지사항 아래 "동문회장 인사말" 섹션 추가
+  - 리팩터링: DrawerMenu 컴포넌트 분리로 SiteHeader 복잡도 감소 (ESLint complexity 11→10 이하)
 - web(home): hero-carousel 로딩 오버레이 제거 — HeroSkeleton 단일 처리로 dead code 정리(리뷰 반영)
 - build(api): fastapi 버전 0.118.0으로 고정 — versions.md와 일치화, version-lock 통과
 - sec(api): starlette 0.49.1로 상향 — GHSA-7f5h-v6xp-fcq8 취약점(pip-audit) 대응
