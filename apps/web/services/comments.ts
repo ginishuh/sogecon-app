@@ -26,7 +26,7 @@ export async function createComment(data: CommentCreate): Promise<Comment> {
 }
 
 export async function deleteComment(commentId: number): Promise<void> {
-  return apiFetch<void>(`/comments/${commentId}`, {
+  return apiFetch(`/comments/${commentId}`, {
     method: 'DELETE',
   });
 }

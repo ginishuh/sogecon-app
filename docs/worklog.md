@@ -1,5 +1,11 @@
 ## 2025-11-11
 
+- refactor(web): apiFetch 이중 캐스트 제거 — 오버로드로 DELETE는 void, 나머지는 T 반환
+  - apps/web/lib/api.ts: parseOk에서 204는 return만으로 종료
+  - apps/web/services/comments.ts: deleteComment에서 제네릭 제거
+- refactor(api): 댓글 라우터 예외 처리 개선 — 401만 회원 플로우로 폴백
+  - apps/api/routers/comments.py: HTTPStatus.UNAUTHORIZED 체크 추가
+  - posts.py 패턴과 일관성 확보
 - build(web): Node.js 버전을 22.21.1로 업데이트 — package.json engines, versions.md, compose.yaml 동기화
 - feat(web): 게시판 UI를 네이버 카페 스타일 테이블로 리디자인
   - 번호 컬럼 추가 (공지사항은 "공지" 표시)

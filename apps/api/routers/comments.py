@@ -1,4 +1,6 @@
 """댓글 라우터"""
+from http import HTTPStatus
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
@@ -39,7 +41,9 @@ def create_comment(
         if payload.author_id is None:
             raise HTTPException(status_code=400, detail="author_id_required_for_admin")
         author_id = payload.author_id
-    except HTTPException:
+    except HTTPException as exc_admin:
+        if exc_admin.status_code != HTTPStatus.UNAUTHORIZED:
+            raise
         # 관리자 아니면 회원 체크
         member = require_member(request)
         assert member.id is not None  # primary key는 항상 있음
@@ -63,7 +67,9 @@ def delete_comment(
         require_admin(request)
         is_admin = True
         requester_id = 0  # 관리자는 ID 체크 안 함
-    except HTTPException:
+    except HTTPException as exc_admin:
+        if exc_admin.status_code != HTTPStatus.UNAUTHORIZED:
+            raise
         member = require_member(request)
         assert member.id is not None  # primary key는 항상 있음
         requester_id = member.id

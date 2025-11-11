@@ -59,11 +59,27 @@ async function parseError(res: Response): Promise<never> {
 }
 
 async function parseOk<T>(res: Response): Promise<T> {
-  if (res.status === 204) return undefined as unknown as T;
+  if (res.status === 204) return;
   return (await res.json()) as T;
 }
 
-export async function apiFetch<T>(path: string, init?: RequestInit & { method?: HttpMethod }): Promise<T> {
+// DELETE 메서드는 void 반환
+export async function apiFetch(
+  path: string,
+  init: RequestInit & { method: 'DELETE' }
+): Promise<void>;
+
+// 나머지 메서드는 T 반환
+export async function apiFetch<T>(
+  path: string,
+  init?: RequestInit & { method?: Exclude<HttpMethod, 'DELETE'> }
+): Promise<T>;
+
+// 구현
+export async function apiFetch<T>(
+  path: string,
+  init?: RequestInit & { method?: HttpMethod }
+): Promise<T | void> {
   const isFormData = init?.body instanceof FormData;
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
