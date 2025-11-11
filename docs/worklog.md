@@ -1,3 +1,7 @@
+## 2025-11-11
+
+- web(home): hero-carousel 로딩 오버레이 제거 — HeroSkeleton 단일 처리로 dead code 정리(리뷰 반영)
+
 ## 2025-11-08
 
 - chore(git): artifacts 디렉터리 언트래킹 및 ignore 추가, `.gitattributes`로 LF 정규화 — 히스토리 리라이트는 추후 옵션으로 보류
