@@ -9,6 +9,7 @@
 
 ## Backend (apps/api)
 - fastapi==0.118.0
+- starlette==0.49.1  # security fix (GHSA-7f5h-v6xp-fcq8)
 - uvicorn[standard]==0.37.0
 - sqlalchemy==2.0.43
 - psycopg[binary]==3.2.10
