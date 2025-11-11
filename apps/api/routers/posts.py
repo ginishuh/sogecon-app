@@ -74,7 +74,7 @@ def list_posts(
     db: Session = Depends(get_db),
 ) -> list[schemas.PostRead]:
     posts = posts_service.list_posts(db, limit=limit, offset=offset, category=category)
-    result = []
+    result: list[schemas.PostRead] = []
     for post in posts:
         post_read = schemas.PostRead.model_validate(post)
         post_read.author_name = post.author.name if post.author else None

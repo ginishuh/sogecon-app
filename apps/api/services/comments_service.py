@@ -29,11 +29,13 @@ def delete_comment(
 ) -> None:
     """댓글 삭제 (본인 또는 관리자만 가능)"""
     comment = comments_repo.get_comment(db, comment_id)
-    if not comment:
+    if comment is None:
         raise HTTPException(status_code=404, detail="comment_not_found")
 
     # 권한 체크: 본인이거나 관리자만 삭제 가능
-    if not is_admin and comment.author_id != requester_id:
+    # pyright가 SQLAlchemy ORM 속성을 Column으로 인식하는 문제 회피
+    comment_author_id = getattr(comment, "author_id", None)
+    if not is_admin and comment_author_id != requester_id:
         raise HTTPException(status_code=403, detail="forbidden")
 
     comments_repo.delete_comment(db, comment)
