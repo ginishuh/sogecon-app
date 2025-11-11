@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Route } from 'next';
 import React from 'react';
 import Image from 'next/image';
 import { Card } from './ui/card';
@@ -10,7 +11,7 @@ export interface PostCardProps {
   pinned?: boolean;
   cover_image?: string | null;
   published_at?: string | null;
-  href?: string; // 상세로 이동할 링크(선택) - App Router에서는 문자열만 사용
+  href?: Route; // 상세로 이동할 링크(선택)
 }
 
 /** 게시판 카드 — 카테고리 배지, 날짜, 제목, 요약 */

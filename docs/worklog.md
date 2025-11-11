@@ -1,5 +1,7 @@
 ## 2025-11-11
 
+- fix(web): PostCard href 타입을 Route로 변경하여 Next.js 타입 에러 해결
+  - apps/web/components/post-card.tsx: href 타입을 string에서 Route로 변경
 - fix(api,web): CI 실패 수정 (bandit assert, TS 타입 에러)
   - apps/api/routers/comments.py: assert 제거하고 명시적 None 체크로 변경 (bandit B101 해결)
   - apps/web/components/drawer-menu.tsx: DrawerMenu status 타입에 loading 추가하여 타입 불일치 해결
