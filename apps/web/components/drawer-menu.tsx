@@ -48,7 +48,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           <Link
             href="/login"
             onClick={onClose}
-            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] bg-brand-primary px-3 py-2.5 text-white text-base hover:bg-[#6c1722] transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] bg-brand-primary px-3 py-2.5 text-white text-sm hover:bg-[#6c1722] transition-colors"
           >
             <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 14a6 6 0 0 1 12 0" strokeLinecap="round" />
@@ -58,7 +58,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           <Link
             href="/activate"
             onClick={onClose}
-            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] border border-brand-primary px-3 py-2.5 text-brand-primary text-base hover:bg-brand-primary/5 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] border border-brand-primary px-3 py-2.5 text-brand-primary text-sm hover:bg-brand-primary/5 transition-colors"
           >
             <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="7" width="10" height="7" rx="1" />
@@ -72,7 +72,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           <Link
             href="/me"
             onClick={onClose}
-            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] border border-brand-primary px-3 py-2.5 text-brand-primary text-base hover:bg-brand-primary/5 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] border border-brand-primary px-3 py-2.5 text-brand-primary text-sm hover:bg-brand-primary/5 transition-colors"
           >
             <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 14a6 6 0 0 1 12 0" strokeLinecap="round" />
@@ -86,7 +86,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
               // TODO: 로그아웃 로직 추가 필요
               window.location.href = '/login';
             }}
-            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] bg-neutral-muted px-3 py-2.5 text-white text-base hover:bg-neutral-ink transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] bg-neutral-muted px-3 py-2.5 text-white text-sm hover:bg-neutral-ink transition-colors"
           >
             <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3M11 11l3-3-3-3M14 8H6" strokeLinecap="round" />
@@ -100,7 +100,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
       <Link
         href="/directory"
         onClick={onClose}
-        className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-base hover:bg-neutral-surface transition-colors"
+        className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-sm hover:bg-neutral-surface transition-colors"
       >
         <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M4 2h10a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" />
@@ -114,7 +114,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
         <button
           type="button"
           onClick={() => setAboutOpen(!aboutOpen)}
-          className="w-full flex items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-base hover:bg-neutral-surface transition-colors"
+          className="w-full flex items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-sm hover:bg-neutral-surface transition-colors"
         >
           <div className="flex items-center gap-3">
             <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -148,7 +148,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
       <Link
         href="/posts"
         onClick={onClose}
-        className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-base hover:bg-neutral-surface transition-colors"
+        className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-sm hover:bg-neutral-surface transition-colors"
       >
         <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
           <rect x="2.67" y="2.67" width="14" height="14.67" rx="1.33" />
@@ -161,7 +161,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
       <Link
         href="/board"
         onClick={onClose}
-        className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-base hover:bg-neutral-surface transition-colors"
+        className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-sm hover:bg-neutral-surface transition-colors"
       >
         <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M3 3h14v11a1 1 0 0 1-1 1H3V3z" />
@@ -175,7 +175,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
         <button
           type="button"
           onClick={() => setSupportOpen(!supportOpen)}
-          className="w-full flex items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-base hover:bg-neutral-surface transition-colors"
+          className="w-full flex items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-sm hover:bg-neutral-surface transition-colors"
         >
           <div className="flex items-center gap-3">
             <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -211,7 +211,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           <button
             type="button"
             onClick={() => setAdminOpen(!adminOpen)}
-            className="w-full flex items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-base hover:bg-neutral-surface transition-colors"
+            className="w-full flex items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-sm hover:bg-neutral-surface transition-colors"
           >
             <div className="flex items-center gap-3">
               <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
