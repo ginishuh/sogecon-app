@@ -1,5 +1,34 @@
 ## 2025-11-11
 
+- build(web): Node.js 버전을 22.21.1로 업데이트 — package.json engines, versions.md, compose.yaml 동기화
+- feat(web): 게시판 UI를 네이버 카페 스타일 테이블로 리디자인
+  - 번호 컬럼 추가 (공지사항은 "공지" 표시)
+  - 분류, 제목, 작성자, 날짜 컬럼 구성
+  - 고정 게시글 노란색 배경 강조 (bg-yellow-50)
+  - 테이블 헤더 회색 배경 (bg-slate-100)
+  - 타이트한 보더 및 간격으로 가독성 향상
+- fix(web): Next.js App Router 동적 href 오류 수정
+  - PostCard href 타입을 string으로 단순화
+  - 템플릿 리터럴 사용으로 동적 경로 처리: `href={`/board/${post.id}`}`
+- fix(web): Docker 환경 SSR API 연결 수정
+  - api.ts에서 서버 사이드 렌더링 시 Docker 환경 감지
+  - localhost 대신 컨테이너 서비스명(api_dev:3001) 사용
+- feat(web): 게시글 상세 페이지 디자인 개선
+  - 네이버 카페 스타일 카드 레이아웃 적용
+  - 헤더/본문/하단 버튼 영역 명확한 구분
+  - 카테고리 배지 및 고정 핀 표시
+- feat(api,web): 댓글 기능 전면 구현
+  - 백엔드: Comment 모델, 스키마, 리포지토리, 서비스, 라우터 추가
+  - Alembic 마이그레이션: comments 테이블 생성 (76f24ccecb58)
+  - 프론트엔드: comments 서비스, CommentsSection 컴포넌트 추가
+  - React Query 기반 실시간 댓글 CRUD (낙관적 업데이트)
+  - 권한: 관리자 또는 회원만 작성, 본인/관리자만 삭제
+- refactor(api,web): 하드코딩된 "회원{id}" 제거 및 실제 작성자 이름 표시
+  - 백엔드: PostRead/CommentRead 스키마에 author_name 필드 추가
+  - 백엔드: posts/comments 리포지토리에서 joinedload로 author 관계 조인
+  - 백엔드: 라우터에서 조인된 author.name을 author_name에 설정
+  - 프론트엔드: Post/Comment 타입에 author_name 필드 추가
+  - 프론트엔드: UI에서 author_name 우선 표시, fallback으로 "회원{id}"
 - build: Node.js 버전을 22.19.0으로 상향 — package.json engines, versions.md, compose.yaml 동기화
 - web: 메인 페이지 및 메뉴 리디자인 — fixes #50
   - 헤더: sogang_korean_logo.svg 제거, 텍스트 "서강대학교 경제대학원 총동문회"로 변경

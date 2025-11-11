@@ -4,7 +4,7 @@
 
 ## Runtime
 - Python: 3.12.3 (CI 설정)
-- Node.js: 22.19.0 (`apps/web/package.json#engines`)
+- Node.js: 22.21.1 (`apps/web/package.json#engines`)
 - pnpm: 10.17.1 (`apps/web/package.json#packageManager`, `.npmrc` engine-strict; CI는 Corepack으로 pin)
 
 ## Backend (apps/api)
