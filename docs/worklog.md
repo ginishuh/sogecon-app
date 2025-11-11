@@ -234,6 +234,9 @@
 ## 2025-10-06
 
 
+2025-11-11 web: API 204 처리 개선 및 로그아웃 연결
+- lib/api.ts의 204 처리에서 double-cast 제거( Promise<T|void> ), DrawerMenu에서 logoutAll() 호출로 로그아웃 연결, middleware 테스트의 임시 캐스트 제거
+
 - 문서: M1 계획서 추가(docs/m1_plan.md) — 범위/체크리스트/테스트/의사결정 요약
  - 문서: 실행 계획(로드맵) 추가(docs/execution_plan_251006.md) — 현재 상태/가드/갭/마일스톤/작업 순서 정리
 - M2 착수: 세션 인증/권한 + RSVP v2
@@ -721,7 +724,6 @@
 2025-11-03 dev: 테스트 DB 자동 기동 해제
 - Makefile `db-up`에서 `postgres_test` 제외(개발 기본은 dev DB만 기동). 테스트는 `make db-test-up`으로 분리
 변경(요청 반영): infra compose 제거, root compose(dev)에서 dev+test DB 동시 기동으로 회귀. 테스트 DB는 루트 compose의 `postgres_test`만 사용
-
 
 
 

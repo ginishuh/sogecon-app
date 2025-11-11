@@ -1,5 +1,4 @@
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../lib/csp', () => ({
@@ -16,19 +15,16 @@ describe('middleware', () => {
 
   it('생성된 nonce를 CSP 빌더에 전달하고 헤더를 주입한다', () => {
     let forwardedHeaders: Headers | undefined;
-    const stubResponse = { headers: new Headers() };
+    const stubResponse = new NextResponse(null, { headers: new Headers() });
 
     const spy = vi
       .spyOn(NextResponse, 'next')
       .mockImplementation((init) => {
         forwardedHeaders = init?.request?.headers as Headers | undefined;
-        return stubResponse as unknown as ReturnType<typeof NextResponse.next>;
+        return stubResponse;
       });
 
-    const req = {
-      headers: new Headers(),
-      nextUrl: new URL('https://example.com/'),
-    } as unknown as NextRequest;
+    const req = new NextRequest('https://example.com/', { headers: new Headers() });
 
     const response = middleware(req);
 

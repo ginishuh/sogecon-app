@@ -58,7 +58,7 @@ async function parseError(res: Response): Promise<never> {
   }
 }
 
-async function parseOk<T>(res: Response): Promise<T> {
+async function parseOk<T>(res: Response): Promise<T | void> {
   if (res.status === 204) return;
   return (await res.json()) as T;
 }

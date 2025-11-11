@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { RequireAdmin } from './require-admin';
+import { logoutAll } from '../services/auth';
 
 type LinkItem = {
   href: Route;
@@ -83,8 +84,10 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
             type="button"
             onClick={() => {
               onClose();
-              // TODO: 로그아웃 로직 추가 필요
-              window.location.href = '/login';
+              // 로그아웃 후 로그인 화면으로 이동
+              void logoutAll().finally(() => {
+                window.location.href = '/login';
+              });
             }}
             className="flex-1 flex items-center justify-center gap-2 rounded-[10px] bg-neutral-muted px-3 py-2.5 text-white text-sm hover:bg-neutral-ink transition-colors"
           >
