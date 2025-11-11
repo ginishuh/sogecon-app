@@ -46,7 +46,10 @@ def create_comment(
             raise
         # 관리자 아니면 회원 체크
         member = require_member(request)
-        assert member.id is not None  # primary key는 항상 있음
+        if member.id is None:
+            raise HTTPException(
+                status_code=500, detail="internal_error"
+            ) from None
         author_id = member.id
 
     comment = comments_service.create_comment(db, payload, author_id)
@@ -71,7 +74,10 @@ def delete_comment(
         if exc_admin.status_code != HTTPStatus.UNAUTHORIZED:
             raise
         member = require_member(request)
-        assert member.id is not None  # primary key는 항상 있음
+        if member.id is None:
+            raise HTTPException(
+                status_code=500, detail="internal_error"
+            ) from None
         requester_id = member.id
 
     comments_service.delete_comment(db, comment_id, requester_id, is_admin)

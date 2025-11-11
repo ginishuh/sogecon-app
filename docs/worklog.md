@@ -1,5 +1,8 @@
 ## 2025-11-11
 
+- fix(api,web): CI 실패 수정 (bandit assert, TS 타입 에러)
+  - apps/api/routers/comments.py: assert 제거하고 명시적 None 체크로 변경 (bandit B101 해결)
+  - apps/web/components/drawer-menu.tsx: DrawerMenu status 타입에 loading 추가하여 타입 불일치 해결
 - build(ci): Node.js 버전 22.21.1로 CI 워크플로우 동기화
   - ops/ci/check_versions.py: expected_engines 업데이트
   - .github/workflows/dto-verify.yml, e2e.yml, ci.yml: node-version 업데이트

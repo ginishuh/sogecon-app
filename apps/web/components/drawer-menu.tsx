@@ -29,7 +29,7 @@ const ADMIN_LINKS: LinkItem[] = [
 ];
 
 type DrawerMenuProps = {
-  status: 'authorized' | 'unauthorized';
+  status: 'loading' | 'authorized' | 'unauthorized';
   onClose: () => void;
 };
 
@@ -44,7 +44,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
   return (
     <nav id="primary-navigation" aria-label="전체 메뉴" className="flex h-full flex-col gap-4 overflow-y-auto">
       {/* 로그인/계정 활성화 또는 내 정보/로그아웃 버튼 */}
-      {status === 'unauthorized' ? (
+      {status !== 'authorized' ? (
         <div className="flex gap-2 border-b border-neutral-border pb-4">
           <Link
             href="/login"
