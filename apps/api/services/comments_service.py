@@ -33,9 +33,14 @@ def delete_comment(
         raise HTTPException(status_code=404, detail="comment_not_found")
 
     # 권한 체크: 본인이거나 관리자만 삭제 가능
-    # pyright가 SQLAlchemy ORM 속성을 Column으로 인식하는 문제 회피
-    comment_author_id = getattr(comment, "author_id", None)
-    if not is_admin and comment_author_id != requester_id:
+    if is_admin:
+        # 관리자는 모든 댓글 삭제 가능
+        comments_repo.delete_comment(db, comment)
+        return
+
+    # 일반 회원: 본인 댓글만 삭제 가능
+    # SQLAlchemy Column 비교를 명시적으로 bool로 변환
+    if bool(comment.author_id != requester_id):
         raise HTTPException(status_code=403, detail="forbidden")
 
     comments_repo.delete_comment(db, comment)

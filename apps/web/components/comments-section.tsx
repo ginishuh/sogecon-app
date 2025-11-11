@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { createComment, deleteComment, listComments, type Comment } from '../services/comments';
+import { formatFullDate } from '../lib/date-utils';
 
 interface CommentsSectionProps {
   postId: number;
@@ -101,13 +102,7 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
                       <span className="font-semibold">{comment.author_name || `회원${comment.author_id}`}</span>
                       <span>•</span>
                       <span>
-                        {new Date(comment.created_at).toLocaleString('ko-KR', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        {formatFullDate(comment.created_at)}
                       </span>
                     </div>
                     <p className="whitespace-pre-wrap text-sm text-slate-800">{comment.content}</p>

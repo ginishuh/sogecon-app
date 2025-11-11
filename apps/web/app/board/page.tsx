@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 
 import { listPosts, type Post } from '../../services/posts';
 import { Tabs } from '../../components/ui/tabs';
+import { formatBoardDate } from '../../lib/date-utils';
 
 const BOARD_CATEGORIES = [
   { key: 'all', label: '전체' },
@@ -165,10 +166,7 @@ function BoardPageInner() {
                             {post.author_name || (post.author_id ? `회원${post.author_id}` : '-')}
                           </td>
                           <td className="hidden px-3 py-2 text-center text-[11px] text-slate-500 sm:table-cell">
-                            {post.published_at ? new Date(post.published_at).toLocaleDateString('ko-KR', {
-                              month: '2-digit',
-                              day: '2-digit'
-                            }).replace(/\. /g, '/').replace(/\.$/, '') : '-'}
+                            {formatBoardDate(post.published_at)}
                           </td>
                         </tr>
                       ))}

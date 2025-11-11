@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 
 import { ApiError } from '../../../lib/api';
 import { getPost } from '../../../services/posts';
+import { formatFullDate } from '../../../lib/date-utils';
 
 const CommentsSection = dynamic(
   () => import('../../../components/comments-section').then((mod) => ({ default: mod.CommentsSection }))
@@ -47,13 +48,7 @@ export default async function BoardDetailPage({ params }: PageProps) {
               <span>작성자: {post.author_name || `회원${post.author_id}`}</span>
               <span>•</span>
               <span>
-                {post.published_at ? new Date(post.published_at).toLocaleDateString('ko-KR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }) : '게시 예정'}
+                {formatFullDate(post.published_at)}
               </span>
             </div>
           </header>

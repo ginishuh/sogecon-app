@@ -1,5 +1,13 @@
 ## 2025-11-11
 
+- refactor: Copilot 코드 리뷰 반영
+  - lib/date-utils.ts: 날짜 포맷팅 유틸리티 함수 추출 (formatBoardDate, formatFullDate)
+  - board/page.tsx, board/[id]/page.tsx, comments-section.tsx: 중복된 날짜 포맷팅 로직 제거
+  - drawer-menu.tsx: window.location.href → router.push('/login')로 변경 (Next.js 권장 방식)
+  - worklog.md: 중복 엔트리 제거 (2025-10-06 섹션)
+  - comments.py: type narrowing을 위한 assert 추가 (member.id is not None)
+  - comments_service.py: comment.author_id 직접 접근 + bool() 명시적 변환으로 SQLAlchemy 타입 문제 해결
+  - api.ts: Docker 환경 감지 개선 (NEXT_PUBLIC_API_INTERNAL_URL 명시적 환경변수 사용)
 - build(ci): 번들 크기 제한 1000KB → 1100KB로 완화
   - .github/workflows/ci.yml 업데이트
   - 댓글 기능 등 신규 기능 추가로 번들 증가 (1010KB)
@@ -256,10 +264,6 @@
 - web(home): 퀵 액션 4칸에 SVG 아이콘 추가(수첩/행사/소식/게시판), 시안 톤에 맞춘 원형 배경/라인 아이콘 스타일. 관련 스냅샷 갱신 및 테스트 통과.
 
 ## 2025-10-06
-
-
-2025-11-11 web: API 204 처리 개선 및 로그아웃 연결
-- lib/api.ts의 204 처리에서 double-cast 제거( Promise<T|void> ), DrawerMenu에서 logoutAll() 호출로 로그아웃 연결, middleware 테스트의 임시 캐스트 제거
 
 - 문서: M1 계획서 추가(docs/m1_plan.md) — 범위/체크리스트/테스트/의사결정 요약
  - 문서: 실행 계획(로드맵) 추가(docs/execution_plan_251006.md) — 현재 상태/가드/갭/마일스톤/작업 순서 정리

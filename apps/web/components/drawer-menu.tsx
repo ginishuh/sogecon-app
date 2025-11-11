@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
+import { useRouter } from 'next/navigation';
 import { RequireAdmin } from './require-admin';
 import { logoutAll } from '../services/auth';
 
@@ -37,6 +38,7 @@ type DrawerMenuProps = {
  * Drawer 내부 메뉴 컴포넌트
  */
 export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
+  const router = useRouter();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
@@ -86,7 +88,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
               onClose();
               // 로그아웃 후 로그인 화면으로 이동
               void logoutAll().finally(() => {
-                window.location.href = '/login';
+                router.push('/login');
               });
             }}
             className="flex-1 flex items-center justify-center gap-2 rounded-[10px] bg-neutral-muted px-3 py-2.5 text-white text-sm hover:bg-neutral-ink transition-colors"

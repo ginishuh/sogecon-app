@@ -15,14 +15,11 @@ function resolveApiBase(): string {
     return envBase;
   }
 
-  // 서버 사이드: Docker Compose 환경에서는 컨테이너 간 통신을 위해 서비스명 사용
-  // NODE_ENV=development && envBase가 localhost면 Docker 환경으로 간주
-  const isDockerEnv = process.env.NODE_ENV === 'development' &&
-                      envBase &&
-                      /^https?:\/\/(localhost|127\.0\.0\.1)/i.test(envBase);
-
-  if (isDockerEnv) {
-    return 'http://api_dev:3001';
+  // 서버 사이드: Docker Compose 환경에서는 컨테이너 간 통신을 위해 내부 URL 사용
+  // NEXT_PUBLIC_API_INTERNAL_URL이 설정되어 있으면 Docker 환경으로 간주
+  const internalUrl = process.env.NEXT_PUBLIC_API_INTERNAL_URL;
+  if (internalUrl) {
+    return internalUrl;
   }
 
   return envBase ?? 'http://localhost:3001';
