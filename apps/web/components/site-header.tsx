@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Route } from 'next';
+import dynamic from 'next/dynamic';
 
 import { HeaderAuth } from './header-auth';
 import { NotifyCTA } from './notify-cta';
@@ -11,7 +12,11 @@ import { RequireAdmin } from './require-admin';
 import { useAuth } from '../hooks/useAuth';
 import Drawer from './ui/drawer';
 import { NavDropdown } from './ui/nav-dropdown';
-import { DrawerMenu } from './drawer-menu';
+
+const DrawerMenu = dynamic(
+  () => import('./drawer-menu').then((mod) => ({ default: mod.DrawerMenu })),
+  { ssr: false }
+);
 
 type LinkItem = {
   href: Route;

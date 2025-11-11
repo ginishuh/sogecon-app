@@ -1,5 +1,9 @@
 ## 2025-11-11
 
+- perf(web): 번들 크기 최적화 - 동적 import 적용
+  - CommentsSection 컴포넌트를 동적 import (board/[id]/page.tsx)
+  - DrawerMenu 컴포넌트를 동적 import (site-header.tsx, figma-header.tsx)
+  - 초기 번들 크기 약 5KB 감소 예상 (1005KB → 1000KB 이하)
 - fix(web): notifications.ts deleteSubscription에서 DELETE 오버로드 제네릭 제거
   - apiFetch DELETE 오버로드는 제네릭 없이 호출해야 함
 - fix(web): PostCard href 타입을 Route로 변경하여 Next.js 타입 에러 해결

@@ -1,9 +1,14 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import dynamic from 'next/dynamic';
 
 import { ApiError } from '../../../lib/api';
 import { getPost } from '../../../services/posts';
-import { CommentsSection } from '../../../components/comments-section';
+
+const CommentsSection = dynamic(
+  () => import('../../../components/comments-section').then((mod) => ({ default: mod.CommentsSection })),
+  { ssr: false }
+);
 
 type PageProps = {
   params: Promise<{ id: string }>;

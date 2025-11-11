@@ -3,9 +3,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import Drawer from './ui/drawer';
-import { DrawerMenu } from './drawer-menu';
 import { useAuth } from '../hooks/useAuth';
+
+const DrawerMenu = dynamic(
+  () => import('./drawer-menu').then((mod) => ({ default: mod.DrawerMenu })),
+  { ssr: false }
+);
 
 export default function FigmaHeader() {
   const [open, setOpen] = useState(false);
