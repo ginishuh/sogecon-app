@@ -43,7 +43,7 @@ services:
     profiles: ["dev"]
 
   web_dev:
-    image: node:22.17.1-slim
+    image: node:22.19.0-slim
     working_dir: /app
     # 컨테이너가 호스트 UID/GID로 실행되도록 지정해 .next 등 생성 파일의 소유권이 root가 되지 않도록 함
     user: "${UID:-1000}:${GID:-1000}"

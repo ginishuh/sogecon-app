@@ -1,5 +1,6 @@
 ## 2025-11-11
 
+- build: Node.js 버전을 22.19.0으로 상향 — package.json engines, versions.md, compose.yaml 동기화
 - web: 메인 페이지 및 메뉴 리디자인 — fixes #50
   - 헤더: sogang_korean_logo.svg 제거, 텍스트 "서강대학교 경제대학원 총동문회"로 변경
   - 드로워: 상단 로고를 sogang.svg 이미지로 교체
