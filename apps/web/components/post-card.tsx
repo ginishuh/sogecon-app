@@ -1,10 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
 import Image from 'next/image';
-import type { Route } from 'next';
 import { Card } from './ui/card';
-
-export type BoardPostHref = Route | { pathname: "/board/[id]"; params: { id: string } };
 
 export interface PostCardProps {
   title: string;
@@ -13,7 +10,7 @@ export interface PostCardProps {
   pinned?: boolean;
   cover_image?: string | null;
   published_at?: string | null;
-  href?: BoardPostHref; // 상세로 이동할 링크(선택)
+  href?: string; // 상세로 이동할 링크(선택) - App Router에서는 문자열만 사용
 }
 
 /** 게시판 카드 — 카테고리 배지, 날짜, 제목, 요약 */

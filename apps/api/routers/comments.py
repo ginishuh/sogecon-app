@@ -1,0 +1,67 @@
+"""댓글 라우터"""
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.orm import Session
+
+from .. import schemas
+from ..db import get_db
+from ..services import comments_service
+from .auth import require_admin, require_member
+
+router = APIRouter(prefix="/comments", tags=["comments"])
+
+
+@router.get("/", response_model=list[schemas.CommentRead])
+def list_comments(
+    post_id: int,
+    db: Session = Depends(get_db),
+) -> list[schemas.CommentRead]:
+    """특정 게시글의 댓글 목록 조회"""
+    comments = comments_service.list_comments_by_post(db, post_id)
+    result = []
+    for comment in comments:
+        comment_read = schemas.CommentRead.model_validate(comment)
+        comment_read.author_name = comment.author.name if comment.author else None
+        result.append(comment_read)
+    return result
+
+
+@router.post("/", response_model=schemas.CommentRead, status_code=201)
+def create_comment(
+    payload: schemas.CommentCreate,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> schemas.CommentRead:
+    """댓글 작성 (회원 또는 관리자)"""
+    # 관리자 또는 회원 체크
+    try:
+        require_admin(request)
+        author_id = payload.author_id
+        if author_id is None:
+            raise HTTPException(status_code=400, detail="author_id_required_for_admin")
+    except HTTPException:
+        # 관리자 아니면 회원 체크
+        member = require_member(request)
+        author_id = member.id
+
+    comment = comments_service.create_comment(db, payload, author_id)
+    return schemas.CommentRead.model_validate(comment)
+
+
+@router.delete("/{comment_id}", status_code=204)
+def delete_comment(
+    comment_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> None:
+    """댓글 삭제 (본인 또는 관리자)"""
+    # 관리자 또는 회원 체크
+    is_admin = False
+    try:
+        require_admin(request)
+        is_admin = True
+        requester_id = 0  # 관리자는 ID 체크 안 함
+    except HTTPException:
+        member = require_member(request)
+        requester_id = member.id
+
+    comments_service.delete_comment(db, comment_id, requester_id, is_admin)

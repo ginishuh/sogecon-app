@@ -158,6 +158,26 @@ class PostCreate(PostBase):
 class PostRead(PostBase):
     id: int
     author_id: int
+    author_name: str | None = None  # 작성자 이름 (join 결과)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CommentBase(BaseModel):
+    content: str
+
+
+class CommentCreate(CommentBase):
+    post_id: int
+    author_id: int | None = None  # 회원은 자동 설정, 어드민은 명시
+
+
+class CommentRead(CommentBase):
+    id: int
+    post_id: int
+    author_id: int
+    author_name: str | None = None  # 작성자 이름 (join 결과)
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

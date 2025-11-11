@@ -5,14 +5,26 @@
 // 환경변수에 localhost/127.0.0.1이 들어있으면 모바일/원격에서 동작하지 않으므로 무시하고 현재 호스트를 사용합니다.
 function resolveApiBase(): string {
   const envBase = process.env.NEXT_PUBLIC_WEB_API_BASE;
+
   if (typeof window !== 'undefined') {
+    // 클라이언트 사이드
     const h = window.location.hostname;
     if (!envBase) return `http://${h}:3001`;
     const isLocal = /^(?:https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?/i.test(envBase);
     if (isLocal) return `http://${h}:3001`;
     return envBase;
   }
-  // 서버 사이드에서는 env 우선, 없으면 localhost 사용
+
+  // 서버 사이드: Docker Compose 환경에서는 컨테이너 간 통신을 위해 서비스명 사용
+  // NODE_ENV=development && envBase가 localhost면 Docker 환경으로 간주
+  const isDockerEnv = process.env.NODE_ENV === 'development' &&
+                      envBase &&
+                      /^https?:\/\/(localhost|127\.0\.0\.1)/i.test(envBase);
+
+  if (isDockerEnv) {
+    return 'http://api_dev:3001';
+  }
+
   return envBase ?? 'http://localhost:3001';
 }
 export const API_BASE = resolveApiBase();

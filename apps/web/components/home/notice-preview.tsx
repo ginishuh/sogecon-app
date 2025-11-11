@@ -41,7 +41,7 @@ export default function NoticePreview() {
       <ul role="list" aria-label="최신 공지 목록" className="divide-y divide-neutral-border">
         {items.map((it) => (
           <li key={it.id} className="flex items-center justify-between py-3">
-            <Link href={{ pathname: '/posts' }} className="text-sm text-neutral-ink hover:underline">
+            <Link href="/posts" className="text-sm text-neutral-ink hover:underline">
               {it.title}
             </Link>
             {it.published_at ? (

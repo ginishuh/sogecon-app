@@ -9,6 +9,7 @@ export type Post = {
   content: string;
   published_at: string | null;
   author_id: number;
+  author_name?: string | null;
   category?: string | null;
   pinned?: boolean;
   cover_image?: string | null;

@@ -24,6 +24,7 @@ from .observability import init_sentry
 from .ratelimit import create_limiter
 from .routers import (
     auth,
+    comments,
     events,
     members,
     notifications,
@@ -260,6 +261,7 @@ _ = _handle_api_error
 
 app.include_router(members.router)
 app.include_router(posts.router)
+app.include_router(comments.router)
 app.include_router(events.router)
 app.include_router(rsvps.router)
 app.include_router(auth.router)

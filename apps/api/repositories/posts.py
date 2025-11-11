@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from sqlalchemy import desc, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from .. import models, schemas
 from ..errors import NotFoundError
@@ -12,7 +12,7 @@ from ..errors import NotFoundError
 def list_posts(
     db: Session, *, limit: int, offset: int, category: str | None = None
 ) -> Sequence[models.Post]:
-    stmt = select(models.Post)
+    stmt = select(models.Post).options(joinedload(models.Post.author))
     if category:
         stmt = stmt.where(models.Post.category == category)
     stmt = (
@@ -24,7 +24,12 @@ def list_posts(
 
 
 def get_post(db: Session, post_id: int) -> models.Post:
-    post = db.get(models.Post, post_id)
+    stmt = (
+        select(models.Post)
+        .options(joinedload(models.Post.author))
+        .where(models.Post.id == post_id)
+    )
+    post = db.execute(stmt).scalar_one_or_none()
     if post is None:
         raise NotFoundError(code="post_not_found", detail="Post not found")
     return post
