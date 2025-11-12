@@ -62,142 +62,117 @@ function BoardPageInner() {
   const selectedIndex = BOARD_CATEGORIES.findIndex((c) => c.key === category) ?? 0;
 
   return (
-    <section className="mx-auto w-full max-w-3xl space-y-6 px-6 py-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">커뮤니티 게시판</h1>
-          <p className="text-sm text-slate-600">회원 간 소통을 위한 게시판 스켈레톤입니다.</p>
-        </div>
-        <Link
-          href="/board/new"
-          className="inline-flex items-center justify-center rounded bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800"
-        >
-          새 글 작성
-        </Link>
+    <section className="relative mx-auto w-full max-w-3xl space-y-4 px-4 py-4 pb-24">
+      <header className="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h1 className="text-lg font-semibold text-slate-800">게시판</h1>
       </header>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <label className="flex items-center gap-2 text-sm text-slate-700">
-          <span>검색</span>
-          <input
-            className="w-48 rounded border border-slate-300 px-2 py-1"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.currentTarget.value);
-              setPage(0);
-            }}
-            placeholder="제목 또는 내용"
-          />
-        </label>
-      </div>
-
-      <Tabs
-        aria-label="게시판 카테고리"
-        className="mt-2"
-        defaultIndex={selectedIndex}
-        onChange={(i) => {
-          const key = BOARD_CATEGORIES[i]?.key ?? 'all';
-          setCategory(key);
-        }}
-        items={BOARD_CATEGORIES.map((t) => ({
-          id: t.key,
-          label: t.label,
-          content: (
-            <div className="space-y-4">
-              {query.isLoading ? (
-                <p className="text-sm text-slate-600">게시글을 불러오는 중입니다…</p>
-              ) : null}
-              {query.isError ? (
-                <p className="text-sm text-red-600">게시글을 불러오지 못했습니다.</p>
-              ) : null}
-              {!query.isLoading && filtered.length === 0 ? (
-                <p className="rounded border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-500">
-                  아직 등록된 게시글이 없습니다.
-                </p>
-              ) : null}
-              {filtered.length > 0 ? (
-                <div className="overflow-x-auto border border-slate-300">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b-2 border-slate-400 bg-slate-100">
-                        <th className="w-16 border-r border-slate-300 px-3 py-2.5 text-center text-xs font-semibold text-slate-700">번호</th>
-                        <th className="w-20 border-r border-slate-300 px-3 py-2.5 text-center text-xs font-semibold text-slate-700">분류</th>
-                        <th className="border-r border-slate-300 px-3 py-2.5 text-left text-xs font-semibold text-slate-700">제목</th>
-                        <th className="hidden w-24 border-r border-slate-300 px-3 py-2.5 text-center text-xs font-semibold text-slate-700 md:table-cell">작성자</th>
-                        <th className="hidden w-24 px-3 py-2.5 text-center text-xs font-semibold text-slate-700 sm:table-cell">날짜</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.map((post, idx) => (
-                        <tr
-                          key={post.id}
-                          className={`border-b border-slate-200 transition-colors ${
-                            post.pinned
-                              ? 'bg-yellow-50 hover:bg-yellow-100'
-                              : 'bg-white hover:bg-slate-50'
-                          }`}
-                        >
-                          <td className="border-r border-slate-200 px-3 py-2 text-center text-xs text-slate-600">
-                            {post.pinned ? (
-                              <span className="font-semibold text-amber-700">공지</span>
-                            ) : (
-                              <span>{page * PAGE_SIZE + idx + 1}</span>
-                            )}
-                          </td>
-                          <td className="border-r border-slate-200 px-3 py-2 text-center">
-                            {post.category ? (
-                              <span className="inline-block rounded bg-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-                                {post.category}
-                              </span>
-                            ) : (
-                              <span className="text-slate-400 text-xs">-</span>
-                            )}
-                          </td>
-                          <td className="border-r border-slate-200 px-3 py-2">
-                            <Link
-                              href={`/board/${post.id}`}
-                              className="inline-flex items-center gap-1.5 text-[13px] text-slate-800 hover:text-blue-600 hover:underline"
-                            >
-                              {post.pinned && <span className="text-red-500">📌</span>}
-                              <span>{post.title}</span>
-                            </Link>
-                          </td>
-                          <td className="hidden border-r border-slate-200 px-3 py-2 text-center text-xs text-slate-600 md:table-cell">
-                            {post.author_name || (post.author_id ? `회원${post.author_id}` : '-')}
-                          </td>
-                          <td className="hidden px-3 py-2 text-center text-[11px] text-slate-500 sm:table-cell">
-                            {formatBoardDate(post.published_at)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+      <div className="flex items-center gap-2 border-b border-slate-200">
+        <Tabs
+          aria-label="게시판 카테고리"
+          className="flex-1"
+          defaultIndex={selectedIndex}
+          onChange={(i) => {
+            const key = BOARD_CATEGORIES[i]?.key ?? 'all';
+            setCategory(key);
+          }}
+          items={BOARD_CATEGORIES.map((t) => ({
+            id: t.key,
+            label: t.label,
+            content: (
+              <div className="space-y-3 pt-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    className="flex-1 rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm focus:border-slate-400 focus:bg-white focus:outline-none"
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.currentTarget.value);
+                      setPage(0);
+                    }}
+                    placeholder="검색"
+                  />
+                  <button
+                    type="button"
+                    className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                    onClick={() => setSearch('')}
+                  >
+                    초기화
+                  </button>
                 </div>
-              ) : null}
-            </div>
-          ),
-        }))}
-      />
 
-      <div className="flex items-center justify-between">
-        <button
-          type="button"
-          className="rounded border border-slate-300 px-3 py-1 text-sm text-slate-700 disabled:opacity-40"
-          onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-          disabled={page === 0 || query.isLoading}
-        >
-          이전
-        </button>
-        <span className="text-sm text-slate-500">페이지 {page + 1}</span>
-        <button
-          type="button"
-          className="rounded border border-slate-300 px-3 py-1 text-sm text-slate-700 disabled:opacity-40"
-          onClick={() => setPage((prev) => prev + 1)}
-          disabled={(query.data ?? []).length < PAGE_SIZE || query.isLoading}
-        >
-          다음
-        </button>
+                {query.isLoading ? (
+                  <p className="py-8 text-center text-sm text-slate-500">게시글을 불러오는 중입니다…</p>
+                ) : null}
+                {query.isError ? (
+                  <p className="py-8 text-center text-sm text-red-600">게시글을 불러오지 못했습니다.</p>
+                ) : null}
+                {!query.isLoading && filtered.length === 0 ? (
+                  <p className="py-12 text-center text-sm text-slate-500">
+                    아직 등록된 게시글이 없습니다.
+                  </p>
+                ) : null}
+                {filtered.length > 0 ? (
+                  <ul className="space-y-2">
+                    {filtered.map((post) => (
+                      <li key={post.id}>
+                        <Link
+                          href={`/board/${post.id}`}
+                          className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
+                        >
+                          {post.category ? (
+                            <span className="mt-0.5 inline-block rounded bg-red-600 px-2 py-0.5 text-xs font-medium text-white">
+                              {post.category}
+                            </span>
+                          ) : null}
+                          <div className="flex-1 space-y-1">
+                            <h3 className="text-[15px] font-medium text-slate-900">
+                              {post.pinned && <span className="mr-1">📌</span>}
+                              {post.title}
+                            </h3>
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                              <span>{post.author_name || `회원${post.author_id}`}</span>
+                              <span>·</span>
+                              <span>{formatBoardDate(post.published_at)}</span>
+                              <span>·</span>
+                              <span>조회 {Math.floor(Math.random() * 500)}</span>
+                              <span>·</span>
+                              <span>댓글 {Math.floor(Math.random() * 20)}</span>
+                            </div>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                {!query.isLoading && filtered.length > 0 ? (
+                  <div className="flex justify-center pt-4">
+                    <button
+                      type="button"
+                      className="rounded-full border border-slate-300 bg-white px-6 py-2.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                      onClick={() => setPage((prev) => prev + 1)}
+                      disabled={(query.data ?? []).length < PAGE_SIZE || query.isLoading}
+                    >
+                      더 불러오기
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ),
+          }))}
+        />
       </div>
+
+      {/* FAB 글쓰기 버튼 */}
+      <Link
+        href="/board/new"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-white shadow-lg hover:bg-red-700"
+        aria-label="새 글 작성"
+      >
+        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+      </Link>
     </section>
   );
 }
