@@ -1,12 +1,13 @@
 ## 2025-11-12
 
-- fix(api,web): 코드 리뷰 Must Fix 2건 및 권장 개선사항 반영
+- fix(web): Next.js 15 params Promise 타입 되돌림
+  - apps/web/app/board/[id]/page.tsx — params: Promise<{ id: string }> 복원, await params 재적용
+  - Next.js 15.5.4에서는 params가 Promise 타입임 (리뷰 지적은 Next.js 14 기준이었음)
+  - CI 빌드 에러 해결
+- fix(api,web): 코드 리뷰 Must Fix 1건 및 권장 개선사항 반영
   - Must Fix 1: 관리자 실패 분기 버그 수정 (401+403 모두 폴백 허용)
     - apps/api/routers/posts.py:103, comments.py:45,78 — 로그인된 일반 회원(403)도 회원 플로우로 폴백 가능하도록 수정
     - 기존: `if exc_admin.status_code != HTTPStatus.UNAUTHORIZED` → 수정: `if exc_admin.status_code not in (UNAUTHORIZED, FORBIDDEN)`
-  - Must Fix 2: Next.js 페이지 파라미터 타입 오류 수정
-    - apps/web/app/board/[id]/page.tsx:13-18 — params를 Promise에서 동기 객체로 변경, await 제거
-    - Next.js App Router는 params를 동기 객체로 전달함
   - 권장 개선 1: API 클라이언트 Accept 헤더 추가
     - apps/web/lib/api.ts:84 — `Accept: application/json` 헤더 추가로 프록시/보안장비 호환성 향상
   - 권장 개선 2: 날짜 포맷 Intl.DateTimeFormat 적용

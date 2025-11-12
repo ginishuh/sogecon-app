@@ -11,11 +11,11 @@ const CommentsSection = dynamic(
 );
 
 type PageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default async function BoardDetailPage({ params }: PageProps) {
-  const { id: rawId } = params;
+  const { id: rawId } = await params;
   const id = Number(rawId);
   if (Number.isNaN(id)) {
     notFound();
