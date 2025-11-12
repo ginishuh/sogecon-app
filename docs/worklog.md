@@ -1,5 +1,39 @@
 ## 2025-11-12
 
+- fix(ci): dto-verify workflow 수정 — gen 대신 gen-dts 실행
+  - .github/workflows/dto-verify.yml — CI에서 OpenAPI 생성 후 타입만 재생성하도록 수정
+  - packages/schemas/package.json — 로컬은 .venv/bin/python 유지, CI는 gen-dts만 사용
+  - CI 빌드 실패 수정: ../../.venv/bin/python: not found
+- feat(api,web): 게시물 조회수 및 댓글 수 기능 구현
+  - apps/api/models.py — Post 모델에 view_count 컬럼 추가
+  - apps/api/schemas.py — PostBase/PostRead에 view_count, comment_count 추가
+  - apps/api/repositories/posts.py — increment_view_count, get_comment_count 함수 추가
+  - apps/api/routers/posts.py — 게시물 상세 조회 시 조회수 증가, 목록 및 상세에서 댓글 수 반환
+  - apps/api/migrations/b0defb6bab2f_add_view_count_to_posts.py — Alembic 마이그레이션
+  - apps/web/services/posts.ts — Post 타입에 view_count, comment_count 추가
+  - apps/web/app/board/page.tsx — 더미 데이터 제거, 실제 API 데이터 사용
+  - 검증: pyright, tsc 모두 통과
+- refactor(web): 게시판을 Figma 디자인 기반 카드 스타일로 리디자인
+  - apps/web/app/board/page.tsx — 테이블 레이아웃에서 카드 스타일로 전환
+  - FAB(+) 글쓰기 버튼 추가 (오른쪽 하단 고정)
+  - 검색창을 둥근 스타일로 개선 (rounded-full)
+  - 카테고리 배지를 빨간색(bg-red-600)으로 변경
+  - "더 불러오기" 버튼 스타일 페이지네이션
+  - 조회수/댓글 수를 더미 데이터로 표시 (백엔드 추가 예정)
+  - 모바일 친화적 UI로 개선
+- fix(schemas): .venv Python 사용하도록 gen 스크립트 수정
+  - packages/schemas/package.json — python → ../../.venv/bin/python
+  - pre-push hook에서 pyenv Python 대신 .venv Python 사용
+  - ModuleNotFoundError: No module named 'itsdangerous' 해결
+- refactor(web): 동문수첩 필터 UI 개선 — 기본/상세 검색 분리
+  - apps/web/app/directory/page.tsx — DirectoryFilters 컴포넌트 리팩토링
+  - 기본 필터 (항상 표시): 검색어 + 기수 + 정렬
+  - 상세 검색 (토글): 전공, 회사, 업종, 지역, 직함 + 필터 초기화
+  - 모바일: "상세 검색" 버튼으로 펼치기/접기 (기본 접힘)
+  - 데스크톱 (md 이상): 모든 필터 항상 표시
+  - Accordion 제거하여 UI 단순화
+  - 접근성: aria-label, aria-expanded 적용
+
 - fix(web): Next.js 15 params Promise 타입 되돌림
   - apps/web/app/board/[id]/page.tsx — params: Promise<{ id: string }> 복원, await params 재적용
   - Next.js 15.5.4에서는 params가 Promise 타입임 (리뷰 지적은 Next.js 14 기준이었음)

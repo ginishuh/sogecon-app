@@ -14,7 +14,6 @@ import {
   useInfiniteLoader,
 } from './state';
 import DirectoryCard from '../../components/directory-card';
-import Accordion from '../../components/ui/accordion';
 import Button from '../../components/ui/button';
 
 type DirectoryFiltersProps = {
@@ -25,6 +24,8 @@ type DirectoryFiltersProps = {
 };
 
 function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryFiltersProps) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   // autocomplete 힌트(모바일 가독성/입력 이득)
   const autocompleteHints: Partial<Record<TextFilterKeys, string>> = {
     q: 'off',
@@ -35,10 +36,17 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
     region: 'address-level1',
     jobTitle: 'organization-title',
   };
+
+  // 기본 필터: 검색어 + 기수
+  const basicFields = FILTER_FIELDS.filter((f) => f.key === 'q' || f.key === 'cohort');
+  // 상세 필터: 나머지
+  const advancedFields = FILTER_FIELDS.filter((f) => f.key !== 'q' && f.key !== 'cohort');
+
   return (
-    <Accordion summary="필터/정렬" defaultOpen density="sm" className="mb-2">
-      <fieldset className="flex flex-wrap items-end gap-3" aria-label="동문 수첩 검색 필터">
-        {FILTER_FIELDS.map(({ key, label, placeholder, inputMode }) => (
+    <div className="space-y-3">
+      {/* 기본 필터: 항상 표시 */}
+      <fieldset className="flex flex-wrap items-end gap-3" aria-label="기본 검색 필터">
+        {basicFields.map(({ key, label, placeholder, inputMode }) => (
           <label key={key} className="flex flex-col text-xs text-slate-600">
             <span className="mb-1 font-medium text-slate-700">{label}</span>
             <input
@@ -67,11 +75,44 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
             ))}
           </select>
         </label>
+
+        {/* 모바일: 상세 검색 토글 버튼 */}
+        <Button
+          type="button"
+          onClick={() => setShowAdvanced((v) => !v)}
+          variant="secondary"
+          size="sm"
+          className="md:hidden"
+          aria-expanded={showAdvanced}
+        >
+          {showAdvanced ? '상세 검색 닫기' : '상세 검색'}
+        </Button>
+      </fieldset>
+
+      {/* 상세 필터: 모바일에서는 토글, 데스크톱에서는 항상 표시 */}
+      <fieldset
+        className={`flex flex-wrap items-end gap-3 ${showAdvanced ? 'block' : 'hidden'} md:flex`}
+        aria-label="상세 검색 필터"
+      >
+        {advancedFields.map(({ key, label, placeholder, inputMode }) => (
+          <label key={key} className="flex flex-col text-xs text-slate-600">
+            <span className="mb-1 font-medium text-slate-700">{label}</span>
+            <input
+              inputMode={inputMode}
+              autoComplete={autocompleteHints[key]}
+              className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+              value={value[key]}
+              placeholder={placeholder}
+              aria-label={label}
+              onChange={(event) => onChange(key, event.target.value)}
+            />
+          </label>
+        ))}
         <Button type="button" onClick={onReset} variant="secondary" size="sm">
           필터 초기화
         </Button>
       </fieldset>
-    </Accordion>
+    </div>
   );
 }
 

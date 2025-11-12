@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "gen": "python ../../scripts/export_openapi.py && npx openapi-typescript openapi.json -o index.d.ts",
+    "gen": "../../.venv/bin/python ../../scripts/export_openapi.py && npx openapi-typescript openapi.json -o index.d.ts",
     "gen-dts": "npx openapi-typescript openapi.json -o index.d.ts"
   },
   "devDependencies": {

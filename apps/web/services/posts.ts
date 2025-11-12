@@ -13,6 +13,8 @@ export type Post = {
   category?: string | null;
   pinned?: boolean;
   cover_image?: string | null;
+  view_count?: number;
+  comment_count?: number;
 };
 
 export async function listPosts(params: { limit?: number; offset?: number; category?: string } = {}): Promise<Post[]> {

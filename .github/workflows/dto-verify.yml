@@ -50,7 +50,7 @@ jobs:
         run: python scripts/export_openapi.py
 
       - name: Regenerate DTO bundle
-        run: pnpm -C packages/schemas run gen
+        run: pnpm -C packages/schemas run gen-dts
 
       - name: Check for unexpected changes
         run: git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts

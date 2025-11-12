@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from sqlalchemy import desc, select
+from sqlalchemy import desc, func, select, update
 from sqlalchemy.orm import Session, joinedload
 
 from .. import models, schemas
@@ -42,3 +42,23 @@ def create_post(db: Session, payload: schemas.PostCreate) -> models.Post:
     db.commit()
     db.refresh(post)
     return post
+
+
+def increment_view_count(db: Session, post_id: int) -> None:
+    """게시물 조회수를 1 증가시킵니다."""
+    stmt = (
+        update(models.Post)
+        .where(models.Post.id == post_id)
+        .values(view_count=models.Post.view_count + 1)
+    )
+    db.execute(stmt)
+    db.commit()
+
+
+def get_comment_count(db: Session, post_id: int) -> int:
+    """게시물의 댓글 수를 반환합니다."""
+    stmt = select(func.count(models.Comment.id)).where(
+        models.Comment.post_id == post_id
+    )
+    count = db.execute(stmt).scalar()
+    return count if count is not None else 0
