@@ -1,5 +1,14 @@
 ## 2025-11-12
 
+- feat(api,web): 게시물 조회수 및 댓글 수 기능 구현
+  - apps/api/models.py — Post 모델에 view_count 컬럼 추가
+  - apps/api/schemas.py — PostBase/PostRead에 view_count, comment_count 추가
+  - apps/api/repositories/posts.py — increment_view_count, get_comment_count 함수 추가
+  - apps/api/routers/posts.py — 게시물 상세 조회 시 조회수 증가, 목록 및 상세에서 댓글 수 반환
+  - apps/api/migrations/b0defb6bab2f_add_view_count_to_posts.py — Alembic 마이그레이션
+  - apps/web/services/posts.ts — Post 타입에 view_count, comment_count 추가
+  - apps/web/app/board/page.tsx — 더미 데이터 제거, 실제 API 데이터 사용
+  - 검증: pyright, tsc 모두 통과
 - refactor(web): 게시판을 Figma 디자인 기반 카드 스타일로 리디자인
   - apps/web/app/board/page.tsx — 테이블 레이아웃에서 카드 스타일로 전환
   - FAB(+) 글쓰기 버튼 추가 (오른쪽 하단 고정)

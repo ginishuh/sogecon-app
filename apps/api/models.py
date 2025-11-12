@@ -113,6 +113,9 @@ class Post(Base):
         Boolean, nullable=False, default=False, server_default="0", index=True
     )
     cover_image = Column(String(512), nullable=True)
+    view_count = Column(
+        Integer, nullable=False, default=0, server_default="0", index=False
+    )
 
     author = relationship("Member", back_populates="posts")
     comments = relationship(

@@ -134,9 +134,9 @@ function BoardPageInner() {
                               <span>·</span>
                               <span>{formatBoardDate(post.published_at)}</span>
                               <span>·</span>
-                              <span>조회 {Math.floor(Math.random() * 500)}</span>
+                              <span>조회 {post.view_count ?? 0}</span>
                               <span>·</span>
-                              <span>댓글 {Math.floor(Math.random() * 20)}</span>
+                              <span>댓글 {post.comment_count ?? 0}</span>
                             </div>
                           </div>
                         </Link>

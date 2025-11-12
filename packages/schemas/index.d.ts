@@ -890,6 +890,11 @@ export interface components {
             pinned: boolean;
             /** Cover Image */
             cover_image?: string | null;
+            /**
+             * View Count
+             * @default 0
+             */
+            view_count: number;
             /** Author Id */
             author_id?: number | null;
         };
@@ -910,12 +915,22 @@ export interface components {
             pinned: boolean;
             /** Cover Image */
             cover_image?: string | null;
+            /**
+             * View Count
+             * @default 0
+             */
+            view_count: number;
             /** Id */
             id: number;
             /** Author Id */
             author_id: number;
             /** Author Name */
             author_name?: string | null;
+            /**
+             * Comment Count
+             * @default 0
+             */
+            comment_count: number;
         };
         /** PruneLogsPayload */
         PruneLogsPayload: {

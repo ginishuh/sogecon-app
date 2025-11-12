@@ -149,6 +149,7 @@ class PostBase(BaseModel):
     category: str | None = None
     pinned: bool = False
     cover_image: str | None = None
+    view_count: int = 0
 
 
 class PostCreate(PostBase):
@@ -159,6 +160,8 @@ class PostRead(PostBase):
     id: int
     author_id: int
     author_name: str | None = None  # 작성자 이름 (join 결과)
+    view_count: int = 0
+    comment_count: int = 0  # 댓글 수 (집계 결과)
 
     model_config = ConfigDict(from_attributes=True)
 

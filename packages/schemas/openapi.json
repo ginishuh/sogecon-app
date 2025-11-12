@@ -2821,6 +2821,11 @@
             ],
             "title": "Cover Image"
           },
+          "view_count": {
+            "type": "integer",
+            "title": "View Count",
+            "default": 0
+          },
           "author_id": {
             "anyOf": [
               {
@@ -2889,6 +2894,11 @@
             ],
             "title": "Cover Image"
           },
+          "view_count": {
+            "type": "integer",
+            "title": "View Count",
+            "default": 0
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -2907,6 +2917,11 @@
               }
             ],
             "title": "Author Name"
+          },
+          "comment_count": {
+            "type": "integer",
+            "title": "Comment Count",
+            "default": 0
           }
         },
         "type": "object",

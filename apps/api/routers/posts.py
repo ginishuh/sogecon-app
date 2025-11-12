@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from collections import defaultdict, deque
 from http import HTTPStatus
+from typing import cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
@@ -10,6 +11,7 @@ from sqlalchemy.orm import Session
 from .. import schemas
 from ..config import get_settings
 from ..db import get_db
+from ..repositories import posts as posts_repo
 from ..services import posts_service
 from .auth import require_admin, require_member
 
@@ -78,6 +80,7 @@ def list_posts(
     for post in posts:
         post_read = schemas.PostRead.model_validate(post)
         post_read.author_name = post.author.name if post.author else None
+        post_read.comment_count = posts_repo.get_comment_count(db, cast(int, post.id))
         result.append(post_read)
     return result
 
@@ -85,8 +88,13 @@ def list_posts(
 @router.get("/{post_id}", response_model=schemas.PostRead)
 def get_post(post_id: int, db: Session = Depends(get_db)) -> schemas.PostRead:
     post = posts_service.get_post(db, post_id)
+    # 조회수 증가
+    posts_repo.increment_view_count(db, post_id)
+    # 최신 데이터 재조회
+    post = posts_service.get_post(db, post_id)
     post_read = schemas.PostRead.model_validate(post)
     post_read.author_name = post.author.name if post.author else None
+    post_read.comment_count = posts_repo.get_comment_count(db, cast(int, post.id))
     return post_read
 
 
