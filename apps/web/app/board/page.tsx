@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 
 import { listPosts, type Post } from '../../services/posts';
 import { Tabs } from '../../components/ui/tabs';
-import PostCard from '../../components/post-card';
+import { formatBoardDate } from '../../lib/date-utils';
 
 const BOARD_CATEGORIES = [
   { key: 'all', label: '전체' },
@@ -115,21 +115,65 @@ function BoardPageInner() {
                   아직 등록된 게시글이 없습니다.
                 </p>
               ) : null}
-              <ul className="space-y-4">
-                {filtered.map((post) => (
-                  <li key={post.id}>
-                    <PostCard
-                      title={post.title}
-                      content={post.content}
-                      category={post.category}
-                      pinned={post.pinned}
-                      cover_image={post.cover_image ?? undefined}
-                      published_at={post.published_at ?? undefined}
-                      href={{ pathname: '/board/[id]', params: { id: String(post.id) } }}
-                    />
-                  </li>
-                ))}
-              </ul>
+              {filtered.length > 0 ? (
+                <div className="overflow-x-auto border border-slate-300">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-slate-400 bg-slate-100">
+                        <th className="w-16 border-r border-slate-300 px-3 py-2.5 text-center text-xs font-semibold text-slate-700">번호</th>
+                        <th className="w-20 border-r border-slate-300 px-3 py-2.5 text-center text-xs font-semibold text-slate-700">분류</th>
+                        <th className="border-r border-slate-300 px-3 py-2.5 text-left text-xs font-semibold text-slate-700">제목</th>
+                        <th className="hidden w-24 border-r border-slate-300 px-3 py-2.5 text-center text-xs font-semibold text-slate-700 md:table-cell">작성자</th>
+                        <th className="hidden w-24 px-3 py-2.5 text-center text-xs font-semibold text-slate-700 sm:table-cell">날짜</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((post, idx) => (
+                        <tr
+                          key={post.id}
+                          className={`border-b border-slate-200 transition-colors ${
+                            post.pinned
+                              ? 'bg-yellow-50 hover:bg-yellow-100'
+                              : 'bg-white hover:bg-slate-50'
+                          }`}
+                        >
+                          <td className="border-r border-slate-200 px-3 py-2 text-center text-xs text-slate-600">
+                            {post.pinned ? (
+                              <span className="font-semibold text-amber-700">공지</span>
+                            ) : (
+                              <span>{page * PAGE_SIZE + idx + 1}</span>
+                            )}
+                          </td>
+                          <td className="border-r border-slate-200 px-3 py-2 text-center">
+                            {post.category ? (
+                              <span className="inline-block rounded bg-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-700">
+                                {post.category}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400 text-xs">-</span>
+                            )}
+                          </td>
+                          <td className="border-r border-slate-200 px-3 py-2">
+                            <Link
+                              href={`/board/${post.id}`}
+                              className="inline-flex items-center gap-1.5 text-[13px] text-slate-800 hover:text-blue-600 hover:underline"
+                            >
+                              {post.pinned && <span className="text-red-500">📌</span>}
+                              <span>{post.title}</span>
+                            </Link>
+                          </td>
+                          <td className="hidden border-r border-slate-200 px-3 py-2 text-center text-xs text-slate-600 md:table-cell">
+                            {post.author_name || (post.author_id ? `회원${post.author_id}` : '-')}
+                          </td>
+                          <td className="hidden px-3 py-2 text-center text-[11px] text-slate-500 sm:table-cell">
+                            {formatBoardDate(post.published_at)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
             </div>
           ),
         }))}

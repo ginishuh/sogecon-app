@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef } from 'react';
+import Image from 'next/image';
 import { cn } from '../../lib/cn';
 
 type DrawerProps = React.PropsWithChildren<{
@@ -116,11 +117,15 @@ export default function Drawer({ open, onClose, title, side = 'left', className,
       >
         {/* 헤더 */}
         <div className="flex items-center gap-2 p-4 shrink-0">
-          {/* 로고 */}
+          {/* 서강대 로고 */}
           <div className="flex items-center gap-2">
-            <svg className="size-10 text-brand-primary" viewBox="0 0 28 40" fill="currentColor">
-              <path d="M14 0L0 8v24l14 8 14-8V8L14 0z" />
-            </svg>
+            <Image
+              src="/images/brand/sogang.svg"
+              alt=""
+              width={28}
+              height={40}
+              className="h-10 w-auto shrink-0"
+            />
             <div className="text-sm font-semibold text-neutral-ink leading-tight">
               <div>서강대학교</div>
               <div>경제대학원 총동문회</div>

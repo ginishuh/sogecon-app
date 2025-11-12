@@ -2,6 +2,7 @@ import React from 'react';
 import { HomeQuickActions } from '../components/home/quick-actions';
 import HomeHeroCarousel from '../components/home/hero-carousel';
 import HomeNoticeList from '../components/home/notice-list';
+import { HomeGreetingCard } from '../components/home/greeting-card';
 
 export default function HomePage() {
   return (
@@ -19,6 +20,9 @@ export default function HomePage() {
 
       {/* 공지사항 리스트 */}
       <HomeNoticeList />
+
+      {/* 동문회장 인사말 */}
+      <HomeGreetingCard />
     </div>
   );
 }

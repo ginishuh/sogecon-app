@@ -5,14 +5,23 @@
 // 환경변수에 localhost/127.0.0.1이 들어있으면 모바일/원격에서 동작하지 않으므로 무시하고 현재 호스트를 사용합니다.
 function resolveApiBase(): string {
   const envBase = process.env.NEXT_PUBLIC_WEB_API_BASE;
+
   if (typeof window !== 'undefined') {
+    // 클라이언트 사이드
     const h = window.location.hostname;
     if (!envBase) return `http://${h}:3001`;
     const isLocal = /^(?:https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?/i.test(envBase);
     if (isLocal) return `http://${h}:3001`;
     return envBase;
   }
-  // 서버 사이드에서는 env 우선, 없으면 localhost 사용
+
+  // 서버 사이드: Docker Compose 환경에서는 컨테이너 간 통신을 위해 내부 URL 사용
+  // NEXT_PUBLIC_API_INTERNAL_URL이 설정되어 있으면 Docker 환경으로 간주
+  const internalUrl = process.env.NEXT_PUBLIC_API_INTERNAL_URL;
+  if (internalUrl) {
+    return internalUrl;
+  }
+
   return envBase ?? 'http://localhost:3001';
 }
 export const API_BASE = resolveApiBase();
@@ -46,16 +55,33 @@ async function parseError(res: Response): Promise<never> {
   }
 }
 
-async function parseOk<T>(res: Response): Promise<T> {
-  if (res.status === 204) return undefined as unknown as T;
+async function parseOk<T>(res: Response): Promise<T | void> {
+  if (res.status === 204) return;
   return (await res.json()) as T;
 }
 
-export async function apiFetch<T>(path: string, init?: RequestInit & { method?: HttpMethod }): Promise<T> {
+// DELETE 메서드는 void 반환
+export async function apiFetch(
+  path: string,
+  init: RequestInit & { method: 'DELETE' }
+): Promise<void>;
+
+// 나머지 메서드는 T 반환
+export async function apiFetch<T>(
+  path: string,
+  init?: RequestInit & { method?: Exclude<HttpMethod, 'DELETE'> }
+): Promise<T>;
+
+// 구현
+export async function apiFetch<T>(
+  path: string,
+  init?: RequestInit & { method?: HttpMethod }
+): Promise<T | void> {
   const isFormData = init?.body instanceof FormData;
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
+      Accept: 'application/json',
       ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(init?.headers ?? {}),
     },

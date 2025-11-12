@@ -15,7 +15,7 @@ export async function saveSubscription(payload: SubscriptionPayload): Promise<vo
 }
 
 export async function deleteSubscription(endpoint: string): Promise<void> {
-  await apiFetch<void>('/notifications/subscriptions', {
+  await apiFetch('/notifications/subscriptions', {
     method: 'DELETE',
     body: JSON.stringify({ endpoint })
   });

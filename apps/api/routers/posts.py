@@ -74,13 +74,20 @@ def list_posts(
     db: Session = Depends(get_db),
 ) -> list[schemas.PostRead]:
     posts = posts_service.list_posts(db, limit=limit, offset=offset, category=category)
-    return [schemas.PostRead.model_validate(post) for post in posts]
+    result: list[schemas.PostRead] = []
+    for post in posts:
+        post_read = schemas.PostRead.model_validate(post)
+        post_read.author_name = post.author.name if post.author else None
+        result.append(post_read)
+    return result
 
 
 @router.get("/{post_id}", response_model=schemas.PostRead)
 def get_post(post_id: int, db: Session = Depends(get_db)) -> schemas.PostRead:
     post = posts_service.get_post(db, post_id)
-    return schemas.PostRead.model_validate(post)
+    post_read = schemas.PostRead.model_validate(post)
+    post_read.author_name = post.author.name if post.author else None
+    return post_read
 
 
 @router.post("/", response_model=schemas.PostRead, status_code=201)
@@ -93,7 +100,10 @@ def create_post(
         require_admin(request)
         post = posts_service.create_post(db, payload)
     except HTTPException as exc_admin:
-        if exc_admin.status_code != HTTPStatus.UNAUTHORIZED:
+        if exc_admin.status_code not in (
+            HTTPStatus.UNAUTHORIZED,
+            HTTPStatus.FORBIDDEN,
+        ):
             raise
         try:
             member = require_member(request)

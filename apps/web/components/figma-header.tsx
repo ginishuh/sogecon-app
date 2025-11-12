@@ -3,9 +3,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import Drawer from './ui/drawer';
-import { HeaderAuth } from './header-auth';
 import { useAuth } from '../hooks/useAuth';
+
+const DrawerMenu = dynamic(
+  () => import('./drawer-menu').then((mod) => ({ default: mod.DrawerMenu })),
+  { ssr: false }
+);
 
 export default function FigmaHeader() {
   const [open, setOpen] = useState(false);
@@ -38,32 +43,8 @@ export default function FigmaHeader() {
         </button>
       </div>
       <Drawer open={open} onClose={() => setOpen(false)} title="메뉴" side="right">
-        <nav id="primary-navigation" aria-label="전체 메뉴" className="flex h-full flex-col gap-3 overflow-y-auto p-4 text-sm text-neutral-muted font-menu">
-          {/* 세션 상태: 비로그인 시 상단에 로그인 버튼 노출 */}
-          {status === 'unauthorized' ? (
-            <div className="mb-2">
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="block rounded-md bg-slate-900 px-3 py-2 text-center text-sm text-white hover:bg-slate-800"
-              >
-                로그인
-              </Link>
-            </div>
-          ) : (
-            <div className="mb-2">
-              <HeaderAuth />
-            </div>
-          )}
-          <ul className="grid gap-2" aria-label="주요">
-            <li><Link className="block rounded-md border border-neutral-border px-3 py-2 hover:border-brand-primary hover:text-brand-primary" href="/about/greeting" onClick={() => setOpen(false)}>총동문회 소개</Link></li>
-            <li><Link className="block rounded-md border border-neutral-border px-3 py-2 hover:border-brand-primary hover:text-brand-primary" href="/directory" onClick={() => setOpen(false)}>동문 수첩</Link></li>
-            <li><Link className="block rounded-md border border-neutral-border px-3 py-2 hover:border-brand-primary hover:text-brand-primary" href="/events" onClick={() => setOpen(false)}>행사</Link></li>
-            <li><Link className="block rounded-md border border-neutral-border px-3 py-2 hover:border-brand-primary hover:text-brand-primary" href="/posts" onClick={() => setOpen(false)}>소식</Link></li>
-            <li><Link className="block rounded-md border border-neutral-border px-3 py-2 hover:border-brand-primary hover:text-brand-primary" href={{ pathname: '/board', query: { tab: 'discussion' } }} onClick={() => setOpen(false)}>자유게시판</Link></li>
-            <li><Link className="block rounded-md border border-neutral-border px-3 py-2 hover:border-brand-primary hover:text-brand-primary" href={{ pathname: '/board', query: { tab: 'congrats' } }} onClick={() => setOpen(false)}>경조사 게시판</Link></li>
-          </ul>
-        </nav>
+        {/* 메뉴는 단일 출처로 유지(dup 제거) */}
+        <DrawerMenu status={status} onClose={() => setOpen(false)} />
       </Drawer>
     </header>
   );
