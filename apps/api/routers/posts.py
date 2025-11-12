@@ -100,7 +100,10 @@ def create_post(
         require_admin(request)
         post = posts_service.create_post(db, payload)
     except HTTPException as exc_admin:
-        if exc_admin.status_code != HTTPStatus.UNAUTHORIZED:
+        if exc_admin.status_code not in (
+            HTTPStatus.UNAUTHORIZED,
+            HTTPStatus.FORBIDDEN,
+        ):
             raise
         try:
             member = require_member(request)

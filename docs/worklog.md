@@ -1,5 +1,18 @@
 ## 2025-11-12
 
+- fix(api,web): 코드 리뷰 Must Fix 2건 및 권장 개선사항 반영
+  - Must Fix 1: 관리자 실패 분기 버그 수정 (401+403 모두 폴백 허용)
+    - apps/api/routers/posts.py:103, comments.py:45,78 — 로그인된 일반 회원(403)도 회원 플로우로 폴백 가능하도록 수정
+    - 기존: `if exc_admin.status_code != HTTPStatus.UNAUTHORIZED` → 수정: `if exc_admin.status_code not in (UNAUTHORIZED, FORBIDDEN)`
+  - Must Fix 2: Next.js 페이지 파라미터 타입 오류 수정
+    - apps/web/app/board/[id]/page.tsx:13-18 — params를 Promise에서 동기 객체로 변경, await 제거
+    - Next.js App Router는 params를 동기 객체로 전달함
+  - 권장 개선 1: API 클라이언트 Accept 헤더 추가
+    - apps/web/lib/api.ts:84 — `Accept: application/json` 헤더 추가로 프록시/보안장비 호환성 향상
+  - 권장 개선 2: 날짜 포맷 Intl.DateTimeFormat 적용
+    - apps/web/lib/date-utils.ts — toLocale* 대신 Intl.DateTimeFormat 사용, timeZone: 'Asia/Seoul' 명시
+    - 서버/브라우저 간 타임존 일관성 보장
+  - 검증: ruff, pyright, tsc 모두 통과
 - fix(api): Bandit B101 경고 해결 — assert 문을 명시적 None 체크로 변경
   - apps/api/routers/comments.py: assert member.id is not None → if member.id is None: raise HTTPException(...)
   - 이유: Python 최적화 모드(-O)에서 assert가 제거되어 production 환경에서 안전하지 않음

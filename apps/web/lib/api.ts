@@ -81,6 +81,7 @@ export async function apiFetch<T>(
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
+      Accept: 'application/json',
       ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(init?.headers ?? {}),
     },

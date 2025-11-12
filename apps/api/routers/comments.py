@@ -42,7 +42,10 @@ def create_comment(
             raise HTTPException(status_code=400, detail="author_id_required_for_admin")
         author_id = payload.author_id
     except HTTPException as exc_admin:
-        if exc_admin.status_code != HTTPStatus.UNAUTHORIZED:
+        if exc_admin.status_code not in (
+            HTTPStatus.UNAUTHORIZED,
+            HTTPStatus.FORBIDDEN,
+        ):
             raise
         # 관리자 아니면 회원 체크
         member = require_member(request)
@@ -72,7 +75,10 @@ def delete_comment(
         is_admin = True
         requester_id = 0  # 관리자는 ID 체크 안 함
     except HTTPException as exc_admin:
-        if exc_admin.status_code != HTTPStatus.UNAUTHORIZED:
+        if exc_admin.status_code not in (
+            HTTPStatus.UNAUTHORIZED,
+            HTTPStatus.FORBIDDEN,
+        ):
             raise
         member = require_member(request)
         # require_member 성공 시 member.id는 항상 존재 (primary key 보장)
