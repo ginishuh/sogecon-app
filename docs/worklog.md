@@ -1,3 +1,11 @@
+## 2025-11-12
+
+- fix(api): Bandit B101 경고 해결 — assert 문을 명시적 None 체크로 변경
+  - apps/api/routers/comments.py: assert member.id is not None → if member.id is None: raise HTTPException(...)
+  - 이유: Python 최적화 모드(-O)에서 assert가 제거되어 production 환경에서 안전하지 않음
+  - B904 (raise ... from None) 및 E501 (라인 길이) 규칙도 준수
+  - CI python job 실패 해결
+
 ## 2025-11-11
 
 - refactor: Copilot 코드 리뷰 반영

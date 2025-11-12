@@ -47,8 +47,10 @@ def create_comment(
         # 관리자 아니면 회원 체크
         member = require_member(request)
         # require_member 성공 시 member.id는 항상 존재 (primary key 보장)
-        # Type narrowing을 위한 assert (production에서도 안전)
-        assert member.id is not None
+        if member.id is None:
+            raise HTTPException(
+                status_code=500, detail="Member ID is None"
+            ) from None
         author_id = member.id
 
     comment = comments_service.create_comment(db, payload, author_id)
@@ -74,8 +76,10 @@ def delete_comment(
             raise
         member = require_member(request)
         # require_member 성공 시 member.id는 항상 존재 (primary key 보장)
-        # Type narrowing을 위한 assert (production에서도 안전)
-        assert member.id is not None
+        if member.id is None:
+            raise HTTPException(
+                status_code=500, detail="Member ID is None"
+            ) from None
         requester_id = member.id
 
     comments_service.delete_comment(db, comment_id, requester_id, is_admin)
