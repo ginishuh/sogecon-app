@@ -1,5 +1,9 @@
 ## 2025-11-12
 
+- fix(ci): dto-verify workflow 수정 — gen 대신 gen-dts 실행
+  - .github/workflows/dto-verify.yml — CI에서 OpenAPI 생성 후 타입만 재생성하도록 수정
+  - packages/schemas/package.json — 로컬은 .venv/bin/python 유지, CI는 gen-dts만 사용
+  - CI 빌드 실패 수정: ../../.venv/bin/python: not found
 - feat(api,web): 게시물 조회수 및 댓글 수 기능 구현
   - apps/api/models.py — Post 모델에 view_count 컬럼 추가
   - apps/api/schemas.py — PostBase/PostRead에 view_count, comment_count 추가
