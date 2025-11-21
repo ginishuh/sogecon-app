@@ -7,11 +7,6 @@
     "node": "22.21.1",
     "pnpm": "10.17.1"
   },
-  "pnpm": {
-    "overrides": {
-      "glob": "10.5.0"
-    }
-  },
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",

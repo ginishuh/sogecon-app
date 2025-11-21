@@ -816,6 +816,5 @@
 
 2025-11-21 web/deps: glob CVE 대응을 위한 override 추가
 - 워크스페이스 루트 `package.json`을 추가하고 pnpm overrides로 `glob@10.5.0` 강제
-- `apps/web/package.json`에도 동일 override 선언(루트 기준 적용), `pnpm-lock.yaml` 갱신
-
+- `pnpm-lock.yaml` 갱신
 
