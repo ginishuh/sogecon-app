@@ -809,6 +809,10 @@
 - Makefile `db-up`에서 `postgres_test` 제외(개발 기본은 dev DB만 기동). 테스트는 `make db-test-up`으로 분리
 변경(요청 반영): infra compose 제거, root compose(dev)에서 dev+test DB 동시 기동으로 회귀. 테스트 DB는 루트 compose의 `postgres_test`만 사용
 
+2025-11-21 docs: MCP 도구 안내 추가 및 에이전트 문서 동기화
+- docs/agents_base.md, docs/agents_base_kr.md에 Serena/Context7 MCP 사용 지침 추가
+- scripts/sync_agents_from_base.sh 추가 및 실행해 AGENTS.md/CLAUDE.md/GEMINI.md/.github/copilot-instructions.md를 SSOT와 재동기화
+- .gitignore에 `.serena/`를 추가해 Serena 캐시를 Git 추적에서 제외
 
 
 

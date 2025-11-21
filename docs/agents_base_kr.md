@@ -121,6 +121,20 @@
 ## 편집 정책
 - 변경은 `agents_base.md`와 `agents_base_kr.md`를 동시에 업데이트하고, AGENTS.md/CLAUDE.md에서 해당 변경을 참조합니다.
 
+## MCP 도구(Serena & Context7)
+- Serena MCP(코드 내비게이션):
+  - 심층 코드 분석, 리팩터링, 호출/심볼 그래프 추적이 필요할 때 우선적으로 Serena를 사용합니다. 단순 `grep` 검색만으로 구조를 추적하지 말고, 가능하면 Serena 인덱스를 활용합니다.
+  - 설치(개인 개발 환경 1회): `uvx --from git+https://github.com/oraios/serena serena --help`
+  - 이 레포용 프로젝트 생성(로컬 전용, `.serena/`는 커밋 금지):
+    - 레포 루트에서: `serena project create --name sogecon-app --language python --index .`
+  - MCP 지원 도구(Claude, Codex CLI, Codex/VSCode 통합 등)에서 사용할 때 MCP 서버 기동:
+    - `serena start-mcp-server --transport stdio --project .`
+  - `.serena/` 디렉터리는 절대경로와 캐시를 포함하므로, 항상 Git 추적 대상에서 제외하고 `.gitignore`에 추가되어 있는지 확인합니다.
+- Context7 MCP(공식 문서 조회):
+  - Next.js, React, FastAPI, Alembic, PostgreSQL, OpenAI SDK, Cloudflare, Prisma 등 외부 프레임워크/라이브러리 사용법을 설명해야 할 때는, 가능한 한 Context7 MCP를 통해 최신 공식 문서/예제를 먼저 조회합니다.
+  - “X를 어떻게 쓰나?”, “Y의 최신 패턴이 뭐냐?”와 같은 질문에 답할 때 특히 Context7을 우선 사용하고, 정말 단순한 문법 수준이 아닌 이상 기억에만 의존하지 않습니다.
+  - 애매할 때는 추측 대신 Context7 기반 답변을 선호하고, 중요한 결정은 관련 공식 문서 링크/출처를 주석·문서·PR 설명 등에서 함께 언급해 줍니다.
+
 ## 개발 환경 & 환경변수(2025‑11‑02)
 - API는 로컬 uvicorn으로 실행, PostgreSQL은 Docker Compose로 실행합니다.
   - DB 시작/중지: `make db-up` / `make db-down`
