@@ -111,6 +111,20 @@ Do NOT disable linters or type checkers globally or per file.
 ## Edit Policy
 - Propose changes in a PR that updates BOTH `agents_base.md` and `agents_base_kr.md`, then reference the change in AGENTS.md/CLAUDE.md.
 
+## MCP Tools (Serena & Context7)
+- Serena MCP (code navigation):
+  - Preferred tool for deep code analysis, refactors, and symbol/call-graph inspection; when possible, use Serena instead of ad-hoc grep-only searches.
+  - Installation (once per machine, local dev): `uvx --from git+https://github.com/oraios/serena serena --help`.
+  - Project setup for this repo (local only, do NOT commit `.serena/`):
+    - From the repository root: `serena project create --name sogecon-app --language python --index .`
+  - Start MCP server when using MCP-aware tools (Claude, Codex CLI, Codex CLI/VSCode integrations, etc.):
+    - `serena start-mcp-server --transport stdio --project .`
+  - The `.serena/` directory contains absolute paths and caches; keep it untracked and add it to `.gitignore` if missing.
+- Context7 MCP (official docs lookups):
+  - For external frameworks/libraries (e.g., Next.js, React, FastAPI, Alembic, PostgreSQL, OpenAI SDK, Cloudflare, Prisma, etc.), prefer using Context7 MCP to fetch the latest official docs/examples instead of relying on memory.
+  - Use Context7 especially when answering “how to use X” or “latest pattern for Y” questions; you MAY skip it only for trivial syntax you already know well.
+  - When in doubt, favor Context7-backed answers over ad-hoc guesses, and link decisions back to the referenced docs where appropriate (comments/docs/PR descriptions).
+
 ## Dev Environment & Envs (2025‑11‑02)
 - API runs locally with uvicorn; PostgreSQL runs via Docker Compose.
   - Start/stop DBs: `make db-up` / `make db-down`.

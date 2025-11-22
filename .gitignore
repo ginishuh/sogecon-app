@@ -44,6 +44,7 @@ htmlcov/
 apps/web/.lighthouseci/
 # Local tooling (e.g., pinned Node for builds)
 .tooling/
+.serena/
 # Windows ADS 메타파일(탐색기 복사 시 생성될 수 있음)
 *:\Zone.Identifier
 *:Zone.Identifier
