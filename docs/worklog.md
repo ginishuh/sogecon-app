@@ -1,5 +1,9 @@
 ## 2025-11-12
 
+- chore: add serena mcp config
+  - .mcp.json — Serena MCP 서버 설정 추가 (uvx 기반 stdio, project=".")
+  - Note: 팀 공유용 설정으로 커밋
+
 - fix(ci): dto-verify workflow 수정 — gen 대신 gen-dts 실행
   - .github/workflows/dto-verify.yml — CI에서 OpenAPI 생성 후 타입만 재생성하도록 수정
   - packages/schemas/package.json — 로컬은 .venv/bin/python 유지, CI는 gen-dts만 사용
