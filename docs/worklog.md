@@ -825,3 +825,4 @@
 2025-11-29 feat(web): PWA 업데이트 알림 및 새로고침 프롬프트 구현 — refs #53
 - SwUpdateContext/SwUpdateBanner 추가, sw-register 업데이트 감지 로직 구현, sw.js SKIP_WAITING 핸들러 추가
 - fix(web): 리뷰 반영 — ESLint sw.js 워커 환경 설정, useEffect 클린업 추가
+- fix(web): updatefound 리스너에 once: true 추가 (StrictMode 중복 등록 방지)

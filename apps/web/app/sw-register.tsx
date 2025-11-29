@@ -59,7 +59,8 @@ export function ServiceWorkerRegister() {
           newWorker.addEventListener('statechange', handleStateChange, { once: true });
         };
 
-        registration.addEventListener('updatefound', handleUpdateFound);
+        // once: true로 StrictMode 재실행 시 중복 등록 방지
+        registration.addEventListener('updatefound', handleUpdateFound, { once: true });
 
         // controller가 변경되면 페이지 리로드 (새 SW가 활성화됨)
         navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
@@ -70,12 +71,10 @@ export function ServiceWorkerRegister() {
 
     void register();
 
-    // 클린업: 리스너 제거
+    // 클린업: controllerchange 리스너 제거
+    // updatefound/statechange는 once: true로 등록되어 자동 제거됨
     return () => {
       navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-      // registration은 비동기로 설정되므로 null일 수 있음
-      // updatefound 리스너는 registration 객체에 등록되어 있으므로,
-      // 컴포넌트 언마운트 시 registration 자체가 GC되면 함께 정리됨
     };
   }, [setUpdateAvailable]);
 
