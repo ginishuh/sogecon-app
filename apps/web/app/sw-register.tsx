@@ -22,9 +22,19 @@ export function ServiceWorkerRegister() {
       return;
     }
 
+    // 리스너 참조 저장 (클린업용)
+    let registration: ServiceWorkerRegistration | null = null;
+    let refreshing = false;
+
+    const handleControllerChange = () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    };
+
     const register = async () => {
       try {
-        const registration = await navigator.serviceWorker.register('/sw.js');
+        registration = await navigator.serviceWorker.register('/sw.js');
 
         // 이미 대기 중인 SW가 있으면 업데이트 가능 상태로 설정
         if (registration.waiting) {
@@ -33,32 +43,40 @@ export function ServiceWorkerRegister() {
         }
 
         // 새 SW 설치 감지
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
+        const handleUpdateFound = () => {
+          const newWorker = registration?.installing;
           if (!newWorker) return;
 
-          newWorker.addEventListener('statechange', () => {
+          const handleStateChange = () => {
             // 새 SW가 installed 상태이고, 이미 활성화된 controller가 있으면 업데이트
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               setWaitingWorker(newWorker);
               setUpdateAvailable(true);
             }
-          });
-        });
+          };
+
+          // once: true로 중복 등록 방지
+          newWorker.addEventListener('statechange', handleStateChange, { once: true });
+        };
+
+        registration.addEventListener('updatefound', handleUpdateFound);
 
         // controller가 변경되면 페이지 리로드 (새 SW가 활성화됨)
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (refreshing) return;
-          refreshing = true;
-          window.location.reload();
-        });
+        navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
       } catch (error) {
         console.info('Service worker registration skipped', error);
       }
     };
 
     void register();
+
+    // 클린업: 리스너 제거
+    return () => {
+      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      // registration은 비동기로 설정되므로 null일 수 있음
+      // updatefound 리스너는 registration 객체에 등록되어 있으므로,
+      // 컴포넌트 언마운트 시 registration 자체가 GC되면 함께 정리됨
+    };
   }, [setUpdateAvailable]);
 
   return null;
