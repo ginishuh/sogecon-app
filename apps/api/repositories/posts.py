@@ -62,3 +62,16 @@ def get_comment_count(db: Session, post_id: int) -> int:
     )
     count = db.execute(stmt).scalar()
     return count if count is not None else 0
+
+
+def get_comment_counts_batch(db: Session, post_ids: Sequence[int]) -> dict[int, int]:
+    """여러 게시물의 댓글 수를 한 번에 조회합니다 (N+1 쿼리 방지)."""
+    if not post_ids:
+        return {}
+    stmt = (
+        select(models.Comment.post_id, func.count(models.Comment.id))
+        .where(models.Comment.post_id.in_(post_ids))
+        .group_by(models.Comment.post_id)
+    )
+    result = db.execute(stmt).all()
+    return {row[0]: row[1] for row in result}

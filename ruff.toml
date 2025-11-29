@@ -21,3 +21,6 @@ ignore = [
 
 [lint.mccabe]
 max-complexity = 10
+
+[lint.per-file-ignores]
+"tests/**/*.py" = ["PLR2004"]  # 테스트 코드에서 magic number 허용

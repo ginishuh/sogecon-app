@@ -13,6 +13,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
@@ -194,6 +195,10 @@ def _rl_handler(request: Request, exc: Exception) -> Response:
 
 app.add_exception_handler(Exception, _rl_handler)
 app.add_middleware(SlowAPIMiddleware)
+
+# Gzip 압축 (1KB 이상 응답에 적용, 30-70% 크기 감소)
+# LIFO 순서: 마지막에 추가해야 응답 압축이 가장 먼저 실행됨
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
 @app.get("/healthz")
