@@ -1,5 +1,10 @@
 ## 2025-11-29
 
+- perf(db): 데이터베이스 인덱스 최적화 — PR #62, refs #57
+  - migrations/versions/a1b2c3d4e5f6 — 복합 인덱스 2개 추가
+  - ix_rsvps_event_status: (event_id, status) RSVP 상태 조회 최적화
+  - ix_push_subs_active: 활성 구독 partial index (id WHERE revoked_at IS NULL)
+
 - perf(api): 백엔드 퍼포먼스 최적화 (P0) — PR #61, refs #56
   - apps/api/repositories/posts.py — `get_comment_counts_batch` 배치 쿼리 추가 (N+1 제거)
   - apps/api/routers/posts.py — list_posts 배치 쿼리 사용, get_post 재조회 제거
