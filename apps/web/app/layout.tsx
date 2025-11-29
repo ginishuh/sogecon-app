@@ -3,7 +3,6 @@ import type { Metadata, Viewport } from 'next';
 import { headers as nextHeaders } from 'next/headers';
 import type { ReactNode } from 'react';
 
-import { ServiceWorkerRegister } from './sw-register';
 import { Providers } from './providers';
 import { HeaderGate } from '../components/header-gate';
 import { Analytics } from '../components/analytics';
@@ -93,8 +92,6 @@ export default async function RootLayout({
         <a className="skip-link" href="#main-content">
           본문 바로가기
         </a>
-        {/* CI/운영 안정화를 위해 SW는 명시적 플래그가 있을 때만 등록 */}
-        {process.env.NEXT_PUBLIC_ENABLE_SW === '1' ? <ServiceWorkerRegister /> : null}
         <Providers>
           <Analytics nonce={nonce} />
           <WebVitalsReporter />

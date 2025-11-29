@@ -57,6 +57,13 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
+// 클라이언트에서 SKIP_WAITING 메시지 수신 시 즉시 활성화
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   if (event.request.mode !== 'navigate') return;
   event.respondWith(

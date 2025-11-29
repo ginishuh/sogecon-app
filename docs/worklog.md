@@ -821,3 +821,6 @@
 2025-11-21 web/deps: glob CVE 대응을 위한 override 추가
 - 워크스페이스 루트 `package.json`을 추가하고 pnpm overrides로 `glob@10.5.0` 강제
 - `pnpm-lock.yaml` 갱신 및 esbuild/vite/js-yaml 최신 패치 버전으로 추가 override 적용
+
+2025-11-29 feat(web): PWA 업데이트 알림 및 새로고침 프롬프트 구현 — refs #53
+- SwUpdateContext/SwUpdateBanner 추가, sw-register 업데이트 감지 로직 구현, sw.js SKIP_WAITING 핸들러 추가

@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useSwUpdate, setWaitingWorker } from './contexts/sw-update-context';
 
 export function ServiceWorkerRegister() {
+  const { setUpdateAvailable } = useSwUpdate();
+
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       return;
@@ -21,15 +24,42 @@ export function ServiceWorkerRegister() {
 
     const register = async () => {
       try {
-        await navigator.serviceWorker.register('/sw.js');
-        // noop skeleton; add push/offline logic later
+        const registration = await navigator.serviceWorker.register('/sw.js');
+
+        // 이미 대기 중인 SW가 있으면 업데이트 가능 상태로 설정
+        if (registration.waiting) {
+          setWaitingWorker(registration.waiting);
+          setUpdateAvailable(true);
+        }
+
+        // 새 SW 설치 감지
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (!newWorker) return;
+
+          newWorker.addEventListener('statechange', () => {
+            // 새 SW가 installed 상태이고, 이미 활성화된 controller가 있으면 업데이트
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              setWaitingWorker(newWorker);
+              setUpdateAvailable(true);
+            }
+          });
+        });
+
+        // controller가 변경되면 페이지 리로드 (새 SW가 활성화됨)
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
       } catch (error) {
         console.info('Service worker registration skipped', error);
       }
     };
 
     void register();
-  }, []);
+  }, [setUpdateAvailable]);
 
   return null;
 }

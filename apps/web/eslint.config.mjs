@@ -9,8 +9,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const compat = new FlatCompat({ baseDirectory: __dirname });
 
 export default [
-  // 빌드 산출물만 무시
-  { ignores: ['**/.next/**'] },
+  // 빌드 산출물 및 정적 파일 무시
+  { ignores: ['**/.next/**', '**/public/**'] },
 
   // Load equivalent of our .eslintrc.json
   ...compat.config({
