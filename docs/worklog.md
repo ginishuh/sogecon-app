@@ -4,7 +4,7 @@
   - migrations/versions/a1b2c3d4e5f6 — 복합 인덱스 3개 추가
   - ix_rsvps_event_status: (event_id, status) RSVP 상태 조회 최적화
   - ix_notif_pref_member_channel: (member_id, channel) 알림 설정 조회
-  - ix_push_subs_active: 활성 구독 partial index (revoked_at IS NULL)
+  - ix_push_subs_active: 활성 구독 partial index (id WHERE revoked_at IS NULL)
 
 - perf(api): 백엔드 퍼포먼스 최적화 (P0) — PR #61, refs #56
   - apps/api/repositories/posts.py — `get_comment_counts_batch` 배치 쿼리 추가 (N+1 제거)

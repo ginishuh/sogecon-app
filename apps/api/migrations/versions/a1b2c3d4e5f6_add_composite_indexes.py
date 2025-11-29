@@ -31,10 +31,12 @@ def upgrade() -> None:
     )
 
     # PushSubscription: 활성 구독 조회용 partial index
+    # list_active_subscriptions()가 revoked_at IS NULL만 필터하므로
+    # id 컬럼에 partial index를 걸어 활성 구독만 인덱싱
     op.create_index(
         'ix_push_subs_active',
         'push_subscriptions',
-        ['member_id'],
+        ['id'],
         postgresql_where='revoked_at IS NULL',
     )
 
