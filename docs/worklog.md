@@ -1,9 +1,8 @@
 ## 2025-11-29
 
 - perf(db): 데이터베이스 인덱스 최적화 — PR #62, refs #57
-  - migrations/versions/a1b2c3d4e5f6 — 복합 인덱스 3개 추가
+  - migrations/versions/a1b2c3d4e5f6 — 복합 인덱스 2개 추가
   - ix_rsvps_event_status: (event_id, status) RSVP 상태 조회 최적화
-  - ix_notif_pref_member_channel: (member_id, channel) 알림 설정 조회
   - ix_push_subs_active: 활성 구독 partial index (id WHERE revoked_at IS NULL)
 
 - perf(api): 백엔드 퍼포먼스 최적화 (P0) — PR #61, refs #56
