@@ -1,5 +1,13 @@
 ## 2025-11-29
 
+- perf(ci): CI/빌드 캐싱 최적화 — PR #59, refs #58
+  - .github/workflows/ci.yml — pnpm, Next.js 빌드, pip 캐싱 추가
+  - .github/workflows/dto-verify.yml — pip 캐싱 추가
+  - .github/workflows/build-push.yml — Docker GHA 캐시 환경변수 추가
+  - ops/cloud-build.sh — DOCKER_CACHE_FROM/TO 옵션 지원
+  - 리뷰 반영: setup-node→pnpm 순서 변경, Next.js 캐시 키 간소화 (히트율↑)
+  - 예상 효과: 전체 CI 시간 40-50% 단축 (2회차부터)
+
 - test(web): SwUpdateContext, SwUpdateBanner 단위 테스트 추가 — PR #54
   - apps/web/__tests__/sw-update-context.test.tsx — Context 상태 관리, applyUpdate 테스트 (7개)
   - apps/web/__tests__/sw-update-banner.test.tsx — 배너 UI, 버튼 동작, 접근성 테스트 (8개)

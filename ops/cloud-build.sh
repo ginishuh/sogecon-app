@@ -52,6 +52,8 @@ done
 
 USE_BUILDX=${USE_BUILDX:-}
 PLATFORMS=${PLATFORMS:-}
+DOCKER_CACHE_FROM=${DOCKER_CACHE_FROM:-}
+DOCKER_CACHE_TO=${DOCKER_CACHE_TO:-}
 
 build_cmd_api=(docker build -f infra/api.Dockerfile -t "${API_IMAGE}" .)
 build_cmd_web=(docker build "${WEB_BUILD_ARGS[@]}" -f infra/web.Dockerfile -t "${WEB_IMAGE}" .)
@@ -66,6 +68,15 @@ if [[ -n "${USE_BUILDX}" || -n "${PLATFORMS}" ]]; then
   if [[ -n "${PLATFORMS}" ]]; then
     build_cmd_api+=(--platform "${PLATFORMS}")
     build_cmd_web+=(--platform "${PLATFORMS}")
+  fi
+  # Docker 빌드 캐시 옵션 (CI에서 type=gha 등으로 설정)
+  if [[ -n "${DOCKER_CACHE_FROM}" ]]; then
+    build_cmd_api+=(--cache-from "${DOCKER_CACHE_FROM}")
+    build_cmd_web+=(--cache-from "${DOCKER_CACHE_FROM}")
+  fi
+  if [[ -n "${DOCKER_CACHE_TO}" ]]; then
+    build_cmd_api+=(--cache-to "${DOCKER_CACHE_TO}")
+    build_cmd_web+=(--cache-to "${DOCKER_CACHE_TO}")
   fi
   if [[ "${PUSH_IMAGES:-0}" == "1" ]]; then
     build_cmd_api+=(--push)
