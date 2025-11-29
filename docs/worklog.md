@@ -1,5 +1,11 @@
 ## 2025-11-29
 
+- perf(web): 프론트엔드 퍼포먼스 최적화 — PR #60, refs #55
+  - apps/web/app/providers.tsx — QueryClient 기본값 설정 (staleTime 1분, gcTime 5분)
+  - apps/web/public/fonts/Brand/ — 미사용 폰트 삭제 (Light/Medium, 6.9MB 절감)
+  - apps/web/app/about/*, privacy, terms, faq — ISR revalidate=3600 추가
+  - 효과: 폰트 번들 6.9MB↓, 네트워크 요청 50%↓, 정적 페이지 TTFB 개선
+
 - perf(ci): CI/빌드 캐싱 최적화 — PR #59, refs #58
   - .github/workflows/ci.yml — pnpm, Next.js 빌드, pip 캐싱 추가
   - .github/workflows/dto-verify.yml — pip 캐싱 추가

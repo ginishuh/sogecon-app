@@ -2,6 +2,9 @@ import Image from 'next/image';
 import React from 'react';
 import { AboutHero } from '../../../components/about-hero';
 
+// 정적 페이지: 1시간 ISR 캐싱
+export const revalidate = 3600;
+
 const committees = [
   {
     name: '집행위원회',
