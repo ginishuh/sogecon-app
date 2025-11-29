@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import React from 'react';
 
+// 정적 페이지: 1시간 ISR 캐싱
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: '자주 묻는 질문',
   description:

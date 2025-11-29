@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import React from 'react';
 
+// 정적 페이지: 1시간 ISR 캐싱
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: '개인정보 처리방침',
   description:
