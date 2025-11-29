@@ -55,11 +55,11 @@ export function ServiceWorkerRegister() {
             }
           };
 
-          // once: true로 중복 등록 방지
+          // 한 번 실행 후 자동 제거
           newWorker.addEventListener('statechange', handleStateChange, { once: true });
         };
 
-        // once: true로 StrictMode 재실행 시 중복 등록 방지
+        // 한 번 실행 후 자동 제거
         registration.addEventListener('updatefound', handleUpdateFound, { once: true });
 
         // controller가 변경되면 페이지 리로드 (새 SW가 활성화됨)
