@@ -1,3 +1,10 @@
+## 2025-11-29
+
+- test(web): SwUpdateContext, SwUpdateBanner 단위 테스트 추가 — PR #54
+  - apps/web/__tests__/sw-update-context.test.tsx — Context 상태 관리, applyUpdate 테스트 (7개)
+  - apps/web/__tests__/sw-update-banner.test.tsx — 배너 UI, 버튼 동작, 접근성 테스트 (8개)
+  - apps/web/vitest.config.ts — esbuild jsx: 'automatic' 추가
+
 ## 2025-11-12
 
 - chore: add serena mcp config
