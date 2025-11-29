@@ -54,9 +54,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Gzip 압축 (1KB 이상 응답에 적용, 30-70% 크기 감소)
-app.add_middleware(GZipMiddleware, minimum_size=1000)
-
 # Session cookies (for admin auth)
 # - 기본: APP_ENV == 'prod'일 때 Secure 적용
 # - 별도 도메인(크로스 사이트) 전환 시에는
@@ -198,6 +195,10 @@ def _rl_handler(request: Request, exc: Exception) -> Response:
 
 app.add_exception_handler(Exception, _rl_handler)
 app.add_middleware(SlowAPIMiddleware)
+
+# Gzip 압축 (1KB 이상 응답에 적용, 30-70% 크기 감소)
+# LIFO 순서: 마지막에 추가해야 응답 압축이 가장 먼저 실행됨
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
 @app.get("/healthz")

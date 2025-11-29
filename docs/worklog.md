@@ -3,8 +3,10 @@
 - perf(api): 백엔드 퍼포먼스 최적화 (P0) — PR #61, refs #56
   - apps/api/repositories/posts.py — `get_comment_counts_batch` 배치 쿼리 추가 (N+1 제거)
   - apps/api/routers/posts.py — list_posts 배치 쿼리 사용, get_post 재조회 제거
-  - apps/api/main.py — GZipMiddleware 추가 (1KB 이상 응답 압축)
+  - apps/api/main.py — GZipMiddleware 추가 (1KB 이상 응답 압축, LIFO 순서 수정)
   - apps/api/db.py — 커넥션 풀 설정 (pool_size=20, max_overflow=10, pool_recycle=3600)
+  - tests/api/test_posts_repo.py — `get_comment_counts_batch` 단위 테스트 4개 추가
+  - ruff.toml — 테스트 코드 PLR2004 무시 설정 추가
   - 효과: list_posts O(N)→O(1) 쿼리, 응답 30-70% 압축, 커넥션 풀 최적화
 
 - perf(web): 프론트엔드 퍼포먼스 최적화 — PR #60, refs #55
