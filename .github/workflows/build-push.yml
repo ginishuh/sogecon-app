@@ -43,6 +43,9 @@ jobs:
       USE_BUILDX: 1
       PUSH_IMAGES: 1
       SKIP_WEB: 1
+      # Docker 빌드 캐시 (GitHub Actions Cache 활용)
+      DOCKER_CACHE_FROM: type=gha
+      DOCKER_CACHE_TO: type=gha,mode=max
     steps:
       - uses: actions/checkout@v4
 

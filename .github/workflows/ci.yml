@@ -59,6 +59,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: apps/api/requirements*.txt
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -103,11 +105,29 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.21.1'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+        id: pnpm-cache
+      - uses: actions/cache@v4
+        name: Cache pnpm store
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
       - name: Install dependencies
-        run: |
-          corepack enable
-          corepack prepare pnpm@10.17.1 --activate
-          pnpm -C apps/web install --frozen-lockfile
+        run: pnpm -C apps/web install --frozen-lockfile
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: apps/web/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml', 'apps/web/next.config.js', 'apps/web/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-
       - name: Build
         run: pnpm -C apps/web build
       - name: Accessibility smoke (axe)
