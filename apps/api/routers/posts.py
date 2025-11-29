@@ -76,11 +76,14 @@ def list_posts(
     db: Session = Depends(get_db),
 ) -> list[schemas.PostRead]:
     posts = posts_service.list_posts(db, limit=limit, offset=offset, category=category)
+    # N+1 쿼리 방지: 배치로 댓글 수 조회
+    post_ids = [cast(int, p.id) for p in posts]
+    comment_counts = posts_repo.get_comment_counts_batch(db, post_ids)
     result: list[schemas.PostRead] = []
     for post in posts:
         post_read = schemas.PostRead.model_validate(post)
         post_read.author_name = post.author.name if post.author else None
-        post_read.comment_count = posts_repo.get_comment_count(db, cast(int, post.id))
+        post_read.comment_count = comment_counts.get(cast(int, post.id), 0)
         result.append(post_read)
     return result
 
@@ -88,10 +91,9 @@ def list_posts(
 @router.get("/{post_id}", response_model=schemas.PostRead)
 def get_post(post_id: int, db: Session = Depends(get_db)) -> schemas.PostRead:
     post = posts_service.get_post(db, post_id)
-    # 조회수 증가
+    # 조회수 증가 후 refresh로 최신 값 반영 (재조회 대신)
     posts_repo.increment_view_count(db, post_id)
-    # 최신 데이터 재조회
-    post = posts_service.get_post(db, post_id)
+    db.refresh(post)
     post_read = schemas.PostRead.model_validate(post)
     post_read.author_name = post.author.name if post.author else None
     post_read.comment_count = posts_repo.get_comment_count(db, cast(int, post.id))

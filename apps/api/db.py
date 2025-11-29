@@ -10,6 +10,9 @@ settings = get_settings()
 engine = create_engine(
     settings.database_url,
     pool_pre_ping=True,
+    pool_size=20,           # 기본 풀 크기 (기본값 5)
+    max_overflow=10,        # 피크 시 추가 커넥션 (총 최대 30)
+    pool_recycle=3600,      # 1시간마다 커넥션 재생성 (stale 방지)
     future=True,
 )
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)

@@ -13,6 +13,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
@@ -52,6 +53,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Gzip 압축 (1KB 이상 응답에 적용, 30-70% 크기 감소)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Session cookies (for admin auth)
 # - 기본: APP_ENV == 'prod'일 때 Secure 적용
