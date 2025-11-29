@@ -97,5 +97,35 @@ export default [
       // 테스트 로깅 허용(프리커밋 --max-warnings=0 보호)
       'no-console': 'off'
     }
+  },
+
+  // Service Worker: 워커 환경 설정, 타입 정보 필요 규칙 비활성화
+  {
+    files: ['**/public/sw.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'script',
+      globals: {
+        self: 'readonly',
+        caches: 'readonly',
+        clients: 'readonly',
+        registration: 'readonly',
+        fetch: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        URL: 'readonly',
+        addEventListener: 'readonly',
+        skipWaiting: 'readonly'
+      }
+    },
+    rules: {
+      // 타입 정보 필요 규칙 비활성화 (plain JS, 타입 정보 없음)
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      // 기본 품질 규칙은 유지 (complexity, max-depth 등)
+    }
   }
 ];

@@ -1,3 +1,10 @@
+## 2025-11-29
+
+- test(web): SwUpdateContext, SwUpdateBanner 단위 테스트 추가 — PR #54
+  - apps/web/__tests__/sw-update-context.test.tsx — Context 상태 관리, applyUpdate 테스트 (7개)
+  - apps/web/__tests__/sw-update-banner.test.tsx — 배너 UI, 버튼 동작, 접근성 테스트 (8개)
+  - apps/web/vitest.config.ts — esbuild jsx: 'automatic' 추가
+
 ## 2025-11-12
 
 - chore: add serena mcp config
@@ -821,3 +828,9 @@
 2025-11-21 web/deps: glob CVE 대응을 위한 override 추가
 - 워크스페이스 루트 `package.json`을 추가하고 pnpm overrides로 `glob@10.5.0` 강제
 - `pnpm-lock.yaml` 갱신 및 esbuild/vite/js-yaml 최신 패치 버전으로 추가 override 적용
+
+2025-11-29 feat(web): PWA 업데이트 알림 및 새로고침 프롬프트 구현 — refs #53
+- SwUpdateContext/SwUpdateBanner 추가, sw-register 업데이트 감지 로직 구현, sw.js SKIP_WAITING 핸들러 추가
+- fix(web): 리뷰 반영 — ESLint sw.js 워커 환경 설정, useEffect 클린업 추가
+- fix(web): updatefound 리스너에 once: true 추가 (StrictMode 중복 등록 방지)
+- docs(web): once: true 주석 명확화 ("한 번 실행 후 자동 제거")
