@@ -865,3 +865,4 @@
 
 2025-11-30 perf(web): Service Worker 캐싱 전략 확대 — refs #55
 - 정적 자산/이미지 Cache First, API Stale-While-Revalidate 추가
+- fix: SW API 캐싱 제거 (보안 이슈 — 세션 데이터 누출 방지)
