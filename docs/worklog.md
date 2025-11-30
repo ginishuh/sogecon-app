@@ -868,3 +868,7 @@
 
 2025-11-30 refactor(web): DrawerMenu 동적 임포트 공통 모듈로 분리 — refs #55
 - components/lazy.tsx 생성, figma-header/site-header에서 중복 제거
+
+2025-11-30 perf(web): Service Worker 캐싱 전략 확대 — refs #55
+- 정적 자산(JS/CSS/폰트) Cache First, 이미지 Cache First 추가
+- API 응답은 캐싱 제외 (인증/세션 데이터 보안)
