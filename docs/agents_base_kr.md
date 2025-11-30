@@ -140,9 +140,9 @@
   - 코드 분석/리팩터링/참조 추적/심볼·호출 그래프처럼 여러 파일이 엮인 작업은 Serena MCP를 우선 사용하고, 한 파일·몇 줄 정도의 사소한 수정이라면 Serena 호출 없이 바로 수정해도 된다.
   - `.serena/` 디렉터리는 절대경로와 캐시를 포함하므로, 항상 Git 추적 대상에서 제외하고 `.gitignore`에 추가되어 있는지 확인합니다.
 - Context7 MCP(공식 문서 조회):
-  - Next.js, React, FastAPI, Alembic, PostgreSQL, OpenAI SDK, Cloudflare, Prisma 등 외부 프레임워크/라이브러리 사용법을 설명해야 할 때는, 가능한 한 Context7 MCP를 통해 최신 공식 문서/예제를 먼저 조회합니다.
-  - “X를 어떻게 쓰나?”, “Y의 최신 패턴이 뭐냐?”와 같은 질문에 답할 때 특히 Context7을 우선 사용하고, 정말 단순한 문법 수준이 아닌 이상 기억에만 의존하지 않습니다.
-  - 애매할 때는 추측 대신 Context7 기반 답변을 선호하고, 중요한 결정은 관련 공식 문서 링크/출처를 주석·문서·PR 설명 등에서 함께 언급해 줍니다.
+  - Next.js, React, FastAPI, Alembic, PostgreSQL, OpenAI SDK, Cloudflare, Prisma 등 외부 라이브러리 사용법은 Context7으로 최신 공식 문서/예제를 먼저 확인합니다.
+  - “X를 어떻게 쓰나?”, “Y의 최신 패턴?” 같은 질문에서는 Context7을 우선하고, 정말 단순 문법이 아니면 기억만 믿지 않습니다.
+  - 애매하면 추측 대신 Context7 근거로 답하고, 필요 시 주석·문서·PR 설명에 출처를 남깁니다.
 
 ## 개발 환경 & 환경변수(2025‑11‑02)
 - API는 로컬 uvicorn으로 실행, PostgreSQL은 Docker Compose로 실행합니다.
