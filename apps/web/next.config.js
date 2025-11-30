@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const path = require('node:path');
 
+// Bundle analyzer: ANALYZE=true pnpm -C apps/web build
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 const securityHeaders = [
   // 보안/프라이버시 헤더
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
@@ -43,7 +48,14 @@ const nextConfig = {
   typedRoutes: true,
   images: {
     remotePatterns: imageRemotePatterns,
+    // 최신 이미지 포맷 우선 (브라우저 지원 시 AVIF → WebP → 원본)
+    formats: ['image/avif', 'image/webp'],
+    // 허용 품질 값 목록 (기본 75 외에 85, 90 추가)
+    qualities: [75, 85, 90],
+    // 디바이스 크기 (기본값 유지하되 명시적 선언)
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 };
 
-module.exports = nextConfig;
+module.exports = withBundleAnalyzer(nextConfig);
