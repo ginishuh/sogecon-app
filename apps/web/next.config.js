@@ -50,11 +50,10 @@ const nextConfig = {
     remotePatterns: imageRemotePatterns,
     // 최신 이미지 포맷 우선 (브라우저 지원 시 AVIF → WebP → 원본)
     formats: ['image/avif', 'image/webp'],
-    // 허용 품질 값 목록 (기본 75 외에 85, 90 추가)
-    qualities: [75, 85, 90],
     // 디바이스 크기 (기본값 유지하되 명시적 선언)
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // 품질은 <Image quality={85}> prop으로 개별 지정
   },
 };
 
