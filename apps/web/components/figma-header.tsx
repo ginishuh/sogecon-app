@@ -3,14 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
-import dynamic from 'next/dynamic';
 import Drawer from './ui/drawer';
 import { useAuth } from '../hooks/useAuth';
-
-const DrawerMenu = dynamic(
-  () => import('./drawer-menu').then((mod) => ({ default: mod.DrawerMenu })),
-  { ssr: false }
-);
+import { LazyDrawerMenu } from './lazy';
 
 export default function FigmaHeader() {
   const [open, setOpen] = useState(false);
@@ -44,7 +39,7 @@ export default function FigmaHeader() {
       </div>
       <Drawer open={open} onClose={() => setOpen(false)} title="메뉴" side="right">
         {/* 메뉴는 단일 출처로 유지(dup 제거) */}
-        <DrawerMenu status={status} onClose={() => setOpen(false)} />
+        <LazyDrawerMenu status={status} onClose={() => setOpen(false)} />
       </Drawer>
     </header>
   );
