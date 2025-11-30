@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.3.1",
-    "@next/bundle-analyzer": "^16.0.5",
+    "@next/bundle-analyzer": "^15.5.6",
     "@next/eslint-plugin-next": "15.5.2",
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.2.0",

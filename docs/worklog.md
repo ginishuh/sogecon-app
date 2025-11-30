@@ -866,3 +866,4 @@
 2025-11-30 perf(web): 이미지 최적화 및 Bundle Analyzer 추가 — refs #55
 - next.config.js: AVIF/WebP 포맷, qualities 설정 추가
 - @next/bundle-analyzer 설치, pnpm analyze 스크립트 추가
+- fix: qualities 제거, bundle-analyzer 15.x 다운그레이드 (리뷰 반영)
