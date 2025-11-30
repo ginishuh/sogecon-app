@@ -872,3 +872,7 @@
 2025-11-30 perf(web): Service Worker 캐싱 전략 확대 — refs #55
 - 정적 자산(JS/CSS/폰트) Cache First, 이미지 Cache First 추가
 - API 응답은 캐싱 제외 (인증/세션 데이터 보안)
+
+2025-11-30 perf(web): 이미지 최적화 및 Bundle Analyzer 추가 — refs #55
+- next.config.js: AVIF/WebP 포맷 지원 추가
+- @next/bundle-analyzer v15.5.6 설치, pnpm analyze 스크립트 추가
