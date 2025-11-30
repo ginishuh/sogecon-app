@@ -4,7 +4,6 @@ import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Route } from 'next';
-import dynamic from 'next/dynamic';
 
 import { HeaderAuth } from './header-auth';
 import { NotifyCTA } from './notify-cta';
@@ -12,11 +11,7 @@ import { RequireAdmin } from './require-admin';
 import { useAuth } from '../hooks/useAuth';
 import Drawer from './ui/drawer';
 import { NavDropdown } from './ui/nav-dropdown';
-
-const DrawerMenu = dynamic(
-  () => import('./drawer-menu').then((mod) => ({ default: mod.DrawerMenu })),
-  { ssr: false }
-);
+import { LazyDrawerMenu } from './lazy';
 
 type LinkItem = {
   href: Route;
@@ -125,7 +120,7 @@ export function SiteHeader() {
       </div>
       {/* Drawer 메뉴 */}
       <Drawer open={open} onClose={closeMenu} side="right" className="w-[285px]">
-        <DrawerMenu status={status} onClose={closeMenu} />
+        <LazyDrawerMenu status={status} onClose={closeMenu} />
       </Drawer>
     </header>
   );
