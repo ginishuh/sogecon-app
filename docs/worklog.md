@@ -865,3 +865,6 @@
 
 2025-11-30 perf(web): OTF → WOFF2 전환으로 브랜드 폰트 1.79MB 절감 — refs #55
 - KoPubWorld Dotum Bold 3.5MB → 2.0MB (43%), 서강체 548KB → 263KB (52%)
+
+2025-11-30 refactor(web): DrawerMenu 동적 임포트 공통 모듈로 분리 — refs #55
+- components/lazy.tsx 생성, figma-header/site-header에서 중복 제거
