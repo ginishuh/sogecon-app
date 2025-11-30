@@ -862,3 +862,6 @@
 - fix(web): 리뷰 반영 — ESLint sw.js 워커 환경 설정, useEffect 클린업 추가
 - fix(web): updatefound 리스너에 once: true 추가 (StrictMode 중복 등록 방지)
 - docs(web): once: true 주석 명확화 ("한 번 실행 후 자동 제거")
+
+2025-11-30 refactor(web): DrawerMenu 동적 임포트 공통 모듈로 분리 — refs #55
+- components/lazy.tsx 생성, figma-header/site-header에서 중복 제거
