@@ -3,22 +3,18 @@
  * - 오프라인 셸: 네비게이션 실패 시 /offline 페이지
  * - 정적 자산 (JS/CSS/폰트): Cache First
  * - 이미지: Cache First
- * - API 응답: Stale-While-Revalidate
+ * - API 응답: 캐싱 안함 (인증/세션 데이터 보안)
  */
 
 const CACHE_VERSION = 'v2';
 const OFFLINE_CACHE = `offline-shell-${CACHE_VERSION}`;
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const IMAGE_CACHE = `images-${CACHE_VERSION}`;
-const API_CACHE = `api-${CACHE_VERSION}`;
 
 const OFFLINE_URL = '/offline';
 
-// 캐시 만료 시간 (밀리초)
-const API_CACHE_MAX_AGE = 5 * 60 * 1000; // 5분
-
 // 유효한 캐시 이름 목록
-const VALID_CACHES = [OFFLINE_CACHE, STATIC_CACHE, IMAGE_CACHE, API_CACHE];
+const VALID_CACHES = [OFFLINE_CACHE, STATIC_CACHE, IMAGE_CACHE];
 
 self.addEventListener('install', (event) => {
   // 오프라인 페이지 프리캐싱
@@ -98,12 +94,9 @@ function isImage(url) {
   return /\.(png|jpg|jpeg|gif|webp|avif|svg|ico)$/.test(url.pathname) || url.pathname.startsWith('/images/');
 }
 
-function isApiRequest(url) {
-  return url.pathname.startsWith('/api/');
-}
-
 /**
  * Cache First 전략 — 정적 자산용
+ * 캐시 히트 시 즉시 반환, 미스 시 네트워크 요청 후 캐싱
  */
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
@@ -117,54 +110,10 @@ async function cacheFirst(request, cacheName) {
       cache.put(request, response.clone());
     }
     return response;
-  } catch (error) {
-    // 네트워크 실패 시 캐시에서 찾기 (이미 위에서 없음을 확인했으므로 에러)
-    throw error;
+  } catch {
+    // 네트워크 실패 + 캐시 미스 시 에러 응답
+    return new Response('Network error', { status: 503, statusText: 'Service Unavailable' });
   }
-}
-
-/**
- * Stale-While-Revalidate 전략 — API 응답용
- * 캐시된 응답이 있으면 즉시 반환하고, 백그라운드에서 갱신
- */
-async function staleWhileRevalidate(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
-
-  // 백그라운드에서 네트워크 요청
-  const fetchPromise = fetch(request)
-    .then((response) => {
-      if (response.ok) {
-        // 타임스탬프와 함께 캐시 저장
-        const responseToCache = response.clone();
-        const headers = new Headers(responseToCache.headers);
-        headers.set('sw-cache-time', Date.now().toString());
-
-        void responseToCache.blob().then((body) => {
-          return cache.put(
-            request,
-            new Response(body, {
-              status: responseToCache.status,
-              statusText: responseToCache.statusText,
-              headers
-            })
-          );
-        });
-      }
-      return response;
-    })
-    .catch(() => cached); // 네트워크 실패 시 캐시 반환
-
-  // 캐시가 있으면 즉시 반환, 없으면 네트워크 대기
-  if (cached) {
-    // 캐시 만료 확인
-    const cacheTime = parseInt(cached.headers.get('sw-cache-time') || '0', 10);
-    if (Date.now() - cacheTime < API_CACHE_MAX_AGE) {
-      return cached;
-    }
-  }
-
-  return fetchPromise;
 }
 
 self.addEventListener('fetch', (event) => {
@@ -207,9 +156,5 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // API 요청 — Stale-While-Revalidate
-  if (isApiRequest(url)) {
-    event.respondWith(staleWhileRevalidate(event.request, API_CACHE));
-    return;
-  }
+  // API 및 기타 요청 — 캐싱 안함 (네트워크 직접 요청)
 });
