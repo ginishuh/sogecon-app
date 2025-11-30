@@ -862,3 +862,6 @@
 - fix(web): 리뷰 반영 — ESLint sw.js 워커 환경 설정, useEffect 클린업 추가
 - fix(web): updatefound 리스너에 once: true 추가 (StrictMode 중복 등록 방지)
 - docs(web): once: true 주석 명확화 ("한 번 실행 후 자동 제거")
+
+2025-11-30 perf(web): OTF → WOFF2 전환으로 브랜드 폰트 1.79MB 절감 — refs #55
+- KoPubWorld Dotum Bold 3.5MB → 2.0MB (43%), 서강체 548KB → 263KB (52%)
