@@ -33,6 +33,11 @@ const imageRemotePatterns = [
 
 const nextConfig = {
   poweredByHeader: false,
+  // 환경변수를 빌드타임에 명시적으로 주입 (monorepo 환경에서 .env.local 로드 문제 방지)
+  env: {
+    NEXT_PUBLIC_WEB_API_BASE: process.env.NEXT_PUBLIC_WEB_API_BASE,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  },
   // Ensure Next resolves configs within this workspace (monorepo safe)
   outputFileTracingRoot: path.resolve(__dirname, '../../'),
   // standalone 빌드 산출물을 생성하여 서버(systemd)에서 직접 구동
