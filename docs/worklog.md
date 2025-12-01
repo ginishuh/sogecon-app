@@ -900,3 +900,4 @@
 2025-11-30 perf(web): 이미지 최적화 및 Bundle Analyzer 추가 — refs #55
 - next.config.js: AVIF/WebP 포맷 지원 추가
 - @next/bundle-analyzer v15.5.6 설치, pnpm analyze 스크립트 추가
+2025-12-01 refactor(web): 헤더 로고 구조 수정 — 심볼 + 텍스트 통합

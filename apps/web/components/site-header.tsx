@@ -62,17 +62,8 @@ export function SiteHeader() {
             className="h-auto w-[20px] md:w-[24px] shrink-0"
             priority
           />
-          {/* 서강대학교 로고 이미지 */}
-          <Image
-            src="/images/brand/sogang_korean_logo.svg"
-            alt="서강대학교"
-            width={104}
-            height={22}
-            className="h-auto w-[80px] md:w-[96px] shrink-0"
-            priority
-          />
           <span className="font-bold tracking-tight text-neutral-ink text-base md:text-lg whitespace-nowrap">
-            경제대학원 총동문회
+            서강대학교 경제대학원 총동문회
           </span>
         </Link>
         <button

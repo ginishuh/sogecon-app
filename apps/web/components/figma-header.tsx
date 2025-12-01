@@ -15,9 +15,8 @@ export default function FigmaHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
         <Link href="/" className="flex min-w-0 items-center gap-2 text-brand-primary" aria-label="홈으로">
           <Image src="/images/brand/sogang.svg" alt="" width={22} height={32} className="h-auto w-[20px]" priority />
-          <Image src="/images/brand/sogang_korean_logo.svg" alt="서강대학교" width={104} height={22} className="h-auto w-[96px]" priority />
           <span className="text-base font-bold tracking-tight text-neutral-ink md:text-lg truncate">
-            경제대학원 총동문회
+            서강대학교 경제대학원 총동문회
           </span>
         </Link>
         <button
