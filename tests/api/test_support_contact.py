@@ -41,7 +41,7 @@ async def test_support_contact_rate_limit_and_validation(client: TestClient) -> 
         assert rl.status_code == HTTPStatus.TOO_MANY_REQUESTS
 
 
-def test_support_contact_validation(admin_login) -> None:
+def test_support_contact_validation(admin_login: TestClient) -> None:
     client = admin_login
     bad = client.post(
         "/support/contact",

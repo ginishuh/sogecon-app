@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from sqlalchemy import and_, func, or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 
 from .. import models, schemas
@@ -67,8 +67,8 @@ def _order_columns(sort_value: str | None) -> list[ColumnElement[Any]]:
     return mapping.get(key, mapping['recent'])
 
 
-def list_members(
-    db: Session,
+async def list_members(
+    db: AsyncSession,
     *,
     limit: int,
     offset: int,
@@ -88,56 +88,64 @@ def list_members(
         stmt = stmt.where(and_(*conds))
     stmt = stmt.order_by(*_order_columns(f.get('sort')))
     stmt = stmt.offset(offset).limit(limit)
-    return db.execute(stmt).scalars().all()
+    result = await db.execute(stmt)
+    return result.scalars().all()
 
 
-def count_members(
-    db: Session, *, filters: schemas.MemberListFilters | None = None
+async def count_members(
+    db: AsyncSession, *, filters: schemas.MemberListFilters | None = None
 ) -> int:
     stmt = select(func.count()).select_from(models.Member)
     f = filters or {}
     conds = _build_member_conditions(f)
     if conds:
         stmt = stmt.where(and_(*conds))
-    return int(db.execute(stmt).scalar() or 0)
+    result = await db.execute(stmt)
+    return int(result.scalar() or 0)
 
 
-def get_member(db: Session, member_id: int) -> models.Member:
-    member = db.get(models.Member, member_id)
+async def get_member(db: AsyncSession, member_id: int) -> models.Member:
+    member = await db.get(models.Member, member_id)
     if member is None:
         raise NotFoundError(code="member_not_found", detail="Member not found")
     return member
 
 
-def create_member(db: Session, payload: schemas.MemberCreate) -> models.Member:
+async def create_member(
+    db: AsyncSession, payload: schemas.MemberCreate
+) -> models.Member:
     data = payload.model_dump()
     if "visibility" in data:
         data["visibility"] = models.Visibility(data["visibility"])  # normalize enum
     member = models.Member(**data)
     db.add(member)
-    db.commit()
-    db.refresh(member)
+    await db.commit()
+    await db.refresh(member)
     return member
 
 
-def get_member_by_email(db: Session, email: str) -> models.Member:
-    row = db.query(models.Member).filter(models.Member.email == email).first()
+async def get_member_by_email(db: AsyncSession, email: str) -> models.Member:
+    stmt = select(models.Member).where(models.Member.email == email)
+    result = await db.execute(stmt)
+    row = result.scalars().first()
     if row is None:
         raise NotFoundError(code="member_not_found", detail="Member not found")
     return row
 
 
-def get_member_by_student_id(db: Session, student_id: str) -> models.Member:
-    row = db.query(models.Member).filter(models.Member.student_id == student_id).first()
+async def get_member_by_student_id(db: AsyncSession, student_id: str) -> models.Member:
+    stmt = select(models.Member).where(models.Member.student_id == student_id)
+    result = await db.execute(stmt)
+    row = result.scalars().first()
     if row is None:
         raise NotFoundError(code="member_not_found", detail="Member not found")
     return row
 
 
-def update_member_profile(
-    db: Session, *, member_id: int, data: schemas.MemberUpdate
+async def update_member_profile(
+    db: AsyncSession, *, member_id: int, data: schemas.MemberUpdate
 ) -> models.Member:
-    member = db.get(models.Member, member_id)
+    member = await db.get(models.Member, member_id)
     if member is None:
         raise NotFoundError(code="member_not_found", detail="Member not found")
 
@@ -150,6 +158,6 @@ def update_member_profile(
     if updates:
         for k, v in updates.items():
             setattr(member, k, v)
-        db.commit()
-        db.refresh(member)
+        await db.commit()
+        await db.refresh(member)
     return member

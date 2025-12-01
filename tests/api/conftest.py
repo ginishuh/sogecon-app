@@ -1,16 +1,17 @@
 from __future__ import annotations
 
+import asyncio
 import os
-from collections.abc import Generator
+from collections.abc import AsyncGenerator, Generator
 from http import HTTPStatus
 from pathlib import Path
 
 import pytest
 from bcrypt import gensalt, hashpw  # 테스트 전용(최상위 임포트)
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.engine import make_url
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from apps.api import models
 from apps.api.db import get_db
@@ -24,7 +25,6 @@ def client(tmp_path: Path) -> Generator[TestClient, None, None]:
     if test_db != "pg":
         raise RuntimeError("Tests require PostgreSQL. Set TEST_DB=pg.")
 
-    engine_kwargs: dict = {"future": True}
     candidate = os.environ.get("TEST_DB_URL") or os.environ.get("DATABASE_URL")
     if not candidate:
         candidate = "postgresql+psycopg://app:devpass@localhost:5434/appdb_test"
@@ -43,19 +43,22 @@ def client(tmp_path: Path) -> Generator[TestClient, None, None]:
         raise RuntimeError(msg)
     engine_url = candidate
 
-    engine = create_engine(engine_url, **engine_kwargs)
-    TestingSessionLocal = sessionmaker(
-        bind=engine, autoflush=False, autocommit=False, future=True
+    # Async 엔진 및 세션 팩토리
+    async_engine = create_async_engine(engine_url, pool_pre_ping=True)
+    TestingAsyncSessionLocal = async_sessionmaker(
+        bind=async_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+        autoflush=False,
     )
 
-    models.Base.metadata.create_all(bind=engine)
+    # 동기 엔진으로 테이블 생성 (metadata.create_all은 동기만 지원)
+    sync_engine = create_engine(engine_url)
+    models.Base.metadata.create_all(bind=sync_engine)
 
-    def override_get_db() -> Generator[Session, None, None]:
-        db = TestingSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
+    async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
+        async with TestingAsyncSessionLocal() as session:
+            yield session
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as c:
@@ -63,7 +66,50 @@ def client(tmp_path: Path) -> Generator[TestClient, None, None]:
 
     # cleanup
     app.dependency_overrides.pop(get_db, None)
-    models.Base.metadata.drop_all(bind=engine)
+    models.Base.metadata.drop_all(bind=sync_engine)
+    sync_engine.dispose()
+    asyncio.run(async_engine.dispose())
+
+
+async def _seed_admin(session: AsyncSession) -> None:
+    """관리자 계정 시드"""
+    pwd = hashpw(b"__seed__", gensalt()).decode()
+    admin = models.AdminUser(student_id="__seed__admin", password_hash=pwd)
+    session.add(admin)
+    await session.commit()
+
+
+async def _seed_member(session: AsyncSession) -> None:
+    """멤버 계정 시드"""
+    # create member if not exists
+    stmt = select(models.Member).where(models.Member.student_id == "member001")
+    result = await session.execute(stmt)
+    m = result.scalars().first()
+    if m is None:
+        m = models.Member(
+            student_id="member001",
+            email="member@example.com",
+            name="Member",
+            cohort=1,
+            major=None,
+            roles="member",
+        )
+        session.add(m)
+        await session.commit()
+        await session.refresh(m)
+    pwd = hashpw(b"memberpass", gensalt()).decode()
+    stmt = select(models.MemberAuth).where(
+        models.MemberAuth.student_id == m.student_id
+    )
+    result = await session.execute(stmt)
+    auth_row = result.scalars().first()
+    if auth_row is None:
+        session.add(
+            models.MemberAuth(
+                member_id=m.id, student_id=m.student_id, password_hash=pwd
+            )
+        )
+        await session.commit()
 
 
 @pytest.fixture()
@@ -80,19 +126,13 @@ def admin_login(client: TestClient) -> TestClient:
     override = app.dependency_overrides.get(get_db)
     if override is None:
         raise RuntimeError("get_db override not found for admin seeding")
-    gen = override()
-    db: Session = next(gen)
-    try:
-        pwd = hashpw(b"__seed__", gensalt()).decode()
-        admin = models.AdminUser(student_id="__seed__admin", password_hash=pwd)
-        db.add(admin)
-        db.commit()
-    finally:
-        db.close()
-        try:
-            gen.close()
-        except Exception:
-            pass
+
+    async def _run_seed() -> None:
+        async for session in override():
+            await _seed_admin(session)
+            break
+
+    asyncio.run(_run_seed())
 
     client.post(
         "/auth/login", json={"student_id": "__seed__admin", "password": "__seed__"}
@@ -115,46 +155,13 @@ def member_login(client: TestClient) -> TestClient:
     override = app.dependency_overrides.get(get_db)
     if override is None:
         raise RuntimeError("get_db override not found for member seeding")
-    gen = override()
-    db: Session = next(gen)
-    try:
-        # create member if not exists
-        m = (
-            db.query(models.Member)
-            .filter(models.Member.student_id == "member001")
-            .first()
-        )
-        if m is None:
-            m = models.Member(
-                student_id="member001",
-                email="member@example.com",
-                name="Member",
-                cohort=1,
-                major=None,
-                roles="member",
-            )
-            db.add(m)
-            db.commit()
-            db.refresh(m)
-        pwd = hashpw(b"memberpass", gensalt()).decode()
-        auth_row = (
-            db.query(models.MemberAuth)
-            .filter(models.MemberAuth.student_id == m.student_id)
-            .first()
-        )
-        if auth_row is None:
-            db.add(
-                models.MemberAuth(
-                    member_id=m.id, student_id=m.student_id, password_hash=pwd
-                )
-            )
-            db.commit()
-    finally:
-        db.close()
-        try:
-            gen.close()
-        except Exception:
-            pass
+
+    async def _run_seed() -> None:
+        async for session in override():
+            await _seed_member(session)
+            break
+
+    asyncio.run(_run_seed())
 
     client.post(
         "/auth/member/login",

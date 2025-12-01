@@ -1,35 +1,53 @@
-from collections.abc import Generator
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+from typing import Annotated
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from .config import get_settings
 
 settings = get_settings()
 
-engine = create_engine(
+# psycopg3는 postgresql+psycopg:// 스킴으로 async 모드 자동 지원
+async_engine: AsyncEngine = create_async_engine(
     settings.database_url,
     pool_pre_ping=True,
-    pool_size=20,           # 기본 풀 크기 (기본값 5)
-    max_overflow=10,        # 피크 시 추가 커넥션 (총 최대 30)
-    pool_recycle=3600,      # 1시간마다 커넥션 재생성 (stale 방지)
-    future=True,
+    pool_size=20,
+    max_overflow=10,
+    pool_recycle=3600,
 )
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+
+AsyncSessionLocal = async_sessionmaker(
+    bind=async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autoflush=False,
+)
 
 
-def get_db() -> Generator[Session, None, None]:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """FastAPI 의존성: 요청당 AsyncSession 제공."""
+    async with AsyncSessionLocal() as session:
+        yield session
 
 
-def get_db_session() -> Generator[Session, None, None]:
-    """시드 데이터 등을 위한 세션 컨텍스트 매니저"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Annotated 타입 별칭 (pyright/ruff 경고 감소)
+DbSession = Annotated[AsyncSession, Depends(get_db)]
+
+
+@asynccontextmanager
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+    """시드 데이터 등을 위한 async 세션 컨텍스트 매니저."""
+    async with AsyncSessionLocal() as session:
+        yield session
+
+
+async def dispose_engine() -> None:
+    """앱 종료 시 커넥션 풀 정리."""
+    await async_engine.dispose()

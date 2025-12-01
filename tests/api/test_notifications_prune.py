@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from http import HTTPStatus
 
 from fastapi.testclient import TestClient
@@ -14,17 +15,18 @@ def test_prune_logs_admin(admin_login: TestClient) -> None:
     # seed 2 logs (one will be considered old via raw insert with SQLite fallback)
     override = app.dependency_overrides.get(get_db)
     assert override is not None
-    gen = override()
-    db = next(gen)
-    try:
-        logs_repo.create_log(db, endpoint="https://x/1", ok=True, status_code=201)
-        logs_repo.create_log(db, endpoint="https://x/2", ok=False, status_code=410)
-    finally:
-        db.close()
-        try:
-            gen.close()
-        except Exception:
-            pass
+
+    async def _seed_logs() -> None:
+        async for db in override():
+            await logs_repo.create_log(
+                db, endpoint="https://x/1", ok=True, status_code=201
+            )
+            await logs_repo.create_log(
+                db, endpoint="https://x/2", ok=False, status_code=410
+            )
+            break
+
+    asyncio.run(_seed_logs())
 
     res = client.post(
         "/notifications/admin/notifications/prune-logs",

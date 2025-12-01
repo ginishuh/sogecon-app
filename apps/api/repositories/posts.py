@@ -3,16 +3,17 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from sqlalchemy import desc, func, select, update
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from .. import models, schemas
 from ..errors import NotFoundError
 
 
-def list_posts(
-    db: Session, *, limit: int, offset: int, category: str | None = None
+async def list_posts(
+    db: AsyncSession, *, limit: int, offset: int, category: str | None = None
 ) -> Sequence[models.Post]:
-    stmt = select(models.Post).options(joinedload(models.Post.author))
+    stmt = select(models.Post).options(selectinload(models.Post.author))
     if category:
         stmt = stmt.where(models.Post.category == category)
     stmt = (
@@ -20,51 +21,56 @@ def list_posts(
         .offset(offset)
         .limit(limit)
     )
-    return db.execute(stmt).scalars().all()
+    result = await db.execute(stmt)
+    return result.scalars().all()
 
 
-def get_post(db: Session, post_id: int) -> models.Post:
+async def get_post(db: AsyncSession, post_id: int) -> models.Post:
     stmt = (
         select(models.Post)
-        .options(joinedload(models.Post.author))
+        .options(selectinload(models.Post.author))
         .where(models.Post.id == post_id)
     )
-    post = db.execute(stmt).scalar_one_or_none()
+    result = await db.execute(stmt)
+    post = result.scalar_one_or_none()
     if post is None:
         raise NotFoundError(code="post_not_found", detail="Post not found")
     return post
 
 
-def create_post(db: Session, payload: schemas.PostCreate) -> models.Post:
+async def create_post(db: AsyncSession, payload: schemas.PostCreate) -> models.Post:
     data = payload.model_dump()
     post = models.Post(**data)
     db.add(post)
-    db.commit()
-    db.refresh(post)
+    await db.commit()
+    await db.refresh(post)
     return post
 
 
-def increment_view_count(db: Session, post_id: int) -> None:
+async def increment_view_count(db: AsyncSession, post_id: int) -> None:
     """게시물 조회수를 1 증가시킵니다."""
     stmt = (
         update(models.Post)
         .where(models.Post.id == post_id)
         .values(view_count=models.Post.view_count + 1)
     )
-    db.execute(stmt)
-    db.commit()
+    await db.execute(stmt)
+    await db.commit()
 
 
-def get_comment_count(db: Session, post_id: int) -> int:
+async def get_comment_count(db: AsyncSession, post_id: int) -> int:
     """게시물의 댓글 수를 반환합니다."""
     stmt = select(func.count(models.Comment.id)).where(
         models.Comment.post_id == post_id
     )
-    count = db.execute(stmt).scalar()
+    result = await db.execute(stmt)
+    count = result.scalar()
     return count if count is not None else 0
 
 
-def get_comment_counts_batch(db: Session, post_ids: Sequence[int]) -> dict[int, int]:
+async def get_comment_counts_batch(
+    db: AsyncSession, post_ids: Sequence[int]
+) -> dict[int, int]:
     """여러 게시물의 댓글 수를 한 번에 조회합니다 (N+1 쿼리 방지)."""
     if not post_ids:
         return {}
@@ -73,5 +79,5 @@ def get_comment_counts_batch(db: Session, post_ids: Sequence[int]) -> dict[int, 
         .where(models.Comment.post_id.in_(post_ids))
         .group_by(models.Comment.post_id)
     )
-    result = db.execute(stmt).all()
-    return {row[0]: row[1] for row in result}
+    result = await db.execute(stmt)
+    return {row[0]: row[1] for row in result.all()}

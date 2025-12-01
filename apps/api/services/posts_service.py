@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models, schemas
 from ..errors import ApiError
@@ -10,29 +10,31 @@ from ..repositories import members as members_repo
 from ..repositories import posts as posts_repo
 
 
-def list_posts(
-    db: Session, *, limit: int, offset: int, category: str | None = None
+async def list_posts(
+    db: AsyncSession, *, limit: int, offset: int, category: str | None = None
 ) -> Sequence[models.Post]:
-    return posts_repo.list_posts(db, limit=limit, offset=offset, category=category)
+    return await posts_repo.list_posts(
+        db, limit=limit, offset=offset, category=category
+    )
 
 
-def get_post(db: Session, post_id: int) -> models.Post:
-    return posts_repo.get_post(db, post_id)
+async def get_post(db: AsyncSession, post_id: int) -> models.Post:
+    return await posts_repo.get_post(db, post_id)
 
 
-def create_post(db: Session, payload: schemas.PostCreate) -> models.Post:
+async def create_post(db: AsyncSession, payload: schemas.PostCreate) -> models.Post:
     if payload.author_id is None:
         raise ApiError(
             code="post_author_required",
             detail="author_id is required",
             status=422,
         )
-    _ = members_repo.get_member(db, payload.author_id)  # 존재하지 않으면 NotFoundError
-    return posts_repo.create_post(db, payload)
+    _ = await members_repo.get_member(db, payload.author_id)  # NotFoundError
+    return await posts_repo.create_post(db, payload)
 
 
-def create_member_post(
-    db: Session,
+async def create_member_post(
+    db: AsyncSession,
     payload: schemas.PostCreate,
     *,
     member_student_id: str,
@@ -40,7 +42,7 @@ def create_member_post(
 ) -> models.Post:
     author_id = member_id
     if author_id is None:
-        member = members_repo.get_member_by_student_id(db, member_student_id)
+        member = await members_repo.get_member_by_student_id(db, member_student_id)
         author_id = member.id
     sanitized = payload.model_copy(
         update={
@@ -49,4 +51,4 @@ def create_member_post(
             "published_at": None,
         }
     )
-    return posts_repo.create_post(db, sanitized)
+    return await posts_repo.create_post(db, sanitized)

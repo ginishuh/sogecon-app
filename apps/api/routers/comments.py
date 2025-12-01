@@ -2,7 +2,7 @@
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
 from ..db import get_db
@@ -13,12 +13,12 @@ router = APIRouter(prefix="/comments", tags=["comments"])
 
 
 @router.get("/", response_model=list[schemas.CommentRead])
-def list_comments(
+async def list_comments(
     post_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> list[schemas.CommentRead]:
     """특정 게시글의 댓글 목록 조회"""
-    comments = comments_service.list_comments_by_post(db, post_id)
+    comments = await comments_service.list_comments_by_post(db, post_id)
     result: list[schemas.CommentRead] = []
     for comment in comments:
         comment_read = schemas.CommentRead.model_validate(comment)
@@ -28,10 +28,10 @@ def list_comments(
 
 
 @router.post("/", response_model=schemas.CommentRead, status_code=201)
-def create_comment(
+async def create_comment(
     payload: schemas.CommentCreate,
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> schemas.CommentRead:
     """댓글 작성 (회원 또는 관리자)"""
     # 관리자 또는 회원 체크
@@ -56,15 +56,15 @@ def create_comment(
             ) from None
         author_id = member.id
 
-    comment = comments_service.create_comment(db, payload, author_id)
+    comment = await comments_service.create_comment(db, payload, author_id)
     return schemas.CommentRead.model_validate(comment)
 
 
 @router.delete("/{comment_id}", status_code=204)
-def delete_comment(
+async def delete_comment(
     comment_id: int,
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> None:
     """댓글 삭제 (본인 또는 관리자)"""
     # 관리자 또는 회원 체크
@@ -88,4 +88,4 @@ def delete_comment(
             ) from None
         requester_id = member.id
 
-    comments_service.delete_comment(db, comment_id, requester_id, is_admin)
+    await comments_service.delete_comment(db, comment_id, requester_id, is_admin)

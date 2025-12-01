@@ -1,25 +1,31 @@
 from __future__ import annotations
 
+import asyncio
 from http import HTTPStatus
 
 import bcrypt
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 
 from apps.api import models
 from apps.api.db import get_db
+from apps.api.main import app
 
 
 def _seed_admin(client: TestClient, student_id: str, password: str) -> None:
-    # Access the same DB session used by app via dependency override in conftest
-    db: Session = next(iter(client.app.dependency_overrides[get_db]().__iter__()))  # type: ignore[arg-type]
-    try:
-        pwd = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-        admin = models.AdminUser(student_id=student_id, password_hash=pwd)
-        db.add(admin)
-        db.commit()
-    finally:
-        db.close()
+    """관리자 계정 시드 (async DB 세션 사용)"""
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found")
+
+    async def _do_seed() -> None:
+        async for db in override():
+            pwd = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+            admin = models.AdminUser(student_id=student_id, password_hash=pwd)
+            db.add(admin)
+            await db.commit()
+            break
+
+    asyncio.run(_do_seed())
 
 
 def test_login_success_and_protected_routes(client: TestClient) -> None:

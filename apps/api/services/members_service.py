@@ -9,7 +9,7 @@ from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models, schemas
 from ..config import get_settings
@@ -95,20 +95,20 @@ def _remove_previous_avatar(previous_path: str | None, media_root: Path) -> None
         pass
 
 
-def list_members(
-    db: Session,
+async def list_members(
+    db: AsyncSession,
     *,
     limit: int,
     offset: int,
     filters: schemas.MemberListFilters | None = None,
 ) -> Sequence[models.Member]:
-    return members_repo.list_members(
+    return await members_repo.list_members(
         db, limit=limit, offset=offset, filters=filters
     )
 
 
-def count_members(
-    db: Session, *, filters: schemas.MemberListFilters | None = None
+async def count_members(
+    db: AsyncSession, *, filters: schemas.MemberListFilters | None = None
 ) -> int:
     def _normalize_value(value: object) -> str:
         if isinstance(value, bool):
@@ -133,7 +133,7 @@ def count_members(
         _member_count_cache.move_to_end(key, last=True)
         return cached[1]
 
-    count = members_repo.count_members(db, filters=filters)
+    count = await members_repo.count_members(db, filters=filters)
     _member_count_cache[key] = (now, count)
     _member_count_cache.move_to_end(key, last=True)
     if len(_member_count_cache) > _MEMBER_COUNT_CACHE_MAX:
@@ -141,34 +141,35 @@ def count_members(
     return count
 
 
-def get_member(db: Session, member_id: int) -> models.Member:
-    return members_repo.get_member(db, member_id)
+async def get_member(db: AsyncSession, member_id: int) -> models.Member:
+    return await members_repo.get_member(db, member_id)
 
 
-def create_member(db: Session, payload: schemas.MemberCreate) -> models.Member:
+async def create_member(
+    db: AsyncSession, payload: schemas.MemberCreate
+) -> models.Member:
     # 이메일 중복 방지(사전 검사)
-    exists = db.execute(
-        select(models.Member).where(models.Member.email == payload.email)
-    )
-    if exists.scalars().first() is not None:
+    stmt = select(models.Member).where(models.Member.email == payload.email)
+    result = await db.execute(stmt)
+    if result.scalars().first() is not None:
         raise AlreadyExistsError(code="member_exists", detail="Email already in use")
-    return members_repo.create_member(db, payload)
+    return await members_repo.create_member(db, payload)
 
 
-def get_member_by_email(db: Session, email: str) -> models.Member:
-    return members_repo.get_member_by_email(db, email)
+async def get_member_by_email(db: AsyncSession, email: str) -> models.Member:
+    return await members_repo.get_member_by_email(db, email)
 
 
-def get_member_by_student_id(db: Session, student_id: str) -> models.Member:
-    return members_repo.get_member_by_student_id(db, student_id)
+async def get_member_by_student_id(db: AsyncSession, student_id: str) -> models.Member:
+    return await members_repo.get_member_by_student_id(db, student_id)
 
 
-def update_member_profile(
-    db: Session, *, member_id: int, data: schemas.MemberUpdate
+async def update_member_profile(
+    db: AsyncSession, *, member_id: int, data: schemas.MemberUpdate
 ) -> models.Member:
     raw_payload = data.model_dump(exclude_unset=True)
     if not raw_payload:
-        return members_repo.update_member_profile(
+        return await members_repo.update_member_profile(
             db, member_id=member_id, data=data
         )
     sanitized_data: dict[str, object] = {
@@ -176,13 +177,13 @@ def update_member_profile(
         for key, value in raw_payload.items()
     }
     sanitized = data.model_copy(update=sanitized_data)
-    return members_repo.update_member_profile(
+    return await members_repo.update_member_profile(
         db, member_id=member_id, data=sanitized
     )
 
 
-def update_member_avatar(
-    db: Session,
+async def update_member_avatar(
+    db: AsyncSession,
     *,
     member_id: int,
     file_bytes: bytes,
@@ -222,11 +223,11 @@ def update_member_avatar(
     file_path = storage_dir / new_filename
     file_path.write_bytes(avatar_bytes)
 
-    member = members_repo.get_member(db, member_id)
+    member = await members_repo.get_member(db, member_id)
     previous_path = getattr(member, "avatar_path", None)
     setattr(member, "avatar_path", relative_path)
-    db.commit()
-    db.refresh(member)
+    await db.commit()
+    await db.refresh(member)
 
     _remove_previous_avatar(previous_path, media_root)
 

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import os
 from http import HTTPStatus
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from apps.api import models
 from apps.api.config import get_settings, reset_settings_cache
@@ -31,27 +33,26 @@ def test_subscription_encrypted_at_rest_and_logged_plain_tail(
         # Seed one subscription directly
         override = app.dependency_overrides.get(get_db)
         assert override is not None
-        gen = override()
-        db = next(gen)
         endpoint = "https://example.com/encrypted/1"
-        try:
-            subs_repo.upsert_subscription(
-                db,
-                {
-                    "endpoint": endpoint,
-                    "p256dh": "p",
-                    "auth": "a",
-                },
-            )
-            PS = models.PushSubscription
-            row = db.query(PS).first()
-            assert row is not None
-        finally:
-            db.close()
-            try:
-                gen.close()
-            except Exception:
-                pass
+
+        async def _seed_subscription() -> None:
+            async for db in override():
+                await subs_repo.upsert_subscription(
+                    db,
+                    {
+                        "endpoint": endpoint,
+                        "p256dh": "p",
+                        "auth": "a",
+                    },
+                )
+                PS = models.PushSubscription
+                stmt = select(PS)
+                result = await db.execute(stmt)
+                row = result.scalars().first()
+                assert row is not None
+                break
+
+        asyncio.run(_seed_subscription())
 
         # Call test send (admin)
         res = admin_login.post(
@@ -61,19 +62,16 @@ def test_subscription_encrypted_at_rest_and_logged_plain_tail(
         assert res.status_code in (HTTPStatus.ACCEPTED, HTTPStatus.OK)
 
         # encryption doesn't affect the log tail computation (uses plaintext)
-        override2 = app.dependency_overrides.get(get_db)
-        assert override2 is not None
-        gen2 = override2()
-        db2 = next(gen2)
-        try:
-            logs = logs_repo.list_recent(db2, limit=1)
-            assert logs and logs[0].endpoint_tail == endpoint[-16:]
-        finally:
-            db2.close()
-            try:
-                gen2.close()
-            except Exception:
-                pass
+        async def _check_logs() -> None:
+            override2 = app.dependency_overrides.get(get_db)
+            assert override2 is not None
+            async for db2 in override2():
+                logs = list(await logs_repo.list_recent(db2, limit=1))
+                assert logs
+                assert logs[0].endpoint_tail == endpoint[-16:]
+                break
+
+        asyncio.run(_check_logs())
     finally:
         # cleanup env & reload
         os.environ.pop("PUSH_ENCRYPT_AT_REST", None)
