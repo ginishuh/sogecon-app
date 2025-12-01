@@ -20,13 +20,10 @@ export const fontSans = localFont({
   preload: true,
 });
 
-// 메뉴 전용: 서강체 (WOFF2 — OTF 대비 52% 축소)
-export const fontMenu = localFont({
-  src: [
-    { path: '../public/fonts/Brand/SOGANG_UNIVERSITY.woff2', weight: '400', style: 'normal' }
-  ],
+// 메뉴 전용: 시스템 폰트 (서강체 WOFF2 CFF 테이블 오류로 임시 대체)
+// TODO: 정상적인 서강체 폰트 파일 구한 후 복구
+export const fontMenu = {
   variable: '--font-menu',
-  display: 'swap',
-  preload: true,
-});
+  className: '',
+};
 
