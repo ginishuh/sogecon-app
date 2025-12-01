@@ -62,7 +62,7 @@ export function SiteHeader() {
             className="h-auto w-[20px] md:w-[24px] shrink-0"
             priority
           />
-          <span className="font-kopub font-bold tracking-tight text-neutral-ink text-base md:text-lg whitespace-nowrap">
+          <span className="font-bold tracking-tight text-neutral-ink text-base md:text-lg whitespace-nowrap">
             서강대학교 경제대학원 총동문회
           </span>
         </Link>
