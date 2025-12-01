@@ -1,6 +1,10 @@
 ## 2025-12-01
 
-- perf(web): KoPubWorld 폰트 제거로 2MB 절감 — refs #63
+- perf(db): DB 인덱스 P1 최적화 — refs #63, #57
+  - Posts 복합 인덱스 (pinned DESC, published_at DESC) — list_posts 쿼리 최적화
+  - pg_trgm + GIN 인덱스 — Members 검색(ilike) 최적화 (name, email, addr, job_title)
+
+- perf(web): KoPubWorld 폰트 제거로 2MB 절감 — PR #70, refs #63
   - 헤더 전용 KoPubWorld Dotum Bold 제거, 시스템 폰트 폴백으로 대체
   - fonts.ts, layout.tsx, site-header.tsx, figma-header.tsx, tailwind.config.ts 정리
   - site-header 로고 구조 통일: 심볼 + 서강대학교 로고(이미지) + 텍스트

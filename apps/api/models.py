@@ -124,6 +124,8 @@ class Post(Base):
 
 
 Index("ix_posts_published_at_desc", Post.published_at.desc())
+# 복합 인덱스: list_posts 쿼리 최적화 (pinned DESC, published_at DESC)
+Index("ix_posts_pinned_published", Post.pinned.desc(), Post.published_at.desc())
 
 
 class Comment(Base):
