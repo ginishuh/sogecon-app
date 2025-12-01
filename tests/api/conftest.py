@@ -6,6 +6,7 @@ from collections.abc import AsyncGenerator, Generator
 from http import HTTPStatus
 from pathlib import Path
 
+import httpx
 import pytest
 from bcrypt import gensalt, hashpw  # 테스트 전용(최상위 임포트)
 from fastapi.testclient import TestClient
@@ -168,3 +169,67 @@ def member_login(client: TestClient) -> TestClient:
         json={"student_id": "member001", "password": "memberpass"},
     )
     return client
+
+
+def _get_test_db_url() -> str:
+    """테스트 DB URL 반환 (공통 로직)"""
+    test_db = os.environ.get("TEST_DB", "pg").lower()
+    if test_db != "pg":
+        raise RuntimeError("Tests require PostgreSQL. Set TEST_DB=pg.")
+
+    candidate = os.environ.get("TEST_DB_URL") or os.environ.get("DATABASE_URL")
+    if not candidate:
+        candidate = "postgresql+psycopg://app:devpass@localhost:5434/appdb_test"
+
+    if not candidate.lower().startswith("postgresql+psycopg://"):
+        raise RuntimeError("TEST_DB_URL/DATABASE_URL must be postgresql+psycopg://")
+
+    url = make_url(candidate)
+    db_name = (url.database or "").lower()
+    if "test" not in db_name and os.environ.get("TEST_DB_FORCE") != "1":
+        msg = (
+            "Refusing to run tests on non-test database. "
+            "Use TEST_DB_URL pointing to a dedicated DB (name contains 'test') "
+            "or set TEST_DB_FORCE=1."
+        )
+        raise RuntimeError(msg)
+    return candidate
+
+
+@pytest.fixture()
+async def async_client(
+    tmp_path: Path,
+) -> AsyncGenerator[httpx.AsyncClient, None]:
+    """
+    async 테스트용 httpx.AsyncClient fixture.
+    lifespan 이벤트와 async 의존성 주입 경로를 제대로 검증합니다.
+    """
+    engine_url = _get_test_db_url()
+
+    async_engine = create_async_engine(engine_url, pool_pre_ping=True)
+    TestingAsyncSessionLocal = async_sessionmaker(
+        bind=async_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+        autoflush=False,
+    )
+
+    sync_engine = create_engine(engine_url)
+    models.Base.metadata.create_all(bind=sync_engine)
+
+    async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
+        async with TestingAsyncSessionLocal() as session:
+            yield session
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    transport = httpx.ASGITransport(app=app)  # type: ignore[arg-type]
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as ac:
+        yield ac
+
+    app.dependency_overrides.pop(get_db, None)
+    models.Base.metadata.drop_all(bind=sync_engine)
+    sync_engine.dispose()
+    await async_engine.dispose()

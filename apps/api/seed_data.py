@@ -59,6 +59,8 @@ async def create_admin_users(session: AsyncSession) -> None:
         session.add(admin_user)
         print(f"관리자 계정 생성: {user_data['student_id']} ({user_data['email']})")
 
+    await session.commit()
+
 
 async def create_member_auth(session: AsyncSession) -> None:
     """회원 인증 정보 생성"""
