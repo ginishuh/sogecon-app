@@ -3,7 +3,7 @@
 공개 웹 애플리케이션 모노레포입니다. 브랜드는 **서강대학교 경제대학원 총동문회**입니다.
 
 ![Static Badge](https://img.shields.io/badge/Python-3.12.3-3776AB?logo=python&logoColor=white)
-![Static Badge](https://img.shields.io/badge/Node-22.17.1-339933?logo=node.js&logoColor=white)
+![Static Badge](https://img.shields.io/badge/Node-22.21.1-339933?logo=node.js&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/pnpm-10.17.1-F69220?logo=pnpm&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
 ![Static Badge](https://img.shields.io/badge/FastAPI-0.120-009688?logo=fastapi)
