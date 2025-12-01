@@ -8,7 +8,7 @@ import { HeaderGate } from '../components/header-gate';
 import { Analytics } from '../components/analytics';
 import WebVitalsReporter from '../components/web-vitals-reporter';
 import { siteConfig, ogImage } from '../lib/site';
-import { fontSans, fontMenu, fontKoPubDotum } from './fonts';
+import { fontSans, fontMenu } from './fonts';
 
 const metadataUrl = new URL(siteConfig.url);
 const ogImageUrl = new URL(ogImage.path, siteConfig.url);
@@ -80,7 +80,7 @@ export default async function RootLayout({
   const nonce = headersList.get('x-nonce') ?? undefined;
 
   return (
-    <html lang="ko" className={`${fontSans.variable} ${fontMenu.variable} ${fontKoPubDotum.variable} antialiased`}>
+    <html lang="ko" className={`${fontSans.variable} ${fontMenu.variable} antialiased`}>
       <head>
         {/* 폰트 preconnect 추가 */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

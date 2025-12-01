@@ -30,12 +30,3 @@ export const fontMenu = localFont({
   preload: true,
 });
 
-// 헤더 일부("경제대학원 총동문회") 전용: KoPubWorld 돋움 Bold (WOFF2 — OTF 대비 43% 축소)
-export const fontKoPubDotum = localFont({
-  src: [
-    { path: '../public/fonts/Brand/KoPubWorld-Dotum-Pro-Bold.woff2', weight: '700', style: 'normal' }
-  ],
-  variable: '--font-kopub',
-  display: 'swap',
-  preload: true,
-});

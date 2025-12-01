@@ -1,5 +1,10 @@
 ## 2025-12-01
 
+- perf(web): KoPubWorld 폰트 제거로 2MB 절감 — refs #63
+  - 헤더 전용 KoPubWorld Dotum Bold 제거, 시스템 폰트 폴백으로 대체
+  - fonts.ts, layout.tsx, site-header.tsx, figma-header.tsx, tailwind.config.ts 정리
+  - site-header 로고 구조 통일: 심볼 + 서강대학교 로고(이미지) + 텍스트
+
 - refactor(api): psycopg3 async 전환 — 전체 백엔드 AsyncSession 적용
   - db.py: create_async_engine + async_sessionmaker (psycopg3 네이티브 async)
   - repositories 8개, services 6개, routers 10개 async/await 전환
