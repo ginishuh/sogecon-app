@@ -2,9 +2,11 @@
 const path = require('node:path');
 
 // Bundle analyzer: ANALYZE=true pnpm -C apps/web build
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-});
+// 런타임에서는 devDependency가 없으므로 조건부 로드
+const withBundleAnalyzer =
+  process.env.ANALYZE === 'true'
+    ? require('@next/bundle-analyzer')({ enabled: true })
+    : (config) => config;
 
 const securityHeaders = [
   // 보안/프라이버시 헤더
