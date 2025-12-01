@@ -1,3 +1,9 @@
+## 2025-12-01
+
+- chore(docs): 에이전트 가이드/페르소나 동기화
+  - AGENTS.md, CLAUDE.md, GEMINI.md, .github/copilot-instructions.md 가이드 문구 최신화
+  - docs/agents_base.md 정렬, scripts/sync_agents_from_base.sh 갱신
+
 ## 2025-11-29
 
 - perf(db): 데이터베이스 인덱스 최적화 — PR #62, refs #57
