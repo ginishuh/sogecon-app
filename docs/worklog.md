@@ -1,8 +1,9 @@
 ## 2025-12-01
 
-- perf(db): DB 인덱스 P1 최적화 — refs #63, #57
+- perf(db): DB 인덱스 P1 최적화 — PR #71, refs #63, #57
   - Posts 복합 인덱스 (pinned DESC, published_at DESC) — list_posts 쿼리 최적화
   - pg_trgm + GIN 인덱스 — Members 검색(ilike) 최적화 (name, email, addr, job_title)
+  - 리뷰 반영: lower() 제거(pg_trgm이 ILIKE 직접 지원), CONCURRENTLY 적용
 
 - perf(web): KoPubWorld 폰트 제거로 2MB 절감 — PR #70, refs #63
   - 헤더 전용 KoPubWorld Dotum Bold 제거, 시스템 폰트 폴백으로 대체
