@@ -1,5 +1,13 @@
 ## 2025-12-01
 
+- refactor(api): psycopg3 async 전환 — 전체 백엔드 AsyncSession 적용
+  - db.py: create_async_engine + async_sessionmaker (psycopg3 네이티브 async)
+  - repositories 8개, services 6개, routers 10개 async/await 전환
+  - tests: pytest-asyncio auto mode + db_session fixture 수정
+  - seed_data.py: create_admin_users commit 추가 (롤백 방지)
+  - conftest.py: httpx.AsyncClient 기반 async_client fixture 추가
+  - 검증: pyright 0 errors, pytest 66/66 passed
+
 - chore(docs): 에이전트 가이드/페르소나 동기화
   - AGENTS.md, CLAUDE.md, GEMINI.md, .github/copilot-instructions.md 가이드 문구 최신화
   - docs/agents_base.md 정렬, scripts/sync_agents_from_base.sh 갱신

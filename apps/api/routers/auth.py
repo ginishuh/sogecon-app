@@ -9,7 +9,8 @@ from itsdangerous import BadData, BadSignature, URLSafeSerializer
 from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
 from ..db import get_db
@@ -196,8 +197,8 @@ class MemberLoginPayload(BaseModel):
 
 
 @router.post("/member/login")
-def member_login(
-    payload: MemberLoginPayload, request: Request, db: Session = Depends(get_db)
+async def member_login(
+    payload: MemberLoginPayload, request: Request, db: AsyncSession = Depends(get_db)
 ) -> dict[str, str]:
     """하위호환 멤버 로그인 엔드포인트.
 
@@ -208,10 +209,14 @@ def member_login(
     if settings.app_env == "prod" and not _is_test_client(request):
         consume_limit(limiter_login, request, settings.rate_limit_login)
 
-    member = db.query(Member).filter(Member.student_id == payload.student_id).first()
-    creds = (
-        db.query(MemberAuth).filter(MemberAuth.student_id == payload.student_id).first()
-    )
+    stmt = select(Member).where(Member.student_id == payload.student_id)
+    result = await db.execute(stmt)
+    member = result.scalars().first()
+
+    stmt2 = select(MemberAuth).where(MemberAuth.student_id == payload.student_id)
+    result2 = await db.execute(stmt2)
+    creds = result2.scalars().first()
+
     if member is None or creds is None:
         raise HTTPException(status_code=401, detail="login_failed")
     if not bcrypt.checkpw(payload.password.encode(), creds.password_hash.encode()):
@@ -233,7 +238,7 @@ def member_login(
 
 
 @router.post("/member/logout", status_code=204)
-def member_logout(request: Request) -> None:
+async def member_logout(request: Request) -> None:
     # 통합 및 레거시 키 모두 제거
     request.session.pop("user", None)
     request.session.pop("member", None)
@@ -241,9 +246,9 @@ def member_logout(request: Request) -> None:
 
 
 @router.get("/member/me")
-def member_me(
+async def member_me(
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     m: CurrentMember = Depends(require_member),
 ) -> dict[str, str]:
     """멤버 자기정보: 웹 프론트 타입 정의에 맞춰 email을 반환.
@@ -255,7 +260,9 @@ def member_me(
     if u and isinstance(u.email, str):
         return {"email": u.email}
     # DB 조회로 보강
-    member = db.query(Member).filter(Member.student_id == m.student_id).first()
+    stmt = select(Member).where(Member.student_id == m.student_id)
+    result = await db.execute(stmt)
+    member = result.scalars().first()
     email = member.email if member and isinstance(member.email, str) else ""
     return {"email": email}
 
@@ -266,8 +273,8 @@ class MemberActivatePayload(BaseModel):
 
 
 @router.post("/member/activate")
-def member_activate(
-    payload: MemberActivatePayload, request: Request, db: Session = Depends(get_db)
+async def member_activate(
+    payload: MemberActivatePayload, request: Request, db: AsyncSession = Depends(get_db)
 ) -> dict[str, str]:
     """멤버 활성화: 서명 토큰 검증 후 Member/MemberAuth를 생성 또는 갱신.
 
@@ -295,7 +302,10 @@ def member_activate(
         raise HTTPException(status_code=422, detail="invalid_payload")
 
     # 멤버 조회/생성
-    member = db.query(Member).filter(Member.email == email_obj).first()
+    stmt = select(Member).where(Member.email == email_obj)
+    result = await db.execute(stmt)
+    member = result.scalars().first()
+
     if member is None:
         # 이메일의 @ 앞부분을 student_id로 사용 (임시 방안)
         student_id = email_obj.split("@")[0]
@@ -308,15 +318,16 @@ def member_activate(
             roles="member",
         )
         db.add(member)
-        db.commit()
-        db.refresh(member)
+        await db.commit()
+        await db.refresh(member)
 
     # 자격 생성/갱신
     bcrypt = __import__("bcrypt")
     pwd_hash = bcrypt.hashpw(payload.password.encode(), bcrypt.gensalt()).decode()
-    auth_row = (
-        db.query(MemberAuth).filter(MemberAuth.student_id == member.student_id).first()
-    )
+    stmt2 = select(MemberAuth).where(MemberAuth.student_id == member.student_id)
+    result2 = await db.execute(stmt2)
+    auth_row = result2.scalars().first()
+
     if auth_row is None:
         db.add(
             MemberAuth(
@@ -327,7 +338,7 @@ def member_activate(
         )
     else:
         setattr(auth_row, "password_hash", pwd_hash)
-    db.commit()
+    await db.commit()
 
     # 세션 로그인 처리
     request.session["member"] = {"student_id": member.student_id, "id": member.id}
@@ -340,10 +351,10 @@ class ChangePasswordPayload(BaseModel):
 
 
 @router.post("/member/change-password")
-def change_password(
+async def change_password(
     payload: ChangePasswordPayload,
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     m: CurrentMember = Depends(require_member),
 ) -> dict[str, str]:
     settings = get_settings()
@@ -351,9 +362,10 @@ def change_password(
         consume_limit(limiter_login, request, settings.rate_limit_login)
 
     bcrypt = __import__("bcrypt")
-    auth_row = (
-        db.query(MemberAuth).filter(MemberAuth.student_id == m.student_id).first()
-    )
+    stmt = select(MemberAuth).where(MemberAuth.student_id == m.student_id)
+    result = await db.execute(stmt)
+    auth_row = result.scalars().first()
+
     if auth_row is None:
         raise HTTPException(status_code=401, detail="unauthorized")
     if not bcrypt.checkpw(
@@ -362,13 +374,13 @@ def change_password(
         raise HTTPException(status_code=401, detail="login_failed")
     new_hash = bcrypt.hashpw(payload.new_password.encode(), bcrypt.gensalt()).decode()
     setattr(auth_row, "password_hash", new_hash)
-    db.commit()
+    await db.commit()
     return {"ok": "true"}
 
 
 @router.post("/login")
-def login(
-    payload: LoginPayload, request: Request, db: Session = Depends(get_db)
+async def login(
+    payload: LoginPayload, request: Request, db: AsyncSession = Depends(get_db)
 ) -> dict[str, str]:
     bcrypt = __import__("bcrypt")  # 런타임 임포트로 훅 환경 의존성 문제 최소화
 
@@ -378,9 +390,10 @@ def login(
         consume_limit(limiter_login, request, settings.rate_limit_login)
 
     # 1) 관리자 자격 우선 매칭
-    admin = (
-        db.query(AdminUser).filter(AdminUser.student_id == payload.student_id).first()
-    )
+    stmt = select(AdminUser).where(AdminUser.student_id == payload.student_id)
+    result = await db.execute(stmt)
+    admin = result.scalars().first()
+
     if admin is not None and bcrypt.checkpw(
         payload.password.encode(), admin.password_hash.encode()
     ):
@@ -394,10 +407,14 @@ def login(
         return {"ok": "true"}
 
     # 2) 멤버 자격 매칭
-    member = db.query(Member).filter(Member.student_id == payload.student_id).first()
-    creds = (
-        db.query(MemberAuth).filter(MemberAuth.student_id == payload.student_id).first()
-    )
+    stmt2 = select(Member).where(Member.student_id == payload.student_id)
+    result2 = await db.execute(stmt2)
+    member = result2.scalars().first()
+
+    stmt3 = select(MemberAuth).where(MemberAuth.student_id == payload.student_id)
+    result3 = await db.execute(stmt3)
+    creds = result3.scalars().first()
+
     if member is None or creds is None:
         raise HTTPException(status_code=401, detail="login_failed")
     if not bcrypt.checkpw(payload.password.encode(), creds.password_hash.encode()):
@@ -419,7 +436,7 @@ def login(
 
 
 @router.post("/logout", status_code=204)
-def logout(request: Request) -> None:
+async def logout(request: Request) -> None:
     # 통합 및 레거시 키 모두 제거
     request.session.pop("user", None)
     request.session.pop("admin", None)
@@ -427,7 +444,7 @@ def logout(request: Request) -> None:
 
 
 @router.get("/me")
-def me(admin: CurrentAdmin = Depends(require_admin)) -> dict[str, str | int]:
+async def me(admin: CurrentAdmin = Depends(require_admin)) -> dict[str, str | int]:
     """관리자 자기정보(하위호환): 관리자 세션이 있을 때만 200.
 
     통합 세션을 사용하더라도 roles에 'admin'이 있어야 통과한다.
@@ -436,7 +453,9 @@ def me(admin: CurrentAdmin = Depends(require_admin)) -> dict[str, str | int]:
 
 
 @router.get("/session")
-def session(request: Request, db: Session = Depends(get_db)) -> dict[str, object]:
+async def session(
+    request: Request, db: AsyncSession = Depends(get_db)
+) -> dict[str, object]:
     """통합 세션 조회 엔드포인트.
 
     반환 형식: { kind: 'admin'|'member', student_id, email, id? }
@@ -448,7 +467,9 @@ def session(request: Request, db: Session = Depends(get_db)) -> dict[str, object
         email = u.email or ""
         if (not email) and kind == "member":
             # 멤버면 DB에서 이메일 보강
-            m = db.query(Member).filter(Member.student_id == u.student_id).first()
+            stmt = select(Member).where(Member.student_id == u.student_id)
+            result = await db.execute(stmt)
+            m = result.scalars().first()
             email = m.email if m and isinstance(m.email, str) else ""
         return {
             "kind": kind,
@@ -472,7 +493,9 @@ def session(request: Request, db: Session = Depends(get_db)) -> dict[str, object
         sid_obj = data.get("student_id")
         sid = sid_obj if isinstance(sid_obj, str) else None
         if sid:
-            m = db.query(Member).filter(Member.student_id == sid).first()
+            stmt = select(Member).where(Member.student_id == sid)
+            result = await db.execute(stmt)
+            m = result.scalars().first()
             email = m.email if m and isinstance(m.email, str) else ""
             mid_obj = data.get("id")
             _id = int(mid_obj) if isinstance(mid_obj, (int, str)) else None

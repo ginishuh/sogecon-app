@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from contextlib import suppress
+import asyncio
 from http import HTTPStatus
 
 import httpx
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from apps.api import models
 from apps.api.db import get_db
@@ -22,21 +23,20 @@ def _get_member_id() -> int:
     override = app.dependency_overrides.get(get_db)
     if override is None:
         raise RuntimeError("get_db override not found")
-    gen = override()
-    db = next(gen)
-    try:
-        member = (
-            db.query(models.Member)
-            .filter(models.Member.email == "member@example.com")
-            .first()
-        )
-        if member is None:
-            raise RuntimeError("member@example.com not seeded")
-        return member.id
-    finally:
-        db.close()
-        with suppress(RuntimeError, StopIteration):
-            gen.close()
+
+    async def _do_get() -> int:
+        async for db in override():
+            stmt = select(models.Member).where(
+                models.Member.email == "member@example.com"
+            )
+            result = await db.execute(stmt)
+            member = result.scalars().first()
+            if member is None:
+                raise RuntimeError("member@example.com not seeded")
+            return member.id
+        raise RuntimeError("DB session not available")
+
+    return asyncio.run(_do_get())
 
 
 def test_member_can_create_board_post(member_login: TestClient) -> None:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from http import HTTPStatus
 
 from fastapi.testclient import TestClient
@@ -12,25 +13,22 @@ from apps.api.main import app
 def _seed_author() -> int:
     override = app.dependency_overrides.get(get_db)
     assert override is not None
-    gen = override()
-    db = next(gen)
-    try:
-        m = models.Member(
-            student_id="20250001",
-            email="author@example.com",
-            name="Author",
-            cohort=2025,
-        )
-        db.add(m)
-        db.commit()
-        db.refresh(m)
-        return int(m.id)
-    finally:
-        db.close()
-        try:
-            gen.close()
-        except Exception:
-            pass
+
+    async def _do_seed() -> int:
+        async for db in override():
+            m = models.Member(
+                student_id="20250001",
+                email="author@example.com",
+                name="Author",
+                cohort=2025,
+            )
+            db.add(m)
+            await db.commit()
+            await db.refresh(m)
+            return m.id  # type: ignore[return-value]
+        raise RuntimeError("DB session not available")
+
+    return asyncio.run(_do_seed())
 
 
 def test_posts_category_pinned_cover_image(admin_login: TestClient) -> None:

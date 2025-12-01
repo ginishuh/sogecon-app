@@ -7,7 +7,7 @@ from typing import Any, Protocol, cast
 
 from pywebpush import WebPushException, webpush
 from requests.exceptions import RequestException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
 from ..crypto_utils import decrypt_str
@@ -68,23 +68,23 @@ class SendResult:
     failed: int
 
 
-def save_subscription(db: Session, data: SubscriptionData) -> None:
-    repo.upsert_subscription(db, data)
+async def save_subscription(db: AsyncSession, data: SubscriptionData) -> None:
+    await repo.upsert_subscription(db, data)
 
 
-def delete_subscription(db: Session, *, endpoint: str) -> None:
-    repo.delete_subscription(db, endpoint=endpoint)
+async def delete_subscription(db: AsyncSession, *, endpoint: str) -> None:
+    await repo.delete_subscription(db, endpoint=endpoint)
 
 
-def send_test_to_all(
-    db: Session,
+async def send_test_to_all(
+    db: AsyncSession,
     provider: PushProvider,
     *,
     title: str,
     body: str,
     url: str | None = None,
 ) -> SendResult:
-    subs = repo.list_active_subscriptions(db)
+    subs = await repo.list_active_subscriptions(db)
     accepted = 0
     failed = 0
     for sub in subs:
@@ -97,7 +97,9 @@ def send_test_to_all(
         else:
             failed += 1
             if status in (404, 410):
-                repo.remove_by_endpoint(db, endpoint=endpoint_plain)
+                await repo.remove_by_endpoint(db, endpoint=endpoint_plain)
         # 발송 로그(민감정보 해시 보관)
-        send_logs.create_log(db, endpoint=endpoint_plain, ok=ok, status_code=status)
+        await send_logs.create_log(
+            db, endpoint=endpoint_plain, ok=ok, status_code=status
+        )
     return SendResult(accepted=accepted, failed=failed)

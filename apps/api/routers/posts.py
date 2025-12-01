@@ -6,7 +6,7 @@ from http import HTTPStatus
 from typing import cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
 from ..config import get_settings
@@ -69,16 +69,18 @@ def reset_member_post_limit_cache() -> None:
 
 
 @router.get("/", response_model=list[schemas.PostRead])
-def list_posts(
+async def list_posts(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     category: str | None = Query(None),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> list[schemas.PostRead]:
-    posts = posts_service.list_posts(db, limit=limit, offset=offset, category=category)
+    posts = await posts_service.list_posts(
+        db, limit=limit, offset=offset, category=category
+    )
     # N+1 쿼리 방지: 배치로 댓글 수 조회
     post_ids = [cast(int, p.id) for p in posts]
-    comment_counts = posts_repo.get_comment_counts_batch(db, post_ids)
+    comment_counts = await posts_repo.get_comment_counts_batch(db, post_ids)
     result: list[schemas.PostRead] = []
     for post in posts:
         post_read = schemas.PostRead.model_validate(post)
@@ -89,26 +91,28 @@ def list_posts(
 
 
 @router.get("/{post_id}", response_model=schemas.PostRead)
-def get_post(post_id: int, db: Session = Depends(get_db)) -> schemas.PostRead:
-    post = posts_service.get_post(db, post_id)
+async def get_post(
+    post_id: int, db: AsyncSession = Depends(get_db)
+) -> schemas.PostRead:
+    post = await posts_service.get_post(db, post_id)
     # 조회수 증가 후 refresh로 최신 값 반영 (재조회 대신)
-    posts_repo.increment_view_count(db, post_id)
-    db.refresh(post)
+    await posts_repo.increment_view_count(db, post_id)
+    await db.refresh(post)
     post_read = schemas.PostRead.model_validate(post)
     post_read.author_name = post.author.name if post.author else None
-    post_read.comment_count = posts_repo.get_comment_count(db, cast(int, post.id))
+    post_read.comment_count = await posts_repo.get_comment_count(db, cast(int, post.id))
     return post_read
 
 
 @router.post("/", response_model=schemas.PostRead, status_code=201)
-def create_post(
+async def create_post(
     payload: schemas.PostCreate,
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> schemas.PostRead:
     try:
         require_admin(request)
-        post = posts_service.create_post(db, payload)
+        post = await posts_service.create_post(db, payload)
     except HTTPException as exc_admin:
         if exc_admin.status_code not in (
             HTTPStatus.UNAUTHORIZED,
@@ -124,7 +128,7 @@ def create_post(
         _enforce_member_post_limit(request, settings.rate_limit_post_create)
 
         sanitized = payload.model_copy(update={"pinned": False, "published_at": None})
-        post = posts_service.create_member_post(
+        post = await posts_service.create_member_post(
             db,
             sanitized,
             member_student_id=member.student_id,

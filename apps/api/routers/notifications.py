@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, HttpUrl
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.config import get_settings
 from apps.api.db import get_db
@@ -48,10 +48,10 @@ class SubscriptionPayload(BaseModel):
 
 
 @router.post("/subscriptions", status_code=204)
-def save_subscription(
+async def save_subscription(
     payload: SubscriptionPayload,
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     _member: CurrentMember = Depends(require_member),
 ) -> None:
     """Web Push 구독 저장(idempotent). 동일 endpoint는 갱신 처리."""
@@ -62,7 +62,7 @@ def save_subscription(
             request,
             settings.rate_limit_subscribe,
         )
-    notif_svc.save_subscription(
+    await notif_svc.save_subscription(
         db,
         {
             "endpoint": str(payload.endpoint),
@@ -79,10 +79,10 @@ class UnsubscribePayload(BaseModel):
 
 
 @router.delete("/subscriptions", status_code=204)
-def delete_subscription(
+async def delete_subscription(
     payload: UnsubscribePayload,
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     _member: CurrentMember = Depends(require_member),
 ) -> None:
     settings = get_settings()
@@ -92,7 +92,7 @@ def delete_subscription(
             request,
             settings.rate_limit_subscribe,
         )
-    notif_svc.delete_subscription(db, endpoint=str(payload.endpoint))
+    await notif_svc.delete_subscription(db, endpoint=str(payload.endpoint))
 
 
 class TestPushPayload(BaseModel):
@@ -102,11 +102,11 @@ class TestPushPayload(BaseModel):
 
 
 @router.post("/admin/notifications/test", status_code=202)
-def send_test_push(
+async def send_test_push(
     _payload: TestPushPayload,
     _admin: Annotated[CurrentAdmin, Depends(require_admin)],
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     provider: notif_svc.PushProvider = Depends(get_push_provider),
 ) -> dict[str, int]:
     if not _is_test_client(request):
@@ -116,7 +116,7 @@ def send_test_push(
             get_settings().rate_limit_notify_test,
         )
 
-    result = notif_svc.send_test_to_all(
+    result = await notif_svc.send_test_to_all(
         db, provider, title=_payload.title, body=_payload.body, url=_payload.url
     )
     return {"accepted": result.accepted, "failed": result.failed}
@@ -130,12 +130,12 @@ class SendLogRead(BaseModel):
 
 
 @router.get("/admin/notifications/logs")
-def get_send_logs(
+async def get_send_logs(
     _admin: Annotated[CurrentAdmin, Depends(require_admin)],
     limit: int = 50,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> list[SendLogRead]:
-    rows = logs_repo.list_recent(db, limit=min(max(limit, 1), 200))
+    rows = await logs_repo.list_recent(db, limit=min(max(limit, 1), 200))
     out: list[SendLogRead] = []
     for r in rows:
         created_dt = cast(datetime | None, r.created_at)
@@ -162,9 +162,9 @@ class NotificationStats(BaseModel):
 
 
 @router.get("/admin/notifications/stats")
-def get_stats(
+async def get_stats(
     _admin: Annotated[CurrentAdmin, Depends(require_admin)],
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     range: str = "7d",
 ) -> NotificationStats:
     # 범위 파싱: 24h | 7d | 30d (기본 7d)
@@ -178,8 +178,8 @@ def get_stats(
     )
     cutoff = datetime.now(UTC_TZ) - delta
 
-    subs = subs_repo.list_active_subscriptions(db)
-    logs = logs_repo.list_since(db, cutoff=cutoff)
+    subs = await subs_repo.list_active_subscriptions(db)
+    logs = await logs_repo.list_since(db, cutoff=cutoff)
     accepted = 0
     failed = 0
     f404 = 0
@@ -214,12 +214,12 @@ class PruneLogsPayload(BaseModel):
 
 
 @router.post("/admin/notifications/prune-logs")
-def prune_logs(
+async def prune_logs(
     payload: PruneLogsPayload,
     _admin: Annotated[CurrentAdmin, Depends(require_admin)],
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> dict[str, int | str]:
     days = max(1, int(payload.older_than_days))
-    n = logs_repo.prune_older_than_days(db, days=days)
+    n = await logs_repo.prune_older_than_days(db, days=days)
     before = datetime.now(UTC_TZ) - timedelta(days=days)
     return {"deleted": n, "before": before.isoformat(), "older_than_days": days}

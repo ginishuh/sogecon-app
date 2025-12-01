@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
 from ..db import get_db
@@ -39,11 +39,11 @@ class ContactPayload(BaseModel):
 
 
 @router.post("/contact", status_code=202)
-def contact(
+async def contact(
     payload: ContactPayload,
     request: Request,
     _m: CurrentMember = Depends(require_member),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> dict[str, str]:
     if not _is_test_client(request):
         consume_limit(limiter, request, get_settings().rate_limit_support)
@@ -67,7 +67,7 @@ def contact(
     _recent[ident] = (now, h)
 
     # DB 티켓 저장
-    tickets_repo.create_ticket(
+    await tickets_repo.create_ticket(
         db,
         {
             "member_email": (getattr(_m, "email", None) if _m else None),
@@ -112,12 +112,12 @@ class TicketRead(BaseModel):
 
 
 @router.get("/admin/tickets", response_model=list[TicketRead])
-def list_tickets(
+async def list_tickets(
     _admin: CurrentAdmin = Depends(require_admin),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     limit: int = 50,
 ) -> list[TicketRead]:
-    rows = tickets_repo.list_recent(db, limit=min(max(limit, 1), 200))
+    rows = await tickets_repo.list_recent(db, limit=min(max(limit, 1), 200))
     out: list[TicketRead] = []
     for r in rows:
         created = getattr(r, 'created_at', None)

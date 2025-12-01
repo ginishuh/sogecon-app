@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from typing import TypedDict
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models
 from ..crypto_utils import encrypt_str
@@ -23,15 +23,19 @@ def _hash_endpoint(endpoint: str) -> str:
     return hashlib.sha256(endpoint.encode()).hexdigest()
 
 
-def upsert_subscription(db: Session, data: SubscriptionData) -> models.PushSubscription:
+async def upsert_subscription(
+    db: AsyncSession, data: SubscriptionData
+) -> models.PushSubscription:
     endpoint_plain = str(data.get("endpoint"))
     endpoint_hash = _hash_endpoint(endpoint_plain)
     endpoint = encrypt_str(endpoint_plain)
-    sub = (
-        db.query(models.PushSubscription)
-        .filter(models.PushSubscription.endpoint_hash == endpoint_hash)
-        .first()
+
+    stmt = select(models.PushSubscription).where(
+        models.PushSubscription.endpoint_hash == endpoint_hash
     )
+    result = await db.execute(stmt)
+    sub = result.scalars().first()
+
     if sub is None:
         member_val = data.get("member_id")
         sub = models.PushSubscription(
@@ -43,9 +47,10 @@ def upsert_subscription(db: Session, data: SubscriptionData) -> models.PushSubsc
             endpoint_hash=endpoint_hash,
         )
         db.add(sub)
-        db.commit()
-        db.refresh(sub)
+        await db.commit()
+        await db.refresh(sub)
         return sub
+
     # update
     setattr(sub, "p256dh", str(data.get("p256dh")))
     setattr(sub, "auth", str(data.get("auth")))
@@ -55,34 +60,41 @@ def upsert_subscription(db: Session, data: SubscriptionData) -> models.PushSubsc
         setattr(sub, "member_id", int(member_val2))
     setattr(sub, "endpoint", endpoint)
     setattr(sub, "endpoint_hash", endpoint_hash)
-    db.commit()
-    db.refresh(sub)
+    await db.commit()
+    await db.refresh(sub)
     return sub
 
 
-def delete_subscription(db: Session, *, endpoint: str) -> None:
+async def delete_subscription(db: AsyncSession, *, endpoint: str) -> None:
     h = _hash_endpoint(endpoint)
-    sub = (
-        db.query(models.PushSubscription)
-        .filter(models.PushSubscription.endpoint_hash == h)
-        .first()
+    stmt = select(models.PushSubscription).where(
+        models.PushSubscription.endpoint_hash == h
     )
+    result = await db.execute(stmt)
+    sub = result.scalars().first()
     if sub is None:
         return
-    db.delete(sub)
-    db.commit()
+    await db.delete(sub)
+    await db.commit()
 
 
-def list_active_subscriptions(db: Session) -> Sequence[models.PushSubscription]:
+async def list_active_subscriptions(
+    db: AsyncSession,
+) -> Sequence[models.PushSubscription]:
     stmt = select(models.PushSubscription).where(
         models.PushSubscription.revoked_at.is_(None)
     )
-    return db.execute(stmt).scalars().all()
+    result = await db.execute(stmt)
+    return result.scalars().all()
 
 
-def remove_by_endpoint(db: Session, *, endpoint: str) -> None:
+async def remove_by_endpoint(db: AsyncSession, *, endpoint: str) -> None:
     h = _hash_endpoint(endpoint)
-    db.query(models.PushSubscription).filter(
+    stmt = select(models.PushSubscription).where(
         models.PushSubscription.endpoint_hash == h
-    ).delete()
-    db.commit()
+    )
+    result = await db.execute(stmt)
+    sub = result.scalars().first()
+    if sub:
+        await db.delete(sub)
+        await db.commit()

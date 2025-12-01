@@ -7,11 +7,13 @@
     python -m apps.api.seed_production
 """
 
+import asyncio
 import sys
 from pathlib import Path
 
 import bcrypt
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.db import get_db_session
 from apps.api.models import AdminUser, Member, MemberAuth, Visibility
@@ -22,10 +24,10 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 
-def create_production_admins(session: Session) -> None:
+async def create_production_admins(session: AsyncSession) -> None:
     """운영 환경용 관리자 계정 생성"""
     print("🔧 운영 관리자 계정 생성 중...")
-    
+
     # 실제 운영용 강력한 비밀번호
     admin_users = [
         {
@@ -41,18 +43,16 @@ def create_production_admins(session: Session) -> None:
             "description": "마스터 관리자",
         },
     ]
-    
+
     for admin_data in admin_users:
         # 기존 계정 확인
-        existing = (
-            session.query(AdminUser)
-            .filter_by(student_id=admin_data["student_id"])  # 학번 기준 조회
-            .first()
-        )
+        stmt = select(AdminUser).where(AdminUser.student_id == admin_data["student_id"])
+        result = await session.execute(stmt)
+        existing = result.scalars().first()
         if existing:
             print(f"  ⚠️  관리자 계정 이미 존재: {admin_data['email']}")
             continue
-            
+
         admin = AdminUser(
             student_id=admin_data["student_id"],
             email=admin_data["email"],
@@ -62,14 +62,14 @@ def create_production_admins(session: Session) -> None:
         print(
             f"  ✅ 관리자 계정 생성: {admin_data['student_id']} ({admin_data['email']})"
         )
-    
-    session.commit()
+
+    await session.commit()
 
 
-def create_production_members(session: Session) -> None:
+async def create_production_members(session: AsyncSession) -> None:
     """운영 환경용 동문회 초기 회원 생성"""
     print("👥 동문회 초기 회원 생성 중...")
-    
+
     # 실제 동문회원 데이터 (예시)
     members = [
         {
@@ -115,59 +115,55 @@ def create_production_members(session: Session) -> None:
             "industry": "공공/정부",
         },
     ]
-    
+
     for member_data in members:
         # 기존 회원 확인
-        existing = (
-            session.query(Member)
-            .filter_by(student_id=member_data["student_id"])  # 학번 기준
-            .first()
-        )
+        stmt = select(Member).where(Member.student_id == member_data["student_id"])
+        result = await session.execute(stmt)
+        existing = result.scalars().first()
         if existing:
             print(f"  ⚠️  회원 계정 이미 존재: {member_data['student_id']}")
             continue
-            
+
         member = Member(**member_data)
         session.add(member)
         print(
             f"  ✅ 회원 계정 생성: {member_data['student_id']} ({member_data['name']})"
         )
-    
-    session.commit()
+
+    await session.commit()
 
 
-def create_production_member_auth(session: Session) -> None:
+async def create_production_member_auth(session: AsyncSession) -> None:
     """운영 환경용 회원 인증 정보 생성"""
     print("🔐 회원 인증 정보 생성 중...")
-    
+
     # 간단한 비밀번호 (운영에서 변경 필요)
     member_auth_data = [
         {"student_id": "president2025", "password": "President123!"},
         {"student_id": "vicepresident2025", "password": "Vice123!"},
         {"student_id": "secretary2025", "password": "Secretary123!"},
     ]
-    
+
     for auth_data in member_auth_data:
         # 회원 정보 확인
-        member = (
-            session.query(Member)
-            .filter_by(student_id=auth_data["student_id"])  # 학번 기준
-            .first()
-        )
+        stmt = select(Member).where(Member.student_id == auth_data["student_id"])
+        result = await session.execute(stmt)
+        member = result.scalars().first()
         if not member:
             print(f"  ⚠️  회원 정보 없음: {auth_data['student_id']}")
             continue
-            
+
         # 기존 인증 정보 확인
-        existing = (
-            session.query(MemberAuth)
-            .filter_by(student_id=auth_data["student_id"])  # 학번 기준
-            .first()
+        stmt = select(MemberAuth).where(
+            MemberAuth.student_id == auth_data["student_id"]
         )
+        result = await session.execute(stmt)
+        existing = result.scalars().first()
         if existing:
             print(f"  ⚠️  인증 정보 이미 존재: {auth_data['student_id']}")
             continue
-            
+
         member_auth = MemberAuth(
             member_id=member.id,
             student_id=auth_data["student_id"],
@@ -175,52 +171,46 @@ def create_production_member_auth(session: Session) -> None:
         )
         session.add(member_auth)
         print(f"  ✅ 인증 정보 생성: {auth_data['student_id']}")
-    
-    session.commit()
+
+    await session.commit()
 
 
-def main():
+async def async_main() -> None:
+    """비동기 메인 실행 함수"""
+    print("🌱 운영 환경 시드 데이터 생성 시작")
+    print("=" * 50)
+
+    async with get_db_session() as session:
+        # 운영 관리자 계정 생성
+        await create_production_admins(session)
+
+        # 동문회 초기 회원 생성
+        await create_production_members(session)
+
+        # 회원 인증 정보 생성
+        await create_production_member_auth(session)
+
+    print("=" * 50)
+    print("✅ 운영 환경 시드 데이터 생성 완료")
+    print("\n📋 생성된 운영 계정 정보:")
+    print("🔧 관리자 계정:")
+    print("  - admin001 (admin@segecon.kr) / Segecon2025!@#")
+    print("  - admin002 (master@segecon.kr) / Master2025!@#")
+    print("\n👥 초기 회원 계정:")
+    print("  - president2025 (홍길동 회장)")
+    print("  - vicepresident2025 (김철수 부회장)")
+    print("  - secretary2025 (이영희 총무)")
+    print("\n⚠️  중요: 운영 전에 반드시 비밀번호를 변경하세요!")
+
+
+def main() -> None:
     """메인 실행 함수"""
     # 프로젝트 루트를 Python 경로에 추가
     project_root = Path(__file__).parent.parent.parent
     sys.path.insert(0, str(project_root))
-    
-    print("🌱 운영 환경 시드 데이터 생성 시작")
-    print("=" * 50)
-    
+
     try:
-        # 세션 생성
-        session_gen = get_db_session()
-        session = next(session_gen)
-        
-        try:
-            # 운영 관리자 계정 생성
-            create_production_admins(session)
-            
-            # 동문회 초기 회원 생성
-            create_production_members(session)
-            
-            # 회원 인증 정보 생성
-            create_production_member_auth(session)
-        finally:
-            # 세션 정리
-            try:
-                next(session_gen)
-            except StopIteration:
-                pass
-            
-        print("=" * 50)
-        print("✅ 운영 환경 시드 데이터 생성 완료")
-        print("\n📋 생성된 운영 계정 정보:")
-        print("🔧 관리자 계정:")
-        print("  - admin001 (admin@segecon.kr) / Segecon2025!@#")
-        print("  - admin002 (master@segecon.kr) / Master2025!@#")
-        print("\n👥 초기 회원 계정:")
-        print("  - president2025 (홍길동 회장)")
-        print("  - vicepresident2025 (김철수 부회장)")
-        print("  - secretary2025 (이영희 총무)")
-        print("\n⚠️  중요: 운영 전에 반드시 비밀번호를 변경하세요!")
-        
+        asyncio.run(async_main())
     except (RuntimeError, ValueError, OSError) as e:
         print(f"❌ 시드 데이터 생성 실패: {e}")
         sys.exit(1)

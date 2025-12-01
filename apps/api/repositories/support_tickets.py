@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from typing import NotRequired, TypedDict
 
 from sqlalchemy import desc, select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models_support import SupportTicket
 
@@ -17,7 +17,7 @@ class TicketCreate(TypedDict):
     client_ip: NotRequired[str | None]
 
 
-def create_ticket(db: Session, data: TicketCreate) -> SupportTicket:
+async def create_ticket(db: AsyncSession, data: TicketCreate) -> SupportTicket:
     row = SupportTicket(
         member_email=data.get("member_email"),
         subject=data["subject"],
@@ -26,11 +26,12 @@ def create_ticket(db: Session, data: TicketCreate) -> SupportTicket:
         client_ip=data.get("client_ip"),
     )
     db.add(row)
-    db.commit()
-    db.refresh(row)
+    await db.commit()
+    await db.refresh(row)
     return row
 
 
-def list_recent(db: Session, *, limit: int = 50) -> Sequence[SupportTicket]:
+async def list_recent(db: AsyncSession, *, limit: int = 50) -> Sequence[SupportTicket]:
     stmt = select(SupportTicket).order_by(desc(SupportTicket.created_at)).limit(limit)
-    return db.execute(stmt).scalars().all()
+    result = await db.execute(stmt)
+    return result.scalars().all()

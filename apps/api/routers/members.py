@@ -4,7 +4,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
 from ..db import get_db
@@ -28,8 +28,8 @@ class MemberListParams(BaseModel):
 
 
 @router.get("/", response_model=list[schemas.MemberRead])
-def list_members(
-    params: MemberListParams = Depends(), db: Session = Depends(get_db)
+async def list_members(
+    params: MemberListParams = Depends(), db: AsyncSession = Depends(get_db)
 ) -> list[schemas.MemberRead]:
     filters: schemas.MemberListFilters = {}
     if params.q:
@@ -48,7 +48,7 @@ def list_members(
         filters['job_title'] = params.job_title
     if params.sort:
         filters['sort'] = params.sort
-    members = members_service.list_members(
+    members = await members_service.list_members(
         db, limit=params.limit, offset=params.offset, filters=filters
     )
     return [schemas.MemberRead.model_validate(member) for member in members]
@@ -59,8 +59,8 @@ class MemberCount(BaseModel):
 
 
 @router.get("/count", response_model=MemberCount)
-def count_members(
-    params: MemberListParams = Depends(), db: Session = Depends(get_db)
+async def count_members(
+    params: MemberListParams = Depends(), db: AsyncSession = Depends(get_db)
 ) -> MemberCount:
     filters: schemas.MemberListFilters = {}
     if params.q:
@@ -77,21 +77,23 @@ def count_members(
         filters['region'] = params.region
     if params.job_title:
         filters['job_title'] = params.job_title
-    c = members_service.count_members(db, filters=filters)
+    c = await members_service.count_members(db, filters=filters)
     return MemberCount(count=c)
 
 
 @router.get("/{member_id}", response_model=schemas.MemberRead)
-def get_member(member_id: int, db: Session = Depends(get_db)) -> schemas.MemberRead:
-    member = members_service.get_member(db, member_id)
+async def get_member(
+    member_id: int, db: AsyncSession = Depends(get_db)
+) -> schemas.MemberRead:
+    member = await members_service.get_member(db, member_id)
     return schemas.MemberRead.model_validate(member)
 
 
 @router.post("/", response_model=schemas.MemberRead, status_code=201)
-def create_member(
+async def create_member(
     payload: schemas.MemberCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     _admin: CurrentAdmin = Depends(require_admin),
 ) -> schemas.MemberRead:
-    member = members_service.create_member(db, payload)
+    member = await members_service.create_member(db, payload)
     return schemas.MemberRead.model_validate(member)

@@ -1,7 +1,8 @@
 import logging
 import time
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncGenerator, Awaitable, Callable
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal, cast
 
@@ -19,6 +20,7 @@ from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
 from .config import get_settings
+from .db import dispose_engine
 from .errors import ApiError
 from .logging_utils import emit_error_event, log_json, reset_request_id, set_request_id
 from .observability import init_sentry
@@ -39,7 +41,17 @@ from .routers import (
 settings = get_settings()
 init_sentry(settings)
 
-app = FastAPI(title="Alumni API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+    """앱 시작/종료 시 리소스 관리."""
+    # startup: 필요 시 초기화 로직 추가
+    yield
+    # shutdown: DB 커넥션 풀 정리
+    await dispose_engine()
+
+
+app = FastAPI(title="Alumni API", version="0.1.0", lifespan=lifespan)
 
 request_logger = logging.getLogger("apps.api.request")
 error_logger = logging.getLogger("apps.api.error")

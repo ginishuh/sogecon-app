@@ -34,7 +34,7 @@ def test_me_avatar_rejects_invalid_file(member_login: TestClient) -> None:
     assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
-def test_me_avatar_upload_success(tmp_path, member_login: TestClient) -> None:
+def test_me_avatar_upload_success(tmp_path: Path, member_login: TestClient) -> None:
     media_dir = tmp_path / "media"
     media_dir.mkdir()
 

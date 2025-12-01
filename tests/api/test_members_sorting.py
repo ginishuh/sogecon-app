@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
 
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from apps.api import models
 from apps.api.db import get_db
@@ -15,20 +16,19 @@ def _set_updated_at(email: str, value: datetime) -> None:
     override = app.dependency_overrides.get(get_db)
     if override is None:
         raise RuntimeError("get_db override not found")
-    gen = override()
-    db: Session = next(gen)
-    try:
-        member = db.query(models.Member).filter(models.Member.email == email).first()
-        if member is None:
-            raise RuntimeError(f"member not found for {email}")
-        member.updated_at = value
-        db.commit()
-    finally:
-        db.close()
-        try:
-            gen.close()
-        except Exception:
-            pass
+
+    async def _do_update() -> None:
+        async for db in override():
+            stmt = select(models.Member).where(models.Member.email == email)
+            result = await db.execute(stmt)
+            member = result.scalars().first()
+            if member is None:
+                raise RuntimeError(f"member not found for {email}")
+            member.updated_at = value
+            await db.commit()
+            break
+
+    asyncio.run(_do_update())
 
 
 def test_members_sort_recent(admin_login: TestClient) -> None:
