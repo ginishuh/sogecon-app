@@ -82,10 +82,7 @@ export default async function RootLayout({
   return (
     <html lang="ko" className={`${fontSans.variable} ${fontKopub.variable} ${fontSogang.variable} antialiased`}>
       <head>
-        {/* 폰트 preconnect 추가 */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* 이미지 preconnect */}
+        {/* 이미지 CDN preconnect */}
         <link rel="preconnect" href="https://cdn.jsdelivr.net" />
       </head>
       <body>
