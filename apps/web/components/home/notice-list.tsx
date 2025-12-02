@@ -38,7 +38,7 @@ export function HomeNoticeList() {
     <section aria-labelledby="home-notices" className="mt-8">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-4">
-        <h2 id="home-notices" className="text-base font-normal text-neutral-ink">
+        <h2 id="home-notices" className="font-kopub text-base text-neutral-ink">
           공지사항
         </h2>
         <Link

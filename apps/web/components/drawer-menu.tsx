@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import { RequireAdmin } from './require-admin';
+import { NotifyCTA } from './notify-cta';
 import { logoutAll } from '../services/auth';
 
 type LinkItem = {
@@ -61,12 +62,8 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           <Link
             href="/activate"
             onClick={onClose}
-            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] border border-brand-primary px-3 py-2.5 text-brand-primary text-sm hover:bg-brand-primary/5 transition-colors"
+            className="flex-1 flex items-center justify-center rounded-[10px] border border-brand-primary px-3 py-2.5 text-brand-primary text-sm hover:bg-brand-primary/5 transition-colors whitespace-nowrap"
           >
-            <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="7" width="10" height="7" rx="1" />
-              <path d="M5 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round" />
-            </svg>
             계정 활성화
           </Link>
         </div>
@@ -245,6 +242,9 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           )}
         </div>
       </RequireAdmin>
+
+      {/* 푸시 알림 구독 CTA */}
+      <NotifyCTA />
     </nav>
   );
 }

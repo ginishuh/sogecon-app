@@ -11,7 +11,7 @@ export default function HomePage() {
       <h1 className="sr-only">서강대 경제대학원 총동문회</h1>
 
       {/* 히어로 캐러셀 */}
-      <div className="mb-8">
+      <div className="mb-4">
         <HomeHeroCarousel />
       </div>
 

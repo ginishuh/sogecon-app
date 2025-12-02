@@ -77,12 +77,15 @@ export function NotifyCTA() {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 border-t border-neutral-border pt-4 mt-auto">
+      <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M10 2a6 6 0 0 0-6 6v3l-1 2h14l-1-2V8a6 6 0 0 0-6-6zM8 15a2 2 0 1 0 4 0" />
+      </svg>
       {subscribed ? (
         <button
           disabled={busy}
           onClick={onUnsubscribe}
-          className="rounded border border-slate-300 px-3 py-1 text-xs hover:bg-slate-50 disabled:opacity-50"
+          className="flex-1 rounded-[10px] border border-neutral-border px-3 py-2.5 text-sm text-neutral-ink hover:bg-neutral-surface disabled:opacity-50 transition-colors"
         >
           알림 끄기
         </button>
@@ -90,7 +93,7 @@ export function NotifyCTA() {
         <button
           disabled={busy}
           onClick={onSubscribe}
-          className="rounded bg-emerald-600 px-3 py-1 text-xs text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="flex-1 rounded-[10px] bg-brand-primary px-3 py-2.5 text-sm text-white hover:bg-[#6c1722] disabled:opacity-50 transition-colors"
         >
           알림 켜기
         </button>
