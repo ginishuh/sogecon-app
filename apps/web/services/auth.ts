@@ -4,6 +4,7 @@ export type Session = {
   kind: 'admin' | 'member';
   student_id: string;
   email: string;
+  name: string;
   id?: number | null;
 };
 

@@ -1378,7 +1378,7 @@
           "auth"
         ],
         "summary": "Session",
-        "description": "\ud1b5\ud569 \uc138\uc158 \uc870\ud68c \uc5d4\ub4dc\ud3ec\uc778\ud2b8.\n\n\ubc18\ud658 \ud615\uc2dd: { kind: 'admin'|'member', student_id, email, id? }\n\uc138\uc158\uc774 \uc5c6\uc73c\uba74 401.",
+        "description": "\ud1b5\ud569 \uc138\uc158 \uc870\ud68c \uc5d4\ub4dc\ud3ec\uc778\ud2b8.\n\n\ubc18\ud658 \ud615\uc2dd: { kind: 'admin'|'member', student_id, email, name, id? }\n\uc138\uc158\uc774 \uc5c6\uc73c\uba74 401.",
         "operationId": "session_auth_session_get",
         "responses": {
           "200": {
