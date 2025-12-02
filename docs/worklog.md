@@ -6,6 +6,7 @@
   - 히어로: 높이 축소(lg:591→420px), 텍스트 하단 정렬, 간격 최적화
   - 레거시 컴포넌트 삭제: figma-header, header-gate, hero, notice-preview 등
   - fix: Drawer 접근성(aria-labelledby), font-menu 변수, 웹푸시 CTA 복구
+  - perf: 폰트 서브셋 최적화 — 3.8MB → 1.9MB (50% 감소)
 
 ## 2025-12-01
 
