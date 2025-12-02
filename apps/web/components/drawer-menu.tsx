@@ -52,7 +52,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           <Link
             href="/login"
             onClick={onClose}
-            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] bg-brand-primary px-3 py-2.5 text-white text-sm hover:bg-[#6c1722] transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] bg-brand-primary px-3 py-2.5 text-white text-sm no-underline hover:no-underline hover:text-white visited:text-white hover:bg-[#6c1722] transition-colors"
           >
             <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 14a6 6 0 0 1 12 0" strokeLinecap="round" />
@@ -72,11 +72,8 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           <Link
             href="/me"
             onClick={onClose}
-            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] border border-brand-primary px-3 py-2.5 text-brand-primary text-sm hover:bg-brand-primary/5 transition-colors"
+            className="flex-1 flex items-center justify-center rounded-[10px] border border-brand-primary px-3 py-2.5 text-brand-primary text-sm hover:bg-brand-primary/5 transition-colors"
           >
-            <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 14a6 6 0 0 1 12 0" strokeLinecap="round" />
-            </svg>
             내 정보
           </Link>
           <button
@@ -88,11 +85,8 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
                 router.push('/login');
               });
             }}
-            className="flex-1 flex items-center justify-center gap-2 rounded-[10px] bg-neutral-muted px-3 py-2.5 text-white text-sm hover:bg-neutral-ink transition-colors"
+            className="flex-1 flex items-center justify-center rounded-[10px] bg-neutral-muted px-3 py-2.5 text-white text-sm hover:bg-neutral-ink transition-colors"
           >
-            <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3M11 11l3-3-3-3M14 8H6" strokeLinecap="round" />
-            </svg>
             로그아웃
           </button>
         </div>

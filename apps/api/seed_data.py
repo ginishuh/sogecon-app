@@ -26,7 +26,7 @@ def hash_password(password: str) -> str:
 
 # 관리자 계정 생성
 async def create_admin_users(session: AsyncSession) -> None:
-    """개발용 관리자 계정 생성"""
+    """개발용 관리자 계정 생성 (admin_users + members + member_auth)"""
     bcrypt = __import__("bcrypt")
 
     admin_users = [
@@ -34,30 +34,57 @@ async def create_admin_users(session: AsyncSession) -> None:
             "student_id": "s47053",
             "email": "ginishuh@gmail.com",
             "password": "admin1234",
+            "name": "관리자",
+            "cohort": 2017,
         },
     ]
 
     for user_data in admin_users:
-        # 이미 존재하는지 확인
-        stmt = select(AdminUser).where(AdminUser.student_id == user_data["student_id"])
-        result = await session.execute(stmt)
-        existing = result.scalars().first()
-        if existing:
-            print(f"관리자 계정 {user_data['student_id']} 이미 존재함")
-            continue
-
-        # 비밀번호 해시
+        password = str(user_data["password"])
         password_hash = bcrypt.hashpw(
-            user_data["password"].encode(), bcrypt.gensalt()
+            password.encode(), bcrypt.gensalt()
         ).decode()
 
-        admin_user = AdminUser(
-            student_id=user_data["student_id"],
-            email=user_data["email"],
-            password_hash=password_hash,
-        )
-        session.add(admin_user)
-        print(f"관리자 계정 생성: {user_data['student_id']} ({user_data['email']})")
+        # 1) admin_users 테이블
+        stmt = select(AdminUser).where(AdminUser.student_id == user_data["student_id"])
+        result = await session.execute(stmt)
+        existing_admin = result.scalars().first()
+        if not existing_admin:
+            admin_user = AdminUser(
+                student_id=user_data["student_id"],
+                email=user_data["email"],
+                password_hash=password_hash,
+            )
+            session.add(admin_user)
+            print(f"관리자 계정 생성: {user_data['student_id']} ({user_data['email']})")
+        else:
+            print(f"관리자 계정 {user_data['student_id']} 이미 존재함")
+
+        # 2) members 테이블 (관리자도 회원 정보 필요)
+        stmt = select(Member).where(Member.student_id == user_data["student_id"])
+        result = await session.execute(stmt)
+        existing_member = result.scalars().first()
+        if not existing_member:
+            member = Member(
+                student_id=user_data["student_id"],
+                email=user_data["email"],
+                name=user_data["name"],
+                cohort=user_data["cohort"],
+                roles="admin,member",
+                visibility=Visibility.ALL,
+            )
+            session.add(member)
+            await session.flush()  # member.id 확보
+            print(f"  → 회원 정보도 추가: {user_data['name']}")
+
+            # 3) member_auth 테이블
+            member_auth = MemberAuth(
+                member_id=member.id,
+                student_id=user_data["student_id"],
+                password_hash=password_hash,
+            )
+            session.add(member_auth)
+            print("  → 인증 정보도 추가")
 
     await session.commit()
 

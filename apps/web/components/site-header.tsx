@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import Drawer from './ui/drawer';
 import { useAuth } from '../hooks/useAuth';
 import { LazyDrawerMenu } from './lazy';
+import { logoutAll } from '../services/auth';
 // import { HeaderNotifyCTA } from './header-notify-cta';
 
 export function SiteHeader() {
@@ -17,7 +18,7 @@ export function SiteHeader() {
     <header className="border-b-2 border-[#b60007] bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
         {/* 로고 */}
-        <Link href="/" className="flex min-w-0 items-center gap-2 text-brand-primary" aria-label="홈으로">
+        <Link href="/" className="flex min-w-0 items-center gap-2 text-brand-primary no-underline hover:no-underline" aria-label="홈으로">
           <Image src="/images/brand/sogang-signature.png" alt="서강대학교" width={150} height={50} className="h-auto w-[100px] lg:w-[150px]" priority />
           <span className="font-kopub text-lg tracking-tight text-neutral-ink lg:text-xl truncate">
             경제대학원 총동문회
@@ -25,7 +26,7 @@ export function SiteHeader() {
         </Link>
 
         {/* 데스크톱 네비게이션 */}
-        <nav className="hidden lg:flex items-center gap-2 ml-auto" aria-label="주요 메뉴">
+        <nav className="hidden lg:flex items-center gap-2" aria-label="주요 메뉴">
           {/* 총동문회 소개 드롭다운 */}
           <div className="relative">
             <button
@@ -41,20 +42,20 @@ export function SiteHeader() {
             </button>
             {aboutOpen && (
               <div className="absolute top-full left-0 mt-1 w-36 bg-white border border-neutral-border rounded-lg shadow-lg py-1 z-50">
-                <Link href="/about/greeting" className="block px-4 py-2 font-kopub text-sm text-neutral-ink hover:bg-neutral-surface">인사말</Link>
-                <Link href="/about/org" className="block px-4 py-2 font-kopub text-sm text-neutral-ink hover:bg-neutral-surface">조직도</Link>
-                <Link href="/about/history" className="block px-4 py-2 font-kopub text-sm text-neutral-ink hover:bg-neutral-surface">연혁</Link>
+                <Link href="/about/greeting" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">인사말</Link>
+                <Link href="/about/org" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">조직도</Link>
+                <Link href="/about/history" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">연혁</Link>
               </div>
             )}
           </div>
 
-          <Link href="/posts" className="px-3 py-2 font-kopub text-base text-neutral-ink hover:text-[#b60007] transition-colors">
+          <Link href="/posts" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
             소식
           </Link>
-          <Link href="/board" className="px-3 py-2 font-kopub text-base text-neutral-ink hover:text-[#b60007] transition-colors">
+          <Link href="/board" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
             게시판
           </Link>
-          <Link href="/directory" className="px-3 py-2 font-kopub text-base text-neutral-ink hover:text-[#b60007] transition-colors">
+          <Link href="/directory" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
             동문 수첩
           </Link>
         </nav>
@@ -63,26 +64,39 @@ export function SiteHeader() {
         <div className="hidden lg:flex items-center gap-2">
           {/* <HeaderNotifyCTA /> */}
           {status === 'authorized' ? (
-            <Link
-              href="/me"
-              className="flex items-center gap-1.5 px-3 py-2 text-sm text-neutral-ink hover:text-[#b60007] transition-colors"
-            >
-              <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 14a6 6 0 0 1 12 0" strokeLinecap="round" />
-              </svg>
-              {data?.name || '내 정보'}
-            </Link>
+            <>
+              <Link
+                href="/me"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors"
+              >
+                <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 14a6 6 0 0 1 12 0" strokeLinecap="round" />
+                </svg>
+                {data?.name || '내 정보'}
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  void logoutAll().finally(() => {
+                    window.location.href = '/login';
+                  });
+                }}
+                className="px-3 py-2 text-sm text-neutral-muted hover:text-[#b60007] transition-colors"
+              >
+                로그아웃
+              </button>
+            </>
           ) : (
             <>
               <Link
                 href="/login"
-                className="px-3 py-2 text-sm text-white bg-[#b60007] rounded-lg hover:bg-[#8a0005] transition-colors"
+                className="px-3 py-2 text-sm text-white bg-[#b60007] rounded-lg no-underline hover:no-underline hover:text-white visited:text-white hover:bg-[#8a0005] transition-colors"
               >
                 로그인
               </Link>
               <Link
                 href="/activate"
-                className="px-3 py-2 text-sm text-[#b60007] border border-[#b60007] rounded-lg hover:bg-[#fff5f5] transition-colors"
+                className="px-3 py-2 text-sm text-[#b60007] border border-[#b60007] rounded-lg no-underline hover:no-underline hover:bg-[#fff5f5] transition-colors"
               >
                 계정 활성화
               </Link>

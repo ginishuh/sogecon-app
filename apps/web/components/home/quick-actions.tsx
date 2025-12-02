@@ -93,9 +93,9 @@ const ACTIONS: QuickAction[] = [
 
 export function HomeQuickActions() {
   return (
-    <section aria-labelledby="home-quick-actions" className="mt-8">
+    <section aria-labelledby="home-quick-actions" className="mt-8 lg:hidden">
       <h2 id="home-quick-actions" className="sr-only">빠른 실행</h2>
-      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {ACTIONS.map((item) => (
           <Link
             key={item.href}
@@ -113,15 +113,6 @@ export function HomeQuickActions() {
 
             {/* 라벨 */}
             <span className="font-kopub text-sm text-white">{item.label}</span>
-
-            {/* 우상단 + 아이콘 */}
-            {item.showPlusIcon && (
-              <div className="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-white/20">
-                <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 1v10M1 6h10" />
-                </svg>
-              </div>
-            )}
           </Link>
         ))}
       </div>
