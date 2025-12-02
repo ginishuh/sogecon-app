@@ -1,5 +1,10 @@
 ## 2025-12-02
 
+- fix(web): API trailing slash 수정 및 회원 전용 접근 제한
+  - services trailing slash 추가로 CORS 리다이렉트 문제 해결
+  - 동문수첩/게시판 비회원 접근 시 로그인 페이지로 리다이렉트
+  - AuthGuard 컴포넌트, useRequireAuth 훅 추가
+
 - fix(web): 헤더/드로어 UI 개선 및 시드 데이터 보완 — PR #78
   - 헤더 링크 언더라인 제거, 로그인 버튼 visited 색상 유지
   - 데스크톱 헤더에 로그아웃 버튼 추가

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getSession, type Session } from '../services/auth';
 
@@ -23,4 +25,25 @@ export function useAuth() {
       : 'unauthorized';
 
   return { ...query, status, invalidate: () => qc.invalidateQueries({ queryKey: ['auth', 'me'] }) };
+}
+
+/**
+ * 인증 필수 페이지용 훅.
+ * 미인증 시 로그인 페이지로 리다이렉트.
+ * @returns { status, session } - 로딩 중이거나 리다이렉트 중이면 session은 undefined
+ */
+export function useRequireAuth() {
+  const router = useRouter();
+  const auth = useAuth();
+
+  useEffect(() => {
+    if (auth.status === 'unauthorized') {
+      router.replace('/login');
+    }
+  }, [auth.status, router]);
+
+  return {
+    status: auth.status,
+    session: auth.status === 'authorized' ? auth.data : undefined,
+  };
 }
