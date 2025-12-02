@@ -11,6 +11,10 @@
   - 데스크톱/모바일 헤더에 행사 일정 링크 추가
   - AuthGuard 컴포넌트, useRequireAuth 훅 추가
 
+- test(api): members API 인증 추가에 따른 테스트 수정 — PR #78
+  - member_login fixture 사용 (directory_filters, errors, success)
+  - test_members_list_requires_auth: 비인증 시 401 확인
+
 - fix(web): 헤더/드로어 UI 개선 및 시드 데이터 보완 — PR #78
   - 헤더 링크 언더라인 제거, 로그인 버튼 visited 색상 유지
   - 데스크톱 헤더에 로그아웃 버튼 추가

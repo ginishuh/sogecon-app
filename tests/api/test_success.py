@@ -131,10 +131,11 @@ def test_rsvp_going_reassertion_keeps_status(admin_login: TestClient) -> None:
     assert r_again.json()["status"] == "going"
 
 
-def test_list_endpoints_ok(client: TestClient) -> None:
-    assert client.get("/members/?limit=5").status_code == HTTPStatus.OK
-    assert client.get("/posts/?limit=5").status_code == HTTPStatus.OK
-    assert client.get("/events/?limit=5").status_code == HTTPStatus.OK
+def test_list_endpoints_ok(member_login: TestClient) -> None:
+    # members는 인증 필요, posts/events는 공개
+    assert member_login.get("/members/?limit=5").status_code == HTTPStatus.OK
+    assert member_login.get("/posts/?limit=5").status_code == HTTPStatus.OK
+    assert member_login.get("/events/?limit=5").status_code == HTTPStatus.OK
 
 
 def test_rsvp_create_success(admin_login: TestClient) -> None:
