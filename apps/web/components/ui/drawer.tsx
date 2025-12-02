@@ -25,7 +25,11 @@ export default function Drawer({ open, onClose, title, side = 'left', className,
     previouslyFocused.current = document.activeElement;
     const el = panelRef.current;
     const prevOverflow = document.body.style.overflow;
+    const prevPaddingRight = document.body.style.paddingRight;
+    // 스크롤바 너비 계산하여 padding-right로 보정 (화면 비율 변화 방지)
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = 'hidden';
+    document.body.style.paddingRight = `${scrollbarWidth}px`;
     // 첫 포커서블로 이동(없으면 패널)
     setTimeout(() => {
       const focusables = el?.querySelectorAll<HTMLElement>(
@@ -36,6 +40,7 @@ export default function Drawer({ open, onClose, title, side = 'left', className,
     }, 0);
     return () => {
       document.body.style.overflow = prevOverflow;
+      document.body.style.paddingRight = prevPaddingRight;
     };
   }, [open]);
 

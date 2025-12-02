@@ -19,7 +19,7 @@ export function Skeleton({ className }: SkeletonProps) {
 export function HeroSkeleton() {
   return (
     <div 
-      className="relative h-[218px] md:h-[400px] lg:h-[591px] overflow-hidden rounded-2xl shadow-xl"
+      className="relative h-[218px] md:h-[320px] lg:h-[420px] overflow-hidden rounded-2xl shadow-xl"
       role="img"
       aria-label="히어로 배너 로딩 중"
     >

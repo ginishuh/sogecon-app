@@ -112,7 +112,7 @@ export function HomeQuickActions() {
             </div>
 
             {/* 라벨 */}
-            <span className="text-sm font-normal text-white">{item.label}</span>
+            <span className="font-kopub text-sm text-white">{item.label}</span>
 
             {/* 우상단 + 아이콘 */}
             {item.showPlusIcon && (

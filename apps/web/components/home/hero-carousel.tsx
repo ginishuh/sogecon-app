@@ -154,7 +154,7 @@ export default function HomeHeroCarousel() {
 
   return (
     <section
-      className="relative h-[218px] md:h-[400px] lg:h-[591px] overflow-hidden rounded-2xl shadow-xl"
+      className="relative h-[218px] md:h-[320px] lg:h-[420px] overflow-hidden rounded-2xl shadow-xl"
       aria-label="홈 배너"
       role="region"
       aria-roledescription="carousel"
@@ -200,8 +200,8 @@ export default function HomeHeroCarousel() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
               {/* 텍스트 컨텐츠 — 반응형 정렬: 모바일(중앙), 데스크톱(하단 좌측) */}
-              <div className="absolute inset-0 flex items-center justify-center px-14 md:px-6 md:items-end md:justify-start md:pb-6 md:pt-16 lg:pt-24">
-                <div className="text-center md:text-left max-w-full">
+              <div className="absolute inset-0 flex items-end justify-start px-6 pb-6">
+                <div className="text-left max-w-full">
                   <h2 className="text-[28px] md:text-[30px] lg:text-[32px] font-medium leading-tight tracking-tight text-white mb-2">
                     {s.title}
                     {s.unpublished && isAdmin ? (

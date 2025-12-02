@@ -9,7 +9,7 @@ export function HomeGreetingCard() {
   return (
     <section aria-labelledby="home-greeting" className="mt-8">
       <div className="flex items-center justify-between mb-4">
-        <h2 id="home-greeting" className="text-base font-normal text-neutral-ink">
+        <h2 id="home-greeting" className="font-kopub text-base text-neutral-ink">
           동문회장 인사말
         </h2>
         <Link

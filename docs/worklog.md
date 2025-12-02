@@ -1,3 +1,11 @@
+## 2025-12-02
+
+- refactor(web): 헤더/폰트 정리 및 UI 개선 — PR #72
+  - 폰트: Inter → Pretendard, KoPubWorld Dotum Bold 추가
+  - 헤더: 서강대 시그니처 PNG, 붉은색 하단 라인, 햄버거 메뉴 색상 변경
+  - 히어로: 높이 축소(lg:591→420px), 텍스트 하단 정렬, 간격 최적화
+  - 레거시 컴포넌트 삭제: figma-header, header-gate, hero, notice-preview 등
+
 ## 2025-12-01
 
 - perf(db): DB 인덱스 P1 최적화 — PR #71, refs #63, #57
