@@ -25,14 +25,14 @@ export function SiteHeader() {
         </Link>
 
         {/* 데스크톱 네비게이션 */}
-        <nav className="hidden lg:flex items-center gap-1" aria-label="주요 메뉴">
+        <nav className="hidden lg:flex items-center gap-2 ml-auto" aria-label="주요 메뉴">
           {/* 총동문회 소개 드롭다운 */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setAboutOpen(!aboutOpen)}
               onBlur={() => setTimeout(() => setAboutOpen(false), 150)}
-              className="flex items-center gap-1 px-3 py-2 text-sm text-neutral-ink hover:text-[#b60007] transition-colors"
+              className="flex items-center gap-1 px-3 py-2 font-kopub text-base text-neutral-ink hover:text-[#b60007] transition-colors"
             >
               총동문회 소개
               <svg className={`size-4 transition-transform ${aboutOpen ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
@@ -40,21 +40,21 @@ export function SiteHeader() {
               </svg>
             </button>
             {aboutOpen && (
-              <div className="absolute top-full left-0 mt-1 w-32 bg-white border border-neutral-border rounded-lg shadow-lg py-1 z-50">
-                <Link href="/about/greeting" className="block px-4 py-2 text-sm text-neutral-ink hover:bg-neutral-surface">인사말</Link>
-                <Link href="/about/org" className="block px-4 py-2 text-sm text-neutral-ink hover:bg-neutral-surface">조직도</Link>
-                <Link href="/about/history" className="block px-4 py-2 text-sm text-neutral-ink hover:bg-neutral-surface">연혁</Link>
+              <div className="absolute top-full left-0 mt-1 w-36 bg-white border border-neutral-border rounded-lg shadow-lg py-1 z-50">
+                <Link href="/about/greeting" className="block px-4 py-2 font-kopub text-sm text-neutral-ink hover:bg-neutral-surface">인사말</Link>
+                <Link href="/about/org" className="block px-4 py-2 font-kopub text-sm text-neutral-ink hover:bg-neutral-surface">조직도</Link>
+                <Link href="/about/history" className="block px-4 py-2 font-kopub text-sm text-neutral-ink hover:bg-neutral-surface">연혁</Link>
               </div>
             )}
           </div>
 
-          <Link href="/posts" className="px-3 py-2 text-sm text-neutral-ink hover:text-[#b60007] transition-colors">
+          <Link href="/posts" className="px-3 py-2 font-kopub text-base text-neutral-ink hover:text-[#b60007] transition-colors">
             소식
           </Link>
-          <Link href="/board" className="px-3 py-2 text-sm text-neutral-ink hover:text-[#b60007] transition-colors">
+          <Link href="/board" className="px-3 py-2 font-kopub text-base text-neutral-ink hover:text-[#b60007] transition-colors">
             게시판
           </Link>
-          <Link href="/directory" className="px-3 py-2 text-sm text-neutral-ink hover:text-[#b60007] transition-colors">
+          <Link href="/directory" className="px-3 py-2 font-kopub text-base text-neutral-ink hover:text-[#b60007] transition-colors">
             동문 수첩
           </Link>
         </nav>
