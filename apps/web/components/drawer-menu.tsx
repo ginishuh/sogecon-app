@@ -31,7 +31,7 @@ const ADMIN_LINKS: LinkItem[] = [
 ];
 
 type DrawerMenuProps = {
-  status: 'loading' | 'authorized' | 'unauthorized';
+  status: 'loading' | 'authorized' | 'unauthorized' | 'error';
   onClose: () => void;
 };
 
@@ -164,6 +164,19 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           <path d="M6 7h8M6 10h8" />
         </svg>
         게시판
+      </Link>
+
+      {/* 행사 일정 */}
+      <Link
+        href="/events"
+        onClick={onClose}
+        className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-sm hover:bg-neutral-surface transition-colors"
+      >
+        <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <rect x="3" y="4" width="14" height="13" rx="1" />
+          <path d="M3 8h14M7 2v4M13 2v4" />
+        </svg>
+        행사 일정
       </Link>
 
       {/* 지원 정보 (펼침/접힘) */}

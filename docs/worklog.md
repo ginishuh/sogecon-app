@@ -3,6 +3,12 @@
 - fix(web): API trailing slash 수정 및 회원 전용 접근 제한
   - services trailing slash 추가로 CORS 리다이렉트 문제 해결
   - 동문수첩/게시판 비회원 접근 시 로그인 페이지로 리다이렉트
+
+- fix(web,api): 코드 리뷰 이슈 수정 — PR #78
+  - useAuth 에러 처리 개선: 401/403만 unauthorized, 나머지 error 상태 분리
+  - AuthGuard에 error 상태 UI 추가
+  - 회원 API에 require_member 서버사이드 인증 추가
+  - 데스크톱/모바일 헤더에 행사 일정 링크 추가
   - AuthGuard 컴포넌트, useRequireAuth 훅 추가
 
 - fix(web): 헤더/드로어 UI 개선 및 시드 데이터 보완 — PR #78

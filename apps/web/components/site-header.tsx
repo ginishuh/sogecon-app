@@ -55,6 +55,9 @@ export function SiteHeader() {
           <Link href="/board" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
             게시판
           </Link>
+          <Link href="/events" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
+            행사 일정
+          </Link>
           <Link href="/directory" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
             동문 수첩
           </Link>
