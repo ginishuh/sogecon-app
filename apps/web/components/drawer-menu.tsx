@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import { RequireAdmin } from './require-admin';
+import { NotifyCTA } from './notify-cta';
 import { logoutAll } from '../services/auth';
 
 type LinkItem = {
@@ -241,6 +242,9 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           )}
         </div>
       </RequireAdmin>
+
+      {/* 푸시 알림 구독 CTA */}
+      <NotifyCTA />
     </nav>
   );
 }

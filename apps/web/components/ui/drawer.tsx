@@ -132,6 +132,8 @@ export default function Drawer({ open, onClose, title, side = 'left', className,
               className="h-10 w-auto shrink-0"
             />
             <div className="text-sm font-semibold text-neutral-ink leading-tight">
+              {/* aria-labelledby 대상 제목 */}
+              {title && <h2 id={labelledBy} className="sr-only">{title}</h2>}
               <div>서강대학교</div>
               <div>경제대학원 총동문회</div>
             </div>
