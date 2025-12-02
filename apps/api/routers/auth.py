@@ -458,33 +458,39 @@ async def session(
 ) -> dict[str, object]:
     """통합 세션 조회 엔드포인트.
 
-    반환 형식: { kind: 'admin'|'member', student_id, email, id? }
+    반환 형식: { kind: 'admin'|'member', student_id, email, name, id? }
     세션이 없으면 401.
     """
     u = _get_user_session(request)
     if u:
         kind = "admin" if "admin" in u.roles else "member"
-        email = u.email or ""
-        if (not email) and kind == "member":
-            # 멤버면 DB에서 이메일 보강
-            stmt = select(Member).where(Member.student_id == u.student_id)
-            result = await db.execute(stmt)
-            m = result.scalars().first()
-            email = m.email if m and isinstance(m.email, str) else ""
+        # DB에서 이름과 이메일 조회
+        stmt = select(Member).where(Member.student_id == u.student_id)
+        result = await db.execute(stmt)
+        m = result.scalars().first()
+        email = u.email or (m.email if m and isinstance(m.email, str) else "")
+        name = m.name if m and isinstance(m.name, str) else ""
         return {
             "kind": kind,
             "student_id": u.student_id,
             "email": email or "",
+            "name": name,
             "id": u.id if isinstance(u.id, int) else None,
         }
 
     # 레거시 호환: admin/member 키에서 정보 구성
     admin = _get_admin_session(request)
     if admin:
+        # admin도 Member 테이블에서 이름 조회
+        stmt = select(Member).where(Member.student_id == admin.student_id)
+        result = await db.execute(stmt)
+        m = result.scalars().first()
+        name = m.name if m and isinstance(m.name, str) else ""
         return {
             "kind": "admin",
             "student_id": admin.student_id,
             "email": admin.email,
+            "name": name,
             "id": admin.id,
         }
     raw: Any = request.session.get("member")
@@ -497,7 +503,14 @@ async def session(
             result = await db.execute(stmt)
             m = result.scalars().first()
             email = m.email if m and isinstance(m.email, str) else ""
+            name = m.name if m and isinstance(m.name, str) else ""
             mid_obj = data.get("id")
             _id = int(mid_obj) if isinstance(mid_obj, (int, str)) else None
-            return {"kind": "member", "student_id": sid, "email": email, "id": _id}
+            return {
+                "kind": "member",
+                "student_id": sid,
+                "email": email,
+                "name": name,
+                "id": _id,
+            }
     raise HTTPException(status_code=401, detail="unauthorized")
