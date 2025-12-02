@@ -52,6 +52,7 @@ services:
       CI: "true"
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_WEB_API_BASE: http://localhost:3001
+      NEXT_PUBLIC_API_INTERNAL_URL: http://api_dev:3001
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
       NEXT_PUBLIC_ENABLE_SW: "0"
       # corepack/pnpm가 root 권한 없이도 동작하도록 임시 홈/캐시 경로 지정

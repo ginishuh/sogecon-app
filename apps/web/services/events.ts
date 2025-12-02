@@ -16,7 +16,7 @@ export async function listEvents(params: { limit?: number; offset?: number } = {
   if (params.limit != null) q.set('limit', String(params.limit));
   if (params.offset != null) q.set('offset', String(params.offset));
   const qs = q.toString();
-  return apiFetch<Event[]>(`/events${qs ? `?${qs}` : ''}`);
+  return apiFetch<Event[]>(`/events/${qs ? `?${qs}` : ''}`);
 }
 
 export async function getEvent(id: number): Promise<Event> {

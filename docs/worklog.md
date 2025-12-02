@@ -1,5 +1,28 @@
 ## 2025-12-02
 
+- fix(web): API trailing slash 수정 및 회원 전용 접근 제한
+  - services trailing slash 추가로 CORS 리다이렉트 문제 해결
+  - 동문수첩/게시판 비회원 접근 시 로그인 페이지로 리다이렉트
+
+- fix(web,api): 코드 리뷰 이슈 수정 — PR #78
+  - useAuth 에러 처리 개선: 401/403만 unauthorized, 나머지 error 상태 분리
+  - AuthGuard에 error 상태 UI 추가
+  - 회원 API에 require_member 서버사이드 인증 추가
+  - 데스크톱/모바일 헤더에 행사 일정 링크 추가
+  - AuthGuard 컴포넌트, useRequireAuth 훅 추가
+
+- test(api): members API 인증 추가에 따른 테스트 수정 — PR #78
+  - member_login fixture 사용 (directory_filters, errors, success)
+  - test_members_list_requires_auth: 비인증 시 401 확인
+
+- fix(web): 헤더/드로어 UI 개선 및 시드 데이터 보완 — PR #78
+  - 헤더 링크 언더라인 제거, 로그인 버튼 visited 색상 유지
+  - 데스크톱 헤더에 로그아웃 버튼 추가
+  - 드로어 메뉴 내정보/로그아웃 아이콘 제거
+  - 홈 퀵액션 데스크톱 숨김, + 아이콘 제거
+  - seed_data: 관리자도 members/member_auth 테이블에 추가
+  - compose: NEXT_PUBLIC_API_INTERNAL_URL 추가
+
 - feat(web): 데스크톱 헤더 네비게이션 추가 — PR #76
   - 데스크톱(lg+)에서 상단 네비게이션 바 표시, 모바일은 햄버거 유지
   - 총동문회 소개 드롭다운, 로그인/계정활성화 버튼 우측 배치

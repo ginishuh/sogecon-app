@@ -14,11 +14,11 @@ export function HomeGreetingCard() {
         </h2>
         <Link
           href="/about/greeting"
-          className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-primary text-white hover:bg-brand-primaryDark transition-colors"
+          className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-primary hover:bg-brand-primaryDark transition-colors"
           aria-label="동문회장 인사말 전체 보기"
         >
-          <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M5 10h10M10 5l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+          <svg className="w-5 h-5 text-white" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M5 10h10M10 5l5 5-5 5" />
           </svg>
         </Link>
       </div>
@@ -49,7 +49,7 @@ export function HomeGreetingCard() {
           {/* 화살표 아이콘 (모바일에서는 숨김) */}
           <div className="hidden md:block shrink-0 text-neutral-muted">
             <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M5 10h10M10 5l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M5 10h10M10 5l5 5-5 5" />
             </svg>
           </div>
         </div>

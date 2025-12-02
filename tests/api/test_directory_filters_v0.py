@@ -85,29 +85,29 @@ def _seed_members(n: int = 5) -> None:
     asyncio.run(_do_seed())
 
 
-def test_filter_by_industry_and_company_and_region(client: TestClient) -> None:
+def test_filter_by_industry_and_company_and_region(member_login: TestClient) -> None:
     _seed_members()
 
     # industry=Finance → expected two (c, b)
-    r1 = client.get("/members/count", params={"industry": "Finance"})
+    r1 = member_login.get("/members/count", params={"industry": "Finance"})
     assert r1.status_code == HTTPStatus.OK
     finance_expected = 2
     assert r1.json()["count"] == finance_expected
 
     # company=Acme → expected two (a, c)
-    r2 = client.get("/members/count", params={"company": "Acme"})
+    r2 = member_login.get("/members/count", params={"company": "Acme"})
     assert r2.status_code == HTTPStatus.OK
     acme_expected = 2
     assert r2.json()["count"] == acme_expected
 
     # region=Seoul → in personal or company address (a, e, b)
-    r3 = client.get("/members/count", params={"region": "Seoul"})
+    r3 = member_login.get("/members/count", params={"region": "Seoul"})
     assert r3.status_code == HTTPStatus.OK
     seoul_expected = 3
     assert r3.json()["count"] == seoul_expected
 
     # combo: industry=Manufacturing & region=Seoul → only 'a'
-    r4 = client.get(
+    r4 = member_login.get(
         "/members/count", params={"industry": "Manufacturing", "region": "Seoul"}
     )
     assert r4.status_code == HTTPStatus.OK

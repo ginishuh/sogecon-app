@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import schemas
 from ..db import get_db
 from ..services import members_service
-from .auth import CurrentAdmin, require_admin
+from .auth import CurrentAdmin, CurrentMember, require_admin, require_member
 
 router = APIRouter(prefix="/members", tags=["members"])
 
@@ -29,7 +29,9 @@ class MemberListParams(BaseModel):
 
 @router.get("/", response_model=list[schemas.MemberRead])
 async def list_members(
-    params: MemberListParams = Depends(), db: AsyncSession = Depends(get_db)
+    params: MemberListParams = Depends(),
+    db: AsyncSession = Depends(get_db),
+    _member: CurrentMember = Depends(require_member),
 ) -> list[schemas.MemberRead]:
     filters: schemas.MemberListFilters = {}
     if params.q:
@@ -60,7 +62,9 @@ class MemberCount(BaseModel):
 
 @router.get("/count", response_model=MemberCount)
 async def count_members(
-    params: MemberListParams = Depends(), db: AsyncSession = Depends(get_db)
+    params: MemberListParams = Depends(),
+    db: AsyncSession = Depends(get_db),
+    _member: CurrentMember = Depends(require_member),
 ) -> MemberCount:
     filters: schemas.MemberListFilters = {}
     if params.q:
@@ -83,7 +87,9 @@ async def count_members(
 
 @router.get("/{member_id}", response_model=schemas.MemberRead)
 async def get_member(
-    member_id: int, db: AsyncSession = Depends(get_db)
+    member_id: int,
+    db: AsyncSession = Depends(get_db),
+    _member: CurrentMember = Depends(require_member),
 ) -> schemas.MemberRead:
     member = await members_service.get_member(db, member_id)
     return schemas.MemberRead.model_validate(member)

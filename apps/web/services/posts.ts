@@ -23,7 +23,7 @@ export async function listPosts(params: { limit?: number; offset?: number; categ
   if (params.offset != null) q.set('offset', String(params.offset));
   if (params.category) q.set('category', params.category);
   const qs = q.toString();
-  return apiFetch<Post[]>(`/posts${qs ? `?${qs}` : ''}`);
+  return apiFetch<Post[]>(`/posts/${qs ? `?${qs}` : ''}`);
 }
 
 export async function getPost(id: number): Promise<Post> {

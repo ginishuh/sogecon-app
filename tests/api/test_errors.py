@@ -5,8 +5,8 @@ from http import HTTPStatus
 from fastapi.testclient import TestClient
 
 
-def test_member_not_found_returns_problem_details(client: TestClient) -> None:
-    res = client.get("/members/999999")
+def test_member_not_found_returns_problem_details(member_login: TestClient) -> None:
+    res = member_login.get("/members/999999")
     assert res.status_code == HTTPStatus.NOT_FOUND
     data = res.json()
     assert data["status"] == HTTPStatus.NOT_FOUND

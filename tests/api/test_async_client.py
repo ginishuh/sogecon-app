@@ -20,11 +20,10 @@ async def test_healthz_async(async_client: httpx.AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_members_list_async(async_client: httpx.AsyncClient) -> None:
-    """async client로 members 목록 조회 (인증 불필요 엔드포인트)."""
+async def test_members_list_requires_auth(async_client: httpx.AsyncClient) -> None:
+    """async client로 members 목록 조회 시 인증 필요 확인."""
     res = await async_client.get("/members/?limit=5")
-    assert res.status_code == HTTPStatus.OK
-    assert isinstance(res.json(), list)
+    assert res.status_code == HTTPStatus.UNAUTHORIZED
 
 
 @pytest.mark.asyncio
