@@ -407,7 +407,7 @@ export interface paths {
          * Session
          * @description 통합 세션 조회 엔드포인트.
          *
-         *     반환 형식: { kind: 'admin'|'member', student_id, email, id? }
+         *     반환 형식: { kind: 'admin'|'member', student_id, email, name, id? }
          *     세션이 없으면 401.
          */
         get: operations["session_auth_session_get"];

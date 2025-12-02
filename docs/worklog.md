@@ -4,6 +4,7 @@
   - 데스크톱(lg+)에서 상단 네비게이션 바 표시, 모바일은 햄버거 유지
   - 총동문회 소개 드롭다운, 로그인/계정활성화 버튼 우측 배치
   - fix(api,web): /auth/session에 name 필드 추가 — 헤더에서 사용자 이름 표시
+  - chore: OpenAPI 스키마 재생성
 
 - refactor(web): 헤더/폰트 정리 및 UI 개선 — PR #75
   - 폰트: Inter → Pretendard, KoPubWorld Dotum Bold 추가
