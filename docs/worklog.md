@@ -2,6 +2,7 @@
 
 - sec(api): FastAPI 0.123.5로 상향, Starlette GHSA-7f5h-v6xp-fcq8 취약점 해결 — #72
 - ci: check_versions.py FastAPI 버전 동기화
+- feat(api): SESSION_MAX_AGE 환경변수 추가 (기본 7일) — #74
 
 ## 2025-12-02
 

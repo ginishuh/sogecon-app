@@ -84,6 +84,7 @@ app.add_middleware(
     same_site=_same_site,
     https_only=_https_only,
     domain=settings.cookie_domain or None,
+    max_age=settings.session_max_age or None,  # 0이면 세션 쿠키
 )
 
 media_root = Path(settings.media_root)
