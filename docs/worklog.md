@@ -3,6 +3,11 @@
 - sec(api): FastAPI 0.123.5로 상향, Starlette GHSA-7f5h-v6xp-fcq8 취약점 해결 — #72
 - ci: check_versions.py FastAPI 버전 동기화
 - feat(api): SESSION_MAX_AGE 환경변수 추가 (기본 7일) — #74
+- feat(api): 이미지 업로드 엔드포인트 추가 (POST /uploads/images) — #77
+- chore: .gitignore에 uploads/ 추가
+- fix(api): 이미지 업로드 버그 수정 (BytesIO, GIF 리사이즈, 투명도 유지)
+- test(api): 이미지 업로드 테스트 추가 (GIF, 리사이즈, 확장자 검증)
+- chore: OpenAPI 스키마 재생성
 
 ## 2025-12-02
 

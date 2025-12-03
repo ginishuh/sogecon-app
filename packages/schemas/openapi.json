@@ -1888,6 +1888,48 @@
           }
         }
       }
+    },
+    "/uploads/images": {
+      "post": {
+        "tags": [
+          "uploads"
+        ],
+        "summary": "Upload Image",
+        "description": "\uc774\ubbf8\uc9c0 \ud30c\uc77c \uc5c5\ub85c\ub4dc.\n\n- \uc778\uc99d\ub41c \ud68c\uc6d0\ub9cc \uc811\uadfc \uac00\ub2a5\n- \uc9c0\uc6d0 \ud615\uc2dd: JPEG, PNG, WebP, GIF\n- \ucd5c\ub300 \ud06c\uae30: 5MB (\uc124\uc815 \uac00\ub2a5)\n- \uc790\ub3d9 \ub9ac\uc0ac\uc774\uc988: 1920px \uc774\ud558\ub85c \uc870\uc815\n- GIF: \uc560\ub2c8\uba54\uc774\uc158\uc740 \uccab \ud504\ub808\uc784\ub9cc \uc800\uc7a5 (\uc815\uc9c0 \uc774\ubbf8\uc9c0\ub85c \ubcc0\ud658)",
+        "operationId": "upload_image_uploads_images_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_image_uploads_images_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageUploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1905,6 +1947,20 @@
           "avatar"
         ],
         "title": "Body_upload_avatar_me_avatar_post"
+      },
+      "Body_upload_image_uploads_images_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_image_uploads_images_post"
       },
       "ChangePasswordPayload": {
         "properties": {
@@ -2130,6 +2186,25 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "ImageUploadResponse": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "filename"
+        ],
+        "title": "ImageUploadResponse",
+        "description": "\uc774\ubbf8\uc9c0 \uc5c5\ub85c\ub4dc \uc751\ub2f5."
       },
       "LoginPayload": {
         "properties": {

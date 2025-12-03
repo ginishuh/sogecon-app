@@ -599,6 +599,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/uploads/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Image
+         * @description 이미지 파일 업로드.
+         *
+         *     - 인증된 회원만 접근 가능
+         *     - 지원 형식: JPEG, PNG, WebP, GIF
+         *     - 최대 크기: 5MB (설정 가능)
+         *     - 자동 리사이즈: 1920px 이하로 조정
+         *     - GIF: 애니메이션은 첫 프레임만 저장 (정지 이미지로 변환)
+         */
+        post: operations["upload_image_uploads_images_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -610,6 +636,14 @@ export interface components {
              * Format: binary
              */
             avatar: string;
+        };
+        /** Body_upload_image_uploads_images_post */
+        Body_upload_image_uploads_images_post: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
         };
         /** ChangePasswordPayload */
         ChangePasswordPayload: {
@@ -700,6 +734,16 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * ImageUploadResponse
+         * @description 이미지 업로드 응답.
+         */
+        ImageUploadResponse: {
+            /** Url */
+            url: string;
+            /** Filename */
+            filename: string;
         };
         /** LoginPayload */
         LoginPayload: {
@@ -2303,6 +2347,39 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_image_uploads_images_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_image_uploads_images_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImageUploadResponse"];
                 };
             };
             /** @description Validation Error */
