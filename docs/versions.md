@@ -8,7 +8,7 @@
 - pnpm: 10.17.1 (`apps/web/package.json#packageManager`, `.npmrc` engine-strict; CI는 Corepack으로 pin)
 
 ## Backend (apps/api)
-- fastapi==0.120.1
+- fastapi==0.123.5
 - uvicorn[standard]==0.37.0
 - sqlalchemy==2.0.43
 - psycopg[binary]==3.2.10
