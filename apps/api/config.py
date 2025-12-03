@@ -78,6 +78,8 @@ class Settings(BaseSettings):
     cookie_same_site: str = Field(default="lax", alias="COOKIE_SAMESITE")
     cookie_secure: bool | None = Field(default=None, alias="COOKIE_SECURE")
     cookie_domain: str | None = Field(default=None, alias="COOKIE_DOMAIN")
+    # 세션 만료 시간 (초). 기본 7일. 0이면 브라우저 세션 쿠키.
+    session_max_age: int = Field(default=604800, alias="SESSION_MAX_AGE")
 
     # --- Validators ---
     @field_validator("cookie_same_site")
