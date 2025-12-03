@@ -36,6 +36,7 @@ from .routers import (
     rsvps,
     rum,
     support,
+    uploads,
 )
 
 settings = get_settings()
@@ -287,3 +288,4 @@ app.include_router(notifications.router)
 app.include_router(support.router)
 app.include_router(profile.router)
 app.include_router(rum.router)
+app.include_router(uploads.router)

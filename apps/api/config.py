@@ -56,6 +56,11 @@ class Settings(BaseSettings):
         default=2_000_000, alias="AVATAR_MAX_UPLOAD_BYTES"
     )
     avatar_max_pixels: int = Field(default=512, alias="AVATAR_MAX_PIXELS")
+    # 이미지 업로드 (게시글 커버 등)
+    image_max_upload_bytes: int = Field(
+        default=5_000_000, alias="IMAGE_MAX_UPLOAD_BYTES"
+    )  # 5MB
+    image_max_pixels: int = Field(default=1920, alias="IMAGE_MAX_PIXELS")
 
     # Observability / Sentry
     sentry_dsn: str = Field(default="", alias="SENTRY_DSN")
