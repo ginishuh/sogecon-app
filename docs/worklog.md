@@ -4,6 +4,7 @@
 - ci: check_versions.py FastAPI 버전 동기화
 - feat(api): SESSION_MAX_AGE 환경변수 추가 (기본 7일) — #74
 - feat(api): 이미지 업로드 엔드포인트 추가 (POST /uploads/images) — #77
+- chore: .gitignore에 uploads/ 추가
 
 ## 2025-12-02
 
