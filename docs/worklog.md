@@ -7,6 +7,7 @@
 - chore: .gitignore에 uploads/ 추가
 - fix(api): 이미지 업로드 버그 수정 (BytesIO, GIF 리사이즈, 투명도 유지)
 - test(api): 이미지 업로드 테스트 추가 (GIF, 리사이즈, 확장자 검증)
+- chore: OpenAPI 스키마 재생성
 
 ## 2025-12-02
 
