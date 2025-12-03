@@ -142,10 +142,9 @@ export default function MemberDetailModal({ member, open, onClose }: MemberDetai
         const focusables = panelRef.current.querySelectorAll<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         );
-        if (focusables.length === 0) return;
-
         const first = focusables[0];
         const last = focusables[focusables.length - 1];
+        if (!first || !last) return;
 
         if (e.shiftKey && document.activeElement === first) {
           e.preventDefault();
