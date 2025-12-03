@@ -1,16 +1,26 @@
-import React, { useId, useState } from 'react';
+import React from 'react';
 import type { Member } from '../services/members';
 
 type Props = {
   member: Member;
+  onClick?: () => void;
 };
 
-export default function DirectoryCard({ member }: Props) {
-  const [open, setOpen] = useState(false);
-  const uid = useId();
-  const panelId = `dir-card-${uid}`;
+export default function DirectoryCard({ member, onClick }: Props) {
   return (
-    <article className="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
+    <article
+      className="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm cursor-pointer hover:border-neutral-ink/20 transition-colors"
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      tabIndex={onClick ? 0 : undefined}
+      role={onClick ? 'button' : undefined}
+      aria-label={onClick ? `${member.name} 상세 정보 보기` : undefined}
+    >
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-base font-semibold text-neutral-ink">
@@ -24,32 +34,10 @@ export default function DirectoryCard({ member }: Props) {
             {member.company ?? '-'}
           </p>
         </div>
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-controls={panelId}
-          onClick={() => setOpen((v) => !v)}
-          className="rounded border border-neutral-border px-3 py-1.5 text-sm text-neutral-ink hover:bg-neutral-surface"
-        >
-          {open ? '접기' : '자세히'}
-        </button>
+        <span className="text-xs text-neutral-muted">
+          {member.major ?? ''}
+        </span>
       </header>
-      <section id={panelId} role="region" aria-label="상세 정보" hidden={!open} className="mt-3 text-sm text-neutral-ink">
-        <dl className="grid grid-cols-2 gap-2">
-          <div>
-            <dt className="text-xs text-neutral-muted">전공</dt>
-            <dd>{member.major ?? '-'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-neutral-muted">업종</dt>
-            <dd>{member.industry ?? '-'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-neutral-muted">공개 범위</dt>
-            <dd className="text-xs uppercase text-neutral-muted">{member.visibility}</dd>
-          </div>
-        </dl>
-      </section>
     </article>
   );
 }

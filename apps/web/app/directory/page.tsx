@@ -14,7 +14,9 @@ import {
   useInfiniteLoader,
 } from './state';
 import DirectoryCard from '../../components/directory-card';
+import MemberDetailModal from '../../components/member-detail-modal';
 import Button from '../../components/ui/button';
+import type { Member } from '../../services/members';
 
 type DirectoryFiltersProps = {
   value: FilterState;
@@ -148,6 +150,7 @@ function DirectoryResults({
   sentinelRef,
   sortLabel,
   loadMoreLabel,
+  onMemberClick,
 }: {
   items: MemberListPage;
   onLoadMore: () => void;
@@ -156,6 +159,7 @@ function DirectoryResults({
   sentinelRef: React.MutableRefObject<HTMLDivElement | null>;
   sortLabel: string;
   loadMoreLabel: string;
+  onMemberClick: (member: Member) => void;
 }) {
   if (items.length === 0) {
     return <EmptyState />;
@@ -167,7 +171,7 @@ function DirectoryResults({
       <ul className="grid gap-3 md:hidden" aria-label={`동문 목록 — ${sortLabel}`}>
         {items.map((m) => (
           <li key={m.id}>
-            <DirectoryCard member={m} />
+            <DirectoryCard member={m} onClick={() => onMemberClick(m)} />
           </li>
         ))}
       </ul>
@@ -189,7 +193,11 @@ function DirectoryResults({
           </thead>
           <tbody>
             {items.map((m) => (
-              <tr key={m.id} className="border-b last:border-0">
+              <tr
+                key={m.id}
+                className="border-b last:border-0 cursor-pointer hover:bg-slate-50 transition-colors"
+                onClick={() => onMemberClick(m)}
+              >
                 <td className="p-2 font-medium text-slate-800">{m.name}</td>
                 <td className="p-2 font-mono text-xs text-slate-500">{m.email}</td>
                 <td className="p-2">{m.cohort}</td>
@@ -257,6 +265,7 @@ function DirectoryPageInner() {
   const hasNextPage = Boolean(membersQuery.hasNextPage);
 
   const [shareOpen, setShareOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
   return (
     <div className="space-y-4 p-6">
@@ -310,9 +319,17 @@ function DirectoryPageInner() {
             sentinelRef={sentinelRef}
             sortLabel={SORT_LABELS[sortOption]}
             loadMoreLabel={loadMoreLabel}
+            onMemberClick={setSelectedMember}
           />
         )}
       </section>
+
+      {/* 회원 상세 모달 */}
+      <MemberDetailModal
+        member={selectedMember}
+        open={selectedMember !== null}
+        onClose={() => setSelectedMember(null)}
+      />
     </div>
   );
 }

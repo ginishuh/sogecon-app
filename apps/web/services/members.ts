@@ -55,3 +55,7 @@ export async function countMembers(params: MemberCountParams = {}): Promise<numb
   const res = await apiFetch<{ count: number }>(`/members/count${qs ? `?${qs}` : ''}`);
   return res.count;
 }
+
+export async function getMember(id: number): Promise<Member> {
+  return apiFetch<Member>(`/members/${id}`);
+}

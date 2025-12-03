@@ -8,6 +8,10 @@
 - fix(api): 이미지 업로드 버그 수정 (BytesIO, GIF 리사이즈, 투명도 유지)
 - test(api): 이미지 업로드 테스트 추가 (GIF, 리사이즈, 확장자 검증)
 - chore: OpenAPI 스키마 재생성
+- feat(web): 이미지 업로드 컴포넌트, 게시글 작성 커버 이미지 UI — PR #83
+- fix(web): 비로그인 시 업로드 disabled, 클라이언트 GIF 제거 — PR #83
+- feat(web): 회원 상세 모달 (MemberDetailModal, DirectoryCard 클릭) — #79
+- fix(web): 회원 모달 포커스 트랩 구현, 테이블 행 시맨틱, 타입 에러 수정 — PR #84
 
 ## 2025-12-02
 
