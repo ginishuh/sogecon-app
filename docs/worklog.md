@@ -952,3 +952,5 @@
 - next.config.js: AVIF/WebP 포맷 지원 추가
 - @next/bundle-analyzer v15.5.6 설치, pnpm analyze 스크립트 추가
 2025-12-01 refactor(web): 헤더 로고 구조 수정 — 심볼 + 텍스트 통합
+2025-12-03 feat(web): 이미지 업로드 컴포넌트 및 게시글 작성 커버 이미지 UI — refs #77
+- fix(web): 비로그인 업로드 disabled, 클라이언트 GIF 허용 제거

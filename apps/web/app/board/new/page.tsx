@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
+import { ImageUpload } from '../../../components/image-upload';
+import { useAuth } from '../../../hooks/useAuth';
 import { ApiError } from '../../../lib/api';
 import { createPost } from '../../../services/posts';
-import { useAuth } from '../../../hooks/useAuth';
 
 const BOARD_CATEGORY_OPTIONS = [
   { value: 'discussion', label: '자유' },
@@ -22,6 +23,7 @@ export default function BoardNewPage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState<(typeof BOARD_CATEGORY_OPTIONS)[number]['value']>('discussion');
+  const [coverImage, setCoverImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const mutate = useMutation({
@@ -30,6 +32,7 @@ export default function BoardNewPage() {
         title,
         content,
         category,
+        cover_image: coverImage,
       }),
     onSuccess: () => {
       setError(null);
@@ -105,6 +108,15 @@ export default function BoardNewPage() {
             ))}
           </select>
         </label>
+        <div className="space-y-1">
+          <span className="block text-sm text-slate-700">커버 이미지 (선택)</span>
+          <ImageUpload
+            value={coverImage}
+            onUpload={setCoverImage}
+            onRemove={() => setCoverImage(null)}
+            disabled={isSubmitting || status === 'unauthorized'}
+          />
+        </div>
         <label className="block text-sm text-slate-700">
           내용
           <textarea
