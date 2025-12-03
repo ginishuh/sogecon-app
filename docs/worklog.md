@@ -1,3 +1,8 @@
+## 2025-12-03
+
+- sec(api): FastAPI 0.123.5로 상향, Starlette GHSA-7f5h-v6xp-fcq8 취약점 해결 — #72
+- ci: check_versions.py FastAPI 버전 동기화
+
 ## 2025-12-02
 
 - fix(web): API trailing slash 수정 및 회원 전용 접근 제한
