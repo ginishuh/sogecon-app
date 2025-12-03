@@ -125,7 +125,7 @@ function DropzoneContent({ isUploading, isDragging }: { isUploading: boolean; is
       </svg>
       <div className="text-center">
         <p className="text-sm font-medium">{isDragging ? '여기에 놓으세요' : '클릭 또는 드래그하여 이미지 업로드'}</p>
-        <p className="text-xs text-slate-400 mt-1">JPEG, PNG, WebP, GIF (최대 {MAX_SIZE_MB}MB)</p>
+        <p className="text-xs text-slate-400 mt-1">JPEG, PNG, WebP, GIF (최대 {MAX_SIZE_MB}MB, GIF 애니메이션 미지원)</p>
       </div>
     </div>
   );

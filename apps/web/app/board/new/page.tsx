@@ -114,7 +114,7 @@ export default function BoardNewPage() {
             value={coverImage}
             onUpload={setCoverImage}
             onRemove={() => setCoverImage(null)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || status === 'unauthorized'}
           />
         </div>
         <label className="block text-sm text-slate-700">
