@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import secrets
 import time
 from pathlib import Path
@@ -86,7 +87,7 @@ async def upload_image(
 
     # 이미지 로드 및 리사이즈
     try:
-        img = Image.open(file.file)
+        img = Image.open(io.BytesIO(file_bytes))
         img.load()  # 이미지 유효성 검증
     except Exception as exc:
         raise ApiError(
@@ -108,14 +109,18 @@ async def upload_image(
     new_filename = f"{timestamp}_{random_hex}{ext}"
     file_path = storage_dir / new_filename
 
-    # 저장 (원본 형식 유지, GIF는 그대로)
+    # 저장 (형식별 처리)
     if ext == ".gif":
-        file_path.write_bytes(file_bytes)
+        # GIF: 애니메이션 보존을 위해 리사이즈된 첫 프레임만 저장
+        img.save(file_path, format="GIF", optimize=True)
+    elif ext in {".png", ".webp"}:
+        # PNG/WebP: 투명도 유지
+        img.save(file_path, quality=85, optimize=True)
     else:
-        # RGB 변환 (PNG 투명도 처리)
+        # JPEG: RGB 변환 필수
         if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
-        img.save(file_path, quality=85, optimize=True)
+        img.save(file_path, format="JPEG", quality=85, optimize=True)
 
     # URL 반환
     relative_path = f"images/{new_filename}"

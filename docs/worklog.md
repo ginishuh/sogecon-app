@@ -5,6 +5,7 @@
 - feat(api): SESSION_MAX_AGE 환경변수 추가 (기본 7일) — #74
 - feat(api): 이미지 업로드 엔드포인트 추가 (POST /uploads/images) — #77
 - chore: .gitignore에 uploads/ 추가
+- fix(api): 이미지 업로드 버그 수정 (BytesIO, GIF 리사이즈, 투명도 유지)
 
 ## 2025-12-02
 
