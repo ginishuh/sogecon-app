@@ -26,13 +26,13 @@ export type ImageUploadProps = {
   className?: string;
 };
 
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE_MB = 5;
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1_000_000;
 
 function validateFile(file: File): string | null {
   if (!ACCEPTED_TYPES.includes(file.type)) {
-    return '지원하지 않는 형식입니다. (JPEG, PNG, WebP, GIF만 가능)';
+    return '지원하지 않는 형식입니다. (JPEG, PNG, WebP만 가능)';
   }
   if (file.size > MAX_SIZE_BYTES) {
     return `파일 크기가 ${MAX_SIZE_MB}MB를 초과했습니다.`;
@@ -125,7 +125,7 @@ function DropzoneContent({ isUploading, isDragging }: { isUploading: boolean; is
       </svg>
       <div className="text-center">
         <p className="text-sm font-medium">{isDragging ? '여기에 놓으세요' : '클릭 또는 드래그하여 이미지 업로드'}</p>
-        <p className="text-xs text-slate-400 mt-1">JPEG, PNG, WebP, GIF (최대 {MAX_SIZE_MB}MB, GIF 애니메이션 미지원)</p>
+        <p className="text-xs text-slate-400 mt-1">JPEG, PNG, WebP (최대 {MAX_SIZE_MB}MB)</p>
       </div>
     </div>
   );
