@@ -197,15 +197,6 @@ function DirectoryResults({
                 key={m.id}
                 className="border-b last:border-0 cursor-pointer hover:bg-slate-50 transition-colors"
                 onClick={() => onMemberClick(m)}
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onMemberClick(m);
-                  }
-                }}
-                role="button"
-                aria-label={`${m.name} 상세 정보 보기`}
               >
                 <td className="p-2 font-medium text-slate-800">{m.name}</td>
                 <td className="p-2 font-mono text-xs text-slate-500">{m.email}</td>
