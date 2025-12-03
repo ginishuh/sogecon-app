@@ -69,3 +69,50 @@ def test_upload_image_png(member_login: TestClient) -> None:
     assert res.status_code == HTTPStatus.OK
     data = res.json()
     assert data["filename"].endswith(".png")
+
+
+def test_upload_image_gif(member_login: TestClient) -> None:
+    """GIF 이미지 업로드 (정지 이미지로 저장)."""
+    img = Image.new("RGB", (80, 80), color="green")
+    buf = io.BytesIO()
+    img.save(buf, format="GIF")
+    buf.seek(0)
+
+    res = member_login.post(
+        "/uploads/images",
+        files={"file": ("test.gif", buf, "image/gif")},
+    )
+    assert res.status_code == HTTPStatus.OK
+    data = res.json()
+    assert data["filename"].endswith(".gif")
+
+
+def test_upload_image_resize_large(member_login: TestClient) -> None:
+    """큰 이미지는 자동 리사이즈."""
+    # 3000x2000 이미지 생성 (1920px 초과)
+    img = Image.new("RGB", (3000, 2000), color="yellow")
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=50)
+    buf.seek(0)
+
+    res = member_login.post(
+        "/uploads/images",
+        files={"file": ("large.jpg", buf, "image/jpeg")},
+    )
+    assert res.status_code == HTTPStatus.OK
+
+
+def test_upload_image_invalid_extension(member_login: TestClient) -> None:
+    """지원하지 않는 확장자는 422 반환."""
+    img = Image.new("RGB", (10, 10), color="red")
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    buf.seek(0)
+
+    res = member_login.post(
+        "/uploads/images",
+        files={"file": ("test.bmp", buf, "image/jpeg")},  # 확장자 불일치
+    )
+    assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data = res.json()
+    assert data.get("code") == "invalid_image_extension"

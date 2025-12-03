@@ -53,6 +53,7 @@ async def upload_image(
     - 지원 형식: JPEG, PNG, WebP, GIF
     - 최대 크기: 5MB (설정 가능)
     - 자동 리사이즈: 1920px 이하로 조정
+    - GIF: 애니메이션은 첫 프레임만 저장 (정지 이미지로 변환)
     """
     settings = get_settings()
 
