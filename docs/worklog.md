@@ -4,6 +4,7 @@
 - chore(api): APScheduler 타입 스텁 추가 (pyright strict 모드 호환)
 - fix(api): PR 리뷰 반영 — trigger-scheduled 실제 발송, 날짜 예외 처리, created_at 추가 — PR #85
 - feat(web): 데스크톱 헤더 관리자 메뉴 추가, 총동문회 소개에 공지사항 링크 추가
+- feat(api,web): 다중 이미지 업로드 및 게시글 상세 갤러리 — posts.images JSONB 컬럼, MultiImageUpload 컴포넌트
 
 ## 2025-12-03
 

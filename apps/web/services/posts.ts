@@ -13,6 +13,7 @@ export type Post = {
   category?: string | null;
   pinned?: boolean;
   cover_image?: string | null;
+  images?: string[] | null;
   view_count?: number;
   comment_count?: number;
 };
@@ -38,6 +39,7 @@ export type CreatePostPayload = {
   category?: string | null;
   pinned?: boolean;
   cover_image?: string | null;
+  images?: string[] | null;
 };
 
 export async function createPost(payload: CreatePostPayload): Promise<Post> {

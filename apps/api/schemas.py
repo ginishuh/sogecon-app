@@ -149,6 +149,7 @@ class PostBase(BaseModel):
     category: str | None = None
     pinned: bool = False
     cover_image: str | None = None
+    images: list[str] | None = None  # 추가 이미지 URL 배열
     view_count: int = 0
 
 

@@ -508,6 +508,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/notifications/admin/notifications/trigger-scheduled": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Trigger Scheduled Notifications
+         * @description 예약 알림 수동 트리거 (테스트/복구용).
+         */
+        post: operations["trigger_scheduled_notifications_notifications_admin_notifications_trigger_scheduled_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/admin/notifications/scheduled-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Scheduled Logs
+         * @description 예약 발송 내역 조회.
+         */
+        get: operations["get_scheduled_logs_notifications_admin_notifications_scheduled_logs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/support/contact": {
         parameters: {
             query?: never;
@@ -934,6 +974,8 @@ export interface components {
             pinned: boolean;
             /** Cover Image */
             cover_image?: string | null;
+            /** Images */
+            images?: string[] | null;
             /**
              * View Count
              * @default 0
@@ -959,6 +1001,8 @@ export interface components {
             pinned: boolean;
             /** Cover Image */
             cover_image?: string | null;
+            /** Images */
+            images?: string[] | null;
             /**
              * View Count
              * @default 0
@@ -1021,6 +1065,25 @@ export interface components {
              */
             status: "going" | "waitlist" | "cancel";
         };
+        /** ScheduledLogRead */
+        ScheduledLogRead: {
+            /** Id */
+            id: number;
+            /** Event Id */
+            event_id: number;
+            /** D Type */
+            d_type: string;
+            /** Scheduled At */
+            scheduled_at: string;
+            /** Sent At */
+            sent_at: string | null;
+            /** Accepted Count */
+            accepted_count: number;
+            /** Failed Count */
+            failed_count: number;
+            /** Status */
+            status: string;
+        };
         /** SendLogRead */
         SendLogRead: {
             /** Created At */
@@ -1073,6 +1136,11 @@ export interface components {
             contact: string | null;
             /** Client Ip */
             client_ip: string | null;
+        };
+        /** TriggerScheduledPayload */
+        TriggerScheduledPayload: {
+            /** Target Date */
+            target_date?: string | null;
         };
         /** UnsubscribePayload */
         UnsubscribePayload: {
@@ -2160,6 +2228,72 @@ export interface operations {
                     "application/json": {
                         [key: string]: number | string;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trigger_scheduled_notifications_notifications_admin_notifications_trigger_scheduled_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TriggerScheduledPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string | number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_scheduled_logs_notifications_admin_notifications_scheduled_logs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledLogRead"][];
                 };
             };
             /** @description Validation Error */
