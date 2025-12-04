@@ -38,6 +38,7 @@ from .routers import (
     support,
     uploads,
 )
+from .scheduler import shutdown_scheduler, start_scheduler
 
 settings = get_settings()
 init_sentry(settings)
@@ -46,9 +47,11 @@ init_sentry(settings)
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     """앱 시작/종료 시 리소스 관리."""
-    # startup: 필요 시 초기화 로직 추가
+    # startup: 스케줄러 시작
+    start_scheduler()
     yield
-    # shutdown: DB 커넥션 풀 정리
+    # shutdown: 스케줄러 종료 후 DB 커넥션 풀 정리
+    shutdown_scheduler()
     await dispose_engine()
 
 

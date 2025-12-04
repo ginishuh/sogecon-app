@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from http import HTTPStatus
 from typing import Annotated, cast
 
@@ -22,6 +22,7 @@ from apps.api.routers.auth import (
     require_member,
 )
 from apps.api.services import notifications_service as notif_svc
+from apps.api.services import scheduled_notifications_service as sched_svc
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 limiter_notifications = Limiter(key_func=get_remote_address)
@@ -223,3 +224,79 @@ async def prune_logs(
     n = await logs_repo.prune_older_than_days(db, days=days)
     before = datetime.now(UTC_TZ) - timedelta(days=days)
     return {"deleted": n, "before": before.isoformat(), "older_than_days": days}
+
+
+# --- 예약 알림 관리 API ---
+
+
+class TriggerScheduledPayload(BaseModel):
+    target_date: str | None = None  # YYYY-MM-DD 형식, 없으면 오늘
+
+
+@router.post("/admin/notifications/trigger-scheduled", status_code=202)
+async def trigger_scheduled_notifications(
+    payload: TriggerScheduledPayload,
+    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str | int]:
+    """예약 알림 수동 트리거 (테스트/복구용)."""
+    target = (
+        date.fromisoformat(payload.target_date)
+        if payload.target_date
+        else date.today()
+    )
+
+    events_by_dtype = await sched_svc.find_events_due_for_notification(
+        db, target_date=target
+    )
+
+    total_events = sum(len(e) for e in events_by_dtype.values())
+    d3_count = len(events_by_dtype.get("d-3", []))
+    d1_count = len(events_by_dtype.get("d-1", []))
+
+    return {
+        "status": "triggered",
+        "target_date": target.isoformat(),
+        "total_events": total_events,
+        "d3_events": d3_count,
+        "d1_events": d1_count,
+    }
+
+
+class ScheduledLogRead(BaseModel):
+    id: int
+    event_id: int
+    d_type: str
+    scheduled_at: str
+    sent_at: str | None
+    accepted_count: int
+    failed_count: int
+    status: str
+
+
+@router.get("/admin/notifications/scheduled-logs")
+async def get_scheduled_logs(
+    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    limit: int = 50,
+    db: AsyncSession = Depends(get_db),
+) -> list[ScheduledLogRead]:
+    """예약 발송 내역 조회."""
+    logs = await sched_svc.list_scheduled_logs(db, limit=limit)
+
+    out: list[ScheduledLogRead] = []
+    for log in logs:
+        scheduled_dt = cast(datetime | None, log.scheduled_at)
+        sent_dt = cast(datetime | None, log.sent_at)
+        out.append(
+            ScheduledLogRead(
+                id=cast(int, log.id),
+                event_id=cast(int, log.event_id),
+                d_type=cast(str, log.d_type),
+                scheduled_at=scheduled_dt.isoformat() if scheduled_dt else "",
+                sent_at=sent_dt.isoformat() if sent_dt else None,
+                accepted_count=cast(int, log.accepted_count),
+                failed_count=cast(int, log.failed_count),
+                status=cast(str, log.status),
+            )
+        )
+    return out

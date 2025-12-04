@@ -1,3 +1,8 @@
+## 2025-12-04
+
+- feat(api): D-3/D-1 이벤트 예약 알림 발송 시스템 (APScheduler, 배치 발송, 관리자 API)
+- chore(api): APScheduler 타입 스텁 추가 (pyright strict 모드 호환)
+
 ## 2025-12-03
 
 - sec(api): FastAPI 0.123.5로 상향, Starlette GHSA-7f5h-v6xp-fcq8 취약점 해결 — #72

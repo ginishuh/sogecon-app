@@ -265,6 +265,37 @@ class NotificationSendLog(Base):
     endpoint_tail = Column(String(32), nullable=True)
 
 
+class ScheduledNotificationLog(Base):
+    """예약 알림 발송 로그 (중복 발송 방지 및 추적용)."""
+
+    __tablename__ = "scheduled_notification_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    event_id = Column(
+        Integer,
+        ForeignKey("events.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    d_type = Column(String(8), nullable=False)  # 'd-3' | 'd-1'
+    scheduled_at = Column(DateTime(timezone=True), nullable=False)
+    sent_at = Column(DateTime(timezone=True), nullable=True)
+    accepted_count = Column(Integer, nullable=False, default=0)
+    failed_count = Column(Integer, nullable=False, default=0)
+    status = Column(
+        String(16), nullable=False, default="pending"
+    )  # pending | in_progress | completed | failed
+
+    __table_args__ = (
+        Index(
+            "ix_scheduled_notification_event_dtype",
+            "event_id",
+            "d_type",
+            unique=True,
+        ),
+    )
+
+
 class MemberAuth(Base):
     __tablename__ = "member_auth"
 
