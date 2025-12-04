@@ -53,6 +53,11 @@ class _DummyProvider(PushProvider):
             return (False, 410)
         return (True, 201)
 
+    async def send_async(
+        self, sub: models.PushSubscription, payload: dict[str, Any]
+    ) -> tuple[bool, int | None]:
+        return self.send(sub, payload)
+
 
 def test_admin_send_uses_provider_and_handles_410(admin_login: TestClient) -> None:
     client = admin_login

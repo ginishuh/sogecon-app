@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from http import HTTPStatus
 from typing import Annotated, cast
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, HttpUrl
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -22,6 +22,8 @@ from apps.api.routers.auth import (
     require_member,
 )
 from apps.api.services import notifications_service as notif_svc
+from apps.api.services import scheduled_notifications_service as sched_svc
+from apps.api.services.scheduled_notifications_service import KST
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 limiter_notifications = Limiter(key_func=get_remote_address)
@@ -223,3 +225,86 @@ async def prune_logs(
     n = await logs_repo.prune_older_than_days(db, days=days)
     before = datetime.now(UTC_TZ) - timedelta(days=days)
     return {"deleted": n, "before": before.isoformat(), "older_than_days": days}
+
+
+# --- 예약 알림 관리 API ---
+
+
+class TriggerScheduledPayload(BaseModel):
+    target_date: str | None = None  # YYYY-MM-DD 형식, 없으면 오늘
+
+
+@router.post("/admin/notifications/trigger-scheduled", status_code=202)
+async def trigger_scheduled_notifications(
+    payload: TriggerScheduledPayload,
+    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    db: AsyncSession = Depends(get_db),
+    provider: notif_svc.PushProvider = Depends(get_push_provider),
+) -> dict[str, str | int]:
+    """예약 알림 수동 트리거 (테스트/복구용)."""
+    # 날짜 파싱 (잘못된 형식 시 400 에러)
+    target: date
+    if payload.target_date:
+        try:
+            target = date.fromisoformat(payload.target_date)
+        except ValueError as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"잘못된 날짜 형식: {payload.target_date} (YYYY-MM-DD 필요)",
+            ) from e
+    else:
+        target = datetime.now(KST).date()
+
+    # 실제 발송 수행
+    result = await sched_svc.trigger_scheduled_notifications(
+        db, provider, target_date=target
+    )
+
+    return {
+        "status": "triggered",
+        "target_date": target.isoformat(),
+        "total_events": result.total_events,
+        "processed": result.processed,
+        "skipped": result.skipped,
+        "accepted": result.total_accepted,
+        "failed": result.total_failed,
+    }
+
+
+class ScheduledLogRead(BaseModel):
+    id: int
+    event_id: int
+    d_type: str
+    scheduled_at: str
+    sent_at: str | None
+    accepted_count: int
+    failed_count: int
+    status: str
+
+
+@router.get("/admin/notifications/scheduled-logs")
+async def get_scheduled_logs(
+    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    limit: int = 50,
+    db: AsyncSession = Depends(get_db),
+) -> list[ScheduledLogRead]:
+    """예약 발송 내역 조회."""
+    logs = await sched_svc.list_scheduled_logs(db, limit=limit)
+
+    out: list[ScheduledLogRead] = []
+    for log in logs:
+        scheduled_dt = cast(datetime | None, log.scheduled_at)
+        sent_dt = cast(datetime | None, log.sent_at)
+        out.append(
+            ScheduledLogRead(
+                id=cast(int, log.id),
+                event_id=cast(int, log.event_id),
+                d_type=cast(str, log.d_type),
+                scheduled_at=scheduled_dt.isoformat() if scheduled_dt else "",
+                sent_at=sent_dt.isoformat() if sent_dt else None,
+                accepted_count=cast(int, log.accepted_count),
+                failed_count=cast(int, log.failed_count),
+                status=cast(str, log.status),
+            )
+        )
+    return out

@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     push_encrypt_at_rest: bool = Field(default=False, alias="PUSH_ENCRYPT_AT_REST")
     push_kek: str = Field(default="", alias="PUSH_KEK")  # base64 32 bytes
 
+    # Scheduler (예약 알림)
+    scheduler_enabled: bool = Field(default=True, alias="SCHEDULER_ENABLED")
+
     # Media/Uploads
     media_root: str = Field(default="uploads", alias="MEDIA_ROOT")
     media_url_base: str = Field(default="/media", alias="MEDIA_URL_BASE")

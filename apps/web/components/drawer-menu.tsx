@@ -14,7 +14,8 @@ type LinkItem = {
 const ABOUT_LINKS: LinkItem[] = [
   { href: '/about/greeting', label: '인사말' },
   { href: '/about/org', label: '조직도' },
-  { href: '/about/history', label: '연혁' }
+  { href: '/about/history', label: '연혁' },
+  { href: '/posts?category=notice', label: '공지사항' }
 ];
 
 const SUPPORT_LINKS: LinkItem[] = [
@@ -26,7 +27,7 @@ const SUPPORT_LINKS: LinkItem[] = [
 
 const ADMIN_LINKS: LinkItem[] = [
   { href: '/admin/notifications', label: '알림 관리' },
-  { href: '/posts/new', label: '새 소식 작성' },
+  { href: '/posts/new', label: '새 글 작성' },
   { href: '/events/new', label: '새 행사 생성' }
 ];
 

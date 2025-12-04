@@ -3,11 +3,13 @@
   "venvPath": ".",
   "venv": ".venv",
   "pythonVersion": "3.12",
+  "stubPath": "apps/api/stubs",
   "include": [
     "apps/api"
   ],
   "exclude": [
-    "apps/api/migrations/versions"
+    "apps/api/migrations/versions",
+    "apps/api/stubs"
   ],
   "typeCheckingMode": "strict",
   "reportMissingImports": "warning",

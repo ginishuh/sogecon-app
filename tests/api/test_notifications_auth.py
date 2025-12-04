@@ -53,6 +53,11 @@ async def test_admin_send_rate_limit_429(admin_login: TestClient) -> None:
         ) -> tuple[bool, int | None]:
             return (True, 201)
 
+        async def send_async(
+            self, sub: models.PushSubscription, payload: dict[str, object]
+        ) -> tuple[bool, int | None]:
+            return self.send(sub, payload)
+
     app.dependency_overrides[router_mod.get_push_provider] = lambda: _DummyProvider()
     try:
         # Use httpx ASGITransport to set a non-test client IP so rate limit applies

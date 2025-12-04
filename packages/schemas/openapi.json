@@ -1650,6 +1650,107 @@
         }
       }
     },
+    "/notifications/admin/notifications/trigger-scheduled": {
+      "post": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Trigger Scheduled Notifications",
+        "description": "\uc608\uc57d \uc54c\ub9bc \uc218\ub3d9 \ud2b8\ub9ac\uac70 (\ud14c\uc2a4\ud2b8/\ubcf5\uad6c\uc6a9).",
+        "operationId": "trigger_scheduled_notifications_notifications_admin_notifications_trigger_scheduled_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerScheduledPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "type": "object",
+                  "title": "Response Trigger Scheduled Notifications Notifications Admin Notifications Trigger Scheduled Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/admin/notifications/scheduled-logs": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Get Scheduled Logs",
+        "description": "\uc608\uc57d \ubc1c\uc1a1 \ub0b4\uc5ed \uc870\ud68c.",
+        "operationId": "get_scheduled_logs_notifications_admin_notifications_scheduled_logs_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScheduledLogRead"
+                  },
+                  "title": "Response Get Scheduled Logs Notifications Admin Notifications Scheduled Logs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/support/contact": {
       "post": {
         "tags": [
@@ -2896,6 +2997,20 @@
             ],
             "title": "Cover Image"
           },
+          "images": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Images"
+          },
           "view_count": {
             "type": "integer",
             "title": "View Count",
@@ -2968,6 +3083,20 @@
               }
             ],
             "title": "Cover Image"
+          },
+          "images": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Images"
           },
           "view_count": {
             "type": "integer",
@@ -3097,6 +3226,61 @@
           "member_id"
         ],
         "title": "RSVPStatusUpdate"
+      },
+      "ScheduledLogRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "event_id": {
+            "type": "integer",
+            "title": "Event Id"
+          },
+          "d_type": {
+            "type": "string",
+            "title": "D Type"
+          },
+          "scheduled_at": {
+            "type": "string",
+            "title": "Scheduled At"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "accepted_count": {
+            "type": "integer",
+            "title": "Accepted Count"
+          },
+          "failed_count": {
+            "type": "integer",
+            "title": "Failed Count"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "event_id",
+          "d_type",
+          "scheduled_at",
+          "sent_at",
+          "accepted_count",
+          "failed_count",
+          "status"
+        ],
+        "title": "ScheduledLogRead"
       },
       "SendLogRead": {
         "properties": {
@@ -3257,6 +3441,23 @@
           "client_ip"
         ],
         "title": "TicketRead"
+      },
+      "TriggerScheduledPayload": {
+        "properties": {
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          }
+        },
+        "type": "object",
+        "title": "TriggerScheduledPayload"
       },
       "UnsubscribePayload": {
         "properties": {

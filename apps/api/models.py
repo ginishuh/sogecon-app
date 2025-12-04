@@ -14,6 +14,7 @@ from sqlalchemy import (
     String,
     Text,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
 
@@ -113,6 +114,7 @@ class Post(Base):
         Boolean, nullable=False, default=False, server_default="0", index=True
     )
     cover_image = Column(String(512), nullable=True)
+    images = Column(JSONB, nullable=True, default=list)  # 추가 이미지 URL 배열
     view_count = Column(
         Integer, nullable=False, default=0, server_default="0", index=False
     )
@@ -263,6 +265,40 @@ class NotificationSendLog(Base):
     status_code = Column(Integer, nullable=True)
     endpoint_hash = Column(String(64), nullable=False, index=True)
     endpoint_tail = Column(String(32), nullable=True)
+
+
+class ScheduledNotificationLog(Base):
+    """예약 알림 발송 로그 (중복 발송 방지 및 추적용)."""
+
+    __tablename__ = "scheduled_notification_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    event_id = Column(
+        Integer,
+        ForeignKey("events.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    d_type = Column(String(8), nullable=False)  # 'd-3' | 'd-1'
+    scheduled_at = Column(DateTime(timezone=True), nullable=False)
+    sent_at = Column(DateTime(timezone=True), nullable=True)
+    accepted_count = Column(Integer, nullable=False, default=0)
+    failed_count = Column(Integer, nullable=False, default=0)
+    status = Column(
+        String(16), nullable=False, default="pending"
+    )  # pending | in_progress | completed | failed
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_scheduled_notification_event_dtype",
+            "event_id",
+            "d_type",
+            unique=True,
+        ),
+    )
 
 
 class MemberAuth(Base):

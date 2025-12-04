@@ -1,3 +1,14 @@
+## 2025-12-04
+
+- feat(api): D-3/D-1 이벤트 예약 알림 발송 시스템 (APScheduler, 배치 발송, 관리자 API)
+- chore(api): APScheduler 타입 스텁 추가 (pyright strict 모드 호환)
+- fix(api): PR 리뷰 반영 — trigger-scheduled 실제 발송, 날짜 예외 처리, created_at 추가 — PR #85
+- feat(web): 데스크톱 헤더 관리자 메뉴 추가, 총동문회 소개에 공지사항 링크 추가
+- feat(api,web): 다중 이미지 업로드 및 게시글 상세 갤러리 — posts.images JSONB 컬럼, MultiImageUpload 컴포넌트
+- fix(api): PR #85 리뷰 반영 — apscheduler 의존성, KST 타임존, 비동기 webpush, 레이스 컨디션, 스케줄러 기본값 수정
+- fix(test): _DummyProvider send_async 메서드 추가 (CI 실패 수정)
+- sec(web): Next.js 15.5.7 업데이트 — GHSA-9qr9-h5gf-34mp RCE 취약점 수정
+
 ## 2025-12-03
 
 - sec(api): FastAPI 0.123.5로 상향, Starlette GHSA-7f5h-v6xp-fcq8 취약점 해결 — #72
@@ -958,3 +969,5 @@
 2025-12-01 refactor(web): 헤더 로고 구조 수정 — 심볼 + 텍스트 통합
 2025-12-03 feat(web): 이미지 업로드 컴포넌트 및 게시글 작성 커버 이미지 UI — refs #77
 - fix(web): 비로그인 업로드 disabled, 클라이언트 GIF 허용 제거
+2025-12-04 security(web): Next.js 15.5.4 → 15.5.7 (GHSA-9qr9-h5gf-34mp RCE 취약점 패치)
+- fix(ci): check_versions.py Next.js 기대값 15.5.7 업데이트
