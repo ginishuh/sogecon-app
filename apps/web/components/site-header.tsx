@@ -7,11 +7,13 @@ import Drawer from './ui/drawer';
 import { useAuth } from '../hooks/useAuth';
 import { LazyDrawerMenu } from './lazy';
 import { logoutAll } from '../services/auth';
+import { RequireAdmin } from './require-admin';
 // import { HeaderNotifyCTA } from './header-notify-cta';
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
   const { status, data } = useAuth();
 
   return (
@@ -45,6 +47,7 @@ export function SiteHeader() {
                 <Link href="/about/greeting" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">인사말</Link>
                 <Link href="/about/org" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">조직도</Link>
                 <Link href="/about/history" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">연혁</Link>
+                <Link href="/posts?category=notice" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">공지사항</Link>
               </div>
             )}
           </div>
@@ -61,6 +64,30 @@ export function SiteHeader() {
           <Link href="/directory" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
             동문 수첩
           </Link>
+
+          {/* 관리자 메뉴 드롭다운 */}
+          <RequireAdmin fallback={null}>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setAdminOpen(!adminOpen)}
+                onBlur={() => setTimeout(() => setAdminOpen(false), 150)}
+                className="flex items-center gap-1 px-3 py-2 font-kopub text-base text-[#b60007] hover:text-[#8a0005] transition-colors"
+              >
+                관리자
+                <svg className={`size-4 transition-transform ${adminOpen ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              {adminOpen && (
+                <div className="absolute top-full right-0 mt-1 w-36 bg-white border border-neutral-border rounded-lg shadow-lg py-1 z-50">
+                  <Link href="/admin/notifications" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">알림 관리</Link>
+                  <Link href="/posts/new" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">새 글 작성</Link>
+                  <Link href="/events/new" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">새 행사 생성</Link>
+                </div>
+              )}
+            </div>
+          </RequireAdmin>
         </nav>
 
         {/* 데스크톱 우측 버튼들 */}
