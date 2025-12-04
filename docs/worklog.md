@@ -5,7 +5,7 @@
 - fix(api): PR 리뷰 반영 — trigger-scheduled 실제 발송, 날짜 예외 처리, created_at 추가 — PR #85
 - feat(web): 데스크톱 헤더 관리자 메뉴 추가, 총동문회 소개에 공지사항 링크 추가
 - feat(api,web): 다중 이미지 업로드 및 게시글 상세 갤러리 — posts.images JSONB 컬럼, MultiImageUpload 컴포넌트
-- fix(api): PR #85 리뷰 반영 — apscheduler 의존성, KST 타임존, 비동기 webpush, 레이스 컨디션, 다중 워커 문서화
+- fix(api): PR #85 리뷰 반영 — apscheduler 의존성, KST 타임존, 비동기 webpush, 레이스 컨디션, 스케줄러 기본값 수정
 
 ## 2025-12-03
 
