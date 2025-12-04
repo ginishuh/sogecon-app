@@ -24,6 +24,11 @@ class _DummyProvider(PushProvider):
     ) -> tuple[bool, int | None]:
         return (True, 201)
 
+    async def send_async(
+        self, sub: models.PushSubscription, payload: dict[str, object]
+    ) -> tuple[bool, int | None]:
+        return self.send(sub, payload)
+
 
 @pytest.mark.anyio
 async def test_admin_send_rate_limit_concurrent(admin_login: TestClient) -> None:
