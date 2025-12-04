@@ -34,16 +34,12 @@ async def create_comment(
     db: AsyncSession = Depends(get_db),
 ) -> schemas.CommentRead:
     """댓글 작성 (회원 또는 관리자)"""
-    # 보안: author_id는 클라이언트 입력 무시, 세션에서 결정
-    # 관리자/회원 모두 require_member로 통합 (관리자도 member 권한 있음)
+    # 보안: author_id는 클라이언트 입력 무시, student_id로 DB에서 member 조회
+    # 레거시 세션(admin_users.id가 저장된 경우)에서도 올바른 author_id 사용
     member = require_member(request)
-    if member.id is None:
-        raise HTTPException(
-            status_code=500, detail="Member ID is None"
-        ) from None
-    author_id = member.id
-
-    comment = await comments_service.create_comment(db, payload, author_id)
+    comment = await comments_service.create_comment_by_student_id(
+        db, payload, member.student_id
+    )
     return schemas.CommentRead.model_validate(comment)
 
 
