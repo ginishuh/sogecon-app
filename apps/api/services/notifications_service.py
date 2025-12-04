@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -21,6 +22,13 @@ class PushProvider(Protocol):
     def send(
         self, sub: PushSubscription, payload: dict[str, Any]
     ) -> tuple[bool, int | None]:
+        """동기 발송 (테스트/단건용)."""
+        ...
+
+    async def send_async(
+        self, sub: PushSubscription, payload: dict[str, Any]
+    ) -> tuple[bool, int | None]:
+        """비동기 발송 (배치/스케줄러용) — 스레드풀에서 실행."""
         ...
 
 
@@ -61,6 +69,12 @@ class PyWebPushProvider:
             # Treat config/transport failures as send failures so caller can log
             return (False, None)
 
+    async def send_async(
+        self, sub: PushSubscription, payload: dict[str, Any]
+    ) -> tuple[bool, int | None]:
+        """비동기 발송 — 스레드풀에서 동기 send() 실행."""
+        return await asyncio.to_thread(self.send, sub, payload)
+
 
 @dataclass
 class SendResult:
@@ -89,7 +103,7 @@ async def send_test_to_all(
     failed = 0
     for sub in subs:
         endpoint_plain = decrypt_str(cast(str, sub.endpoint))
-        ok, status = provider.send(
+        ok, status = await provider.send_async(
             sub, {"title": title, "body": body, **({"url": url} if url else {})}
         )
         if ok:

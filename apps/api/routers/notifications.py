@@ -23,6 +23,7 @@ from apps.api.routers.auth import (
 )
 from apps.api.services import notifications_service as notif_svc
 from apps.api.services import scheduled_notifications_service as sched_svc
+from apps.api.services.scheduled_notifications_service import KST
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 limiter_notifications = Limiter(key_func=get_remote_address)
@@ -252,7 +253,7 @@ async def trigger_scheduled_notifications(
                 detail=f"잘못된 날짜 형식: {payload.target_date} (YYYY-MM-DD 필요)",
             ) from e
     else:
-        target = date.today()
+        target = datetime.now(KST).date()
 
     # 실제 발송 수행
     result = await sched_svc.trigger_scheduled_notifications(

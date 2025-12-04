@@ -1,8 +1,18 @@
-"""APScheduler 기반 예약 알림 스케줄러."""
+"""APScheduler 기반 예약 알림 스케줄러.
+
+주의사항 (다중 워커 환경):
+- uvicorn --workers N 으로 다중 워커 실행 시, 각 워커마다 스케줄러가 시작됨
+- 중복 발송 방지를 위해:
+  1. SCHEDULER_ENABLED=false (기본값)로 설정하고, 단일 워커/프로세스에서만 true로 활성화
+  2. 또는 단일 워커(--workers 1)로 실행
+  3. 또는 스케줄러를 별도 프로세스로 분리 (권장)
+- ON CONFLICT DO NOTHING으로 동시 삽입은 방지되나, 불필요한 중복 작업이 발생할 수 있음
+"""
 
 from __future__ import annotations
 
 import logging
+import os
 from datetime import timedelta, timezone
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -37,13 +47,24 @@ async def process_scheduled_notifications() -> None:
 
 
 def start_scheduler() -> None:
-    """스케줄러 시작."""
+    """스케줄러 시작.
+
+    다중 워커 환경에서는 단일 워커에서만 SCHEDULER_ENABLED=true로 설정해야 함.
+    """
     settings = get_settings()
 
-    # 스케줄러 비활성화 옵션 확인
-    if not getattr(settings, "scheduler_enabled", True):
-        logger.info("스케줄러 비활성화됨 (SCHEDULER_ENABLED=false)")
+    # 스케줄러 비활성화 옵션 확인 (기본: 비활성화)
+    if not getattr(settings, "scheduler_enabled", False):
+        logger.info("스케줄러 비활성화됨 (SCHEDULER_ENABLED=false 또는 미설정)")
         return
+
+    # 다중 워커 경고 (uvicorn의 WEB_CONCURRENCY 확인)
+    workers = os.environ.get("WEB_CONCURRENCY")
+    if workers and int(workers) > 1:
+        logger.warning(
+            f"다중 워커 환경에서 스케줄러 실행 감지 (workers={workers}). "
+            "중복 작업 방지를 위해 단일 워커에서만 SCHEDULER_ENABLED=true 설정 권장."
+        )
 
     scheduler = AsyncIOScheduler(timezone=KST)
 

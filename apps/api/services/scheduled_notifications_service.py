@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Literal, cast
 
 from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..crypto_utils import decrypt_str
@@ -43,7 +44,7 @@ async def find_events_due_for_notification(
     target_date: date | None = None,
 ) -> dict[DType, list[Event]]:
     """D-3/D-1에 해당하는 이벤트 조회."""
-    today = target_date or date.today()
+    today = target_date or datetime.now(KST).date()
     d3_date = today + timedelta(days=3)
     d1_date = today + timedelta(days=1)
 
@@ -158,7 +159,7 @@ async def _send_with_retry(
     """지수 백오프로 재시도."""
     status: int | None = None
     for attempt in range(max_retries + 1):
-        ok, status = provider.send(sub, payload)
+        ok, status = await provider.send_async(sub, payload)
 
         if ok or status in (400, 404, 410):
             # 성공 또는 복구 불가능한 에러
@@ -177,18 +178,26 @@ async def create_notification_log(
     event_id: int,
     d_type: DType,
     scheduled_at: datetime,
-) -> ScheduledNotificationLog:
-    """발송 로그 생성 (중복 방지용)."""
-    log = ScheduledNotificationLog(
-        event_id=event_id,
-        d_type=d_type,
-        scheduled_at=scheduled_at,
-        status="pending",
+) -> ScheduledNotificationLog | None:
+    """발송 로그 생성 (중복 방지용).
+
+    ON CONFLICT DO NOTHING 사용으로 동시 삽입 시 레이스 컨디션 방지.
+    이미 존재하는 경우 None 반환.
+    """
+    stmt = (
+        pg_insert(ScheduledNotificationLog)
+        .values(
+            event_id=event_id,
+            d_type=d_type,
+            scheduled_at=scheduled_at,
+            status="pending",
+        )
+        .on_conflict_do_nothing(index_elements=["event_id", "d_type"])
+        .returning(ScheduledNotificationLog)
     )
-    db.add(log)
+    result = await db.execute(stmt)
     await db.commit()
-    await db.refresh(log)
-    return log
+    return result.scalars().first()  # None if conflict
 
 
 async def update_notification_log(
@@ -202,6 +211,7 @@ async def update_notification_log(
     """발송 로그 상태 업데이트."""
     log = await db.get(ScheduledNotificationLog, log_id)
     if log:
+        # setattr 사용: SQLAlchemy Column 타입과 pyright strict 모드 호환성
         setattr(log, "status", status)
         setattr(log, "accepted_count", accepted_count)
         setattr(log, "failed_count", failed_count)
@@ -253,12 +263,18 @@ async def process_single_event(
         )
 
     # 발송 로그 생성 (in_progress 상태)
+    # ON CONFLICT DO NOTHING으로 동시 삽입 시 None 반환 (다른 워커가 처리 중)
     log = await create_notification_log(
         db,
         event_id=event_id,
         d_type=d_type,
         scheduled_at=datetime.now(KST),
     )
+    if log is None:
+        logger.info(f"다른 워커가 처리 중: event_id={event_id}, d_type={d_type}")
+        return ProcessResult(
+            event_id=event_id, d_type=d_type, skipped=True, accepted=0, failed=0
+        )
     log_id = cast(int, log.id)
     await update_notification_log(db, log_id, status="in_progress")
 
