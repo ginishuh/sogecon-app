@@ -7,7 +7,7 @@ set -euo pipefail
 #
 # Usage:
 #   bash scripts/deploy-vps.sh -t <tag> [--prefix ghcr.io/org/repo] [--env .env.api] [--web-env .env.web] \
-#       [--skip-migrate] [--uploads /var/lib/segecon/uploads] [--api-health URL] [--web-health URL]
+#       [--skip-migrate] [--uploads /var/lib/sogecon/uploads] [--api-health URL] [--web-health URL]
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
@@ -16,7 +16,7 @@ TAG=""
 IMAGE_PREFIX="${IMAGE_PREFIX_DEFAULT}"
 ENV_FILE=".env.api"
 WEB_ENV_FILE=".env.web"
-UPLOADS_DIR="/var/lib/segecon/uploads"
+UPLOADS_DIR="/var/lib/sogecon/uploads"
 NET_NAME=""
 DO_MIGRATE=1
 API_HEALTH=""

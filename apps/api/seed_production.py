@@ -32,13 +32,13 @@ async def create_production_admins(session: AsyncSession) -> None:
     admin_users = [
         {
             "student_id": "admin001",
-            "email": "admin@segecon.kr",
-            "password": "Segecon2025!@#",  # 강력한 비밀번호
+            "email": "admin@sogecon.kr",
+            "password": "Sogecon2025!@#",  # 강력한 비밀번호
             "description": "최고 관리자",
         },
         {
             "student_id": "admin002",
-            "email": "master@segecon.kr",
+            "email": "master@sogecon.kr",
             "password": "Master2025!@#",
             "description": "마스터 관리자",
         },
@@ -74,7 +74,7 @@ async def create_production_members(session: AsyncSession) -> None:
     members = [
         {
             "student_id": "president2025",
-            "email": "president@segecon.kr",
+            "email": "president@sogecon.kr",
             "name": "홍길동",
             "cohort": 1985,
             "major": "경제학",
@@ -88,7 +88,7 @@ async def create_production_members(session: AsyncSession) -> None:
         },
         {
             "student_id": "vicepresident2025",
-            "email": "vice-president@segecon.kr",
+            "email": "vice-president@sogecon.kr",
             "name": "김철수",
             "cohort": 1987,
             "major": "국제통상",
@@ -102,7 +102,7 @@ async def create_production_members(session: AsyncSession) -> None:
         },
         {
             "student_id": "secretary2025",
-            "email": "secretary@segecon.kr",
+            "email": "secretary@sogecon.kr",
             "name": "이영희",
             "cohort": 1990,
             "major": "재정학",
@@ -194,8 +194,8 @@ async def async_main() -> None:
     print("✅ 운영 환경 시드 데이터 생성 완료")
     print("\n📋 생성된 운영 계정 정보:")
     print("🔧 관리자 계정:")
-    print("  - admin001 (admin@segecon.kr) / Segecon2025!@#")
-    print("  - admin002 (master@segecon.kr) / Master2025!@#")
+    print("  - admin001 (admin@sogecon.kr) / Sogecon2025!@#")
+    print("  - admin002 (master@sogecon.kr) / Master2025!@#")
     print("\n👥 초기 회원 계정:")
     print("  - president2025 (홍길동 회장)")
     print("  - vicepresident2025 (김철수 부회장)")

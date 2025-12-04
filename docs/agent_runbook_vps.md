@@ -20,8 +20,8 @@ cp .env.api.example .env.api   # JWT_SECRET/DATABASE_URL/CORS_ORIGINS 등 값 �
 cp .env.web.example .env.web   # 선택. Next 공개변수는 빌드타임 고정(참고용)
 
 # 업로드 디렉터리(컨테이너 볼륨)
-sudo mkdir -p /var/lib/segecon/uploads
-sudo chown 1000:1000 /var/lib/segecon/uploads
+sudo mkdir -p /var/lib/sogecon/uploads
+sudo chown 1000:1000 /var/lib/sogecon/uploads
 ```
 
 ## 2) 배포 경로 A — GitHub Actions(권장)
@@ -150,7 +150,7 @@ sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart
 
 ## 6) 트러블슈팅
 - 웹 공개변수 반영 안 됨: Next `NEXT_PUBLIC_*`는 빌드타임 고정 — 반드시 재빌드 필요
-- 업로드 권한 오류: `/var/lib/segecon/uploads` 소유자/권한 확인(UID 1000)
+- 업로드 권한 오류: `/var/lib/sogecon/uploads` 소유자/권한 확인(UID 1000)
 - 헬스체크 실패: Nginx 프록시 대상(127.0.0.1:3000/3001)·TLS 인증서 경로 확인
 
 ## 참고 문서

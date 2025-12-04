@@ -68,7 +68,7 @@ Do NOT disable linters or type checkers globally or per file.
 
 -### Local Run Modes (Dev vs Mirror)
 - Dev profile (local only): use the root `compose.yaml` with `docker compose --profile dev up -d` for hot reload (Next.js dev + uvicorn --reload). Never run the dev profile on servers; the helper script `scripts/compose-dev-up.sh` includes a production guard.
-- Mirror mode (prod parity): to validate deploy behavior locally, run the same scripts used on VPS: pull immutable images → Alembic migrate → restart via `ops/cloud-*.sh` or `scripts/deploy-vps.sh`. Use a dedicated Docker network (e.g., `segecon_net`) and container DNS (e.g., `sogecon-db`) in `DATABASE_URL`.
+- Mirror mode (prod parity): to validate deploy behavior locally, run the same scripts used on VPS: pull immutable images → Alembic migrate → restart via `ops/cloud-*.sh` or `scripts/deploy-vps.sh`. Use a dedicated Docker network (e.g., `sogecon_net`) and container DNS (e.g., `sogecon-db`) in `DATABASE_URL`.
 - Web standalone parity (local): to mirror production web runtime, build Next.js with `output: 'standalone'` and stage a local release: `pnpm -C apps/web build` → `RELEASE_BASE=$(pwd)/.releases/web bash ops/web-deploy.sh` → run `PORT=4300 node .releases/web/current/apps/web/server.js`.
 - Switching modes: stop current containers before switching; dev→mirror: `docker compose --profile dev down`; mirror→dev: `docker rm -f alumni-api alumni-web` then start dev profile.
 
@@ -76,14 +76,14 @@ Do NOT disable linters or type checkers globally or per file.
 - Deploy model (recommended):
   - Web (Next.js): artifact‑based deploy using Next "standalone" output + `systemd` + Nginx. Rollout is a symlink switch (`current` → new release) and `systemctl restart`.
   - API/DB: immutable container images (pull → Alembic → restart). Git pulls on servers do not update running apps.
-- Database: PostgreSQL only using `postgresql+psycopg://` (enforced in code). Use container DNS names on a dedicated Docker network (e.g., `segecon_net`, `sogecon-db`). Avoid fixed IP/localhost in `DATABASE_URL`.
+- Database: PostgreSQL only using `postgresql+psycopg://` (enforced in code). Use container DNS names on a dedicated Docker network (e.g., `sogecon_net`, `sogecon-db`). Avoid fixed IP/localhost in `DATABASE_URL`.
 - Migrations: run Alembic from the same Docker network as the DB. Destructive changes must be labeled and noted in the PR; prefer online-safe patterns.
 - Health/readiness: `/healthz` must return 200. A brief warm‑up window (≤90s) after restart is acceptable; CI/CD should retry during this window.
 
 ### Docker Compose (Dev‑only)
 - The root `compose.yaml` is for local development only. It requires the `dev` profile and binds ports to `127.0.0.1`.
 - NEVER run compose dev on production hosts. Use `ops/cloud-start.sh` instead.
-- A guard helper `scripts/compose-dev-up.sh` aborts when it detects a prod‑like server (e.g., `.env.api` with `APP_ENV=prod`, running `alumni-*` containers, or `segecon_net`).
+- A guard helper `scripts/compose-dev-up.sh` aborts when it detects a prod‑like server (e.g., `.env.api` with `APP_ENV=prod`, running `alumni-*` containers, or `sogecon_net`).
 
 ## Commit & PR Conventions
 - Follow Conventional Commits for all commits: `type(scope): subject` with a 72-char header.
@@ -191,5 +191,5 @@ Do NOT disable linters or type checkers globally or per file.
 - Temporary test: If external test requires it, an Nginx override may relax CSP. This MUST be removed before production rollout and tracked by an issue.
 
 ### DB isolation (optional)
-- When sharing a VPS with other stacks, create a dedicated Docker network and Postgres container for this app (e.g., `segecon_net`, `sogecon-db`).
+- When sharing a VPS with other stacks, create a dedicated Docker network and Postgres container for this app (e.g., `sogecon_net`, `sogecon-db`).
 - Run Alembic migrations from the same network as the DB to avoid host/port coupling.

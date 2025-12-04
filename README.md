@@ -1,4 +1,4 @@
-# 서강대학교 경제대학원 총동문회 앱 (Segecon App)
+# 서강대학교 경제대학원 총동문회 앱 (Sogecon App)
 
 공개 웹 애플리케이션 모노레포입니다. 브랜드는 **서강대학교 경제대학원 총동문회**입니다.
 
@@ -221,7 +221,7 @@ REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
   - `corepack`으로 pnpm 버전 고정: Dockerfile에서 `corepack prepare pnpm@10.17.1 --activate` 사용.
   - 런타임에서 `pnpm`이 필요 없도록 빌드 단계에서 의존성을 포함시킵니다.
   - 실행 커맨드: `node node_modules/next/dist/bin/next start -p 3000`(런타임 최소화).
-- 서버 실행(예: `/srv/segecon`에 클론되어 있다고 가정)
+- 서버 실행(예: `/srv/sogecon`에 클론되어 있다고 가정)
   ```bash
   # 1) 이미지 풀
   docker pull ghcr.io/<owner>/<repo>/alumni-api:<tag>

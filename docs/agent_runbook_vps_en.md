@@ -18,8 +18,8 @@ cp .env.api.example .env.api   # fill JWT_SECRET, DATABASE_URL, CORS_ORIGINS, et
 cp .env.web.example .env.web   # optional; Next public envs are build-time only
 
 # Uploads volume on host → container /app/uploads
-sudo mkdir -p /var/lib/segecon/uploads
-sudo chown 1000:1000 /var/lib/segecon/uploads
+sudo mkdir -p /var/lib/sogecon/uploads
+sudo chown 1000:1000 /var/lib/sogecon/uploads
 ```
 
 ## 2) Deploy path A — via GitHub Actions (recommended)
@@ -148,7 +148,7 @@ Notes
 
 ## 6) Troubleshooting
 - Next public envs not applied: `NEXT_PUBLIC_*` are build‑time only — rebuild required.
-- Uploads permission error: ensure `/var/lib/segecon/uploads` owner uid 1000.
+- Uploads permission error: ensure `/var/lib/sogecon/uploads` owner uid 1000.
 - Health check fails: verify Nginx upstream to 127.0.0.1:3000/3001 and TLS cert paths.
 
 ## References

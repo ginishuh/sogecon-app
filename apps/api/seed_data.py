@@ -148,7 +148,7 @@ async def create_members(session: AsyncSession) -> None:
     members = [
         {
             "student_id": "s47054",
-            "email": "member1@segecon.app",
+            "email": "member1@sogecon.app",
             "name": "김철수",
             "cohort": 2020,
             "major": "경제학",
@@ -162,7 +162,7 @@ async def create_members(session: AsyncSession) -> None:
         },
         {
             "student_id": "s47055",
-            "email": "member2@segecon.app",
+            "email": "member2@sogecon.app",
             "name": "이영희",
             "cohort": 2019,
             "major": "응용경제학",
@@ -176,7 +176,7 @@ async def create_members(session: AsyncSession) -> None:
         },
         {
             "student_id": "s47056",
-            "email": "member3@segecon.app",
+            "email": "member3@sogecon.app",
             "name": "박지성",
             "cohort": 2021,
             "major": "국제통상",
@@ -190,7 +190,7 @@ async def create_members(session: AsyncSession) -> None:
         },
         {
             "student_id": "s47058",
-            "email": "alumni@segecon.app",
+            "email": "alumni@sogecon.app",
             "name": "최동원",
             "cohort": 2018,
             "major": "재정학",
@@ -243,10 +243,10 @@ async def async_main() -> None:
     print("🔧 운영자 계정:")
     print("  - s47053 (ginishuh@gmail.com) / admin1234")
     print("\n👥 일반 회원 계정:")
-    print("  - member1@segecon.app (김철수)")
-    print("  - member2@segecon.app (이영희)")
-    print("  - member3@segecon.app (박지성)")
-    print("  - alumni@segecon.app (최동원)")
+    print("  - member1@sogecon.app (김철수)")
+    print("  - member2@sogecon.app (이영희)")
+    print("  - member3@sogecon.app (박지성)")
+    print("  - alumni@sogecon.app (최동원)")
 
 
 def main() -> None:

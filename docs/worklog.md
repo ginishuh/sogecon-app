@@ -972,3 +972,4 @@
 2025-12-04 security(web): Next.js 15.5.4 → 15.5.7 (GHSA-9qr9-h5gf-34mp RCE 취약점 패치)
 - fix(ci): check_versions.py Next.js 기대값 15.5.7 업데이트
 2025-12-04 fix(web): 데스크톱 헤더 관리자 메뉴 렌더링 수정 + 디버그 로깅 추가
+2025-12-04 fix(docs,ops): segecon → sogecon 오타 일괄 수정 — 에이전트/운영 문서, 시드, 스크립트

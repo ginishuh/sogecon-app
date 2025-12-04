@@ -42,7 +42,7 @@
 4. 서비스 재시작: `API_IMAGE=... WEB_IMAGE=registry/alumni-web:<태그> API_ENV_FILE=/etc/secrets/api.env WEB_ENV_FILE=/etc/secrets/web.env ./ops/cloud-start.sh`
 5. 프로빙: `curl https://api.alumni.sogang-econ.kr/healthz` 응답 확인, 주요 엔드포인트 스팟 체크
 
-> 참고: `API_ENV_FILE`에는 `DATABASE_URL`, `JWT_SECRET`, `PUSH_*`, `SENTRY_*` 등 필수 시크릿을 포함한다. 컨테이너 업로드 볼륨은 `UPLOADS_DIR=/var/lib/segecon/uploads` 로 기본 설정되어 있으며, 필요 시 커스터마이즈한다.
+> 참고: `API_ENV_FILE`에는 `DATABASE_URL`, `JWT_SECRET`, `PUSH_*`, `SENTRY_*` 등 필수 시크릿을 포함한다. 컨테이너 업로드 볼륨은 `UPLOADS_DIR=/var/lib/sogecon/uploads` 로 기본 설정되어 있으며, 필요 시 커스터마이즈한다.
 
 ## 5. 모니터링 & 알림
 - 구조화 로그(JSON Lines) 수집 시스템에 배포 버전 태그
@@ -73,7 +73,7 @@
 4) 프록시: `api.sogecon.wastelite.kr` → `127.0.0.1:3001`(예시 Nginx는 `ops/nginx-examples/` 참고)
 5) 헬스체크: `GET https://api.sogecon.wastelite.kr/healthz` → 200
 
-> 추후 별도 도메인(예: `segecon.app` 등)으로 전환 시:
+> 추후 별도 도메인(예: `sogecon.app` 등)으로 전환 시:
 > - `CORS_ORIGINS`에 새 웹 도메인 추가
 > - `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true`
 > - 웹 빌드는 `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_WEB_API_BASE`를 새 도메인으로 재빌드
