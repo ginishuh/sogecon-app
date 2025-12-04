@@ -4,7 +4,7 @@ set -euo pipefail
 # Docker 이미지 빌드 진입점.
 # 환경변수
 #   IMAGE_TAG        : 빌드 결과에 사용할 태그 (기본은 현재 Git SHA)
-#   IMAGE_PREFIX     : 이미지 저장소/이름 접두사 (기본 local/segecon)
+#   IMAGE_PREFIX     : 이미지 저장소/이름 접두사 (기본 local/sogecon)
 #   API_IMAGE        : API 이미지 전체 이름을 직접 지정하고 싶은 경우
 #   WEB_IMAGE        : Web 이미지 전체 이름을 직접 지정하고 싶은 경우
 #   PUSH_IMAGES      : 1이면 빌드 후 docker push 수행
@@ -26,7 +26,7 @@ if [[ -z "${IMAGE_TAG:-}" ]]; then
   fi
 fi
 
-IMAGE_PREFIX=${IMAGE_PREFIX:-local/segecon}
+IMAGE_PREFIX=${IMAGE_PREFIX:-local/sogecon}
 API_IMAGE=${API_IMAGE:-${IMAGE_PREFIX}/alumni-api:${IMAGE_TAG}}
 WEB_IMAGE=${WEB_IMAGE:-${IMAGE_PREFIX}/alumni-web:${IMAGE_TAG}}
 

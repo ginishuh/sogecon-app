@@ -11,7 +11,7 @@ set -euo pipefail
 #   WEB_CONTAINER     : Web 컨테이너 이름 (기본 alumni-web)
 #   API_PORT          : 호스트에서 노출할 API 포트 (기본 3001, 127.0.0.1에 바인딩)
 #   WEB_PORT          : 호스트에서 노출할 Web 포트 (기본 3000, 127.0.0.1에 바인딩)
-#   UPLOADS_DIR       : API 업로드 볼륨 호스트 경로 (기본 /var/lib/segecon/uploads)
+#   UPLOADS_DIR       : API 업로드 볼륨 호스트 경로 (기본 /var/lib/sogecon/uploads)
 #   DOCKER_NETWORK    : 사용할 Docker 네트워크 이름 (기본 bridge)
 #   RELEASE           : 서비스 버전 정보 (기본 현재 시간)
 

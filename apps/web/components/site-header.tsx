@@ -7,7 +7,6 @@ import Drawer from './ui/drawer';
 import { useAuth } from '../hooks/useAuth';
 import { LazyDrawerMenu } from './lazy';
 import { logoutAll } from '../services/auth';
-import { RequireAdmin } from './require-admin';
 // import { HeaderNotifyCTA } from './header-notify-cta';
 
 export function SiteHeader() {
@@ -15,6 +14,7 @@ export function SiteHeader() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const { status, data } = useAuth();
+  const isAdmin = status === 'authorized' && data?.kind === 'admin';
 
   return (
     <header className="border-b-2 border-[#b60007] bg-white">
@@ -66,7 +66,7 @@ export function SiteHeader() {
           </Link>
 
           {/* 관리자 메뉴 드롭다운 */}
-          <RequireAdmin fallback={null}>
+          {isAdmin && (
             <div className="relative">
               <button
                 type="button"
@@ -87,7 +87,7 @@ export function SiteHeader() {
                 </div>
               )}
             </div>
-          </RequireAdmin>
+          )}
         </nav>
 
         {/* 데스크톱 우측 버튼들 */}
