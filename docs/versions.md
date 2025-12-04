@@ -23,7 +23,7 @@
 - pytest==8.4.2
 
 ## Frontend (apps/web)
-- next: 15.5.4
+- next: 15.5.7
 - react: 19.1.1
 - react-dom: 19.1.1
 
