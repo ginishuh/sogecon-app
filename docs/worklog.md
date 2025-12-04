@@ -9,6 +9,7 @@
 - fix(test): _DummyProvider send_async 메서드 추가 (CI 실패 수정)
 - sec(web): Next.js 15.5.7 업데이트 — GHSA-9qr9-h5gf-34mp RCE 취약점 수정
 - fix(test,web): CI 실패 수정 — 이메일 검증(.local → .example.com), error-map 타입 에러 — PR #86
+- refactor(web): SiteHeader 복잡도 리팩토링 — HeaderDropdown, DesktopAuthButtons 분리 — PR #86
 
 ## 2025-12-03
 
