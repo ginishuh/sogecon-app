@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta, timezone
 from http import HTTPStatus
 from typing import Annotated, cast
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, HttpUrl
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -238,28 +238,35 @@ async def trigger_scheduled_notifications(
     payload: TriggerScheduledPayload,
     _admin: Annotated[CurrentAdmin, Depends(require_admin)],
     db: AsyncSession = Depends(get_db),
+    provider: notif_svc.PushProvider = Depends(get_push_provider),
 ) -> dict[str, str | int]:
     """예약 알림 수동 트리거 (테스트/복구용)."""
-    target = (
-        date.fromisoformat(payload.target_date)
-        if payload.target_date
-        else date.today()
-    )
+    # 날짜 파싱 (잘못된 형식 시 400 에러)
+    target: date
+    if payload.target_date:
+        try:
+            target = date.fromisoformat(payload.target_date)
+        except ValueError as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"잘못된 날짜 형식: {payload.target_date} (YYYY-MM-DD 필요)",
+            ) from e
+    else:
+        target = date.today()
 
-    events_by_dtype = await sched_svc.find_events_due_for_notification(
-        db, target_date=target
+    # 실제 발송 수행
+    result = await sched_svc.trigger_scheduled_notifications(
+        db, provider, target_date=target
     )
-
-    total_events = sum(len(e) for e in events_by_dtype.values())
-    d3_count = len(events_by_dtype.get("d-3", []))
-    d1_count = len(events_by_dtype.get("d-1", []))
 
     return {
         "status": "triggered",
         "target_date": target.isoformat(),
-        "total_events": total_events,
-        "d3_events": d3_count,
-        "d1_events": d1_count,
+        "total_events": result.total_events,
+        "processed": result.processed,
+        "skipped": result.skipped,
+        "accepted": result.total_accepted,
+        "failed": result.total_failed,
     }
 
 

@@ -223,3 +223,135 @@ async def list_scheduled_logs(
     )
     result = await db.execute(stmt)
     return result.scalars().all()
+
+
+@dataclass
+class ProcessResult:
+    """이벤트 처리 결과."""
+
+    event_id: int
+    d_type: DType
+    skipped: bool  # 중복 발송으로 스킵됨
+    accepted: int
+    failed: int
+
+
+async def process_single_event(
+    db: AsyncSession,
+    provider: PushProvider,
+    event: Event,
+    d_type: DType,
+) -> ProcessResult:
+    """단일 이벤트 알림 처리 (스케줄러/수동 트리거 공용)."""
+    event_id = cast(int, event.id)
+
+    # 중복 발송 확인
+    if await is_already_sent(db, event_id=event_id, d_type=d_type):
+        logger.info(f"이미 발송됨: event_id={event_id}, d_type={d_type}")
+        return ProcessResult(
+            event_id=event_id, d_type=d_type, skipped=True, accepted=0, failed=0
+        )
+
+    # 발송 로그 생성 (in_progress 상태)
+    log = await create_notification_log(
+        db,
+        event_id=event_id,
+        d_type=d_type,
+        scheduled_at=datetime.now(KST),
+    )
+    log_id = cast(int, log.id)
+    await update_notification_log(db, log_id, status="in_progress")
+
+    # 대상 구독자 조회
+    subs = await get_eligible_subscriptions(db, topic="event")
+
+    if not subs:
+        logger.info(f"발송 대상 없음: event_id={event_id}")
+        await update_notification_log(db, log_id, status="completed")
+        return ProcessResult(
+            event_id=event_id, d_type=d_type, skipped=False, accepted=0, failed=0
+        )
+
+    # 알림 페이로드 생성
+    days_label = "3일" if d_type == "d-3" else "1일"
+    event_title = cast(str, event.title)
+    raw_location = cast("str | None", event.location)
+    event_location = raw_location if raw_location else ""
+    payload = {
+        "title": f"[행사 알림] {event_title}",
+        "body": f"{days_label} 후 행사가 있습니다. {event_location}",
+        "url": f"/events/{event_id}",
+    }
+
+    # 배치 발송
+    result = await send_batch_notifications(
+        db, provider, subscriptions=subs, payload=payload
+    )
+
+    await update_notification_log(
+        db,
+        log_id,
+        status="completed",
+        accepted_count=result.accepted,
+        failed_count=result.failed,
+    )
+
+    logger.info(
+        f"발송 완료: event_id={event_id}, d_type={d_type}, "
+        f"accepted={result.accepted}, failed={result.failed}"
+    )
+
+    return ProcessResult(
+        event_id=event_id,
+        d_type=d_type,
+        skipped=False,
+        accepted=result.accepted,
+        failed=result.failed,
+    )
+
+
+@dataclass
+class TriggerResult:
+    """트리거 결과 요약."""
+
+    total_events: int
+    processed: int
+    skipped: int
+    total_accepted: int
+    total_failed: int
+
+
+async def trigger_scheduled_notifications(
+    db: AsyncSession,
+    provider: PushProvider,
+    *,
+    target_date: date | None = None,
+) -> TriggerResult:
+    """예약 알림 트리거 (스케줄러/수동 공용)."""
+    events_by_dtype = await find_events_due_for_notification(
+        db, target_date=target_date
+    )
+
+    total_events = sum(len(evts) for evts in events_by_dtype.values())
+    processed = 0
+    skipped = 0
+    total_accepted = 0
+    total_failed = 0
+
+    for d_type, events in events_by_dtype.items():
+        for event in events:
+            result = await process_single_event(db, provider, event, d_type)
+            if result.skipped:
+                skipped += 1
+            else:
+                processed += 1
+                total_accepted += result.accepted
+                total_failed += result.failed
+
+    return TriggerResult(
+        total_events=total_events,
+        processed=processed,
+        skipped=skipped,
+        total_accepted=total_accepted,
+        total_failed=total_failed,
+    )

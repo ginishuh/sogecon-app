@@ -285,6 +285,9 @@ class ScheduledNotificationLog(Base):
     status = Column(
         String(16), nullable=False, default="pending"
     )  # pending | in_progress | completed | failed
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
 
     __table_args__ = (
         Index(
