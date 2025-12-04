@@ -18,7 +18,7 @@ export default function NewPostPage() {
   const router = useRouter();
   const { show } = useToast();
 
-  const [authorId, setAuthorId] = useState<number | ''>('' as const);
+  // author_id는 서버에서 세션 기반으로 자동 설정됨
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState<'notice' | 'news' | 'hero'>('notice');
@@ -30,7 +30,7 @@ export default function NewPostPage() {
   const mutate = useMutation({
     mutationFn: () =>
       createPost({
-        author_id: Number(authorId),
+        // author_id는 서버에서 세션 기반으로 강제 주입 (보안)
         title,
         content,
         category,
@@ -82,20 +82,6 @@ export default function NewPostPage() {
         <h2 className="text-xl font-semibold">새 글 작성</h2>
 
         <div className="space-y-4">
-          {/* 작성자 ID */}
-          <label className="block text-sm text-slate-700">
-            작성자 ID
-            <input
-              className="mt-1 w-40 rounded border border-slate-300 px-3 py-2"
-              type="number"
-              value={authorId}
-              onChange={(e) =>
-                setAuthorId(e.currentTarget.value === '' ? '' : Number(e.currentTarget.value))
-              }
-              placeholder="회원 ID"
-            />
-          </label>
-
           {/* 카테고리 */}
           <label className="block text-sm text-slate-700">
             카테고리
@@ -170,7 +156,7 @@ export default function NewPostPage() {
           <button
             type="button"
             className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            disabled={mutate.isPending || typeof authorId !== 'number' || !title || !content}
+            disabled={mutate.isPending || !title || !content}
             onClick={() => mutate.mutate()}
           >
             {mutate.isPending ? '작성 중...' : '작성'}
