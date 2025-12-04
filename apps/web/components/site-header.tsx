@@ -7,12 +7,23 @@ import Drawer from './ui/drawer';
 import { useAuth } from '../hooks/useAuth';
 import { LazyDrawerMenu } from './lazy';
 import { logoutAll } from '../services/auth';
-// import { HeaderNotifyCTA } from './header-notify-cta';
+import { HeaderDropdown } from './header-dropdown';
+
+const ABOUT_ITEMS = [
+  { href: '/about/greeting', label: '인사말' },
+  { href: '/about/org', label: '조직도' },
+  { href: '/about/history', label: '연혁' },
+  { href: '/posts?category=notice', label: '공지사항' },
+] as const;
+
+const ADMIN_ITEMS = [
+  { href: '/admin/notifications', label: '알림 관리' },
+  { href: '/posts/new', label: '새 글 작성' },
+  { href: '/events/new', label: '새 행사 생성' },
+] as const;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
   const { status, data } = useAuth();
   const isAdmin = status === 'authorized' && data?.kind === 'admin';
 
@@ -29,29 +40,7 @@ export function SiteHeader() {
 
         {/* 데스크톱 네비게이션 */}
         <nav className="hidden lg:flex items-center gap-2" aria-label="주요 메뉴">
-          {/* 총동문회 소개 드롭다운 */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setAboutOpen(!aboutOpen)}
-              onBlur={() => setTimeout(() => setAboutOpen(false), 150)}
-              className="flex items-center gap-1 px-3 py-2 font-kopub text-base text-neutral-ink hover:text-[#b60007] transition-colors"
-            >
-              총동문회 소개
-              <svg className={`size-4 transition-transform ${aboutOpen ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            {aboutOpen && (
-              <div className="absolute top-full left-0 mt-1 w-36 bg-white border border-neutral-border rounded-lg shadow-lg py-1 z-50">
-                <Link href="/about/greeting" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">인사말</Link>
-                <Link href="/about/org" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">조직도</Link>
-                <Link href="/about/history" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">연혁</Link>
-                <Link href="/posts?category=notice" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">공지사항</Link>
-              </div>
-            )}
-          </div>
-
+          <HeaderDropdown label="총동문회 소개" items={ABOUT_ITEMS} />
           <Link href="/posts" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
             소식
           </Link>
@@ -64,75 +53,11 @@ export function SiteHeader() {
           <Link href="/directory" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
             동문 수첩
           </Link>
-
-          {/* 관리자 메뉴 드롭다운 */}
-          {isAdmin && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setAdminOpen(!adminOpen)}
-                onBlur={() => setTimeout(() => setAdminOpen(false), 150)}
-                className="flex items-center gap-1 px-3 py-2 font-kopub text-base text-[#b60007] hover:text-[#8a0005] transition-colors"
-              >
-                관리자
-                <svg className={`size-4 transition-transform ${adminOpen ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              {adminOpen && (
-                <div className="absolute top-full right-0 mt-1 w-36 bg-white border border-neutral-border rounded-lg shadow-lg py-1 z-50">
-                  <Link href="/admin/notifications" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">알림 관리</Link>
-                  <Link href="/posts/new" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">새 글 작성</Link>
-                  <Link href="/events/new" className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]">새 행사 생성</Link>
-                </div>
-              )}
-            </div>
-          )}
+          {isAdmin && <HeaderDropdown label="관리자" items={ADMIN_ITEMS} variant="admin" align="right" />}
         </nav>
 
         {/* 데스크톱 우측 버튼들 */}
-        <div className="hidden lg:flex items-center gap-2">
-          {/* <HeaderNotifyCTA /> */}
-          {status === 'authorized' ? (
-            <>
-              <Link
-                href="/me"
-                className="flex items-center gap-1.5 px-3 py-2 text-sm text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors"
-              >
-                <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 14a6 6 0 0 1 12 0" strokeLinecap="round" />
-                </svg>
-                {data?.name || '내 정보'}
-              </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  void logoutAll().finally(() => {
-                    window.location.href = '/login';
-                  });
-                }}
-                className="px-3 py-2 text-sm text-neutral-muted hover:text-[#b60007] transition-colors"
-              >
-                로그아웃
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="px-3 py-2 text-sm text-white bg-[#b60007] rounded-lg no-underline hover:no-underline hover:text-white visited:text-white hover:bg-[#8a0005] transition-colors"
-              >
-                로그인
-              </Link>
-              <Link
-                href="/activate"
-                className="px-3 py-2 text-sm text-[#b60007] border border-[#b60007] rounded-lg no-underline hover:no-underline hover:bg-[#fff5f5] transition-colors"
-              >
-                계정 활성화
-              </Link>
-            </>
-          )}
-        </div>
+        <DesktopAuthButtons status={status} name={data?.name} />
 
         {/* 모바일 햄버거 버튼 */}
         <button
@@ -153,9 +78,55 @@ export function SiteHeader() {
         </button>
       </div>
       <Drawer open={open} onClose={() => setOpen(false)} title="메뉴" side="right">
-        {/* 메뉴는 단일 출처로 유지(dup 제거) */}
         <LazyDrawerMenu status={status} onClose={() => setOpen(false)} />
       </Drawer>
     </header>
+  );
+}
+
+/** 데스크톱 우측 인증 버튼 영역 */
+function DesktopAuthButtons({ status, name }: { status: string; name?: string }) {
+  if (status === 'authorized') {
+    return (
+      <div className="hidden lg:flex items-center gap-2">
+        <Link
+          href="/me"
+          className="flex items-center gap-1.5 px-3 py-2 text-sm text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors"
+        >
+          <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 14a6 6 0 0 1 12 0" strokeLinecap="round" />
+          </svg>
+          {name || '내 정보'}
+        </Link>
+        <button
+          type="button"
+          onClick={() => {
+            void logoutAll().finally(() => {
+              window.location.href = '/login';
+            });
+          }}
+          className="px-3 py-2 text-sm text-neutral-muted hover:text-[#b60007] transition-colors"
+        >
+          로그아웃
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="hidden lg:flex items-center gap-2">
+      <Link
+        href="/login"
+        className="px-3 py-2 text-sm text-white bg-[#b60007] rounded-lg no-underline hover:no-underline hover:text-white visited:text-white hover:bg-[#8a0005] transition-colors"
+      >
+        로그인
+      </Link>
+      <Link
+        href="/activate"
+        className="px-3 py-2 text-sm text-[#b60007] border border-[#b60007] rounded-lg no-underline hover:no-underline hover:bg-[#fff5f5] transition-colors"
+      >
+        계정 활성화
+      </Link>
+    </div>
   );
 }

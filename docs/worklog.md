@@ -8,6 +8,9 @@
 - fix(api): PR #85 리뷰 반영 — apscheduler 의존성, KST 타임존, 비동기 webpush, 레이스 컨디션, 스케줄러 기본값 수정
 - fix(test): _DummyProvider send_async 메서드 추가 (CI 실패 수정)
 - sec(web): Next.js 15.5.7 업데이트 — GHSA-9qr9-h5gf-34mp RCE 취약점 수정
+- fix(test,web): CI 실패 수정 — 이메일 검증(.local → .example.com), error-map 타입 에러 — PR #86
+- refactor(web): SiteHeader 복잡도 리팩토링 — HeaderDropdown, DesktopAuthButtons 분리 — PR #86
+- fix(test): 정렬 테스트에 admin 멤버 fixture 고려 — PR #86
 
 ## 2025-12-03
 
@@ -973,3 +976,6 @@
 - fix(ci): check_versions.py Next.js 기대값 15.5.7 업데이트
 2025-12-04 fix(web): 데스크톱 헤더 관리자 메뉴 렌더링 수정 + 디버그 로깅 추가
 2025-12-04 fix(docs,ops): segecon → sogecon 오타 일괄 수정 — 에이전트/운영 문서, 시드, 스크립트
+2025-12-04 fix(api,web): 관리자 글 작성 세션 ID/보안 수정 — PR #86
+2025-12-04 fix(api): 관리자 member 레코드 필수 + 댓글 author_id 서버 주입 — PR #86
+2025-12-04 fix(api,web): 댓글 레거시 세션 호환 + 에러 매핑 추가 — PR #86

@@ -12,7 +12,7 @@ from apps.api.main import app
 
 
 def _seed_admin(client: TestClient, student_id: str, password: str) -> None:
-    """관리자 계정 시드 (async DB 세션 사용)"""
+    """관리자 계정 시드 (AdminUser + Member 레코드 필요)"""
     override = app.dependency_overrides.get(get_db)
     if override is None:
         raise RuntimeError("get_db override not found")
@@ -20,8 +20,21 @@ def _seed_admin(client: TestClient, student_id: str, password: str) -> None:
     async def _do_seed() -> None:
         async for db in override():
             pwd = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-            admin = models.AdminUser(student_id=student_id, password_hash=pwd)
+            admin = models.AdminUser(
+                student_id=student_id,
+                password_hash=pwd,
+                email=f"{student_id}@test.example.com",
+            )
             db.add(admin)
+            # 관리자도 Member 레코드 필요 (posts.author_id FK 호환)
+            member = models.Member(
+                student_id=student_id,
+                email=f"{student_id}@test.example.com",
+                name="Admin",
+                cohort=1,
+                roles="admin,member",
+            )
+            db.add(member)
             await db.commit()
             break
 

@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import schemas
 from ..models import Comment
 from ..repositories import comments as comments_repo
+from ..repositories import members as members_repo
 
 
 async def list_comments_by_post(db: AsyncSession, post_id: int) -> list[Comment]:
@@ -19,6 +20,23 @@ async def create_comment(
     comment = Comment(
         post_id=payload.post_id,
         author_id=author_id,
+        content=payload.content,
+    )
+    return await comments_repo.create_comment(db, comment)
+
+
+async def create_comment_by_student_id(
+    db: AsyncSession, payload: schemas.CommentCreate, student_id: str
+) -> Comment:
+    """student_id로 member 조회 후 댓글 생성.
+
+    보안: 세션에 저장된 member.id가 아닌 student_id로 DB에서 직접 조회하여
+    레거시 세션(admin_users.id가 저장된 경우)에서도 올바른 author_id 사용.
+    """
+    member = await members_repo.get_member_by_student_id(db, student_id)
+    comment = Comment(
+        post_id=payload.post_id,
+        author_id=member.id,
         content=payload.content,
     )
     return await comments_repo.create_comment(db, comment)

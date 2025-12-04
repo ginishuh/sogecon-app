@@ -397,11 +397,23 @@ async def login(
     if admin is not None and bcrypt.checkpw(
         payload.password.encode(), admin.password_hash.encode()
     ):
+        # 관리자도 Member 테이블의 id를 세션에 저장 (posts.author_id FK 호환)
+        stmt_member = select(Member).where(Member.student_id == payload.student_id)
+        result_member = await db.execute(stmt_member)
+        member = result_member.scalars().first()
+
+        # 관리자 계정에 대응하는 member 레코드 필수 (글/댓글 작성에 필요)
+        if member is None:
+            raise HTTPException(
+                status_code=403,
+                detail="admin_member_record_missing",
+            )
+
         _set_user_session(
             request,
             student_id=cast(str, admin.student_id),
             roles=["admin"],
-            id=cast(int, admin.id),
+            id=cast(int, member.id),  # member.id 저장 (admin_users.id 아님)
             email=(cast(str | None, admin.email) or cast(str, admin.student_id)),
         )
         return {"ok": "true"}
@@ -470,28 +482,32 @@ async def session(
         m = result.scalars().first()
         email = u.email or (m.email if m and isinstance(m.email, str) else "")
         name = m.name if m and isinstance(m.name, str) else ""
+        # member.id 우선 반환 (posts.author_id FK 호환)
+        member_id = cast(int, m.id) if m else (u.id if isinstance(u.id, int) else None)
         return {
             "kind": kind,
             "student_id": u.student_id,
             "email": email or "",
             "name": name,
-            "id": u.id if isinstance(u.id, int) else None,
+            "id": member_id,
         }
 
     # 레거시 호환: admin/member 키에서 정보 구성
     admin = _get_admin_session(request)
     if admin:
-        # admin도 Member 테이블에서 이름 조회
+        # admin도 Member 테이블에서 이름과 member.id 조회
         stmt = select(Member).where(Member.student_id == admin.student_id)
         result = await db.execute(stmt)
         m = result.scalars().first()
         name = m.name if m and isinstance(m.name, str) else ""
+        # member.id 우선 반환 (posts.author_id FK 호환)
+        member_id = cast(int, m.id) if m else admin.id
         return {
             "kind": "admin",
             "student_id": admin.student_id,
             "email": admin.email,
             "name": name,
-            "id": admin.id,
+            "id": member_id,
         }
     raw: Any = request.session.get("member")
     data = cast("dict[str, object] | None", raw)

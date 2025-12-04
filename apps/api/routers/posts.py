@@ -111,8 +111,15 @@ async def create_post(
     db: AsyncSession = Depends(get_db),
 ) -> schemas.PostRead:
     try:
-        require_admin(request)
-        post = await posts_service.create_post(db, payload)
+        admin = require_admin(request)
+        # 보안: 클라이언트가 보낸 author_id를 무시하고 서버에서 강제 주입
+        # student_id로 member를 조회하여 author_id 결정 (레거시 세션 호환)
+        # 관리자는 pinned, published_at 등 관리자 권한 필드 설정 가능
+        post = await posts_service.create_admin_post(
+            db,
+            payload,
+            admin_student_id=admin.student_id,
+        )
     except HTTPException as exc_admin:
         if exc_admin.status_code not in (
             HTTPStatus.UNAUTHORIZED,

@@ -55,20 +55,26 @@ def test_members_sort_recent(admin_login: TestClient) -> None:
     assert newer.status_code == HTTPStatus.CREATED
 
     base = datetime.now(tz=UTC)
+    # admin_login fixture가 생성한 admin 멤버도 존재하므로 시간 설정
+    _set_updated_at("admin@test.example.com", base - timedelta(hours=2))
     _set_updated_at("older@example.com", base - timedelta(hours=1))
     _set_updated_at("newer@example.com", base + timedelta(minutes=5))
 
-    response = client.get("/members/?sort=recent&limit=2")
+    response = client.get("/members/?sort=recent&limit=3")
     assert response.status_code == HTTPStatus.OK
     data = response.json()
-    assert [member["email"] for member in data[:2]] == [
+    # 최신순: newer → older → admin
+    assert [member["email"] for member in data[:3]] == [
         "newer@example.com",
         "older@example.com",
+        "admin@test.example.com",
     ]
 
 
 def test_members_sort_cohort_desc(admin_login: TestClient) -> None:
     client = admin_login
+    # admin_login fixture가 cohort=1인 admin 멤버를 생성하므로
+    # 테스트 멤버는 cohort 3, 2를 사용하여 admin보다 먼저 정렬되게 함
     payloads = [
         {
             "student_id": "anna001",
@@ -86,7 +92,7 @@ def test_members_sort_cohort_desc(admin_login: TestClient) -> None:
             "student_id": "carol001",
             "email": "carol@example.com",
             "name": "Carol",
-            "cohort": 1,
+            "cohort": 2,
         },
     ]
     for payload in payloads:
@@ -96,7 +102,7 @@ def test_members_sort_cohort_desc(admin_login: TestClient) -> None:
     response = client.get("/members/?sort=cohort_desc&limit=3")
     assert response.status_code == HTTPStatus.OK
     emails = [member["email"] for member in response.json()[:3]]
-    # Cohort 3 first (name ascending), then cohort 1
+    # Cohort 내림차순: cohort 3 (anna, brad) → cohort 2 (carol) → cohort 1 (admin)
     assert emails == [
         "anna@example.com",
         "brad@example.com",
