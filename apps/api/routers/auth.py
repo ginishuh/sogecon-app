@@ -401,13 +401,19 @@ async def login(
         stmt_member = select(Member).where(Member.student_id == payload.student_id)
         result_member = await db.execute(stmt_member)
         member = result_member.scalars().first()
-        member_id = cast(int, member.id) if member else None
+
+        # 관리자 계정에 대응하는 member 레코드 필수 (글/댓글 작성에 필요)
+        if member is None:
+            raise HTTPException(
+                status_code=403,
+                detail="admin_member_record_missing",
+            )
 
         _set_user_session(
             request,
             student_id=cast(str, admin.student_id),
             roles=["admin"],
-            id=member_id,  # member.id 저장 (admin_users.id 아님)
+            id=cast(int, member.id),  # member.id 저장 (admin_users.id 아님)
             email=(cast(str | None, admin.email) or cast(str, admin.student_id)),
         )
         return {"ok": "true"}
