@@ -8,6 +8,7 @@
 - fix(api): PR #85 리뷰 반영 — apscheduler 의존성, KST 타임존, 비동기 webpush, 레이스 컨디션, 스케줄러 기본값 수정
 - fix(test): _DummyProvider send_async 메서드 추가 (CI 실패 수정)
 - sec(web): Next.js 15.5.7 업데이트 — GHSA-9qr9-h5gf-34mp RCE 취약점 수정
+- fix(test,web): CI 실패 수정 — 이메일 검증(.local → .example.com), error-map 타입 에러 — PR #86
 
 ## 2025-12-03
 

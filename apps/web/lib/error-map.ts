@@ -18,9 +18,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export function apiErrorToMessage(code?: string, fallback?: string): string {
-  if (code && code in ERROR_MESSAGES) {
-    return ERROR_MESSAGES[code];
-  }
-  return fallback ?? '요청 처리 중 오류가 발생했습니다.';
+  const message = code ? ERROR_MESSAGES[code] : undefined;
+  return message ?? fallback ?? '요청 처리 중 오류가 발생했습니다.';
 }
 
