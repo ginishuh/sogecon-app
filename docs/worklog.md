@@ -1,3 +1,9 @@
+## 2025-12-08
+
+- sec(web): React 19.2.1 업데이트 — CVE-2025-55182 (React2Shell) RCE 취약점 수정
+- fix(test): 테스트 코드 실제 컴포넌트에 맞게 동기화 (placeholder, aria-label, Drawer 닫기 버튼)
+- ci(web): 버전 잠금 스크립트 React 19.2.1로 동기화 — PR #89
+
 ## 2025-12-04
 
 - feat(api): D-3/D-1 이벤트 예약 알림 발송 시스템 (APScheduler, 배치 발송, 관리자 API)

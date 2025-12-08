@@ -64,7 +64,7 @@ describe('BoardPage', () => {
       expect(screen.getByText('첫 번째 글')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('제목 또는 내용');
+    const searchInput = screen.getByPlaceholderText('검색');
     fireEvent.change(searchInput, { target: { value: 'Q&A' } });
 
     expect(screen.queryByText('첫 번째 글')).not.toBeInTheDocument();

@@ -24,8 +24,8 @@
 
 ## Frontend (apps/web)
 - next: 15.5.7
-- react: 19.1.1
-- react-dom: 19.1.1
+- react: 19.2.1
+- react-dom: 19.2.1
 
 ### Dev tools
 - typescript: 5.8.3
