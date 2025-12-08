@@ -5,11 +5,10 @@ import { vi } from 'vitest';
 import { SiteHeader } from '../components/site-header';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// DrawerMenu dynamic import mock
+// DrawerMenu dynamic import mock — 닫기 버튼은 실제 Drawer 헤더에서 제공
 vi.mock('../components/lazy', () => ({
-  LazyDrawerMenu: ({ onClose }: { onClose: () => void }) => (
+  LazyDrawerMenu: () => (
     <nav aria-label="전체 메뉴">
-      <button type="button" onClick={onClose}>닫기</button>
       <a href="/faq">FAQ</a>
       <a href="/about/greeting">인사말</a>
     </nav>
@@ -37,7 +36,7 @@ describe('SiteHeader drawer', () => {
     const dialog = await screen.findByRole('dialog', { name: '메뉴' });
     expect(dialog).toBeInTheDocument();
 
-    // 닫기 버튼 클릭
+    // 실제 Drawer 헤더의 닫기 버튼 클릭
     fireEvent.click(screen.getByRole('button', { name: '닫기' }));
 
     // Drawer 닫힘 확인
