@@ -95,7 +95,7 @@ async def get_comment_counts_batch(
 async def update_post(
     db: AsyncSession, post_id: int, payload: schemas.PostUpdate
 ) -> models.Post:
-    """게시물을 수정합니다. None이 아닌 필드만 업데이트합니다."""
+    """게시물을 수정합니다. 요청에 포함된 필드만 업데이트합니다 (None 포함)."""
     post = await get_post(db, post_id)  # NotFoundError if not exist
     update_data = payload.model_dump(exclude_unset=True, exclude={"unpublish"})
     # unpublish=True면 published_at을 None으로 설정

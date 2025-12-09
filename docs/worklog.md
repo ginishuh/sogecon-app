@@ -5,6 +5,7 @@
 - feat(web): /admin/posts 관리자 목록 페이지, /admin/posts/[id]/edit 수정 페이지 추가
 - feat(web): PostForm, ConfirmDialog, PostAdminActions 공용 컴포넌트 추가
 - test(api): 게시물 수정/삭제/관리자목록 API 테스트 16건 추가
+- fix(api,web): 리뷰 반영 — React 타입 import, 스키마 주석, 발행일 덮어쓰기 로직 수정
 
 ## 2025-12-08
 

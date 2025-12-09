@@ -1,5 +1,6 @@
 "use client";
 
+import type { MouseEvent } from 'react';
 import { useEffect, useRef } from 'react';
 
 type ConfirmDialogProps = {
@@ -62,7 +63,7 @@ export function ConfirmDialog({
   }, [onCancel]);
 
   // backdrop 클릭으로 닫기
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+  const handleBackdropClick = (e: MouseEvent<HTMLDialogElement>) => {
     const dialog = dialogRef.current;
     if (!dialog) return;
     const rect = dialog.getBoundingClientRect();

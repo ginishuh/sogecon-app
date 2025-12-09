@@ -158,20 +158,25 @@ class PostCreate(PostBase):
 
 
 class PostUpdate(BaseModel):
-    """게시물 수정용 스키마 (부분 업데이트)."""
+    """게시물 수정용 스키마 (부분 업데이트).
+
+    필드를 요청에 포함하지 않으면 해당 필드는 변경되지 않음.
+    포함된 필드는 None 포함 그대로 DB에 반영됨.
+    """
 
     title: str | None = None
     content: str | None = None
     category: str | None = None
     pinned: bool | None = None
     published_at: datetime | None = Field(
-        default=None, description="None 유지 → 변경 없음, 값 → 발행일시 설정"
+        default=None,
+        description="미포함→변경없음, 값→발행일시, null→비공개",
     )
     cover_image: str | None = None
     images: list[str] | None = None
-    # 명시적으로 비공개로 전환할 때 사용
     unpublish: bool = Field(
-        default=False, description="True면 published_at을 None으로 설정 (비공개 전환)"
+        default=False,
+        description="True면 published_at을 None으로 강제 설정 (비공개 전환)",
     )
 
 

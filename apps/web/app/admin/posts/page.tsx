@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import type { KeyboardEvent } from 'react';
 import { useState } from 'react';
 
 import { ConfirmDialog } from '../../../components/confirm-dialog';
@@ -97,7 +98,7 @@ export default function AdminPostsPage() {
     setPage(0);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
