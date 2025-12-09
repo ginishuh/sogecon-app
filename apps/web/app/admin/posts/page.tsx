@@ -11,22 +11,21 @@ import { useToast } from '../../../components/toast';
 import { useAuth } from '../../../hooks/useAuth';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
-import { deletePost, listAdminPosts, type Post, type AdminPostListParams } from '../../../services/posts';
+import {
+  deletePost,
+  listAdminPosts,
+  type Post,
+  type AdminPostListParams,
+} from '../../../services/posts';
 
 const PAGE_SIZE = 20;
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-}
+/* ─────────────────────────────────────────────────────────────────────────
+   Sub-components (complexity isolation)
+───────────────────────────────────────────────────────────────────────── */
 
-function StatusBadge({ post }: { post: Post }) {
-  if (post.published_at) {
+function StatusBadge({ published }: { published: boolean }) {
+  if (published) {
     return (
       <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
         공개
@@ -50,24 +49,206 @@ function CategoryBadge({ category }: { category: string | null | undefined }) {
   return <span className="text-xs text-slate-500">{label}</span>;
 }
 
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+}
+
+type FilterBarProps = {
+  categoryFilter: string;
+  onCategoryChange: (v: string) => void;
+  statusFilter: string;
+  onStatusChange: (v: string) => void;
+  searchInput: string;
+  onSearchInputChange: (v: string) => void;
+  onSearch: () => void;
+  onRefresh: () => void;
+};
+
+function FilterBar({
+  categoryFilter,
+  onCategoryChange,
+  statusFilter,
+  onStatusChange,
+  searchInput,
+  onSearchInputChange,
+  onSearch,
+  onRefresh,
+}: FilterBarProps) {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') onSearch();
+  };
+
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-3">
+      <select
+        className="rounded border border-slate-300 px-3 py-1.5 text-sm"
+        value={categoryFilter}
+        onChange={(e) => onCategoryChange(e.target.value)}
+      >
+        <option value="">전체 카테고리</option>
+        <option value="notice">공지</option>
+        <option value="news">소식</option>
+        <option value="hero">히어로</option>
+      </select>
+
+      <select
+        className="rounded border border-slate-300 px-3 py-1.5 text-sm"
+        value={statusFilter}
+        onChange={(e) => onStatusChange(e.target.value)}
+      >
+        <option value="">전체 상태</option>
+        <option value="published">공개</option>
+        <option value="draft">비공개</option>
+      </select>
+
+      <div className="flex">
+        <input
+          type="text"
+          className="rounded-l border border-r-0 border-slate-300 px-3 py-1.5 text-sm"
+          placeholder="검색어"
+          value={searchInput}
+          onChange={(e) => onSearchInputChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button
+          type="button"
+          className="rounded-r border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm hover:bg-slate-100"
+          onClick={onSearch}
+        >
+          검색
+        </button>
+      </div>
+
+      <button
+        type="button"
+        className="rounded border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
+        onClick={onRefresh}
+      >
+        새로고침
+      </button>
+    </div>
+  );
+}
+
+type PostTableRowProps = {
+  post: Post;
+  onDelete: (post: Post) => void;
+};
+
+function PostTableRow({ post, onDelete }: PostTableRowProps) {
+  return (
+    <tr className="border-b hover:bg-slate-50">
+      <td className="px-3 py-2">
+        <div className="flex items-center gap-2">
+          {post.pinned && <span title="고정됨">📌</span>}
+          <Link
+            href={`/posts/${post.id}`}
+            className="font-medium text-slate-900 hover:underline"
+          >
+            {post.title}
+          </Link>
+        </div>
+        {post.author_name && (
+          <div className="text-xs text-slate-500">{post.author_name}</div>
+        )}
+      </td>
+      <td className="px-3 py-2">
+        <CategoryBadge category={post.category} />
+      </td>
+      <td className="px-3 py-2">
+        <StatusBadge published={!!post.published_at} />
+      </td>
+      <td className="px-3 py-2 text-slate-600">{post.view_count ?? 0}</td>
+      <td className="px-3 py-2 text-slate-600">{post.comment_count ?? 0}</td>
+      <td className="px-3 py-2 text-slate-600">{formatDate(post.published_at)}</td>
+      <td className="px-3 py-2">
+        <div className="flex gap-2">
+          <Link
+            href={`/admin/posts/${post.id}/edit`}
+            className="text-slate-600 hover:text-slate-900"
+            title="수정"
+          >
+            ✏️
+          </Link>
+          <button
+            type="button"
+            className="text-slate-600 hover:text-red-600"
+            title="삭제"
+            onClick={() => onDelete(post)}
+          >
+            🗑️
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+type PaginationProps = {
+  page: number;
+  totalPages: number;
+  total: number;
+  onPrev: () => void;
+  onNext: () => void;
+};
+
+function Pagination({ page, totalPages, total, onPrev, onNext }: PaginationProps) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="mt-4 flex items-center justify-between">
+      <div className="text-sm text-slate-600">총 {total}건</div>
+      <div className="flex gap-1">
+        <button
+          type="button"
+          className="rounded border px-3 py-1 text-sm disabled:opacity-50"
+          disabled={page === 0}
+          onClick={onPrev}
+        >
+          이전
+        </button>
+        <span className="px-3 py-1 text-sm">
+          {page + 1} / {totalPages}
+        </span>
+        <button
+          type="button"
+          className="rounded border px-3 py-1 text-sm disabled:opacity-50"
+          disabled={page >= totalPages - 1}
+          onClick={onNext}
+        >
+          다음
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Main Page Component
+───────────────────────────────────────────────────────────────────────── */
+
 export default function AdminPostsPage() {
   const { status } = useAuth();
   const queryClient = useQueryClient();
   const { show } = useToast();
 
   const [page, setPage] = useState(0);
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<'published' | 'draft' | ''>('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
-
   const [deleteTarget, setDeleteTarget] = useState<Post | null>(null);
 
   const params: AdminPostListParams = {
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
     category: categoryFilter || undefined,
-    status: statusFilter || undefined,
+    status: (statusFilter as 'published' | 'draft') || undefined,
     q: searchQuery || undefined,
   };
 
@@ -85,11 +266,11 @@ export default function AdminPostsPage() {
       void queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
     },
     onError: (e: unknown) => {
-      if (e instanceof ApiError) {
-        show(apiErrorToMessage(e.code, e.message), { type: 'error' });
-      } else {
-        show('삭제 중 오류가 발생했습니다.', { type: 'error' });
-      }
+      const msg =
+        e instanceof ApiError
+          ? apiErrorToMessage(e.code, e.message)
+          : '삭제 중 오류가 발생했습니다.';
+      show(msg, { type: 'error' });
     },
   });
 
@@ -98,20 +279,28 @@ export default function AdminPostsPage() {
     setPage(0);
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
+  const handleCategoryChange = (v: string) => {
+    setCategoryFilter(v);
+    setPage(0);
+  };
+
+  const handleStatusChange = (v: string) => {
+    setStatusFilter(v);
+    setPage(0);
   };
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
 
   if (status !== 'authorized') {
-    return <div className="p-6 text-sm text-slate-600">관리자 로그인이 필요합니다.</div>;
+    return (
+      <div className="p-6 text-sm text-slate-600">관리자 로그인이 필요합니다.</div>
+    );
   }
 
   return (
-    <RequireAdmin fallback={<div className="p-6 text-sm text-slate-600">관리자 전용입니다.</div>}>
+    <RequireAdmin
+      fallback={<div className="p-6 text-sm text-slate-600">관리자 전용입니다.</div>}
+    >
       <div className="p-6">
         {/* 헤더 */}
         <div className="mb-6 flex items-center justify-between">
@@ -125,66 +314,24 @@ export default function AdminPostsPage() {
         </div>
 
         {/* 필터 */}
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <select
-            className="rounded border border-slate-300 px-3 py-1.5 text-sm"
-            value={categoryFilter}
-            onChange={(e) => {
-              setCategoryFilter(e.target.value);
-              setPage(0);
-            }}
-          >
-            <option value="">전체 카테고리</option>
-            <option value="notice">공지</option>
-            <option value="news">소식</option>
-            <option value="hero">히어로</option>
-          </select>
-
-          <select
-            className="rounded border border-slate-300 px-3 py-1.5 text-sm"
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value as 'published' | 'draft' | '');
-              setPage(0);
-            }}
-          >
-            <option value="">전체 상태</option>
-            <option value="published">공개</option>
-            <option value="draft">비공개</option>
-          </select>
-
-          <div className="flex">
-            <input
-              type="text"
-              className="rounded-l border border-r-0 border-slate-300 px-3 py-1.5 text-sm"
-              placeholder="검색어"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-            <button
-              type="button"
-              className="rounded-r border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm hover:bg-slate-100"
-              onClick={handleSearch}
-            >
-              검색
-            </button>
-          </div>
-
-          <button
-            type="button"
-            className="rounded border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
-            onClick={() => void refetch()}
-          >
-            새로고침
-          </button>
-        </div>
+        <FilterBar
+          categoryFilter={categoryFilter}
+          onCategoryChange={handleCategoryChange}
+          statusFilter={statusFilter}
+          onStatusChange={handleStatusChange}
+          searchInput={searchInput}
+          onSearchInputChange={setSearchInput}
+          onSearch={handleSearch}
+          onRefresh={() => void refetch()}
+        />
 
         {/* 테이블 */}
         {isLoading ? (
           <div className="py-8 text-center text-sm text-slate-500">로딩 중...</div>
         ) : isError ? (
-          <div className="py-8 text-center text-sm text-red-600">데이터를 불러올 수 없습니다.</div>
+          <div className="py-8 text-center text-sm text-red-600">
+            데이터를 불러올 수 없습니다.
+          </div>
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -202,50 +349,11 @@ export default function AdminPostsPage() {
                 </thead>
                 <tbody>
                   {data?.items.map((post) => (
-                    <tr key={post.id} className="border-b hover:bg-slate-50">
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-2">
-                          {post.pinned && <span title="고정됨">📌</span>}
-                          <Link
-                            href={`/posts/${post.id}`}
-                            className="font-medium text-slate-900 hover:underline"
-                          >
-                            {post.title}
-                          </Link>
-                        </div>
-                        {post.author_name && (
-                          <div className="text-xs text-slate-500">{post.author_name}</div>
-                        )}
-                      </td>
-                      <td className="px-3 py-2">
-                        <CategoryBadge category={post.category} />
-                      </td>
-                      <td className="px-3 py-2">
-                        <StatusBadge post={post} />
-                      </td>
-                      <td className="px-3 py-2 text-slate-600">{post.view_count ?? 0}</td>
-                      <td className="px-3 py-2 text-slate-600">{post.comment_count ?? 0}</td>
-                      <td className="px-3 py-2 text-slate-600">{formatDate(post.published_at)}</td>
-                      <td className="px-3 py-2">
-                        <div className="flex gap-2">
-                          <Link
-                            href={`/admin/posts/${post.id}/edit`}
-                            className="text-slate-600 hover:text-slate-900"
-                            title="수정"
-                          >
-                            ✏️
-                          </Link>
-                          <button
-                            type="button"
-                            className="text-slate-600 hover:text-red-600"
-                            title="삭제"
-                            onClick={() => setDeleteTarget(post)}
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                    <PostTableRow
+                      key={post.id}
+                      post={post}
+                      onDelete={setDeleteTarget}
+                    />
                   ))}
                   {data?.items.length === 0 && (
                     <tr>
@@ -259,34 +367,13 @@ export default function AdminPostsPage() {
             </div>
 
             {/* 페이지네이션 */}
-            {totalPages > 1 && (
-              <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-slate-600">
-                  총 {data?.total ?? 0}건
-                </div>
-                <div className="flex gap-1">
-                  <button
-                    type="button"
-                    className="rounded border px-3 py-1 text-sm disabled:opacity-50"
-                    disabled={page === 0}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  >
-                    이전
-                  </button>
-                  <span className="px-3 py-1 text-sm">
-                    {page + 1} / {totalPages}
-                  </span>
-                  <button
-                    type="button"
-                    className="rounded border px-3 py-1 text-sm disabled:opacity-50"
-                    disabled={page >= totalPages - 1}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
-                    다음
-                  </button>
-                </div>
-              </div>
-            )}
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              total={data?.total ?? 0}
+              onPrev={() => setPage((p) => Math.max(0, p - 1))}
+              onNext={() => setPage((p) => p + 1)}
+            />
           </>
         )}
 
@@ -299,9 +386,7 @@ export default function AdminPostsPage() {
           variant="danger"
           isPending={deleteMutation.isPending}
           onConfirm={() => {
-            if (deleteTarget) {
-              deleteMutation.mutate(deleteTarget.id);
-            }
+            if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
           }}
           onCancel={() => setDeleteTarget(null)}
         />

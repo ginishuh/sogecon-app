@@ -6,6 +6,8 @@
 - feat(web): PostForm, ConfirmDialog, PostAdminActions 공용 컴포넌트 추가
 - test(api): 게시물 수정/삭제/관리자목록 API 테스트 16건 추가
 - fix(api,web): 리뷰 반영 — React 타입 import, 스키마 주석, 발행일 덮어쓰기 로직 수정
+- refactor(web): PostForm/AdminPostsPage 복잡도 리팩토링 (ESLint complexity 10 이하)
+- chore(schemas): OpenAPI 스키마 업데이트 (PostUpdate 추가)
 
 ## 2025-12-08
 
