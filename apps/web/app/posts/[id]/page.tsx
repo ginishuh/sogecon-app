@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { PostAdminActions } from '../../../components/post-admin-actions';
 import { ApiError } from '../../../lib/api';
 import { getPost } from '../../../services/posts';
 
@@ -124,9 +125,12 @@ export default async function PostDetailPage({ params }: PageProps) {
     const post = await getPost(id);
     return (
       <article className="mx-auto max-w-3xl space-y-6 px-4 py-6">
-        <Link href="/posts" className="text-sm text-slate-600 hover:underline">
-          ← 목록으로 돌아가기
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link href="/posts" className="text-sm text-slate-600 hover:underline">
+            ← 목록으로 돌아가기
+          </Link>
+          <PostAdminActions postId={post.id} postTitle={post.title} />
+        </div>
 
         <PostHeader
           category={post.category}

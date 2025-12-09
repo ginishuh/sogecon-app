@@ -72,3 +72,32 @@ async def create_member_post(
         }
     )
     return await posts_repo.create_post(db, sanitized)
+
+
+async def update_admin_post(
+    db: AsyncSession,
+    post_id: int,
+    payload: schemas.PostUpdate,
+) -> models.Post:
+    """관리자가 게시물을 수정할 때 사용."""
+    return await posts_repo.update_post(db, post_id, payload)
+
+
+async def delete_admin_post(db: AsyncSession, post_id: int) -> int:
+    """관리자가 게시물을 삭제할 때 사용. 삭제된 게시물 ID를 반환."""
+    return await posts_repo.delete_post(db, post_id)
+
+
+async def list_admin_posts_with_total(
+    db: AsyncSession,
+    *,
+    limit: int,
+    offset: int,
+    filters: posts_repo.AdminPostFilters | None = None,
+) -> tuple[Sequence[models.Post], int]:
+    """관리자용 게시물 목록 + 총 개수를 반환."""
+    posts = await posts_repo.list_admin_posts(
+        db, limit=limit, offset=offset, filters=filters
+    )
+    total = await posts_repo.count_posts(db, filters=filters)
+    return posts, total

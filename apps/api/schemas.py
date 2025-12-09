@@ -157,6 +157,24 @@ class PostCreate(PostBase):
     author_id: int | None = None
 
 
+class PostUpdate(BaseModel):
+    """게시물 수정용 스키마 (부분 업데이트)."""
+
+    title: str | None = None
+    content: str | None = None
+    category: str | None = None
+    pinned: bool | None = None
+    published_at: datetime | None = Field(
+        default=None, description="None 유지 → 변경 없음, 값 → 발행일시 설정"
+    )
+    cover_image: str | None = None
+    images: list[str] | None = None
+    # 명시적으로 비공개로 전환할 때 사용
+    unpublish: bool = Field(
+        default=False, description="True면 published_at을 None으로 설정 (비공개 전환)"
+    )
+
+
 class PostRead(PostBase):
     id: int
     author_id: int

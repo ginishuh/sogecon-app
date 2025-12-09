@@ -143,3 +143,31 @@ async def create_post(
         )
 
     return schemas.PostRead.model_validate(post)
+
+
+@router.patch("/{post_id}", response_model=schemas.PostRead)
+async def update_post(
+    post_id: int,
+    payload: schemas.PostUpdate,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> schemas.PostRead:
+    """게시물 수정 (관리자 전용)."""
+    require_admin(request)
+    post = await posts_service.update_admin_post(db, post_id, payload)
+    post_read = schemas.PostRead.model_validate(post)
+    post_read.author_name = post.author.name if post.author else None
+    post_read.comment_count = await posts_repo.get_comment_count(db, cast(int, post.id))
+    return post_read
+
+
+@router.delete("/{post_id}")
+async def delete_post(
+    post_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, bool | int]:
+    """게시물 삭제 (관리자 전용)."""
+    require_admin(request)
+    deleted_id = await posts_service.delete_admin_post(db, post_id)
+    return {"ok": True, "deleted_id": deleted_id}
