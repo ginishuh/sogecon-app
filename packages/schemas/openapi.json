@@ -635,6 +635,109 @@
             }
           }
         }
+      },
+      "patch": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "Update Post",
+        "description": "\uac8c\uc2dc\ubb3c \uc218\uc815 (\uad00\ub9ac\uc790 \uc804\uc6a9).",
+        "operationId": "update_post_posts__post_id__patch",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Post Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "Delete Post",
+        "description": "\uac8c\uc2dc\ubb3c \uc0ad\uc81c (\uad00\ub9ac\uc790 \uc804\uc6a9).",
+        "operationId": "delete_post_posts__post_id__delete",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Post Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "title": "Response Delete Post Posts  Post Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/comments/": {
@@ -2031,10 +2134,139 @@
           }
         }
       }
+    },
+    "/admin/posts/": {
+      "get": {
+        "tags": [
+          "admin-posts"
+        ],
+        "summary": "List Admin Posts",
+        "description": "\uad00\ub9ac\uc790\uc6a9 \uac8c\uc2dc\ubb3c \ubaa9\ub85d (\ube44\uacf5\uac1c \ud3ec\ud568).",
+        "operationId": "list_admin_posts_admin_posts__get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(published|draft)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPostListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AdminPostListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PostRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "AdminPostListResponse",
+        "description": "\uad00\ub9ac\uc790 \uac8c\uc2dc\ubb3c \ubaa9\ub85d \uc751\ub2f5."
+      },
       "Body_upload_avatar_me_avatar_post": {
         "properties": {
           "avatar": {
@@ -3136,6 +3368,101 @@
           "author_id"
         ],
         "title": "PostRead"
+      },
+      "PostUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "pinned": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pinned"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At",
+            "description": "\ubbf8\ud3ec\ud568\u2192\ubcc0\uacbd\uc5c6\uc74c, \uac12\u2192\ubc1c\ud589\uc77c\uc2dc, null\u2192\ube44\uacf5\uac1c"
+          },
+          "cover_image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Image"
+          },
+          "images": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Images"
+          },
+          "unpublish": {
+            "type": "boolean",
+            "title": "Unpublish",
+            "description": "True\uba74 published_at\uc744 None\uc73c\ub85c \uac15\uc81c \uc124\uc815 (\ube44\uacf5\uac1c \uc804\ud658)",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "PostUpdate",
+        "description": "\uac8c\uc2dc\ubb3c \uc218\uc815\uc6a9 \uc2a4\ud0a4\ub9c8 (\ubd80\ubd84 \uc5c5\ub370\uc774\ud2b8).\n\n\ud544\ub4dc\ub97c \uc694\uccad\uc5d0 \ud3ec\ud568\ud558\uc9c0 \uc54a\uc73c\uba74 \ud574\ub2f9 \ud544\ub4dc\ub294 \ubcc0\uacbd\ub418\uc9c0 \uc54a\uc74c.\n\ud3ec\ud568\ub41c \ud544\ub4dc\ub294 None \ud3ec\ud568 \uadf8\ub300\ub85c DB\uc5d0 \ubc18\uc601\ub428."
       },
       "PruneLogsPayload": {
         "properties": {

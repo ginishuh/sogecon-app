@@ -102,10 +102,18 @@ export interface paths {
         get: operations["get_post_posts__post_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Post
+         * @description 게시물 삭제 (관리자 전용).
+         */
+        delete: operations["delete_post_posts__post_id__delete"];
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update Post
+         * @description 게시물 수정 (관리자 전용).
+         */
+        patch: operations["update_post_posts__post_id__patch"];
         trace?: never;
     };
     "/comments/": {
@@ -665,10 +673,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/posts/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Admin Posts
+         * @description 관리자용 게시물 목록 (비공개 포함).
+         */
+        get: operations["list_admin_posts_admin_posts__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AdminPostListResponse
+         * @description 관리자 게시물 목록 응답.
+         */
+        AdminPostListResponse: {
+            /** Items */
+            items: components["schemas"]["PostRead"][];
+            /** Total */
+            total: number;
+        };
         /** Body_upload_avatar_me_avatar_post */
         Body_upload_avatar_me_avatar_post: {
             /**
@@ -1019,6 +1057,38 @@ export interface components {
              * @default 0
              */
             comment_count: number;
+        };
+        /**
+         * PostUpdate
+         * @description 게시물 수정용 스키마 (부분 업데이트).
+         *
+         *     필드를 요청에 포함하지 않으면 해당 필드는 변경되지 않음.
+         *     포함된 필드는 None 포함 그대로 DB에 반영됨.
+         */
+        PostUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Content */
+            content?: string | null;
+            /** Category */
+            category?: string | null;
+            /** Pinned */
+            pinned?: boolean | null;
+            /**
+             * Published At
+             * @description 미포함→변경없음, 값→발행일시, null→비공개
+             */
+            published_at?: string | null;
+            /** Cover Image */
+            cover_image?: string | null;
+            /** Images */
+            images?: string[] | null;
+            /**
+             * Unpublish
+             * @description True면 published_at을 None으로 강제 설정 (비공개 전환)
+             * @default false
+             */
+            unpublish: boolean;
         };
         /** PruneLogsPayload */
         PruneLogsPayload: {
@@ -1463,6 +1533,74 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_post_posts__post_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean | number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_post_posts__post_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostUpdate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -2514,6 +2652,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImageUploadResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_admin_posts_admin_posts__get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                category?: string | null;
+                status?: string | null;
+                q?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPostListResponse"];
                 };
             };
             /** @description Validation Error */

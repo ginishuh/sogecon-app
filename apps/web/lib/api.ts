@@ -60,16 +60,10 @@ async function parseOk<T>(res: Response): Promise<T | void> {
   return (await res.json()) as T;
 }
 
-// DELETE 메서드는 void 반환
-export async function apiFetch(
-  path: string,
-  init: RequestInit & { method: 'DELETE' }
-): Promise<void>;
-
-// 나머지 메서드는 T 반환
+// 모든 HTTP 메서드에서 T 반환 (DELETE 포함)
 export async function apiFetch<T>(
   path: string,
-  init?: RequestInit & { method?: Exclude<HttpMethod, 'DELETE'> }
+  init?: RequestInit & { method?: HttpMethod }
 ): Promise<T>;
 
 // 구현

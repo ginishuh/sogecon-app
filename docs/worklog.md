@@ -1,3 +1,15 @@
+## 2025-12-09
+
+- feat(api,web): 게시물 관리 기능 추가 — 수정/삭제 API, 관리자 목록 페이지 (이슈 #87)
+- feat(api): PATCH /posts/{id}, DELETE /posts/{id}, GET /admin/posts 엔드포인트 추가
+- feat(web): /admin/posts 관리자 목록 페이지, /admin/posts/[id]/edit 수정 페이지 추가
+- feat(web): PostForm, ConfirmDialog, PostAdminActions 공용 컴포넌트 추가
+- test(api): 게시물 수정/삭제/관리자목록 API 테스트 16건 추가
+- fix(api,web): 리뷰 반영 — React 타입 import, 스키마 주석, 발행일 덮어쓰기 로직 수정
+- refactor(web): PostForm/AdminPostsPage 복잡도 리팩토링 (ESLint complexity 10 이하)
+- refactor(web): 복잡도 분리 — useFilters, useDeleteMutation, PostTableContent + 타입 수정
+- chore(schemas): OpenAPI 스키마 + index.d.ts 업데이트 (PostUpdate 추가)
+
 ## 2025-12-08
 
 - sec(web): React 19.2.1 업데이트 — CVE-2025-55182 (React2Shell) RCE 취약점 수정
