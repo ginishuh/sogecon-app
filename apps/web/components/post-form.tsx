@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MultiImageUpload } from './multi-image-upload';
 import type { Post } from '../services/posts';
 
@@ -26,32 +26,81 @@ type PostFormProps = {
 
 type CategoryType = 'notice' | 'news' | 'hero';
 
-/** 폼 상태 관리 훅 */
-function usePostFormState(initialData?: Post) {
-  const [title, setTitle] = useState(initialData?.title ?? '');
-  const [content, setContent] = useState(initialData?.content ?? '');
-  const [category, setCategory] = useState<CategoryType>(
-    (initialData?.category as CategoryType) ?? 'notice'
-  );
-  const [pinned, setPinned] = useState(initialData?.pinned ?? false);
-  const [coverImage, setCoverImage] = useState<string | null>(
-    initialData?.cover_image ?? null
-  );
-  const [images, setImages] = useState<string[]>(initialData?.images ?? []);
-  const [published, setPublished] = useState(
-    initialData ? initialData.published_at !== null : true
-  );
+const DEFAULT_VALUES = {
+  title: '',
+  content: '',
+  category: 'notice' as CategoryType,
+  pinned: false,
+  coverImage: null as string | null,
+  images: [] as string[],
+  published: true,
+};
 
+/** 초기 데이터에서 폼 기본값 추출 */
+function getInitialValues(initialData?: Post) {
+  if (!initialData) return DEFAULT_VALUES;
+  return {
+    title: initialData.title,
+    content: initialData.content,
+    category: (initialData.category as CategoryType) || 'notice',
+    pinned: initialData.pinned || false,
+    coverImage: initialData.cover_image ?? null,
+    images: initialData.images || [],
+    published: initialData.published_at !== null,
+  };
+}
+
+/** initialData 변경 시 상태 동기화 */
+function useSyncInitialData(
+  initialData: Post | undefined,
+  setters: {
+    setTitle: (v: string) => void;
+    setContent: (v: string) => void;
+    setCategory: (v: CategoryType) => void;
+    setPinned: (v: boolean) => void;
+    setCoverImage: (v: string | null) => void;
+    setImages: (v: string[]) => void;
+    setPublished: (v: boolean) => void;
+  }
+) {
   useEffect(() => {
     if (!initialData) return;
-    setTitle(initialData.title);
-    setContent(initialData.content);
-    setCategory((initialData.category as CategoryType) ?? 'notice');
-    setPinned(initialData.pinned ?? false);
-    setCoverImage(initialData.cover_image ?? null);
-    setImages(initialData.images ?? []);
-    setPublished(initialData.published_at !== null);
-  }, [initialData]);
+    const vals = getInitialValues(initialData);
+    setters.setTitle(vals.title);
+    setters.setContent(vals.content);
+    setters.setCategory(vals.category);
+    setters.setPinned(vals.pinned);
+    setters.setCoverImage(vals.coverImage);
+    setters.setImages(vals.images);
+    setters.setPublished(vals.published);
+  }, [initialData, setters]);
+}
+
+/** 폼 상태 관리 훅 */
+function usePostFormState(initialData?: Post) {
+  const init = getInitialValues(initialData);
+  const [title, setTitle] = useState(init.title);
+  const [content, setContent] = useState(init.content);
+  const [category, setCategory] = useState<CategoryType>(init.category);
+  const [pinned, setPinned] = useState(init.pinned);
+  const [coverImage, setCoverImage] = useState<string | null>(init.coverImage);
+  const [images, setImages] = useState<string[]>(init.images);
+  const [published, setPublished] = useState(init.published);
+
+  const setters = useMemo(
+    () => ({
+      setTitle,
+      setContent,
+      setCategory,
+      setPinned,
+      setCoverImage,
+      setImages,
+      setPublished,
+    }),
+    []
+  );
+
+  useSyncInitialData(initialData, setters);
 
   const getData = useCallback(
     (): PostFormData => ({
@@ -67,13 +116,20 @@ function usePostFormState(initialData?: Post) {
   );
 
   return {
-    title, setTitle,
-    content, setContent,
-    category, setCategory,
-    pinned, setPinned,
-    coverImage, setCoverImage,
-    images, setImages,
-    published, setPublished,
+    title,
+    setTitle,
+    content,
+    setContent,
+    category,
+    setCategory,
+    pinned,
+    setPinned,
+    coverImage,
+    setCoverImage,
+    images,
+    setImages,
+    published,
+    setPublished,
     getData,
   };
 }

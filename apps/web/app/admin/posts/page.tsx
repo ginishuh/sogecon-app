@@ -228,21 +228,129 @@ function Pagination({ page, totalPages, total, onPrev, onNext }: PaginationProps
   );
 }
 
+type PostTableContentProps = {
+  isLoading: boolean;
+  isError: boolean;
+  items: Post[] | undefined;
+  totalPages: number;
+  total: number;
+  page: number;
+  onDelete: (post: Post) => void;
+  onPrev: () => void;
+  onNext: () => void;
+};
+
+function PostTableContent({
+  isLoading,
+  isError,
+  items,
+  totalPages,
+  total,
+  page,
+  onDelete,
+  onPrev,
+  onNext,
+}: PostTableContentProps) {
+  if (isLoading) {
+    return <div className="py-8 text-center text-sm text-slate-500">로딩 중...</div>;
+  }
+  if (isError) {
+    return (
+      <div className="py-8 text-center text-sm text-red-600">
+        데이터를 불러올 수 없습니다.
+      </div>
+    );
+  }
+  return (
+    <>
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-left text-sm">
+          <thead>
+            <tr className="border-b bg-slate-50">
+              <th className="px-3 py-2 font-medium text-slate-700">제목</th>
+              <th className="px-3 py-2 font-medium text-slate-700">카테고리</th>
+              <th className="px-3 py-2 font-medium text-slate-700">상태</th>
+              <th className="px-3 py-2 font-medium text-slate-700">조회</th>
+              <th className="px-3 py-2 font-medium text-slate-700">댓글</th>
+              <th className="px-3 py-2 font-medium text-slate-700">발행일</th>
+              <th className="px-3 py-2 font-medium text-slate-700">액션</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items?.map((post) => (
+              <PostTableRow key={post.id} post={post} onDelete={onDelete} />
+            ))}
+            {items?.length === 0 && (
+              <tr>
+                <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
+                  게시물이 없습니다.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        onPrev={onPrev}
+        onNext={onNext}
+      />
+    </>
+  );
+}
+
 /* ─────────────────────────────────────────────────────────────────────────
-   Main Page Component
+   Custom Hooks (complexity isolation)
 ───────────────────────────────────────────────────────────────────────── */
 
-export default function AdminPostsPage() {
-  const { status } = useAuth();
+function useDeleteMutation(
+  onSuccessCallback: () => void,
+  showToast: (msg: string, opts: { type: 'success' | 'error' }) => void
+) {
   const queryClient = useQueryClient();
-  const { show } = useToast();
 
+  return useMutation({
+    mutationFn: (id: number) => deletePost(id),
+    onSuccess: () => {
+      showToast('게시물이 삭제되었습니다.', { type: 'success' });
+      onSuccessCallback();
+      void queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+    },
+    onError: (e: unknown) => {
+      const msg =
+        e instanceof ApiError
+          ? apiErrorToMessage(e.code, e.message)
+          : '삭제 중 오류가 발생했습니다.';
+      showToast(msg, { type: 'error' });
+    },
+  });
+}
+
+function useFilters() {
   const [page, setPage] = useState(0);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [deleteTarget, setDeleteTarget] = useState<Post | null>(null);
+
+  const resetPage = () => setPage(0);
+
+  const handleSearch = () => {
+    setSearchQuery(searchInput);
+    resetPage();
+  };
+
+  const handleCategoryChange = (v: string) => {
+    setCategoryFilter(v);
+    resetPage();
+  };
+
+  const handleStatusChange = (v: string) => {
+    setStatusFilter(v);
+    resetPage();
+  };
 
   const params: AdminPostListParams = {
     limit: PAGE_SIZE,
@@ -252,42 +360,38 @@ export default function AdminPostsPage() {
     q: searchQuery || undefined,
   };
 
+  return {
+    page,
+    setPage,
+    categoryFilter,
+    statusFilter,
+    searchInput,
+    setSearchInput,
+    params,
+    handleSearch,
+    handleCategoryChange,
+    handleStatusChange,
+  };
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Main Page Component
+───────────────────────────────────────────────────────────────────────── */
+
+export default function AdminPostsPage() {
+  const { status } = useAuth();
+  const { show } = useToast();
+  const filters = useFilters();
+  const [deleteTarget, setDeleteTarget] = useState<Post | null>(null);
+
+  const clearDeleteTarget = () => setDeleteTarget(null);
+  const deleteMutation = useDeleteMutation(clearDeleteTarget, show);
+
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['admin-posts', params],
-    queryFn: () => listAdminPosts(params),
+    queryKey: ['admin-posts', filters.params],
+    queryFn: () => listAdminPosts(filters.params),
     staleTime: 30_000,
   });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => deletePost(id),
-    onSuccess: () => {
-      show('게시물이 삭제되었습니다.', { type: 'success' });
-      setDeleteTarget(null);
-      void queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
-    },
-    onError: (e: unknown) => {
-      const msg =
-        e instanceof ApiError
-          ? apiErrorToMessage(e.code, e.message)
-          : '삭제 중 오류가 발생했습니다.';
-      show(msg, { type: 'error' });
-    },
-  });
-
-  const handleSearch = () => {
-    setSearchQuery(searchInput);
-    setPage(0);
-  };
-
-  const handleCategoryChange = (v: string) => {
-    setCategoryFilter(v);
-    setPage(0);
-  };
-
-  const handleStatusChange = (v: string) => {
-    setStatusFilter(v);
-    setPage(0);
-  };
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
 
@@ -315,67 +419,28 @@ export default function AdminPostsPage() {
 
         {/* 필터 */}
         <FilterBar
-          categoryFilter={categoryFilter}
-          onCategoryChange={handleCategoryChange}
-          statusFilter={statusFilter}
-          onStatusChange={handleStatusChange}
-          searchInput={searchInput}
-          onSearchInputChange={setSearchInput}
-          onSearch={handleSearch}
+          categoryFilter={filters.categoryFilter}
+          onCategoryChange={filters.handleCategoryChange}
+          statusFilter={filters.statusFilter}
+          onStatusChange={filters.handleStatusChange}
+          searchInput={filters.searchInput}
+          onSearchInputChange={filters.setSearchInput}
+          onSearch={filters.handleSearch}
           onRefresh={() => void refetch()}
         />
 
         {/* 테이블 */}
-        {isLoading ? (
-          <div className="py-8 text-center text-sm text-slate-500">로딩 중...</div>
-        ) : isError ? (
-          <div className="py-8 text-center text-sm text-red-600">
-            데이터를 불러올 수 없습니다.
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b bg-slate-50">
-                    <th className="px-3 py-2 font-medium text-slate-700">제목</th>
-                    <th className="px-3 py-2 font-medium text-slate-700">카테고리</th>
-                    <th className="px-3 py-2 font-medium text-slate-700">상태</th>
-                    <th className="px-3 py-2 font-medium text-slate-700">조회</th>
-                    <th className="px-3 py-2 font-medium text-slate-700">댓글</th>
-                    <th className="px-3 py-2 font-medium text-slate-700">발행일</th>
-                    <th className="px-3 py-2 font-medium text-slate-700">액션</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data?.items.map((post) => (
-                    <PostTableRow
-                      key={post.id}
-                      post={post}
-                      onDelete={setDeleteTarget}
-                    />
-                  ))}
-                  {data?.items.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
-                        게시물이 없습니다.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* 페이지네이션 */}
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              total={data?.total ?? 0}
-              onPrev={() => setPage((p) => Math.max(0, p - 1))}
-              onNext={() => setPage((p) => p + 1)}
-            />
-          </>
-        )}
+        <PostTableContent
+          isLoading={isLoading}
+          isError={isError}
+          items={data?.items}
+          totalPages={totalPages}
+          total={data?.total ?? 0}
+          page={filters.page}
+          onDelete={setDeleteTarget}
+          onPrev={() => filters.setPage((p) => Math.max(0, p - 1))}
+          onNext={() => filters.setPage((p) => p + 1)}
+        />
 
         {/* 삭제 확인 다이얼로그 */}
         <ConfirmDialog
@@ -388,7 +453,7 @@ export default function AdminPostsPage() {
           onConfirm={() => {
             if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
           }}
-          onCancel={() => setDeleteTarget(null)}
+          onCancel={clearDeleteTarget}
         />
       </div>
     </RequireAdmin>
