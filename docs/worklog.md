@@ -1,3 +1,7 @@
+## 2025-12-10
+
+- docs(env): 프로덕션 이미지 URL 설정 예시 추가 — MEDIA_URL_BASE, IMAGE_DOMAINS (#88)
+
 ## 2025-12-09
 
 - feat(api,web): 게시물 관리 기능 추가 — 수정/삭제 API, 관리자 목록 페이지 (이슈 #87)
