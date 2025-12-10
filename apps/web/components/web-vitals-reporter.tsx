@@ -24,7 +24,9 @@ function getDevice(): string {
 
 function post(body: string) {
   if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
-    navigator.sendBeacon(vitalsUrl, body);
+    // sendBeacon은 Blob으로 Content-Type 지정 필요
+    const blob = new Blob([body], { type: 'application/json' });
+    navigator.sendBeacon(vitalsUrl, blob);
   } else {
     void fetch(vitalsUrl, {
       method: 'POST',

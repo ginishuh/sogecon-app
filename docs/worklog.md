@@ -3,6 +3,14 @@
 - docs(env): 프로덕션 이미지 URL 설정 예시 추가 — MEDIA_URL_BASE, IMAGE_DOMAINS (#88)
 - fix(api): MEDIA_URL_BASE 절대 URL mount 경로 보정 — StaticFiles AssertionError 해결 (#88)
 - fix(web): Web Vitals 전송 URL을 API 베이스로 지정(/rum/vitals 404 수정) (#88)
+- feat(web): 게시판 이미지 갤러리 + 수정/삭제 기능 추가 (#88)
+- feat(web): ImageGallery 공유 컴포넌트 분리, board/posts 상세에 적용
+- feat(web): BoardPostActions 컴포넌트 — 작성자/관리자용 수정/삭제 버튼
+- feat(web): /board/[id]/edit 수정 페이지 추가 (PostForm hideAdminOptions prop)
+- feat(web): /posts 목록에 관리자 글쓰기 버튼 추가
+- fix(web): CSP img-src에 localhost 허용 (개발환경 이미지 로드)
+- fix(web): Web Vitals sendBeacon content-type Blob 래핑 (422 수정)
+- chore(compose): Docker dev에 MEDIA_URL_BASE, IMAGE_DOMAINS 환경변수 추가
 
 ## 2025-12-09
 

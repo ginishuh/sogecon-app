@@ -5,9 +5,14 @@ import dynamic from 'next/dynamic';
 import { ApiError } from '../../../lib/api';
 import { getPost } from '../../../services/posts';
 import { formatFullDate } from '../../../lib/date-utils';
+import { ImageGallery } from '../../../components/image-gallery';
 
 const CommentsSection = dynamic(
   () => import('../../../components/comments-section').then((mod) => ({ default: mod.CommentsSection }))
+);
+
+const BoardPostActions = dynamic(
+  () => import('../../../components/board-post-actions').then((mod) => ({ default: mod.BoardPostActions }))
 );
 
 type PageProps = {
@@ -54,7 +59,10 @@ export default async function BoardDetailPage({ params }: PageProps) {
           </header>
 
           {/* 본문 */}
-          <div className="px-6 py-8">
+          <div className="px-6 py-8 space-y-6">
+            {/* 이미지 갤러리 */}
+            <ImageGallery coverImage={post.cover_image} images={post.images} />
+
             <div className="prose prose-sm max-w-none">
               <div className="whitespace-pre-wrap text-[14px] leading-7 text-slate-800">
                 {post.content}
@@ -63,13 +71,14 @@ export default async function BoardDetailPage({ params }: PageProps) {
           </div>
 
           {/* 하단 버튼 영역 */}
-          <div className="border-t border-slate-200 bg-slate-50 px-6 py-3 flex justify-end gap-2">
+          <div className="border-t border-slate-200 bg-slate-50 px-6 py-3 flex justify-between">
             <Link
               href="/board"
               className="rounded border border-slate-300 bg-white px-4 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
             >
               목록
             </Link>
+            <BoardPostActions postId={id} postTitle={post.title} authorId={post.author_id} />
           </div>
         </article>
 

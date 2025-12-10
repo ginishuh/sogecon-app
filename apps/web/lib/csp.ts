@@ -58,7 +58,11 @@ function applyRelaxedDirectives(directives: Map<string, Set<string>>) {
   connectSrc?.add('ws:');
   LOCALHOST_ORIGINS.forEach((origin) => connectSrc?.add(origin));
 
-  directives.get('img-src')?.add('blob:');
+  const imgSrc = directives.get('img-src');
+  imgSrc?.add('blob:');
+  // 로컬 개발 시 API 서버에서 서빙하는 이미지 허용
+  LOCALHOST_ORIGINS.forEach((origin) => imgSrc?.add(origin));
+
   directives.get('worker-src')?.add('blob:');
 }
 

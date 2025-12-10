@@ -22,6 +22,8 @@ type PostFormProps = {
   error?: string | null;
   onSubmit: (data: PostFormData) => void;
   onCancel?: () => void;
+  /** 관리자 전용 옵션 숨김 (카테고리, 공개 상태, 상단 고정) - 일반 사용자 수정 시 */
+  hideAdminOptions?: boolean;
 };
 
 type CategoryType = 'notice' | 'news' | 'hero';
@@ -142,6 +144,7 @@ export function PostForm({
   error = null,
   onSubmit,
   onCancel,
+  hideAdminOptions = false,
 }: PostFormProps) {
   const state = usePostFormState(initialData);
   const handleSubmit = () => onSubmit(state.getData());
@@ -149,7 +152,10 @@ export function PostForm({
 
   return (
     <div className="space-y-4">
-      <CategoryField value={state.category} onChange={state.setCategory} />
+      {/* 관리자 전용: 카테고리 선택 */}
+      {!hideAdminOptions && (
+        <CategoryField value={state.category} onChange={state.setCategory} />
+      )}
       <TitleField value={state.title} onChange={state.setTitle} />
       <ImageField
         category={state.category}
@@ -161,8 +167,14 @@ export function PostForm({
         maxImages={maxImages}
       />
       <ContentField value={state.content} onChange={state.setContent} />
-      <PublishField value={state.published} onChange={state.setPublished} />
-      <PinnedField value={state.pinned} onChange={state.setPinned} />
+      {/* 관리자 전용: 공개 상태 */}
+      {!hideAdminOptions && (
+        <PublishField value={state.published} onChange={state.setPublished} />
+      )}
+      {/* 관리자 전용: 상단 고정 */}
+      {!hideAdminOptions && (
+        <PinnedField value={state.pinned} onChange={state.setPinned} />
+      )}
       {error && <ErrorMessage message={error} />}
       <FormButtons
         onCancel={onCancel}
