@@ -4,7 +4,10 @@ import { useEffect } from 'react';
 import type { Metric } from 'web-vitals';
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
-const url = '/rum/vitals';
+const apiBase = process.env.NEXT_PUBLIC_WEB_API_BASE ?? '';
+const vitalsUrl = apiBase
+  ? `${apiBase.replace(/\/$/, '')}/rum/vitals`
+  : '/rum/vitals';
 
 function getNavType(): string | undefined {
   if (typeof performance === 'undefined') return undefined;
@@ -21,9 +24,14 @@ function getDevice(): string {
 
 function post(body: string) {
   if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
-    navigator.sendBeacon(url, body);
+    navigator.sendBeacon(vitalsUrl, body);
   } else {
-    void fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+    void fetch(vitalsUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+    });
   }
 }
 

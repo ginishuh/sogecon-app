@@ -2,6 +2,7 @@
 
 - docs(env): 프로덕션 이미지 URL 설정 예시 추가 — MEDIA_URL_BASE, IMAGE_DOMAINS (#88)
 - fix(api): MEDIA_URL_BASE 절대 URL mount 경로 보정 — StaticFiles AssertionError 해결 (#88)
+- fix(web): Web Vitals 전송 URL을 API 베이스로 지정(/rum/vitals 404 수정) (#88)
 
 ## 2025-12-09
 
