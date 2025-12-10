@@ -5,6 +5,7 @@ from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal, cast
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -94,8 +95,11 @@ app.add_middleware(
 
 media_root = Path(settings.media_root)
 media_root.mkdir(parents=True, exist_ok=True)
+media_mount_path = urlsplit(settings.media_url_base).path or "/"
+if not media_mount_path.startswith("/"):
+    media_mount_path = f"/{media_mount_path}"
 app.mount(
-    settings.media_url_base,
+    media_mount_path,
     StaticFiles(directory=str(media_root)),
     name="media",
 )
