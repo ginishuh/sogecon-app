@@ -1,6 +1,7 @@
 ## 2025-12-10
 
 - docs(env): 프로덕션 이미지 URL 설정 예시 추가 — MEDIA_URL_BASE, IMAGE_DOMAINS (#88)
+- fix(api): MEDIA_URL_BASE 절대 URL mount 경로 보정 — StaticFiles AssertionError 해결 (#88)
 
 ## 2025-12-09
 
