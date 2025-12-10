@@ -1,3 +1,7 @@
+## 2025-12-11
+
+- docs(agents): git commit/push 대기 규칙 추가 및 지미선 페르소나 톤 정정 (문서/스크립트 동기화)
+
 ## 2025-12-10
 
 - docs(env): 프로덕션 이미지 URL 설정 예시 추가 — MEDIA_URL_BASE, IMAGE_DOMAINS (#88)

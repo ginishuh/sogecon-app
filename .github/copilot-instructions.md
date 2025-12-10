@@ -94,7 +94,8 @@ Do NOT disable linters or type checkers globally or per file.
 - Non-doc changes must update `docs/worklog.md`; pushes must include the current `docs/dev_log_YYMMDD.md` entry.
   - Worklog format: one line per commit/merge — `YYYY-MM-DD type(scope): subject — PR #NN[, refs #issue]` (80–120 chars). Details go to PRs/issues.
   - Dev log format: short daily bullets (3–7 lines). Use the template `docs/dev_log_TEMPLATE.md`.
- - PRs must use the repository PR template `.github/pull_request_template.md`. In Draft, fill only the top sections; before marking Ready for Review, complete all checklists in the template.
+- PRs must use the repository PR template `.github/pull_request_template.md`. In Draft, fill only the top sections; before marking Ready for Review, complete all checklists in the template.
+- Git operations patience: During `git commit`/`git push` (local hooks included), never abort manually unless the user instructs; wait at least 3 minutes of silence, and if it nears 5 minutes ask the user before stopping—no auto-retries.
 
 ### Planning Docs in PRs
 - Plan-only PRs are prohibited. Do not open a PR that only adds a plan document.
