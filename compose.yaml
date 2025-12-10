@@ -30,6 +30,7 @@ services:
       DATABASE_URL: postgresql+psycopg://app:devpass@postgres:5432/appdb
       CORS_ORIGINS: '["http://localhost:3000"]'
       JWT_SECRET: change-me
+      MEDIA_URL_BASE: http://localhost:3001/media
     volumes:
       - ./apps/api:/app/apps/api:cached
       - ./uploads:/app/uploads
@@ -55,6 +56,7 @@ services:
       NEXT_PUBLIC_API_INTERNAL_URL: http://api_dev:3001
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
       NEXT_PUBLIC_ENABLE_SW: "0"
+      NEXT_PUBLIC_IMAGE_DOMAINS: localhost
       # corepack/pnpm가 root 권한 없이도 동작하도록 임시 홈/캐시 경로 지정
       HOME: /tmp/devhome
       COREPACK_HOME: /tmp/devhome/corepack

@@ -22,6 +22,8 @@ type PostFormProps = {
   error?: string | null;
   onSubmit: (data: PostFormData) => void;
   onCancel?: () => void;
+  /** 관리자 전용 옵션 숨김 (카테고리, 공개 상태, 상단 고정) - 일반 사용자 수정 시 */
+  hideAdminOptions?: boolean;
 };
 
 type CategoryType = 'notice' | 'news' | 'hero';
@@ -134,6 +136,42 @@ function usePostFormState(initialData?: Post) {
   };
 }
 
+/** 히어로 카테고리 최대 이미지 수 */
+function getMaxImages(category: CategoryType): number {
+  return category === 'hero' ? 5 : 10;
+}
+
+/** 관리자 전용 상단 필드 (카테고리) */
+function AdminTopFields({
+  category,
+  setCategory,
+}: {
+  category: CategoryType;
+  setCategory: (v: CategoryType) => void;
+}) {
+  return <CategoryField value={category} onChange={setCategory} />;
+}
+
+/** 관리자 전용 하단 필드 (공개상태 + 핀) */
+function AdminBottomFields({
+  published,
+  setPublished,
+  pinned,
+  setPinned,
+}: {
+  published: boolean;
+  setPublished: (v: boolean) => void;
+  pinned: boolean;
+  setPinned: (v: boolean) => void;
+}) {
+  return (
+    <>
+      <PublishField value={published} onChange={setPublished} />
+      <PinnedField value={pinned} onChange={setPinned} />
+    </>
+  );
+}
+
 export function PostForm({
   initialData,
   submitLabel = '저장',
@@ -142,14 +180,17 @@ export function PostForm({
   error = null,
   onSubmit,
   onCancel,
+  hideAdminOptions = false,
 }: PostFormProps) {
   const state = usePostFormState(initialData);
   const handleSubmit = () => onSubmit(state.getData());
-  const maxImages = state.category === 'hero' ? 5 : 10;
+  const showAdminFields = !hideAdminOptions;
 
   return (
     <div className="space-y-4">
-      <CategoryField value={state.category} onChange={state.setCategory} />
+      {showAdminFields && (
+        <AdminTopFields category={state.category} setCategory={state.setCategory} />
+      )}
       <TitleField value={state.title} onChange={state.setTitle} />
       <ImageField
         category={state.category}
@@ -158,11 +199,17 @@ export function PostForm({
         onCoverChange={state.setCoverImage}
         onImagesChange={state.setImages}
         disabled={isPending}
-        maxImages={maxImages}
+        maxImages={getMaxImages(state.category)}
       />
       <ContentField value={state.content} onChange={state.setContent} />
-      <PublishField value={state.published} onChange={state.setPublished} />
-      <PinnedField value={state.pinned} onChange={state.setPinned} />
+      {showAdminFields && (
+        <AdminBottomFields
+          published={state.published}
+          setPublished={state.setPublished}
+          pinned={state.pinned}
+          setPinned={state.setPinned}
+        />
+      )}
       {error && <ErrorMessage message={error} />}
       <FormButtons
         onCancel={onCancel}

@@ -1,11 +1,13 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
+
+import { useAuth } from '../../hooks/useAuth';
+import { splitPinned } from '../../lib/posts';
 import { listPosts, type Post } from '../../services/posts';
 import { PostCard } from '../../components/post-card';
-import { useMemo, useState } from 'react';
-import { splitPinned } from '../../lib/posts';
-import Link from 'next/link';
 
 function PinnedList({ posts, limit, onViewAll }: { posts: Post[]; limit: number; onViewAll: () => void }) {
   const toShow = posts.slice(0, limit);
@@ -47,7 +49,6 @@ function PostsList({ posts, category, setCategory }: { posts: Post[]; category: 
   const showPinnedSection = (category === 'all' || category === 'notice') && pinned.length > 0;
   return (
     <section className="space-y-4">
-      <h2 className="text-xl font-semibold">공지/소식</h2>
       <div className="flex items-center gap-2 text-sm">
         <button onClick={() => setCategory('all')} className={`rounded px-2 py-1 ${category==='all'?'bg-slate-900 text-white':'border'}`}>전체</button>
         <button onClick={() => setCategory('notice')} className={`rounded px-2 py-1 ${category==='notice'?'bg-slate-900 text-white':'border'}`}>공지</button>
@@ -80,6 +81,23 @@ function PostsList({ posts, category, setCategory }: { posts: Post[]; category: 
   );
 }
 
+function WriteButton() {
+  const { data: auth } = useAuth();
+  if (auth?.kind !== 'admin') return null;
+  return (
+    <Link
+      href="/posts/new"
+      className="inline-flex items-center gap-1 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-primary/90"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      글쓰기
+    </Link>
+  );
+}
+
 export default function PostsPage() {
   const [category, setCategory] = useState<'all'|'notice'|'news'>('all');
   const query = useQuery<Post[]>({
@@ -100,9 +118,18 @@ export default function PostsPage() {
   if (category === 'all') {
     posts = posts.filter((p) => (p.category ?? '') !== 'hero');
   }
-  if (posts.length === 0) {
-    return <p>게시글이 아직 없습니다.</p>;
-  }
 
-  return <PostsList posts={posts} category={category} setCategory={setCategory} />;
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">공지/소식</h1>
+        <WriteButton />
+      </div>
+      {posts.length === 0 ? (
+        <p>게시글이 아직 없습니다.</p>
+      ) : (
+        <PostsList posts={posts} category={category} setCategory={setCategory} />
+      )}
+    </div>
+  );
 }
