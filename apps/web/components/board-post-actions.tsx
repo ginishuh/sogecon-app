@@ -43,7 +43,7 @@ export function BoardPostActions({ postId, postTitle, authorId }: BoardPostActio
   });
 
   // 작성자 본인 또는 관리자만 표시
-  const isAuthor = auth?.member_id === authorId;
+  const isAuthor = auth?.id === authorId;
   const isAdmin = auth?.kind === 'admin';
   if (!isAuthor && !isAdmin) {
     return null;

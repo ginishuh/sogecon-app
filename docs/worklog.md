@@ -11,6 +11,9 @@
 - fix(web): CSP img-src에 localhost 허용 (개발환경 이미지 로드)
 - fix(web): Web Vitals sendBeacon content-type Blob 래핑 (422 수정)
 - chore(compose): Docker dev에 MEDIA_URL_BASE, IMAGE_DOMAINS 환경변수 추가
+- fix(web): 리뷰 반영 — hideAdminOptions 조건부 전달, auth 상태 분기 처리
+- fix(web): 공개 상태 변경 로직 수정 (published → unpublish/published_at)
+- fix(web): Session 타입 오류 수정 (member_id → id)
 
 ## 2025-12-09
 
