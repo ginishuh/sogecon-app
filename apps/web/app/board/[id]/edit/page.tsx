@@ -9,7 +9,58 @@ import { useToast } from '../../../../components/toast';
 import { useAuth } from '../../../../hooks/useAuth';
 import { ApiError } from '../../../../lib/api';
 import { apiErrorToMessage } from '../../../../lib/error-map';
-import { getPost, updatePost } from '../../../../services/posts';
+import { getPost, updatePost, type Post } from '../../../../services/posts';
+
+/** 상태 메시지 컴포넌트 */
+function StatusMessage({ text, error = false }: { text: string; error?: boolean }) {
+  const color = error ? 'text-red-600' : 'text-slate-500';
+  return <div className={`p-6 text-sm ${color}`}>{text}</div>;
+}
+
+/** mutation 에러 핸들러 (복잡도 분리) */
+function createErrorHandler(
+  show: (msg: string, opts?: { type?: 'success' | 'info' | 'error'; durationMs?: number }) => void
+) {
+  return (e: unknown) => {
+    if (e instanceof ApiError) {
+      show(apiErrorToMessage(e.code, e.message), { type: 'error' });
+    } else {
+      show('수정 중 오류가 발생했습니다.', { type: 'error' });
+    }
+  };
+}
+
+/** 에러 메시지 반환 (복잡도 분리) */
+function getErrorMessage(error: unknown): string | null {
+  return error ? '수정 중 오류가 발생했습니다.' : null;
+}
+
+/** 수정 요청 payload 생성 (복잡도 분리) */
+function buildUpdatePayload(
+  data: PostFormData,
+  post: Post | undefined,
+  isAdmin: boolean
+): Parameters<typeof updatePost>[1] {
+  const payload: Parameters<typeof updatePost>[1] = {
+    title: data.title,
+    content: data.content,
+    cover_image: data.cover_image ?? undefined,
+    images: data.images.length > 0 ? data.images : undefined,
+  };
+  if (!isAdmin) return payload;
+
+  // 관리자만 카테고리/공개/핀 수정 가능
+  payload.category = data.category;
+  payload.pinned = data.pinned;
+  // 공개 상태 변경 로직
+  const wasPublished = !!post?.published_at;
+  if (wasPublished && !data.published) {
+    payload.unpublish = true;
+  } else if (!wasPublished && data.published) {
+    payload.published_at = new Date().toISOString();
+  }
+  return payload;
+}
 
 export default function BoardEditPage() {
   const { data: auth, status } = useAuth();
@@ -30,69 +81,27 @@ export default function BoardEditPage() {
   const isAdmin = auth?.kind === 'admin';
 
   const mutation = useMutation({
-    mutationFn: (data: PostFormData) => {
-      // 기본 필드
-      const payload: Parameters<typeof updatePost>[1] = {
-        title: data.title,
-        content: data.content,
-        cover_image: data.cover_image ?? undefined,
-        images: data.images.length > 0 ? data.images : undefined,
-      };
-      // 관리자만 카테고리/공개/핀 수정 가능
-      if (isAdmin) {
-        payload.category = data.category;
-        payload.pinned = data.pinned;
-        // 공개 상태 변경 로직
-        const wasPublished = !!post?.published_at;
-        const wantPublished = data.published;
-        if (wasPublished && !wantPublished) {
-          payload.unpublish = true;
-        } else if (!wasPublished && wantPublished) {
-          payload.published_at = new Date().toISOString();
-        }
-      }
-      return updatePost(postId, payload);
-    },
+    mutationFn: (data: PostFormData) => updatePost(postId, buildUpdatePayload(data, post, isAdmin)),
     onSuccess: () => {
       show('게시글이 수정되었습니다.', { type: 'success' });
       void queryClient.invalidateQueries({ queryKey: ['post', postId] });
       void queryClient.invalidateQueries({ queryKey: ['board'] });
       router.push(`/board/${postId}`);
     },
-    onError: (e: unknown) => {
-      if (e instanceof ApiError) {
-        show(apiErrorToMessage(e.code, e.message), { type: 'error' });
-      } else {
-        show('수정 중 오류가 발생했습니다.', { type: 'error' });
-      }
-    },
+    onError: createErrorHandler(show),
   });
 
   // 인증 상태 로딩 중
-  if (status === 'loading') {
-    return <div className="p-6 text-sm text-slate-500">로딩 중...</div>;
-  }
-
+  if (status === 'loading') return <StatusMessage text="로딩 중..." />;
   // 미로그인
-  if (status === 'unauthorized') {
-    return <div className="p-6 text-sm text-slate-600">로그인이 필요합니다.</div>;
-  }
-
+  if (status === 'unauthorized') return <StatusMessage text="로그인이 필요합니다." />;
   // 게시글 로딩 중
-  if (isLoading) {
-    return <div className="p-6 text-sm text-slate-500">게시글 로딩 중...</div>;
-  }
-
+  if (isLoading) return <StatusMessage text="게시글 로딩 중..." />;
   // 에러 또는 게시글 없음
-  if (isError || !post) {
-    return <div className="p-6 text-sm text-red-600">게시글을 불러올 수 없습니다.</div>;
-  }
-
+  if (isError || !post) return <StatusMessage text="게시글을 불러올 수 없습니다." error />;
   // 권한 체크: 작성자 본인 또는 관리자만
-  const isAuthor = auth?.id === post.author_id;
-  if (!isAuthor && !isAdmin) {
-    return <div className="p-6 text-sm text-red-600">수정 권한이 없습니다.</div>;
-  }
+  const canEdit = auth?.id === post.author_id || isAdmin;
+  if (!canEdit) return <StatusMessage text="수정 권한이 없습니다." error />;
 
   return (
     <div className="mx-auto max-w-2xl p-6">
@@ -116,7 +125,7 @@ export default function BoardEditPage() {
         submitLabel="수정"
         loadingLabel="수정 중..."
         isPending={mutation.isPending}
-        error={mutation.error ? '수정 중 오류가 발생했습니다.' : null}
+        error={getErrorMessage(mutation.error)}
         onSubmit={(data) => mutation.mutate(data)}
         onCancel={() => router.push(`/board/${postId}`)}
         hideAdminOptions={!isAdmin}
