@@ -227,6 +227,14 @@ class EventRead(EventBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class EventUpdate(BaseModel):
+    title: str | None = None
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    location: str | None = None
+    capacity: int | None = None
+
+
 class RSVPBase(BaseModel):
     member_id: int
     event_id: int

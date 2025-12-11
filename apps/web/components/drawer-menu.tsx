@@ -26,6 +26,8 @@ const SUPPORT_LINKS: LinkItem[] = [
 ];
 
 const ADMIN_LINKS: LinkItem[] = [
+  { href: '/admin/posts', label: '게시물 관리' },
+  { href: '/admin/events', label: '행사 관리' },
   { href: '/admin/notifications', label: '알림 관리' },
   { href: '/posts/new', label: '새 글 작성' },
   { href: '/events/new', label: '새 행사 생성' }

@@ -1020,3 +1020,4 @@
 2025-12-04 fix(api,web): 관리자 글 작성 세션 ID/보안 수정 — PR #86
 2025-12-04 fix(api): 관리자 member 레코드 필수 + 댓글 author_id 서버 주입 — PR #86
 2025-12-04 fix(api,web): 댓글 레거시 세션 호환 + 에러 매핑 추가 — PR #86
+2025-12-11 feat(api,web): admin event CRUD & tests — PR draft

@@ -19,6 +19,19 @@ export async function listEvents(params: { limit?: number; offset?: number } = {
   return apiFetch<Event[]>(`/events/${qs ? `?${qs}` : ''}`);
 }
 
+export type AdminEventListResponse = {
+  items: Event[];
+  total: number;
+};
+
+export async function listAdminEvents(params: { limit?: number; offset?: number } = {}): Promise<AdminEventListResponse> {
+  const q = new URLSearchParams();
+  if (params.limit != null) q.set('limit', String(params.limit));
+  if (params.offset != null) q.set('offset', String(params.offset));
+  const qs = q.toString();
+  return apiFetch<AdminEventListResponse>(`/admin/events/${qs ? `?${qs}` : ''}`);
+}
+
 export async function getEvent(id: number): Promise<Event> {
   return apiFetch<Event>(`/events/${id}`);
 }
@@ -44,4 +57,25 @@ export async function createEvent(payload: {
   capacity: number;
 }): Promise<Event> {
   return apiFetch<Event>(`/events/`, { method: 'POST', body: JSON.stringify(payload) });
+}
+
+export type UpdateEventPayload = {
+  title?: string;
+  starts_at?: string;
+  ends_at?: string;
+  location?: string;
+  capacity?: number;
+};
+
+export async function updateAdminEvent(id: number, payload: UpdateEventPayload): Promise<Event> {
+  return apiFetch<Event>(`/admin/events/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteAdminEvent(id: number): Promise<{ deleted_id: number }> {
+  // 204 반환이지만 호환을 위해 최소 객체를 기대
+  await apiFetch<void>(`/admin/events/${id}`, { method: 'DELETE' });
+  return { deleted_id: id };
 }
