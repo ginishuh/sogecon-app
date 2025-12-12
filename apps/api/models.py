@@ -160,6 +160,7 @@ class Event(Base):
 
     id = Column(Integer, primary_key=True)
     title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
     starts_at = Column(DateTime(timezone=True), nullable=False)
     ends_at = Column(DateTime(timezone=True), nullable=False)
     location = Column(String(255), nullable=False)

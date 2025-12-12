@@ -77,6 +77,7 @@ async def list_admin_events(
             schemas.EventAdminRead(
                 id=cast(int, evt.id),
                 title=cast(str, evt.title),
+                description=cast(str | None, evt.description),
                 starts_at=cast(datetime, evt.starts_at),
                 ends_at=cast(datetime, evt.ends_at),
                 location=cast(str, evt.location),

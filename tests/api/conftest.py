@@ -55,6 +55,11 @@ def client(tmp_path: Path) -> Generator[TestClient, None, None]:
 
     # 동기 엔진으로 테이블 생성 (metadata.create_all은 동기만 지원)
     sync_engine = create_engine(engine_url)
+    # PostgreSQL ENUM 타입은 create_all 과정에서 누락될 수 있어 선행 생성합니다.
+    models.Member.__table__.c.visibility.type.create(
+        bind=sync_engine, checkfirst=True
+    )
+    models.RSVP.__table__.c.status.type.create(bind=sync_engine, checkfirst=True)
     models.Base.metadata.create_all(bind=sync_engine)
 
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -68,6 +73,8 @@ def client(tmp_path: Path) -> Generator[TestClient, None, None]:
     # cleanup
     app.dependency_overrides.pop(get_db, None)
     models.Base.metadata.drop_all(bind=sync_engine)
+    models.RSVP.__table__.c.status.type.drop(bind=sync_engine, checkfirst=True)
+    models.Member.__table__.c.visibility.type.drop(bind=sync_engine, checkfirst=True)
     sync_engine.dispose()
     asyncio.run(async_engine.dispose())
 

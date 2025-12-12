@@ -28,6 +28,7 @@ function fromLocalInput(v: string) {
 type FormState = {
   title: string;
   location: string;
+  description: string;
   capacity: number | '';
   startsAt: string;
   endsAt: string;
@@ -75,6 +76,17 @@ function EventForm({
           className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
           value={state.location}
           onChange={(e) => onChange({ location: e.currentTarget.value })}
+        />
+      </label>
+
+      <label className="block text-sm text-slate-700">
+        내용
+        <textarea
+          className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+          rows={6}
+          placeholder="행사 소개/공지 내용을 입력하세요."
+          value={state.description}
+          onChange={(e) => onChange({ description: e.currentTarget.value })}
         />
       </label>
 
@@ -154,6 +166,7 @@ export default function AdminEventEditPage() {
   const [form, setForm] = useState<FormState>({
     title: '',
     location: '',
+    description: '',
     capacity: '',
     startsAt: '',
     endsAt: '',
@@ -165,6 +178,7 @@ export default function AdminEventEditPage() {
       setForm({
         title: data.title,
         location: data.location,
+        description: data.description ?? '',
         capacity: data.capacity,
         startsAt: toLocalInput(data.starts_at),
         endsAt: toLocalInput(data.ends_at),
@@ -177,6 +191,7 @@ export default function AdminEventEditPage() {
       await updateAdminEvent(eventId, {
         title: form.title,
         location: form.location,
+        description: form.description.trim() ? form.description.trim() : null,
         capacity: typeof form.capacity === 'number' ? form.capacity : undefined,
         starts_at: form.startsAt ? fromLocalInput(form.startsAt) : undefined,
         ends_at: form.endsAt ? fromLocalInput(form.endsAt) : undefined,

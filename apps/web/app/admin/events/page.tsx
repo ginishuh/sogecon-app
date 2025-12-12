@@ -369,7 +369,7 @@ export default function AdminEventsPage() {
           </div>
           <Link
             href="/events/new"
-            className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            className="rounded bg-brand-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-primaryDark active:bg-brand-primaryDark hover:text-white active:text-white visited:text-white hover:no-underline active:no-underline"
           >
             + 새 행사 생성
           </Link>
