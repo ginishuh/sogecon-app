@@ -4,18 +4,18 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { ConfirmDialog } from '../../../../components/confirm-dialog';
-import { RequireAdmin } from '../../../../components/require-admin';
-import { useAuth } from '../../../../hooks/useAuth';
-import { useToast } from '../../../../components/toast';
-import { ApiError } from '../../../../lib/api';
-import { apiErrorToMessage } from '../../../../lib/error-map';
+import { ConfirmDialog } from '../../../../../components/confirm-dialog';
+import { RequireAdmin } from '../../../../../components/require-admin';
+import { useAuth } from '../../../../../hooks/useAuth';
+import { useToast } from '../../../../../components/toast';
+import { ApiError } from '../../../../../lib/api';
+import { apiErrorToMessage } from '../../../../../lib/error-map';
 import {
   getEvent,
   updateAdminEvent,
   deleteAdminEvent,
   type Event,
-} from '../../../../services/events';
+} from '../../../../../services/events';
 
 function toLocalInput(dt: string) {
   return new Date(dt).toISOString().slice(0, 16);
@@ -32,6 +32,14 @@ type FormState = {
   startsAt: string;
   endsAt: string;
 };
+
+function isFormDisabled(form: FormState, isSaving: boolean, isDeleting: boolean): boolean {
+  if (isSaving || isDeleting) return true;
+  if (!form.title.trim() || !form.location.trim()) return true;
+  if (typeof form.capacity !== 'number') return true;
+  if (!form.startsAt || !form.endsAt) return true;
+  return false;
+}
 
 function EventForm({
   state,
@@ -198,13 +206,7 @@ export default function AdminEventEditPage() {
   });
 
   const disabled =
-    updateMutation.isPending ||
-    deleteMutation.isPending ||
-    !form.title ||
-    !form.location ||
-    typeof form.capacity !== 'number' ||
-    !form.startsAt ||
-    !form.endsAt;
+    isFormDisabled(form, updateMutation.isPending, deleteMutation.isPending);
 
   if (!Number.isFinite(eventId)) {
     return notFound();
