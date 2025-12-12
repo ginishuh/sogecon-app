@@ -19,6 +19,7 @@ export default function NewEventPage() {
   const [capacity, setCapacity] = useState<number | ''>('' as const);
   const [startsAt, setStartsAt] = useState('');
   const [endsAt, setEndsAt] = useState('');
+  const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { show } = useToast();
@@ -27,6 +28,7 @@ export default function NewEventPage() {
     mutationFn: () =>
       createEvent({
         title,
+        description: description.trim() ? description.trim() : undefined,
         location,
         capacity: Number(capacity),
         starts_at: new Date(startsAt).toISOString(),
@@ -79,6 +81,16 @@ export default function NewEventPage() {
         <label className="block text-sm">
           장소
           <input className="mt-1 w-full rounded border px-2 py-1" value={location} onChange={(e) => setLocation(e.currentTarget.value)} />
+        </label>
+        <label className="block text-sm">
+          내용
+          <textarea
+            className="mt-1 w-full rounded border px-2 py-1"
+            rows={6}
+            placeholder="행사 소개/공지 내용을 입력하세요."
+            value={description}
+            onChange={(e) => setDescription(e.currentTarget.value)}
+          />
         </label>
         <label className="block text-sm">
           정원

@@ -817,6 +817,8 @@ export interface components {
         EventAdminRead: {
             /** Title */
             title: string;
+            /** Description */
+            description?: string | null;
             /**
              * Starts At
              * Format: date-time
@@ -839,6 +841,8 @@ export interface components {
         EventCreate: {
             /** Title */
             title: string;
+            /** Description */
+            description?: string | null;
             /**
              * Starts At
              * Format: date-time
@@ -858,6 +862,8 @@ export interface components {
         EventRead: {
             /** Title */
             title: string;
+            /** Description */
+            description?: string | null;
             /**
              * Starts At
              * Format: date-time
@@ -879,6 +885,8 @@ export interface components {
         EventUpdate: {
             /** Title */
             title?: string | null;
+            /** Description */
+            description?: string | null;
             /** Starts At */
             starts_at?: string | null;
             /** Ends At */

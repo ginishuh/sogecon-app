@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { useState } from 'react';
 import { getEvent, type Event, upsertEventRsvp, type RSVPLiteral } from '../../../services/events';
@@ -8,6 +9,7 @@ import { getRsvp, type RSVP } from '../../../services/rsvps';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
 import { useToast } from '../../../components/toast';
+import { useAuth } from '../../../hooks/useAuth';
 
 export default function EventDetailPage() {
   const params = useParams<{ id: string }>();
@@ -42,83 +44,143 @@ export default function EventDetailPage() {
         <p>정원: {event.capacity}명</p>
       </div>
 
+      {event.description && (
+        <div className="rounded-md border bg-white p-4 text-sm whitespace-pre-wrap text-slate-800">
+          {event.description}
+        </div>
+      )}
+
       <RsvpPanel eventId={id} />
     </section>
+  );
+}
+
+function statusToLabel(status: RSVP['status']): string {
+  if (status === 'going') return '참석';
+  if (status === 'waitlist') return '대기';
+  return '취소';
+}
+
+function getMemberId(sessionId: unknown): number | null {
+  return typeof sessionId === 'number' ? sessionId : null;
+}
+
+function makeRsvpQueryFn(memberId: number | null, eventId: number) {
+  return () => {
+    if (memberId == null) {
+      throw new Error('member_id_missing');
+    }
+    return getRsvp(memberId, eventId);
+  };
+}
+
+function makeRsvpMutationFn(memberId: number | null, eventId: number) {
+  return async (status: RSVPLiteral) => {
+    if (memberId == null) {
+      throw new Error('member_id_missing');
+    }
+    await upsertEventRsvp(eventId, memberId, status);
+  };
+}
+
+function errorToMessage(e: unknown): string {
+  if (e instanceof ApiError) {
+    return apiErrorToMessage(e.code, e.message);
+  }
+  return '알 수 없는 오류';
+}
+
+function getCurrentStatusText(query: { isSuccess: boolean; isLoading: boolean; data?: RSVP }): string {
+  if (query.isSuccess && query.data) {
+    return statusToLabel(query.data.status);
+  }
+  if (query.isLoading) return '조회 중…';
+  return '미신청';
+}
+
+function RsvpStatusBlock({
+  isAuthorized,
+  statusText,
+  eventId,
+}: {
+  isAuthorized: boolean;
+  statusText: string;
+  eventId: number;
+}) {
+  if (!isAuthorized) {
+    return (
+      <p className="text-sm text-slate-600">
+        참여 신청은 로그인 후 가능합니다.{' '}
+        <Link className="underline" href={`/login?next=/events/${eventId}`}>
+          로그인하기
+        </Link>
+      </p>
+    );
+  }
+  return (
+    <p className="text-xs text-slate-600">
+      현재 상태: {statusText}
+    </p>
   );
 }
 
 function RsvpPanel({ eventId }: { eventId: number }) {
   const qc = useQueryClient();
   const { show } = useToast();
-  const [memberId, setMemberId] = useState<number | ''>('' as const);
+  const { status: authStatus, data: session } = useAuth();
+  const memberId = getMemberId(session?.id);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const isAuthorized = authStatus === 'authorized' && memberId != null;
 
   const rsvpQuery = useQuery<RSVP>({
     queryKey: ['rsvp', eventId, memberId],
-    queryFn: () => getRsvp(Number(memberId), eventId),
-    enabled: typeof memberId === 'number'
+    queryFn: makeRsvpQueryFn(memberId, eventId),
+    enabled: isAuthorized,
+    retry: false,
   });
 
   const mutate = useMutation({
-    mutationFn: (status: RSVPLiteral) => upsertEventRsvp(eventId, Number(memberId), status),
+    mutationFn: makeRsvpMutationFn(memberId, eventId),
     onSuccess: async () => {
-      setMessage('RSVP가 저장되었습니다.');
+      setMessage('참여 신청이 저장되었습니다.');
       setError(null);
-      show('RSVP가 저장되었습니다.', { type: 'success' });
+      show('참여 신청이 저장되었습니다.', { type: 'success' });
       await qc.invalidateQueries({ queryKey: ['rsvp', eventId, memberId] });
     },
     onError: (e: unknown) => {
-      if (e instanceof ApiError) {
-        const msg = apiErrorToMessage(e.code, e.message);
-        setError(msg);
-        show(msg, { type: 'error' });
-      } else {
-        setError('알 수 없는 오류');
-        show('알 수 없는 오류', { type: 'error' });
-      }
+      const msg = errorToMessage(e);
+      setError(msg);
+      show(msg, { type: 'error' });
       setMessage(null);
     }
   });
 
+  const statusText = getCurrentStatusText(rsvpQuery);
+
   return (
     <div className="rounded-md border p-4 space-y-3">
-      <h3 className="font-semibold">RSVP</h3>
-      <label className="block text-sm">
-        회원 ID
-        <input
-          className="mt-1 w-40 rounded border px-2 py-1"
-          type="number"
-          inputMode="numeric"
-          value={memberId}
-          onChange={(e) => setMemberId(e.currentTarget.value === '' ? '' : Number(e.currentTarget.value))}
-        />
-      </label>
-
-      {typeof memberId === 'number' && (
-        <p className="text-xs text-slate-600">
-          현재 상태: {rsvpQuery.isSuccess ? rsvpQuery.data.status : rsvpQuery.isLoading ? '조회 중…' : '없음'}
-        </p>
-      )}
+      <h3 className="font-semibold">참여 신청</h3>
+      <RsvpStatusBlock isAuthorized={isAuthorized} statusText={statusText} eventId={eventId} />
 
       <div className="flex gap-2">
         <button
           className="rounded bg-emerald-600 px-3 py-1 text-white disabled:opacity-50"
-          disabled={mutate.isPending || typeof memberId !== 'number'}
+          disabled={mutate.isPending || !isAuthorized}
           onClick={() => mutate.mutate('going')}
         >
           참석
         </button>
         <button
           className="rounded bg-amber-600 px-3 py-1 text-white disabled:opacity-50"
-          disabled={mutate.isPending || typeof memberId !== 'number'}
+          disabled={mutate.isPending || !isAuthorized}
           onClick={() => mutate.mutate('waitlist')}
         >
           대기
         </button>
         <button
           className="rounded bg-slate-600 px-3 py-1 text-white disabled:opacity-50"
-          disabled={mutate.isPending || typeof memberId !== 'number'}
+          disabled={mutate.isPending || !isAuthorized}
           onClick={() => mutate.mutate('cancel')}
         >
           취소

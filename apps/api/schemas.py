@@ -221,6 +221,7 @@ class CommentRead(CommentBase):
 
 class EventBase(BaseModel):
     title: str
+    description: str | None = None
     starts_at: datetime
     ends_at: datetime
     location: str
@@ -255,6 +256,7 @@ class EventAdminRead(EventRead):
 
 class EventUpdate(BaseModel):
     title: str | None = None
+    description: str | None = None
     starts_at: datetime | None = None
     ends_at: datetime | None = None
     location: str | None = None
