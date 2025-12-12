@@ -1024,3 +1024,4 @@
 2025-12-12 fix(web): admin 행사 수정 페이지 import/complexity 린트 오류 해결 — PR draft
 2025-12-12 feat(api,web): admin 행사 목록 검색/필터 및 참여 현황 집계 추가 — PR draft
 2025-12-12 fix(ci,api,web): CI python/web 실패(테스트/번들사이즈) 정리 — PR draft
+2025-12-12 fix(web): Next.js 15.5.8 보안 패치 업그레이드 — PR draft
