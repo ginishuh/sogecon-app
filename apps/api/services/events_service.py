@@ -32,6 +32,22 @@ async def list_events_with_total(
     return await events_repo.list_events_with_total(db, limit=limit, offset=offset)
 
 
+async def list_admin_events_with_total(
+    db: AsyncSession,
+    *,
+    limit: int,
+    offset: int,
+    filters: schemas.AdminEventListFilters | None = None,
+) -> tuple[Sequence[tuple[models.Event, int, int, int]], int]:
+    """관리자 행사 목록(필터/검색/참여 집계 포함)."""
+    return await events_repo.list_admin_events_with_total(
+        db,
+        limit=limit,
+        offset=offset,
+        filters=filters,
+    )
+
+
 async def update_event(
     db: AsyncSession, event_id: int, payload: schemas.EventUpdate
 ) -> models.Event:

@@ -11,6 +11,16 @@ export type Event = {
   capacity: number;
 };
 
+export type RsvpCounts = {
+  going: number;
+  waitlist: number;
+  cancel: number;
+};
+
+export type AdminEvent = Event & {
+  rsvp_counts: RsvpCounts;
+};
+
 export async function listEvents(params: { limit?: number; offset?: number } = {}): Promise<Event[]> {
   const q = new URLSearchParams();
   if (params.limit != null) q.set('limit', String(params.limit));
@@ -20,14 +30,27 @@ export async function listEvents(params: { limit?: number; offset?: number } = {
 }
 
 export type AdminEventListResponse = {
-  items: Event[];
+  items: AdminEvent[];
   total: number;
 };
 
-export async function listAdminEvents(params: { limit?: number; offset?: number } = {}): Promise<AdminEventListResponse> {
+export type AdminEventListParams = {
+  limit?: number;
+  offset?: number;
+  q?: string;
+  date_from?: string;
+  date_to?: string;
+  status?: 'upcoming' | 'ongoing' | 'ended';
+};
+
+export async function listAdminEvents(params: AdminEventListParams = {}): Promise<AdminEventListResponse> {
   const q = new URLSearchParams();
   if (params.limit != null) q.set('limit', String(params.limit));
   if (params.offset != null) q.set('offset', String(params.offset));
+  if (params.q) q.set('q', params.q);
+  if (params.date_from) q.set('date_from', params.date_from);
+  if (params.date_to) q.set('date_to', params.date_to);
+  if (params.status) q.set('status', params.status);
   const qs = q.toString();
   return apiFetch<AdminEventListResponse>(`/admin/events/${qs ? `?${qs}` : ''}`);
 }

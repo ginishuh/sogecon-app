@@ -19,6 +19,7 @@ from .config import get_settings
 
 VisibilityLiteral = Literal["all", "cohort", "private"]
 RSVPLiteral = Literal["going", "waitlist", "cancel"]
+EventStatusLiteral = Literal["upcoming", "ongoing", "ended"]
 
 _PHONE_PATTERN = re.compile(r'^[0-9+\-\s]{7,20}$')
 _TEXT_LIMITS: dict[str, tuple[int, int, str]] = {
@@ -142,6 +143,15 @@ class MemberListFilters(TypedDict, total=False):
     sort: str
 
 
+class AdminEventListFilters(TypedDict, total=False):
+    """관리자 행사 목록 필터(내부용)."""
+
+    q: str
+    date_from: datetime
+    date_to: datetime
+    status: EventStatusLiteral
+
+
 class PostBase(BaseModel):
     title: str
     content: str
@@ -223,6 +233,22 @@ class EventCreate(EventBase):
 
 class EventRead(EventBase):
     id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RSVPCounts(BaseModel):
+    """행사별 참여 현황 집계."""
+
+    going: int = 0
+    waitlist: int = 0
+    cancel: int = 0
+
+
+class EventAdminRead(EventRead):
+    """관리자 행사 목록 전용 응답 (참여 집계 포함)."""
+
+    rsvp_counts: RSVPCounts
 
     model_config = ConfigDict(from_attributes=True)
 

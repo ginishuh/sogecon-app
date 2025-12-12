@@ -2272,6 +2272,79 @@
               "default": 0,
               "title": "Offset"
             }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "upcoming",
+                    "ongoing",
+                    "ended"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
           }
         ],
         "responses": {
@@ -2390,7 +2463,7 @@
         "properties": {
           "items": {
             "items": {
-              "$ref": "#/components/schemas/EventRead"
+              "$ref": "#/components/schemas/EventAdminRead"
             },
             "type": "array",
             "title": "Items"
@@ -2593,6 +2666,51 @@
           "body"
         ],
         "title": "ContactPayload"
+      },
+      "EventAdminRead": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "capacity": {
+            "type": "integer",
+            "title": "Capacity"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "rsvp_counts": {
+            "$ref": "#/components/schemas/RSVPCounts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "starts_at",
+          "ends_at",
+          "location",
+          "capacity",
+          "id",
+          "rsvp_counts"
+        ],
+        "title": "EventAdminRead",
+        "description": "\uad00\ub9ac\uc790 \ud589\uc0ac \ubaa9\ub85d \uc804\uc6a9 \uc751\ub2f5 (\ucc38\uc5ec \uc9d1\uacc4 \ud3ec\ud568)."
       },
       "EventCreate": {
         "properties": {
@@ -3699,6 +3817,28 @@
         },
         "type": "object",
         "title": "PruneLogsPayload"
+      },
+      "RSVPCounts": {
+        "properties": {
+          "going": {
+            "type": "integer",
+            "title": "Going",
+            "default": 0
+          },
+          "waitlist": {
+            "type": "integer",
+            "title": "Waitlist",
+            "default": 0
+          },
+          "cancel": {
+            "type": "integer",
+            "title": "Cancel",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "RSVPCounts",
+        "description": "\ud589\uc0ac\ubcc4 \ucc38\uc5ec \ud604\ud669 \uc9d1\uacc4."
       },
       "RSVPCreate": {
         "properties": {

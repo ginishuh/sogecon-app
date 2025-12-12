@@ -1022,3 +1022,4 @@
 2025-12-04 fix(api,web): 댓글 레거시 세션 호환 + 에러 매핑 추가 — PR #86
 2025-12-11 feat(api,web): admin event CRUD & tests — PR draft
 2025-12-12 fix(web): admin 행사 수정 페이지 import/complexity 린트 오류 해결 — PR draft
+2025-12-12 feat(api,web): admin 행사 목록 검색/필터 및 참여 현황 집계 추가 — PR draft

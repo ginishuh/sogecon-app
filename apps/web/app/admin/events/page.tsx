@@ -12,9 +12,116 @@ import {
   deleteAdminEvent,
   listAdminEvents,
   type AdminEventListResponse,
+  type AdminEventListParams,
 } from '../../../services/events';
 
 const PAGE_SIZE = 20;
+
+type StatusFilter = 'all' | NonNullable<AdminEventListParams['status']>;
+
+function toIsoStart(date: string) {
+  return `${date}T00:00:00Z`;
+}
+
+function toIsoEnd(date: string) {
+  return `${date}T23:59:59Z`;
+}
+
+function buildListParams(
+  page: number,
+  query: string,
+  statusFilter: StatusFilter,
+  dateFrom: string,
+  dateTo: string
+): AdminEventListParams {
+  const offset = page * PAGE_SIZE;
+  return {
+    limit: PAGE_SIZE,
+    offset,
+    q: query.trim() || undefined,
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    date_from: dateFrom ? toIsoStart(dateFrom) : undefined,
+    date_to: dateTo ? toIsoEnd(dateTo) : undefined,
+  };
+}
+
+function FiltersBar({
+  query,
+  status,
+  dateFrom,
+  dateTo,
+  onChangeQuery,
+  onChangeStatus,
+  onChangeDateFrom,
+  onChangeDateTo,
+  onClear,
+}: {
+  query: string;
+  status: StatusFilter;
+  dateFrom: string;
+  dateTo: string;
+  onChangeQuery: (v: string) => void;
+  onChangeStatus: (v: StatusFilter) => void;
+  onChangeDateFrom: (v: string) => void;
+  onChangeDateTo: (v: string) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="mb-4 flex flex-col gap-3 rounded border border-slate-200 bg-white p-3 md:flex-row md:items-end md:gap-4">
+      <label className="flex flex-col gap-1 text-xs text-slate-600">
+        제목 검색
+        <input
+          className="rounded border border-slate-300 px-3 py-2 text-sm"
+          placeholder="행사 제목"
+          value={query}
+          onChange={(e) => onChangeQuery(e.currentTarget.value)}
+        />
+      </label>
+
+      <label className="flex flex-col gap-1 text-xs text-slate-600">
+        상태
+        <select
+          className="rounded border border-slate-300 px-3 py-2 text-sm"
+          value={status}
+          onChange={(e) => onChangeStatus(e.currentTarget.value as StatusFilter)}
+        >
+          <option value="all">전체</option>
+          <option value="upcoming">예정</option>
+          <option value="ongoing">진행 중</option>
+          <option value="ended">종료</option>
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-1 text-xs text-slate-600">
+        시작일(이후)
+        <input
+          className="rounded border border-slate-300 px-3 py-2 text-sm"
+          type="date"
+          value={dateFrom}
+          onChange={(e) => onChangeDateFrom(e.currentTarget.value)}
+        />
+      </label>
+
+      <label className="flex flex-col gap-1 text-xs text-slate-600">
+        종료일(이전)
+        <input
+          className="rounded border border-slate-300 px-3 py-2 text-sm"
+          type="date"
+          value={dateTo}
+          onChange={(e) => onChangeDateTo(e.currentTarget.value)}
+        />
+      </label>
+
+      <button
+        type="button"
+        className="self-start rounded border px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 md:self-auto"
+        onClick={onClear}
+      >
+        초기화
+      </button>
+    </div>
+  );
+}
 
 function formatRange(startsAt: string, endsAt: string) {
   const start = new Date(startsAt);
@@ -88,6 +195,7 @@ function EventTable({
             <th className="px-3 py-2 font-medium text-slate-700">제목 / 일정</th>
             <th className="px-3 py-2 font-medium text-slate-700">장소</th>
             <th className="px-3 py-2 font-medium text-slate-700">정원</th>
+            <th className="px-3 py-2 font-medium text-slate-700">참여 현황</th>
             <th className="px-3 py-2 font-medium text-slate-700">상태</th>
             <th className="px-3 py-2 font-medium text-slate-700 text-right">액션</th>
           </tr>
@@ -95,13 +203,13 @@ function EventTable({
         <tbody>
           {isLoading ? (
             <tr>
-              <td colSpan={5} className="px-3 py-8 text-center text-slate-500">
+              <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
                 로딩 중...
               </td>
             </tr>
           ) : isError ? (
             <tr>
-              <td colSpan={5} className="px-3 py-8 text-center text-red-600">
+              <td colSpan={6} className="px-3 py-8 text-center text-red-600">
                 데이터를 불러올 수 없습니다.
               </td>
             </tr>
@@ -123,6 +231,12 @@ function EventTable({
                 </td>
                 <td className="px-3 py-2 text-slate-700">{evt.location}</td>
                 <td className="px-3 py-2 text-slate-700">{evt.capacity}</td>
+                <td className="px-3 py-2">
+                  <div className="text-xs text-slate-600">
+                    참석 {evt.rsvp_counts.going} · 대기 {evt.rsvp_counts.waitlist} · 취소{' '}
+                    {evt.rsvp_counts.cancel}
+                  </div>
+                </td>
                 <td className="px-3 py-2">
                   <StatusBadge startsAt={evt.starts_at} endsAt={evt.ends_at} />
                 </td>
@@ -153,7 +267,7 @@ function EventTable({
             ))
           ) : (
             <tr>
-              <td colSpan={5} className="px-3 py-8 text-center text-slate-500">
+              <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
                 등록된 행사가 없습니다.
               </td>
             </tr>
@@ -209,14 +323,19 @@ function Pagination({
 export default function AdminEventsPage() {
   const { status } = useAuth();
   const [page, setPage] = useState(0);
-  const offset = page * PAGE_SIZE;
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<EventRow | null>(null);
   const toast = useToast();
   const queryClient = useQueryClient();
 
+  const listParams = buildListParams(page, query, statusFilter, dateFrom, dateTo);
+
   const { data, isLoading, isError, isFetching } = useQuery<AdminEventListResponse>({
-    queryKey: ['admin-events', page],
-    queryFn: () => listAdminEvents({ limit: PAGE_SIZE, offset }),
+    queryKey: ['admin-events', page, listParams.q, listParams.status, dateFrom, dateTo],
+    queryFn: () => listAdminEvents(listParams),
     staleTime: 10_000,
   });
 
@@ -255,6 +374,36 @@ export default function AdminEventsPage() {
             + 새 행사 생성
           </Link>
         </div>
+
+        <FiltersBar
+          query={query}
+          status={statusFilter}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onChangeQuery={(v) => {
+            setQuery(v);
+            setPage(0);
+          }}
+          onChangeStatus={(v) => {
+            setStatusFilter(v);
+            setPage(0);
+          }}
+          onChangeDateFrom={(v) => {
+            setDateFrom(v);
+            setPage(0);
+          }}
+          onChangeDateTo={(v) => {
+            setDateTo(v);
+            setPage(0);
+          }}
+          onClear={() => {
+            setQuery('');
+            setStatusFilter('all');
+            setDateFrom('');
+            setDateTo('');
+            setPage(0);
+          }}
+        />
 
         <EventTable
           items={items}

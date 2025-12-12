@@ -735,7 +735,7 @@ export interface components {
         /** AdminEventListResponse */
         AdminEventListResponse: {
             /** Items */
-            items: components["schemas"]["EventRead"][];
+            items: components["schemas"]["EventAdminRead"][];
             /** Total */
             total: number;
         };
@@ -809,6 +809,31 @@ export interface components {
             contact?: string | null;
             /** Hp */
             hp?: string | null;
+        };
+        /**
+         * EventAdminRead
+         * @description 관리자 행사 목록 전용 응답 (참여 집계 포함).
+         */
+        EventAdminRead: {
+            /** Title */
+            title: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /** Location */
+            location: string;
+            /** Capacity */
+            capacity: number;
+            /** Id */
+            id: number;
+            rsvp_counts: components["schemas"]["RSVPCounts"];
         };
         /** EventCreate */
         EventCreate: {
@@ -1152,6 +1177,27 @@ export interface components {
              * @default 30
              */
             older_than_days: number;
+        };
+        /**
+         * RSVPCounts
+         * @description 행사별 참여 현황 집계.
+         */
+        RSVPCounts: {
+            /**
+             * Going
+             * @default 0
+             */
+            going: number;
+            /**
+             * Waitlist
+             * @default 0
+             */
+            waitlist: number;
+            /**
+             * Cancel
+             * @default 0
+             */
+            cancel: number;
         };
         /** RSVPCreate */
         RSVPCreate: {
@@ -2760,6 +2806,10 @@ export interface operations {
             query?: {
                 limit?: number;
                 offset?: number;
+                q?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                status?: ("upcoming" | "ongoing" | "ended") | null;
             };
             header?: never;
             path?: never;
