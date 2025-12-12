@@ -2241,10 +2241,245 @@
           }
         }
       }
+    },
+    "/admin/events/": {
+      "get": {
+        "tags": [
+          "admin-events"
+        ],
+        "summary": "List Admin Events",
+        "operationId": "list_admin_events_admin_events__get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "upcoming",
+                    "ongoing",
+                    "ended"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminEventListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/events/{event_id}": {
+      "patch": {
+        "tags": [
+          "admin-events"
+        ],
+        "summary": "Update Admin Event",
+        "operationId": "update_admin_event_admin_events__event_id__patch",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "admin-events"
+        ],
+        "summary": "Delete Admin Event",
+        "operationId": "delete_admin_event_admin_events__event_id__delete",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AdminEventListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EventAdminRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "AdminEventListResponse"
+      },
       "AdminPostListResponse": {
         "properties": {
           "items": {
@@ -2432,6 +2667,51 @@
         ],
         "title": "ContactPayload"
       },
+      "EventAdminRead": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "capacity": {
+            "type": "integer",
+            "title": "Capacity"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "rsvp_counts": {
+            "$ref": "#/components/schemas/RSVPCounts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "starts_at",
+          "ends_at",
+          "location",
+          "capacity",
+          "id",
+          "rsvp_counts"
+        ],
+        "title": "EventAdminRead",
+        "description": "\uad00\ub9ac\uc790 \ud589\uc0ac \ubaa9\ub85d \uc804\uc6a9 \uc751\ub2f5 (\ucc38\uc5ec \uc9d1\uacc4 \ud3ec\ud568)."
+      },
       "EventCreate": {
         "properties": {
           "title": {
@@ -2506,6 +2786,69 @@
           "id"
         ],
         "title": "EventRead"
+      },
+      "EventUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "starts_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capacity"
+          }
+        },
+        "type": "object",
+        "title": "EventUpdate"
       },
       "HTTPValidationError": {
         "properties": {
@@ -3474,6 +3817,28 @@
         },
         "type": "object",
         "title": "PruneLogsPayload"
+      },
+      "RSVPCounts": {
+        "properties": {
+          "going": {
+            "type": "integer",
+            "title": "Going",
+            "default": 0
+          },
+          "waitlist": {
+            "type": "integer",
+            "title": "Waitlist",
+            "default": 0
+          },
+          "cancel": {
+            "type": "integer",
+            "title": "Cancel",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "RSVPCounts",
+        "description": "\ud589\uc0ac\ubcc4 \ucc38\uc5ec \ud604\ud669 \uc9d1\uacc4."
       },
       "RSVPCreate": {
         "properties": {

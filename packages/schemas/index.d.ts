@@ -693,10 +693,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/events/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Admin Events */
+        get: operations["list_admin_events_admin_events__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/events/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Admin Event */
+        delete: operations["delete_admin_event_admin_events__event_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Admin Event */
+        patch: operations["update_admin_event_admin_events__event_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdminEventListResponse */
+        AdminEventListResponse: {
+            /** Items */
+            items: components["schemas"]["EventAdminRead"][];
+            /** Total */
+            total: number;
+        };
         /**
          * AdminPostListResponse
          * @description 관리자 게시물 목록 응답.
@@ -768,6 +810,31 @@ export interface components {
             /** Hp */
             hp?: string | null;
         };
+        /**
+         * EventAdminRead
+         * @description 관리자 행사 목록 전용 응답 (참여 집계 포함).
+         */
+        EventAdminRead: {
+            /** Title */
+            title: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /** Location */
+            location: string;
+            /** Capacity */
+            capacity: number;
+            /** Id */
+            id: number;
+            rsvp_counts: components["schemas"]["RSVPCounts"];
+        };
         /** EventCreate */
         EventCreate: {
             /** Title */
@@ -807,6 +874,19 @@ export interface components {
             capacity: number;
             /** Id */
             id: number;
+        };
+        /** EventUpdate */
+        EventUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Starts At */
+            starts_at?: string | null;
+            /** Ends At */
+            ends_at?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Capacity */
+            capacity?: number | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1097,6 +1177,27 @@ export interface components {
              * @default 30
              */
             older_than_days: number;
+        };
+        /**
+         * RSVPCounts
+         * @description 행사별 참여 현황 집계.
+         */
+        RSVPCounts: {
+            /**
+             * Going
+             * @default 0
+             */
+            going: number;
+            /**
+             * Waitlist
+             * @default 0
+             */
+            waitlist: number;
+            /**
+             * Cancel
+             * @default 0
+             */
+            cancel: number;
         };
         /** RSVPCreate */
         RSVPCreate: {
@@ -2687,6 +2788,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminPostListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_admin_events_admin_events__get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                q?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                status?: ("upcoming" | "ongoing" | "ended") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminEventListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_admin_event_admin_events__event_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_admin_event_admin_events__event_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventRead"];
                 };
             };
             /** @description Validation Error */

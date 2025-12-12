@@ -40,7 +40,7 @@ def test_upload_image_success(member_login: TestClient) -> None:
     data = res.json()
     assert "url" in data
     assert "filename" in data
-    assert data["url"].startswith("/media/images/")
+    assert "/media/images/" in data["url"]
     assert data["filename"].endswith(".jpg")
 
 

@@ -60,6 +60,22 @@
       "console": "integratedTerminal"
     },
     {
+      // 웹은 로컬, DB(Postgres dev/test)+API는 컨테이너(dev-api-up/down)로 자동 기동/정리
+      "name": "Web: Next.js dev (API containers auto)",
+      "type": "pwa-node",
+      "request": "launch",
+      "program": "${workspaceFolder}/apps/web/node_modules/next/dist/bin/next",
+      "args": ["dev", "-p", "3000"],
+      "cwd": "${workspaceFolder}/apps/web",
+      "env": {
+        "NEXT_PUBLIC_WEB_API_BASE": "http://localhost:3001"
+      },
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal",
+      "preLaunchTask": "Dev: DB+API(containers) up",
+      "postDebugTask": "Dev: DB+API(containers) down"
+    },
+    {
       "name": "Tests: Pytest (PG test DB)",
       "type": "python",
       "request": "launch",

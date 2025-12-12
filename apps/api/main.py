@@ -27,6 +27,7 @@ from .logging_utils import emit_error_event, log_json, reset_request_id, set_req
 from .observability import init_sentry
 from .ratelimit import create_limiter
 from .routers import (
+    admin_events,
     admin_posts,
     auth,
     comments,
@@ -298,3 +299,4 @@ app.include_router(profile.router)
 app.include_router(rum.router)
 app.include_router(uploads.router)
 app.include_router(admin_posts.router)
+app.include_router(admin_events.router)

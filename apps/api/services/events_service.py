@@ -26,6 +26,38 @@ async def create_event(db: AsyncSession, payload: schemas.EventCreate) -> models
     return await events_repo.create_event(db, payload)
 
 
+async def list_events_with_total(
+    db: AsyncSession, *, limit: int, offset: int
+) -> tuple[Sequence[models.Event], int]:
+    return await events_repo.list_events_with_total(db, limit=limit, offset=offset)
+
+
+async def list_admin_events_with_total(
+    db: AsyncSession,
+    *,
+    limit: int,
+    offset: int,
+    filters: schemas.AdminEventListFilters | None = None,
+) -> tuple[Sequence[tuple[models.Event, int, int, int]], int]:
+    """관리자 행사 목록(필터/검색/참여 집계 포함)."""
+    return await events_repo.list_admin_events_with_total(
+        db,
+        limit=limit,
+        offset=offset,
+        filters=filters,
+    )
+
+
+async def update_event(
+    db: AsyncSession, event_id: int, payload: schemas.EventUpdate
+) -> models.Event:
+    return await events_repo.update_event(db, event_id, payload)
+
+
+async def delete_event(db: AsyncSession, event_id: int) -> int:
+    return await events_repo.delete_event(db, event_id)
+
+
 async def _promote_waitlist_candidate(db: AsyncSession, event_id: int) -> None:
     """대기열 최상위 1인을 going으로 승급(경합 완화 포함)."""
     # SAVEPOINT 사용 (async version)

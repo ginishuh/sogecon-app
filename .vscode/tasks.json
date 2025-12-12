@@ -16,7 +16,22 @@
       "args": ["db-down"],
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": []
+    },
+    {
+      "label": "Dev: DB+API(containers) up",
+      "type": "shell",
+      "command": "make",
+      "args": ["dev-api-up"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: DB+API(containers) down",
+      "type": "shell",
+      "command": "make",
+      "args": ["dev-api-down"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
     }
   ]
 }
-
