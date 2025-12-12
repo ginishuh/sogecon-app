@@ -411,7 +411,7 @@ export default function AdminPostsPage() {
           <h2 className="text-xl font-semibold">게시물 관리</h2>
           <Link
             href="/posts/new"
-            className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            className="rounded bg-brand-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-primaryDark active:bg-brand-primaryDark hover:text-white active:text-white visited:text-white hover:no-underline active:no-underline"
           >
             + 새 글 작성
           </Link>
