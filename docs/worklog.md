@@ -1027,3 +1027,4 @@
 2025-12-12 fix(web): Next.js 15.5.8 보안 패치 업그레이드 — PR draft
 2025-12-12 feat(api,web): 행사 설명 필드 추가 및 참여 신청 UI 개선 — PR draft
 2025-12-12 fix(web): 글쓰기/새 행사 생성 버튼 + 게시판 FAB 호버·액티브 스타일 정리 — PR draft
+2025-12-12 test(api): 행사 description 필드 테스트 추가 및 admin_events getattr 정리 — PR draft

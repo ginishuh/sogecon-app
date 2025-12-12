@@ -41,6 +41,22 @@ def _create_event(admin_login: TestClient, title: str = "테스트 행사") -> d
     return res.json()
 
 
+class TestAdminEventCreate:
+    """행사 생성 API."""
+
+    def test_admin_can_create_event_with_description(
+        self, admin_login: TestClient
+    ) -> None:
+        payload = _event_payload("설명 있는 행사")
+        payload["description"] = "행사 상세 설명입니다."
+
+        res = admin_login.post("/events/", json=payload)
+
+        assert res.status_code == HTTPStatus.CREATED
+        body = res.json()
+        assert body["description"] == "행사 상세 설명입니다."
+
+
 class TestAdminEventList:
     """관리자 행사 목록 API."""
 
@@ -204,6 +220,20 @@ class TestAdminEventUpdate:
         assert body["title"] == "수정된 행사"
         assert body["capacity"] == 120
         assert body["location"] == "대강당"
+
+    def test_admin_can_update_event_description(
+        self, admin_login: TestClient
+    ) -> None:
+        evt = _create_event(admin_login)
+        evt_id = evt["id"]
+
+        res = admin_login.patch(
+            f"/admin/events/{evt_id}",
+            json={"description": "수정된 설명"},
+        )
+
+        assert res.status_code == HTTPStatus.OK
+        assert res.json()["description"] == "수정된 설명"
 
     def test_update_requires_admin(self, admin_login: TestClient) -> None:
         evt = _create_event(admin_login)
