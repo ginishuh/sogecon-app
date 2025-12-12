@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+import datetime as dt
+from datetime import timedelta
 from http import HTTPStatus
+from urllib.parse import quote
 
 import pytest
 from fastapi.testclient import TestClient
@@ -17,10 +19,10 @@ def anyio_backend() -> str:
 def _event_payload(
     title: str = "테스트 행사",
     *,
-    starts_at: datetime | None = None,
-    ends_at: datetime | None = None,
+    starts_at: dt.datetime | None = None,
+    ends_at: dt.datetime | None = None,
 ) -> dict:
-    now = datetime.now(datetime.UTC)
+    now = dt.datetime.now(dt.UTC)
     starts = starts_at or (now + timedelta(days=1))
     ends = ends_at or (starts + timedelta(hours=2))
     return {
@@ -61,7 +63,7 @@ class TestAdminEventList:
     def test_admin_list_filters_by_title_and_status(
         self, admin_login: TestClient
     ) -> None:
-        now = datetime.now(datetime.UTC)
+        now = dt.datetime.now(dt.UTC)
         _create_event(
             admin_login,
             "미래 행사",
@@ -90,7 +92,7 @@ class TestAdminEventList:
         assert any(evt["title"] == "종료 행사" for evt in res.json()["items"])
 
     def test_admin_list_filters_by_date_range(self, admin_login: TestClient) -> None:
-        base = datetime(2030, 1, 1, 9, 0, tzinfo=datetime.UTC)
+        base = dt.datetime(2030, 1, 1, 9, 0, tzinfo=dt.UTC)
         inside = _event_payload(
             "범위 안",
             starts_at=base,
@@ -104,8 +106,8 @@ class TestAdminEventList:
         admin_login.post("/events/", json=inside)
         admin_login.post("/events/", json=outside)
 
-        date_from = (base - timedelta(days=1)).isoformat()
-        date_to = (base + timedelta(days=1)).isoformat()
+        date_from = quote((base - timedelta(days=1)).isoformat())
+        date_to = quote((base + timedelta(days=1)).isoformat())
         res = admin_login.get(
             f"/admin/events/?date_from={date_from}&date_to={date_to}"
         )
