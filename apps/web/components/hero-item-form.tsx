@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ImageUpload } from './image-upload';
 import type { CreateHeroItemPayload, HeroItem, HeroTargetType } from '../services/hero';
@@ -90,12 +90,15 @@ export function HeroItemForm({
   onSubmit,
   onCancel,
 }: HeroItemFormProps) {
-  const init = useMemo(() => toInitial(initialData), [initialData]);
-  const [form, setForm] = useState<HeroItemFormData>(init);
+  const [form, setForm] = useState<HeroItemFormData>(() => toInitial(initialData));
+  const hydratedIdRef = useRef<number | null>(initialData?.id ?? null);
 
   useEffect(() => {
-    setForm(init);
-  }, [init]);
+    if (!initialData) return;
+    if (hydratedIdRef.current === initialData.id) return;
+    hydratedIdRef.current = initialData.id;
+    setForm(toInitial(initialData));
+  }, [initialData]);
 
   const targetIdOk = form.target_id > 0;
   const canSubmit = !isPending && targetIdOk;
@@ -109,10 +112,10 @@ export function HeroItemForm({
         onSubmit(toPayload(form));
       }}
     >
-	      <div className="grid gap-3 md:grid-cols-2">
-	        <label className="block text-sm text-slate-700">
-	          대상 종류
-	          <select
+      <div className="grid gap-3 md:grid-cols-2">
+        <label className="block text-sm text-slate-700">
+          대상 종류
+          <select
             className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
             value={form.target_type}
             onChange={(e) => setForm((prev) => ({ ...prev, target_type: e.currentTarget.value as HeroTargetType }))}
@@ -123,23 +126,23 @@ export function HeroItemForm({
           </select>
         </label>
 
-	        <label className="block text-sm text-slate-700">
-	          대상 ID
-	          <input
-	            className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
-	            type="number"
-	            min={1}
-	            value={formatTargetIdValue(form.target_id)}
-	            onChange={(e) => setForm((prev) => ({ ...prev, target_id: toInt(e.currentTarget.value) }))}
-	            disabled={isPending}
-	            inputMode="numeric"
-	            placeholder="예: 123"
-	          />
-	          <p hidden={targetIdOk} className="mt-1 text-xs text-amber-700">
-	            대상 ID는 1 이상이어야 합니다.
-	          </p>
-	        </label>
-	      </div>
+        <label className="block text-sm text-slate-700">
+          대상 ID
+          <input
+            className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+            type="number"
+            min={1}
+            value={formatTargetIdValue(form.target_id)}
+            onChange={(e) => setForm((prev) => ({ ...prev, target_id: toInt(e.currentTarget.value) }))}
+            disabled={isPending}
+            inputMode="numeric"
+            placeholder="예: 123"
+          />
+          <p hidden={targetIdOk} className="mt-1 text-xs text-amber-700">
+            대상 ID는 1 이상이어야 합니다.
+          </p>
+        </label>
+      </div>
 
       <div className="grid gap-3 md:grid-cols-2">
         <label className="flex items-center gap-2 text-sm text-slate-700">
@@ -201,24 +204,24 @@ export function HeroItemForm({
         </p>
       </div>
 
-	      <p hidden={!error} role="alert" className="text-sm text-red-600">
-	        {error}
-	      </p>
+      <p hidden={!error} role="alert" className="text-sm text-red-600">
+        {error}
+      </p>
 
-	      <div className="flex gap-2">
-	        <button
-	          type="button"
-	          className="rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-	          onClick={() => onCancel?.()}
-	          disabled={isPending}
-	          hidden={!onCancel}
-	        >
-	          취소
-	        </button>
-	        <button
-	          type="submit"
-	          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-	          disabled={!canSubmit}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className="rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          onClick={() => onCancel?.()}
+          disabled={isPending}
+          hidden={!onCancel}
+        >
+          취소
+        </button>
+        <button
+          type="submit"
+          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          disabled={!canSubmit}
           aria-busy={isPending}
         >
           {isPending ? loadingLabel : submitLabel}

@@ -24,6 +24,8 @@ type PostFormProps = {
   onCancel?: () => void;
   /** 관리자 전용 옵션 숨김 (카테고리, 공개 상태, 상단 고정) - 일반 사용자 수정 시 */
   hideAdminOptions?: boolean;
+  /** 레거시/특수 카테고리 등으로 카테고리 변경을 막고 싶을 때 */
+  hideCategory?: boolean;
 };
 
 type CategoryType = 'notice' | 'news';
@@ -173,6 +175,51 @@ function AdminBottomFields({
   );
 }
 
+function PostFormAdminFields({
+  hideAdminOptions,
+  hideCategory,
+  category,
+  setCategory,
+  published,
+  setPublished,
+  pinned,
+  setPinned,
+}: {
+  hideAdminOptions: boolean;
+  hideCategory: boolean;
+  category: CategoryType;
+  setCategory: (v: CategoryType) => void;
+  published: boolean;
+  setPublished: (v: boolean) => void;
+  pinned: boolean;
+  setPinned: (v: boolean) => void;
+}) {
+  if (hideAdminOptions) return null;
+
+  return (
+    <>
+      <div hidden={hideCategory}>
+        <AdminTopFields category={category} setCategory={setCategory} />
+      </div>
+      <AdminBottomFields
+        published={published}
+        setPublished={setPublished}
+        pinned={pinned}
+        setPinned={setPinned}
+      />
+    </>
+  );
+}
+
+function PostFormError({ error }: { error: string | null }) {
+  if (!error) return null;
+  return <ErrorMessage message={error} />;
+}
+
+function isSubmitDisabled(title: string, content: string): boolean {
+  return !title || !content;
+}
+
 export function PostForm({
   initialData,
   submitLabel = '저장',
@@ -182,16 +229,23 @@ export function PostForm({
   onSubmit,
   onCancel,
   hideAdminOptions = false,
+  hideCategory = false,
 }: PostFormProps) {
   const state = usePostFormState(initialData);
   const handleSubmit = () => onSubmit(state.getData());
-  const showAdminFields = !hideAdminOptions;
 
   return (
     <div className="space-y-4">
-      {showAdminFields && (
-        <AdminTopFields category={state.category} setCategory={state.setCategory} />
-      )}
+      <PostFormAdminFields
+        hideAdminOptions={hideAdminOptions}
+        hideCategory={hideCategory}
+        category={state.category}
+        setCategory={state.setCategory}
+        published={state.published}
+        setPublished={state.setPublished}
+        pinned={state.pinned}
+        setPinned={state.setPinned}
+      />
       <TitleField value={state.title} onChange={state.setTitle} />
       <ImageField
         coverImage={state.coverImage}
@@ -202,20 +256,12 @@ export function PostForm({
         maxImages={getMaxImages()}
       />
       <ContentField value={state.content} onChange={state.setContent} />
-      {showAdminFields && (
-        <AdminBottomFields
-          published={state.published}
-          setPublished={state.setPublished}
-          pinned={state.pinned}
-          setPinned={state.setPinned}
-        />
-      )}
-      {error && <ErrorMessage message={error} />}
+      <PostFormError error={error} />
       <FormButtons
         onCancel={onCancel}
         onSubmit={handleSubmit}
         isPending={isPending}
-        disabled={!state.title || !state.content}
+        disabled={isSubmitDisabled(state.title, state.content)}
         submitLabel={submitLabel}
         loadingLabel={loadingLabel}
       />

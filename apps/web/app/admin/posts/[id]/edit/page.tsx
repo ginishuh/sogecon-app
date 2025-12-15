@@ -10,7 +10,7 @@ import { useToast } from '../../../../../components/toast';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { ApiError } from '../../../../../lib/api';
 import { apiErrorToMessage } from '../../../../../lib/error-map';
-import { getPost, updatePost } from '../../../../../services/posts';
+import { getPost, updatePost, type UpdatePostPayload } from '../../../../../services/posts';
 
 export default function EditPostPage() {
   const { status } = useAuth();
@@ -44,15 +44,17 @@ export default function EditPostPage() {
         publishPayload = { published_at: new Date().toISOString() };
       }
 
-      return updatePost(postId, {
+      const payload: UpdatePostPayload = {
         title: data.title,
         content: data.content,
-        category: data.category,
+        category: post?.category === 'hero' ? undefined : data.category,
         pinned: data.pinned,
         cover_image: data.cover_image ?? undefined,
         images: data.images.length > 0 ? data.images : undefined,
         ...publishPayload,
-      });
+      };
+
+      return updatePost(postId, payload);
     },
     onSuccess: () => {
       show('게시물이 수정되었습니다.', { type: 'success' });
@@ -100,6 +102,7 @@ export default function EditPostPage() {
             loadingLabel="수정 중..."
             isPending={mutation.isPending}
             error={mutation.error ? '수정 중 오류가 발생했습니다.' : null}
+            hideCategory={post.category === 'hero'}
             onSubmit={(data) => mutation.mutate(data)}
             onCancel={() => router.push('/admin/posts')}
           />

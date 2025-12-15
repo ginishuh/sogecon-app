@@ -1033,3 +1033,4 @@
 - api: hero_items 테이블 + /hero, /admin/hero 엔드포인트 추가
 - web: 홈 캐러셀에서 행사/게시글로 이동(CTA) + /admin/hero 관리 화면 추가
 2025-12-15 fix(api): is_admin 도입 및 posts 쿼리 충돌 처리 — PR #96
+2025-12-15 fix(web): 히어로 폼 초기화 안전화·레거시 hero 편집 보호 — PR #96
