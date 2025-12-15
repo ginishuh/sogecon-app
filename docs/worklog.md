@@ -1032,3 +1032,4 @@
 2025-12-15 feat(web): 홈 배너 추천 슬롯(hero_items) 전환 — PR draft
 - api: hero_items 테이블 + /hero, /admin/hero 엔드포인트 추가
 - web: 홈 캐러셀에서 행사/게시글로 이동(CTA) + /admin/hero 관리 화면 추가
+2025-12-15 fix(api): is_admin 도입 및 posts 쿼리 충돌 처리 — PR #96

@@ -11,9 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import schemas
 from ..config import get_settings
 from ..db import get_db
+from ..errors import ApiError
 from ..repositories import posts as posts_repo
 from ..services import posts_service
-from .auth import require_admin, require_member
+from .auth import is_admin, require_admin, require_member
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -76,6 +77,12 @@ async def list_posts(
     categories: list[str] | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> list[schemas.PostRead]:
+    if category is not None and categories is not None:
+        raise ApiError(
+            code="category_query_conflict",
+            detail="category and categories cannot be used together",
+            status=400,
+        )
     posts = await posts_service.list_posts(
         db, limit=limit, offset=offset, category=category, categories=categories
     )
@@ -99,9 +106,7 @@ async def get_post(
 ) -> schemas.PostRead:
     post = await posts_service.get_post(db, post_id)
     # 관리자 조회는 통계 왜곡을 피하기 위해 조회수 증가 제외
-    try:
-        require_admin(request)
-    except HTTPException:
+    if not is_admin(request):
         # 조회수 증가 후 refresh로 최신 값 반영 (재조회 대신)
         await posts_repo.increment_view_count(db, post_id)
         await db.refresh(post)

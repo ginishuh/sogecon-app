@@ -77,6 +77,17 @@ def require_admin(req: Request) -> CurrentAdmin:
     raise HTTPException(status_code=401, detail="unauthorized")
 
 
+def is_admin(req: Request) -> bool:
+    """현재 요청이 관리자 권한인지 여부만 반환(예외 없이)."""
+    # 통합 세션 우선
+    u = _get_user_session(req)
+    if u and "admin" in u.roles:
+        return True
+
+    # 레거시 세션 호환
+    return _get_admin_session(req) is not None
+
+
 @dataclass
 class CurrentMember:
     student_id: str

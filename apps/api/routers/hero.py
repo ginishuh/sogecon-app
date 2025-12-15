@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
 from ..db import get_db
 from ..services import hero_service
-from .auth import require_admin
+from .auth import is_admin
 
 router = APIRouter(prefix="/hero", tags=["hero"])
 
@@ -18,15 +18,7 @@ async def list_hero_slides(
     include_unpublished: bool = Query(False),
     db: AsyncSession = Depends(get_db),
 ) -> list[schemas.HeroSlide]:
-    allow_unpublished = False
-    if include_unpublished:
-        try:
-            require_admin(request)
-        except HTTPException:
-            allow_unpublished = False
-        else:
-            allow_unpublished = True
+    allow_unpublished = include_unpublished and is_admin(request)
     return await hero_service.list_hero_slides(
         db, limit=limit, allow_unpublished=allow_unpublished
     )
-

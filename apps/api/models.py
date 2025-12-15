@@ -215,8 +215,8 @@ class HeroItem(Base):
 Index("ix_hero_items_updated_at", HeroItem.updated_at)
 Index(
     "ix_hero_items_pinned_updated",
-    HeroItem.pinned.desc(),
-    HeroItem.updated_at.desc(),
+    HeroItem.pinned,
+    HeroItem.updated_at,
 )
 
 
