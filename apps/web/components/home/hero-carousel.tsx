@@ -213,7 +213,7 @@ export default function HomeHeroCarousel() {
                   <p className="text-[15px] leading-6 text-white/90 line-clamp-2">{s.description}</p>
                   <div className="mt-3">
                     <Link
-                      href={s.href}
+                      href={{ pathname: s.href }}
                       className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1.5 text-sm text-white backdrop-blur hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
                       aria-label={`${s.title} 자세히 보기`}
                     >

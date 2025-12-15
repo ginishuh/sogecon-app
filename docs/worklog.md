@@ -1036,3 +1036,4 @@
 2025-12-15 fix(web): 히어로 폼 초기화 안전화·레거시 hero 편집 보호 — PR #96
 2025-12-15 test(api): hero 슬롯 예외/CRUD/스킵 테스트 보강 — PR #96
 2025-12-15 docs(docs): PR #96 리뷰 반영 로그 업데이트 — PR #96
+2025-12-15 fix(web): 홈 히어로 CTA Link typed routes 타입 오류 수정 — PR #96
