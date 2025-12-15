@@ -1035,3 +1035,4 @@
 2025-12-15 fix(api): is_admin 도입 및 posts 쿼리 충돌 처리 — PR #96
 2025-12-15 fix(web): 히어로 폼 초기화 안전화·레거시 hero 편집 보호 — PR #96
 2025-12-15 test(api): hero 슬롯 예외/CRUD/스킵 테스트 보강 — PR #96
+2025-12-15 docs(docs): PR #96 리뷰 반영 로그 업데이트 — PR #96
