@@ -95,3 +95,11 @@ def test_posts_category_pinned_cover_image(admin_login: TestClient) -> None:
     lst2 = r2.json()
     assert len(lst2) == 3
     assert lst2[0]["pinned"] is True
+
+
+def test_posts_category_and_categories_conflict(admin_login: TestClient) -> None:
+    client = admin_login
+
+    res = client.get("/posts/?limit=10&category=notice&categories=notice")
+    assert res.status_code == HTTPStatus.BAD_REQUEST
+    assert res.json().get("code") == "category_query_conflict"
