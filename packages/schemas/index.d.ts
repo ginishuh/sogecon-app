@@ -427,6 +427,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/hero/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Hero Slides */
+        get: operations["list_hero_slides_hero__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/notifications/subscriptions": {
         parameters: {
             query?: never;
@@ -728,6 +745,43 @@ export interface paths {
         patch: operations["update_admin_event_admin_events__event_id__patch"];
         trace?: never;
     };
+    "/admin/hero/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Admin Hero Items */
+        get: operations["list_admin_hero_items_admin_hero__get"];
+        put?: never;
+        /** Create Admin Hero Item */
+        post: operations["create_admin_hero_item_admin_hero__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/hero/{hero_item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Admin Hero Item */
+        get: operations["get_admin_hero_item_admin_hero__hero_item_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Admin Hero Item */
+        delete: operations["delete_admin_hero_item_admin_hero__hero_item_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Admin Hero Item */
+        patch: operations["update_admin_hero_item_admin_hero__hero_item_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -736,6 +790,13 @@ export interface components {
         AdminEventListResponse: {
             /** Items */
             items: components["schemas"]["EventAdminRead"][];
+            /** Total */
+            total: number;
+        };
+        /** AdminHeroListResponse */
+        AdminHeroListResponse: {
+            /** Items */
+            items: components["schemas"]["HeroItemRead"][];
             /** Total */
             total: number;
         };
@@ -900,6 +961,118 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HeroItemCreate */
+        HeroItemCreate: {
+            /**
+             * Target Type
+             * @enum {string}
+             */
+            target_type: "post" | "event";
+            /** Target Id */
+            target_id: number;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * Pinned
+             * @default false
+             */
+            pinned: boolean;
+            /** Title Override */
+            title_override?: string | null;
+            /** Description Override */
+            description_override?: string | null;
+            /** Image Override */
+            image_override?: string | null;
+        };
+        /** HeroItemRead */
+        HeroItemRead: {
+            /**
+             * Target Type
+             * @enum {string}
+             */
+            target_type: "post" | "event";
+            /** Target Id */
+            target_id: number;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * Pinned
+             * @default false
+             */
+            pinned: boolean;
+            /** Title Override */
+            title_override?: string | null;
+            /** Description Override */
+            description_override?: string | null;
+            /** Image Override */
+            image_override?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * HeroItemUpdate
+         * @description 히어로 배너 슬롯 부분 업데이트 스키마.
+         */
+        HeroItemUpdate: {
+            /** Target Type */
+            target_type?: ("post" | "event") | null;
+            /** Target Id */
+            target_id?: number | null;
+            /** Enabled */
+            enabled?: boolean | null;
+            /** Pinned */
+            pinned?: boolean | null;
+            /** Title Override */
+            title_override?: string | null;
+            /** Description Override */
+            description_override?: string | null;
+            /** Image Override */
+            image_override?: string | null;
+        };
+        /**
+         * HeroSlide
+         * @description 홈 히어로 캐러셀용 응답(대상 resolve 포함).
+         */
+        HeroSlide: {
+            /** Id */
+            id: number;
+            /**
+             * Target Type
+             * @enum {string}
+             */
+            target_type: "post" | "event";
+            /** Target Id */
+            target_id: number;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            /** Image */
+            image?: string | null;
+            /** Href */
+            href: string;
+            /**
+             * Unpublished
+             * @default false
+             */
+            unpublished: boolean;
         };
         /**
          * ImageUploadResponse
@@ -1572,6 +1745,7 @@ export interface operations {
                 limit?: number;
                 offset?: number;
                 category?: string | null;
+                categories?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2294,6 +2468,38 @@ export interface operations {
             };
         };
     };
+    list_hero_slides_hero__get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                include_unpublished?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeroSlide"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     save_subscription_notifications_subscriptions_post: {
         parameters: {
             query?: never;
@@ -2896,6 +3102,170 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_admin_hero_items_admin_hero__get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminHeroListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_admin_hero_item_admin_hero__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HeroItemCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeroItemRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_admin_hero_item_admin_hero__hero_item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hero_item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeroItemRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_admin_hero_item_admin_hero__hero_item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hero_item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean | number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_admin_hero_item_admin_hero__hero_item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hero_item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HeroItemUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeroItemRead"];
                 };
             };
             /** @description Validation Error */
