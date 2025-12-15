@@ -20,10 +20,17 @@ class AdminPostFilters(TypedDict, total=False):
 
 
 async def list_posts(
-    db: AsyncSession, *, limit: int, offset: int, category: str | None = None
+    db: AsyncSession,
+    *,
+    limit: int,
+    offset: int,
+    category: str | None = None,
+    categories: Sequence[str] | None = None,
 ) -> Sequence[models.Post]:
     stmt = select(models.Post).options(selectinload(models.Post.author))
-    if category:
+    if categories:
+        stmt = stmt.where(models.Post.category.in_(categories))
+    elif category:
         stmt = stmt.where(models.Post.category == category)
     stmt = (
         stmt.order_by(desc(models.Post.pinned), desc(models.Post.published_at))

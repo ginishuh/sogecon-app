@@ -18,11 +18,24 @@ export type Post = {
   comment_count?: number;
 };
 
-export async function listPosts(params: { limit?: number; offset?: number; category?: string } = {}): Promise<Post[]> {
+export type ListPostsParams = {
+  limit?: number;
+  offset?: number;
+  category?: string;
+  categories?: string[];
+};
+
+export async function listPosts(params: ListPostsParams = {}): Promise<Post[]> {
   const q = new URLSearchParams();
   if (params.limit != null) q.set('limit', String(params.limit));
   if (params.offset != null) q.set('offset', String(params.offset));
-  if (params.category) q.set('category', params.category);
+  if (params.categories && params.categories.length > 0) {
+    for (const c of params.categories) {
+      q.append('categories', c);
+    }
+  } else if (params.category) {
+    q.set('category', params.category);
+  }
   const qs = q.toString();
   return apiFetch<Post[]>(`/posts/${qs ? `?${qs}` : ''}`);
 }

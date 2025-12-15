@@ -1,13 +1,14 @@
 "use client";
 
 import Image from 'next/image';
+import Link from 'next/link';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { listPosts, type Post } from '../../services/posts';
+import { listHeroSlides, type HeroSlide } from '../../services/hero';
 import { useAuth } from '../../hooks/useAuth';
 import { HeroSkeleton } from '../ui/skeleton';
 
-type Slide = { id: string; image: string; title: string; description: string; unpublished?: boolean };
+type Slide = { id: string; image: string; title: string; description: string; href: string; unpublished?: boolean };
 
 // 단어 경계를 고려한 텍스트 자르기 (최대 maxLength 이내에서 마지막 완전한 단어까지)
 function truncateAtWordBoundary(text: string, maxLength: number): string {
@@ -22,22 +23,14 @@ function truncateAtWordBoundary(text: string, maxLength: number): string {
   return truncated.substring(0, lastSpace);
 }
 
-function buildSlides(posts: Post[], opts: { allowUnpublished: boolean; max: number }): Slide[] {
-  const now = Date.now();
-  const isPublished = (p: Post) => !!p.published_at && Date.parse(p.published_at) <= now;
-  const published = posts.filter(isPublished);
-  const unpublished = opts.allowUnpublished ? posts.filter((p) => !isPublished(p)) : [];
-
-  const ordered = [...published, ...unpublished].sort(
-    (a, b) => Number(b.pinned) - Number(a.pinned) || Date.parse(b.published_at || '0') - Date.parse(a.published_at || '0')
-  );
-
-  const slides = ordered.slice(0, opts.max).map((p) => ({
-    id: `post-${p.id}`,
-    image: p.cover_image || '/images/home/hero-launch.svg',
-    title: p.title || '공지 · 행사 · 동문 수첩을 한 곳에서',
-    description: p.content ? truncateAtWordBoundary(p.content, 100) : '우수 교수의 지속적 학술과 연구방향의 강화, 충실한 교육',
-    unpublished: !isPublished(p)
+function buildSlides(data: HeroSlide[], opts: { max: number }): Slide[] {
+  const slides = data.slice(0, opts.max).map((s) => ({
+    id: `hero-${s.id}`,
+    image: s.image || '/images/home/hero-launch.svg',
+    title: s.title || '공지 · 행사 · 동문 수첩을 한 곳에서',
+    description: s.description ? truncateAtWordBoundary(s.description, 100) : '우수 교수의 지속적 학술과 연구방향의 강화, 충실한 교육',
+    href: s.href,
+    unpublished: !!s.unpublished,
   }));
 
   if (slides.length > 0) return slides;
@@ -47,19 +40,22 @@ function buildSlides(posts: Post[], opts: { allowUnpublished: boolean; max: numb
       id: 'fallback-1',
       image: '/images/home/hero-launch.svg',
       title: '함께 성장하는 동문 네트워크',
-      description: '전문성과 경험을 나누는 따뜻한 커뮤니티'
+      description: '전문성과 경험을 나누는 따뜻한 커뮤니티',
+      href: '/about/greeting'
     },
     {
       id: 'fallback-2',
       image: '/images/home/hero.svg',
       title: '미래를 창조하는 서강경제',
-      description: '우수 교수의 지속적 학술과 연구방향의 강화, 충실한 교육'
+      description: '우수 교수의 지속적 학술과 연구방향의 강화, 충실한 교육',
+      href: '/posts'
     },
     {
       id: 'fallback-3',
       image: '/images/home/hero-launch.svg',
       title: '2025년 정기 총회 안내',
-      description: '동문 여러분을 초대합니다'
+      description: '동문 여러분을 초대합니다',
+      href: '/events'
     }
   ].slice(0, opts.max);
 }
@@ -67,8 +63,12 @@ function buildSlides(posts: Post[], opts: { allowUnpublished: boolean; max: numb
 export default function HomeHeroCarousel() {
   const auth = useAuth();
   const isAdmin = auth.status === 'authorized' && auth.data?.kind === 'admin';
-  const q = useQuery<Post[]>({ queryKey: ['posts', 'hero', 8, 0], queryFn: () => listPosts({ category: 'hero', limit: 8 }) });
-  const slides = useMemo(() => buildSlides(q.data ?? [], { allowUnpublished: !!isAdmin, max: 5 }), [q.data, isAdmin]);
+  const q = useQuery<HeroSlide[]>({
+    queryKey: ['hero', 'slides', 8, isAdmin],
+    queryFn: () => listHeroSlides({ limit: 8, include_unpublished: !!isAdmin }),
+    retry: false,
+  });
+  const slides = useMemo(() => buildSlides(q.data ?? [], { max: 5 }), [q.data]);
   const isLoading = q.isLoading;
 
   const [index, setIndex] = useState(0);
@@ -211,6 +211,18 @@ export default function HomeHeroCarousel() {
                     ) : null}
                   </h2>
                   <p className="text-[15px] leading-6 text-white/90 line-clamp-2">{s.description}</p>
+                  <div className="mt-3">
+                    <Link
+                      href={s.href}
+                      className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1.5 text-sm text-white backdrop-blur hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                      aria-label={`${s.title} 자세히 보기`}
+                    >
+                      자세히 보기
+                      <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M7 5l6 5-6 5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

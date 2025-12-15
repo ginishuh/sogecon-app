@@ -102,7 +102,12 @@ export default function PostsPage() {
   const [category, setCategory] = useState<'all'|'notice'|'news'>('all');
   const query = useQuery<Post[]>({
     queryKey: ['posts', 20, 0, category],
-    queryFn: () => listPosts({ limit: 20, category: category === 'all' ? undefined : category }),
+    queryFn: () => {
+      if (category === 'all') {
+        return listPosts({ limit: 20, categories: ['notice', 'news'] });
+      }
+      return listPosts({ limit: 20, category });
+    },
   });
 
   if (query.isLoading) {
@@ -113,11 +118,7 @@ export default function PostsPage() {
     return <p className="text-red-600">게시글을 불러오지 못했습니다.</p>;
   }
 
-  let posts = query.data ?? [];
-  // 홈/리스트 UX: hero 카테고리는 기본 뷰에서 제외(명시적으로 hero 선택 시에만 노출)
-  if (category === 'all') {
-    posts = posts.filter((p) => (p.category ?? '') !== 'hero');
-  }
+  const posts = query.data ?? [];
 
   return (
     <div className="space-y-4">

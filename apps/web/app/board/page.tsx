@@ -20,6 +20,7 @@ const BOARD_CATEGORIES = [
 type BoardCategory = (typeof BOARD_CATEGORIES)[number]['key'];
 
 const PAGE_SIZE = 10;
+const BOARD_POST_CATEGORIES = ['discussion', 'question', 'share', 'congrats'] as const;
 
 function BoardPageInner() {
   const searchParams = useSearchParams();
@@ -38,12 +39,13 @@ function BoardPageInner() {
 
   const query = useQuery<Post[]>({
     queryKey: ['board', category, page],
-    queryFn: () =>
-      listPosts({
-        limit: PAGE_SIZE,
-        offset: page * PAGE_SIZE,
-        category: category === 'all' ? undefined : category,
-      }),
+    queryFn: () => {
+      const baseParams = { limit: PAGE_SIZE, offset: page * PAGE_SIZE };
+      if (category === 'all') {
+        return listPosts({ ...baseParams, categories: [...BOARD_POST_CATEGORIES] });
+      }
+      return listPosts({ ...baseParams, category });
+    },
     // v5: 이전 페이지 데이터 유지(UX 끊김 방지)
     placeholderData: keepPreviousData,
   });

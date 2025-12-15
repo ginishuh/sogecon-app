@@ -21,7 +21,7 @@ export default function NewPostPage() {
   // author_id는 서버에서 세션 기반으로 자동 설정됨
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [category, setCategory] = useState<'notice' | 'news' | 'hero'>('notice');
+  const [category, setCategory] = useState<'notice' | 'news'>('notice');
   const [pinned, setPinned] = useState(false);
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>([]);
@@ -88,11 +88,10 @@ export default function NewPostPage() {
             <select
               className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
               value={category}
-              onChange={(e) => setCategory(e.currentTarget.value as 'notice' | 'news' | 'hero')}
+              onChange={(e) => setCategory(e.currentTarget.value as 'notice' | 'news')}
             >
               <option value="notice">공지</option>
               <option value="news">소식</option>
-              <option value="hero">히어로 (홈 배너)</option>
             </select>
           </label>
 
@@ -110,7 +109,7 @@ export default function NewPostPage() {
           {/* 이미지 업로드 */}
           <div className="space-y-1">
             <span className="block text-sm text-slate-700">
-              이미지 {category === 'hero' ? '(필수)' : '(선택)'}
+              이미지 (선택)
             </span>
             <MultiImageUpload
               coverImage={coverImage}
@@ -118,7 +117,7 @@ export default function NewPostPage() {
               onCoverChange={setCoverImage}
               onImagesChange={setImages}
               disabled={mutate.isPending}
-              maxImages={category === 'hero' ? 5 : 10}
+              maxImages={10}
             />
           </div>
 

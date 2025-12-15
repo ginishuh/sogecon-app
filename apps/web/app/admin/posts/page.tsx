@@ -43,7 +43,7 @@ function CategoryBadge({ category }: { category: string | null | undefined }) {
   const labels: Record<string, string> = {
     notice: '공지',
     news: '소식',
-    hero: '히어로',
+    hero: '히어로(구)',
   };
   const label = category ? labels[category] ?? category : '-';
   return <span className="text-xs text-slate-500">{label}</span>;
@@ -94,7 +94,6 @@ function FilterBar({
         <option value="">전체 카테고리</option>
         <option value="notice">공지</option>
         <option value="news">소식</option>
-        <option value="hero">히어로</option>
       </select>
 
       <select

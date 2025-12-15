@@ -73,10 +73,11 @@ async def list_posts(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     category: str | None = Query(None),
+    categories: list[str] | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> list[schemas.PostRead]:
     posts = await posts_service.list_posts(
-        db, limit=limit, offset=offset, category=category
+        db, limit=limit, offset=offset, category=category, categories=categories
     )
     # N+1 쿼리 방지: 배치로 댓글 수 조회
     post_ids = [cast(int, p.id) for p in posts]
@@ -92,12 +93,18 @@ async def list_posts(
 
 @router.get("/{post_id}", response_model=schemas.PostRead)
 async def get_post(
-    post_id: int, db: AsyncSession = Depends(get_db)
+    request: Request,
+    post_id: int,
+    db: AsyncSession = Depends(get_db),
 ) -> schemas.PostRead:
     post = await posts_service.get_post(db, post_id)
-    # 조회수 증가 후 refresh로 최신 값 반영 (재조회 대신)
-    await posts_repo.increment_view_count(db, post_id)
-    await db.refresh(post)
+    # 관리자 조회는 통계 왜곡을 피하기 위해 조회수 증가 제외
+    try:
+        require_admin(request)
+    except HTTPException:
+        # 조회수 증가 후 refresh로 최신 값 반영 (재조회 대신)
+        await posts_repo.increment_view_count(db, post_id)
+        await db.refresh(post)
     post_read = schemas.PostRead.model_validate(post)
     post_read.author_name = post.author.name if post.author else None
     post_read.comment_count = await posts_repo.get_comment_count(db, cast(int, post.id))

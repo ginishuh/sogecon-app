@@ -1029,3 +1029,6 @@
 2025-12-12 fix(web): 글쓰기/새 행사 생성 버튼 + 게시판 FAB 호버·액티브 스타일 정리 — PR draft
 2025-12-12 test(api): 행사 description 필드 테스트 추가 및 admin_events getattr 정리 — PR draft
 2025-12-12 test(api): 로컬 pytest용 PostgreSQL enum 선행 생성/정리 추가 — PR draft
+2025-12-15 feat(web): 홈 배너 추천 슬롯(hero_items) 전환 — PR draft
+- api: hero_items 테이블 + /hero, /admin/hero 엔드포인트 추가
+- web: 홈 캐러셀에서 행사/게시글로 이동(CTA) + /admin/hero 관리 화면 추가

@@ -7,7 +7,7 @@ import type { Post } from '../services/posts';
 export type PostFormData = {
   title: string;
   content: string;
-  category: 'notice' | 'news' | 'hero';
+  category: 'notice' | 'news';
   pinned: boolean;
   cover_image: string | null;
   images: string[];
@@ -26,7 +26,7 @@ type PostFormProps = {
   hideAdminOptions?: boolean;
 };
 
-type CategoryType = 'notice' | 'news' | 'hero';
+type CategoryType = 'notice' | 'news';
 
 const DEFAULT_VALUES = {
   title: '',
@@ -41,10 +41,11 @@ const DEFAULT_VALUES = {
 /** 초기 데이터에서 폼 기본값 추출 */
 function getInitialValues(initialData?: Post) {
   if (!initialData) return DEFAULT_VALUES;
+  const category: CategoryType = initialData.category === 'news' ? 'news' : 'notice';
   return {
     title: initialData.title,
     content: initialData.content,
-    category: (initialData.category as CategoryType) || 'notice',
+    category,
     pinned: initialData.pinned || false,
     coverImage: initialData.cover_image ?? null,
     images: initialData.images || [],
@@ -136,9 +137,9 @@ function usePostFormState(initialData?: Post) {
   };
 }
 
-/** 히어로 카테고리 최대 이미지 수 */
-function getMaxImages(category: CategoryType): number {
-  return category === 'hero' ? 5 : 10;
+/** 게시글 최대 이미지 수 */
+function getMaxImages(): number {
+  return 10;
 }
 
 /** 관리자 전용 상단 필드 (카테고리) */
@@ -193,13 +194,12 @@ export function PostForm({
       )}
       <TitleField value={state.title} onChange={state.setTitle} />
       <ImageField
-        category={state.category}
         coverImage={state.coverImage}
         images={state.images}
         onCoverChange={state.setCoverImage}
         onImagesChange={state.setImages}
         disabled={isPending}
-        maxImages={getMaxImages(state.category)}
+        maxImages={getMaxImages()}
       />
       <ContentField value={state.content} onChange={state.setContent} />
       {showAdminFields && (
@@ -244,7 +244,6 @@ function CategoryField({
       >
         <option value="notice">공지</option>
         <option value="news">소식</option>
-        <option value="hero">히어로 (홈 배너)</option>
       </select>
     </label>
   );
@@ -271,7 +270,6 @@ function TitleField({
 }
 
 function ImageField({
-  category,
   coverImage,
   images,
   onCoverChange,
@@ -279,7 +277,6 @@ function ImageField({
   disabled,
   maxImages,
 }: {
-  category: CategoryType;
   coverImage: string | null;
   images: string[];
   onCoverChange: (v: string | null) => void;
@@ -290,7 +287,7 @@ function ImageField({
   return (
     <div className="space-y-1">
       <span className="block text-sm text-slate-700">
-        이미지 {category === 'hero' ? '(필수)' : '(선택)'}
+        이미지 (선택)
       </span>
       <MultiImageUpload
         coverImage={coverImage}
