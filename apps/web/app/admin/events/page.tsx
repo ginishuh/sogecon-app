@@ -208,7 +208,7 @@ function EventTable({
             <th className="px-3 py-2 font-medium text-slate-700">정원</th>
             <th className="px-3 py-2 font-medium text-slate-700">참여 현황</th>
             <th className="px-3 py-2 font-medium text-slate-700">상태</th>
-            <th className="px-3 py-2 font-medium text-slate-700">배너</th>
+            <th className="px-3 py-2 font-medium text-slate-700">홈 배너</th>
             <th className="px-3 py-2 font-medium text-slate-700 text-right">액션</th>
           </tr>
         </thead>
@@ -261,13 +261,6 @@ function EventTable({
                   />
                 </td>
                 <td className="px-3 py-2 text-right">
-                  <Link
-                    href={`/events/${evt.id}`}
-                    className="text-sm text-slate-600 hover:text-slate-900"
-                  >
-                    보기
-                  </Link>
-                  <span className="mx-1 text-slate-300">|</span>
                   <Link
                     href={`/admin/events/${evt.id}/edit`}
                     className="text-sm text-slate-600 hover:text-slate-900"
@@ -387,7 +380,9 @@ export default function AdminEventsPage() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">행사 관리</h2>
-            <p className="text-sm text-slate-600">생성한 행사 목록을 확인합니다.</p>
+            <p className="text-sm text-slate-600">
+              생성한 행사 목록을 확인합니다. 홈 배너는 목록의 “홈 배너” 토글로 지정합니다.
+            </p>
           </div>
           <Link
             href="/admin/events/new"

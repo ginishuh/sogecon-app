@@ -188,24 +188,21 @@ function PostTableRow({
           onTogglePinned={onTogglePinned}
         />
       </td>
-      <td className="px-3 py-2">
-        <div className="flex gap-2">
-          <Link
-            href={`/admin/posts/${post.id}/edit`}
-            className="text-slate-600 hover:text-slate-900"
-            title="수정"
-          >
-            ✏️
-          </Link>
-          <button
-            type="button"
-            className="text-slate-600 hover:text-red-600"
-            title="삭제"
-            onClick={() => onDelete(post)}
-          >
-            🗑️
-          </button>
-        </div>
+      <td className="px-3 py-2 text-right">
+        <Link
+          href={`/admin/posts/${post.id}/edit`}
+          className="text-sm text-slate-600 hover:text-slate-900"
+        >
+          수정
+        </Link>
+        <span className="mx-1 text-slate-300">|</span>
+        <button
+          type="button"
+          className="text-sm text-red-600 hover:text-red-700"
+          onClick={() => onDelete(post)}
+        >
+          삭제
+        </button>
       </td>
     </tr>
   );
@@ -302,8 +299,8 @@ function PostTableContent({
               <th className="px-3 py-2 font-medium text-slate-700">조회</th>
               <th className="px-3 py-2 font-medium text-slate-700">댓글</th>
               <th className="px-3 py-2 font-medium text-slate-700">발행일</th>
-              <th className="px-3 py-2 font-medium text-slate-700">배너</th>
-              <th className="px-3 py-2 font-medium text-slate-700">액션</th>
+              <th className="px-3 py-2 font-medium text-slate-700">홈 배너</th>
+              <th className="px-3 py-2 text-right font-medium text-slate-700">액션</th>
             </tr>
           </thead>
           <tbody>
@@ -448,7 +445,12 @@ export default function AdminPostsPage() {
       <div className="p-6">
         {/* 헤더 */}
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">게시물 관리</h2>
+          <div>
+            <h2 className="text-xl font-semibold">게시물 관리</h2>
+            <p className="text-sm text-slate-600">
+              홈 배너는 목록의 “홈 배너” 토글로 지정합니다.
+            </p>
+          </div>
           <Link
             href="/admin/posts/new"
             className="rounded bg-brand-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-primaryDark active:bg-brand-primaryDark hover:text-white active:text-white visited:text-white hover:no-underline active:no-underline"
