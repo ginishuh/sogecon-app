@@ -50,6 +50,9 @@ def test_subscription_encrypted_at_rest_and_logged_plain_tail(
                 result = await db.execute(stmt)
                 row = result.scalars().first()
                 assert row is not None
+                assert str(row.endpoint).startswith("enc:v1:")
+                assert str(row.p256dh).startswith("enc:v1:")
+                assert str(row.auth).startswith("enc:v1:")
                 break
 
         asyncio.run(_seed_subscription())

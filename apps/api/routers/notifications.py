@@ -71,7 +71,7 @@ async def save_subscription(
             "p256dh": payload.p256dh,
             "auth": payload.auth,
             "ua": payload.ua,
-            "member_id": None,
+            "member_id": _member.id,
         },
     )
 

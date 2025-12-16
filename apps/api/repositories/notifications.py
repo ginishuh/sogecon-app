@@ -29,6 +29,8 @@ async def upsert_subscription(
     endpoint_plain = str(data.get("endpoint"))
     endpoint_hash = _hash_endpoint(endpoint_plain)
     endpoint = encrypt_str(endpoint_plain)
+    p256dh = encrypt_str(str(data.get("p256dh")))
+    auth = encrypt_str(str(data.get("auth")))
 
     stmt = select(models.PushSubscription).where(
         models.PushSubscription.endpoint_hash == endpoint_hash
@@ -40,8 +42,8 @@ async def upsert_subscription(
         member_val = data.get("member_id")
         sub = models.PushSubscription(
             endpoint=endpoint,
-            p256dh=str(data.get("p256dh")),
-            auth=str(data.get("auth")),
+            p256dh=p256dh,
+            auth=auth,
             ua=(data.get("ua") if data.get("ua") is not None else None),
             member_id=(int(member_val) if member_val is not None else None),
             endpoint_hash=endpoint_hash,
@@ -52,8 +54,8 @@ async def upsert_subscription(
         return sub
 
     # update
-    setattr(sub, "p256dh", str(data.get("p256dh")))
-    setattr(sub, "auth", str(data.get("auth")))
+    setattr(sub, "p256dh", p256dh)
+    setattr(sub, "auth", auth)
     setattr(sub, "ua", (data.get("ua") if data.get("ua") is not None else None))
     member_val2 = data.get("member_id")
     if member_val2 is not None:
