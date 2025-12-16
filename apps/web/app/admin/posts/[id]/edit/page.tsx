@@ -3,11 +3,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 
+import { HeroTargetToggle } from '../../../../../components/hero-target-toggle';
 import { PostForm, type PostFormData } from '../../../../../components/post-form';
 import { RequireAdmin } from '../../../../../components/require-admin';
 import { useToast } from '../../../../../components/toast';
 import { useAuth } from '../../../../../hooks/useAuth';
+import { useHeroTargetControls } from '../../../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../../../lib/api';
 import { apiErrorToMessage } from '../../../../../lib/error-map';
 import { getPost, updatePost, type UpdatePostPayload } from '../../../../../services/posts';
@@ -20,6 +23,8 @@ export default function EditPostPage() {
   const { show } = useToast();
 
   const postId = Number(params.id);
+  const heroTargetIds = useMemo(() => (Number.isFinite(postId) ? [postId] : []), [postId]);
+  const heroControls = useHeroTargetControls({ targetType: 'post', targetIds: heroTargetIds, showToast: show });
 
   const { data: post, isLoading, isError } = useQuery({
     queryKey: ['post', postId],
@@ -96,16 +101,35 @@ export default function EditPostPage() {
             게시물을 불러올 수 없습니다.
           </div>
         ) : (
-          <PostForm
-            initialData={post}
-            submitLabel="수정"
-            loadingLabel="수정 중..."
-            isPending={mutation.isPending}
-            error={mutation.error ? '수정 중 오류가 발생했습니다.' : null}
-            hideCategory={post.category === 'hero'}
-            onSubmit={(data) => mutation.mutate(data)}
-            onCancel={() => router.push('/admin/posts')}
-          />
+          <>
+            <section className="mb-4 rounded border border-slate-200 bg-white p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="text-sm font-medium text-slate-900">홈 배너</div>
+                  <div className="text-xs text-slate-500">
+                    게시물 관리 목록에서도 지정할 수 있습니다.
+                  </div>
+                </div>
+                <HeroTargetToggle
+                  value={heroControls.heroById.get(postId)}
+                  isPending={heroControls.isPending}
+                  onToggle={(nextOn) => heroControls.toggleHero(postId, nextOn)}
+                  onTogglePinned={(nextPinned) => heroControls.togglePinned(postId, nextPinned)}
+                />
+              </div>
+            </section>
+
+            <PostForm
+              initialData={post}
+              submitLabel="수정"
+              loadingLabel="수정 중..."
+              isPending={mutation.isPending}
+              error={mutation.error ? '수정 중 오류가 발생했습니다.' : null}
+              hideCategory={post.category === 'hero'}
+              onSubmit={(data) => mutation.mutate(data)}
+              onCancel={() => router.push('/admin/posts')}
+            />
+          </>
         )}
       </div>
     </RequireAdmin>

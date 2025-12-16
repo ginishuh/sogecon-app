@@ -5,8 +5,10 @@ import { notFound, useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { ConfirmDialog } from '../../../../../components/confirm-dialog';
+import { HeroTargetToggle } from '../../../../../components/hero-target-toggle';
 import { RequireAdmin } from '../../../../../components/require-admin';
 import { useAuth } from '../../../../../hooks/useAuth';
+import { useHeroTargetControls } from '../../../../../hooks/useHeroTargetControls';
 import { useToast } from '../../../../../components/toast';
 import { ApiError } from '../../../../../lib/api';
 import { apiErrorToMessage } from '../../../../../lib/error-map';
@@ -156,6 +158,11 @@ export default function AdminEventEditPage() {
   const { status } = useAuth();
   const toast = useToast();
   const router = useRouter();
+  const heroControls = useHeroTargetControls({
+    targetType: 'event',
+    targetIds: Number.isFinite(eventId) ? [eventId] : [],
+    showToast: toast.show,
+  });
 
   const { data, isLoading, isError } = useQuery<Event>({
     queryKey: ['admin-event', eventId],
@@ -259,15 +266,34 @@ export default function AdminEventEditPage() {
         {isLoading ? (
           <div className="text-sm text-slate-500">불러오는 중...</div>
         ) : (
-          <EventForm
-            state={form}
-            disabled={disabled}
-            saving={updateMutation.isPending}
-            onChange={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
-            onSave={() => updateMutation.mutate()}
-            onView={() => router.push(`/events/${eventId}`)}
-            onDeleteClick={() => setShowDelete(true)}
-          />
+          <>
+            <section className="rounded border border-slate-200 bg-white p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="text-sm font-medium text-slate-900">홈 배너</div>
+                  <div className="text-xs text-slate-500">
+                    행사 관리 목록에서도 지정할 수 있습니다.
+                  </div>
+                </div>
+                <HeroTargetToggle
+                  value={heroControls.heroById.get(eventId)}
+                  isPending={heroControls.isPending}
+                  onToggle={(nextOn) => heroControls.toggleHero(eventId, nextOn)}
+                  onTogglePinned={(nextPinned) => heroControls.togglePinned(eventId, nextPinned)}
+                />
+              </div>
+            </section>
+
+            <EventForm
+              state={form}
+              disabled={disabled}
+              saving={updateMutation.isPending}
+              onChange={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
+              onSave={() => updateMutation.mutate()}
+              onView={() => router.push(`/events/${eventId}`)}
+              onDeleteClick={() => setShowDelete(true)}
+            />
+          </>
         )}
       </div>
 

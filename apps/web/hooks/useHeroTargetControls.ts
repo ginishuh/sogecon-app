@@ -10,6 +10,7 @@ import {
   lookupAdminHeroItems,
   updateAdminHeroItem,
   type HeroTargetLookupItem,
+  type HeroTargetLookupResponse,
   type HeroTargetType,
 } from '../services/hero';
 
@@ -31,9 +32,10 @@ export function useHeroTargetControls(params: {
 }) {
   const { targetType, targetIds, showToast } = params;
   const queryClient = useQueryClient();
+  const lookupKey = ['admin-hero-lookup', targetType, targetIds] as const;
 
   const lookup = useQuery({
-    queryKey: ['admin-hero-lookup', targetType, targetIds],
+    queryKey: lookupKey,
     queryFn: () => lookupAdminHeroItems({ target_type: targetType, target_ids: targetIds }),
     enabled: targetIds.length > 0,
     staleTime: 15_000,
@@ -50,11 +52,47 @@ export function useHeroTargetControls(params: {
   const createMutation = useMutation({
     mutationFn: (targetId: number) =>
       createAdminHeroItem({ target_type: targetType, target_id: targetId, enabled: true }),
-    onSuccess: () => {
+    onMutate: async (targetId: number) => {
+      await queryClient.cancelQueries({ queryKey: lookupKey });
+      const previous = queryClient.getQueryData<HeroTargetLookupResponse>(lookupKey);
+
+      queryClient.setQueryData<HeroTargetLookupResponse>(lookupKey, (old) => {
+        const items = old?.items ?? [];
+        if (items.some((item) => item.target_id === targetId)) {
+          return old ?? { items };
+        }
+        const optimistic: HeroTargetLookupItem = {
+          target_id: targetId,
+          hero_item_id: 0,
+          enabled: true,
+          pinned: false,
+        };
+        return { items: [...items, optimistic] };
+      });
+
+      return { previous, targetId };
+    },
+    onSuccess: (created, targetId) => {
       showToast('배너에 등록했습니다.', { type: 'success' });
+      queryClient.setQueryData<HeroTargetLookupResponse>(lookupKey, (old) => {
+        const items = old?.items ?? [];
+        const next = items.map((item) => {
+          if (item.target_id !== targetId) return item;
+          return {
+            target_id: targetId,
+            hero_item_id: created.id,
+            enabled: created.enabled,
+            pinned: created.pinned,
+          };
+        });
+        return { items: next };
+      });
       invalidateHero();
     },
-    onError: (err: unknown) => {
+    onError: (err: unknown, _targetId: number, ctx?: { previous?: HeroTargetLookupResponse }) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(lookupKey, ctx.previous);
+      }
       showToast(toErrorMessage(err), { type: 'error' });
     },
   });
@@ -62,8 +100,44 @@ export function useHeroTargetControls(params: {
   const updateMutation = useMutation({
     mutationFn: (payload: { id: number; enabled?: boolean; pinned?: boolean }) =>
       updateAdminHeroItem(payload.id, { enabled: payload.enabled, pinned: payload.pinned }),
-    onSuccess: () => invalidateHero(),
-    onError: (err: unknown) => {
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey: lookupKey });
+      const previous = queryClient.getQueryData<HeroTargetLookupResponse>(lookupKey);
+
+      queryClient.setQueryData<HeroTargetLookupResponse>(lookupKey, (old) => {
+        const items = old?.items ?? [];
+        const next = items.map((item) => {
+          if (item.hero_item_id !== payload.id) return item;
+          return {
+            ...item,
+            enabled: payload.enabled ?? item.enabled,
+            pinned: payload.pinned ?? item.pinned,
+          };
+        });
+        return { items: next };
+      });
+
+      return { previous };
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData<HeroTargetLookupResponse>(lookupKey, (old) => {
+        const items = old?.items ?? [];
+        const next = items.map((item) => {
+          if (item.hero_item_id !== updated.id) return item;
+          return {
+            ...item,
+            enabled: updated.enabled,
+            pinned: updated.pinned,
+          };
+        });
+        return { items: next };
+      });
+      invalidateHero();
+    },
+    onError: (err: unknown, _payload, ctx?: { previous?: HeroTargetLookupResponse }) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(lookupKey, ctx.previous);
+      }
       showToast(toErrorMessage(err), { type: 'error' });
     },
   });
@@ -95,4 +169,3 @@ export function useHeroTargetControls(params: {
     togglePinned,
   };
 }
-
