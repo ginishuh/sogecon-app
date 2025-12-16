@@ -97,7 +97,7 @@ api-start: db-up
 		exit 1; \
 	fi
 	@mkdir -p logs
-	@cd apps/api && nohup "$(VENV_BIN)/uvicorn" main:app --reload --port 3001 > ../../logs/api-dev.log 2>&1 & echo $$! > ../../.api-dev.pid
+	@nohup "$(VENV_BIN)/uvicorn" apps.api.main:app --reload --port 3001 --reload-dir apps/api > logs/api-dev.log 2>&1 & echo $$! > .api-dev.pid
 	@echo "[api] started (pid $$(cat .api-dev.pid)) → logs/api-dev.log"
 
 api-stop:
