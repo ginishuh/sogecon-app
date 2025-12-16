@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from './toast';
 import { ApiError } from '../lib/api';
 import { ensureServiceWorker, getCurrentSubscription, subscribePush, unsubscribePush } from '../lib/push';
+import { isServiceWorkerEnabled } from '../lib/sw';
 import { deleteSubscription, saveSubscription } from '../services/notifications';
 
 export function HeaderNotifyCTA() {
@@ -16,7 +17,7 @@ export function HeaderNotifyCTA() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const ok = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    const ok = isServiceWorkerEnabled() && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
     setSupported(ok);
     if (!ok) return;
     (async () => {

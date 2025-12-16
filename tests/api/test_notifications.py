@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import asyncio
+import hashlib
 from http import HTTPStatus
 from typing import Any
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from apps.api import models
+from apps.api.db import get_db
 from apps.api.main import app
 from apps.api.routers import notifications as router_mod
 from apps.api.services.notifications_service import PushProvider
@@ -38,6 +42,42 @@ def test_subscription_save_update_delete(admin_login: TestClient) -> None:
         "DELETE", "/notifications/subscriptions", json={"endpoint": endpoint}
     )
     assert res4.status_code == HTTPStatus.NO_CONTENT
+
+
+def test_subscription_save_sets_member_id(member_login: TestClient) -> None:
+    client = member_login
+    endpoint = "https://example.com/ep/member/1"
+    payload = {
+        "endpoint": endpoint,
+        "p256dh": "k1",
+        "auth": "a1",
+        "ua": "pytest",
+    }
+
+    res = client.post("/notifications/subscriptions", json=payload)
+    assert res.status_code == HTTPStatus.NO_CONTENT
+
+    override = app.dependency_overrides.get(get_db)
+    assert override is not None
+
+    async def _check() -> None:
+        async for db in override():
+            m_stmt = select(models.Member).where(
+                models.Member.student_id == "member001"
+            )
+            m = (await db.execute(m_stmt)).scalars().first()
+            assert m is not None
+
+            endpoint_hash = hashlib.sha256(endpoint.encode()).hexdigest()
+            s_stmt = select(models.PushSubscription).where(
+                models.PushSubscription.endpoint_hash == endpoint_hash
+            )
+            sub = (await db.execute(s_stmt)).scalars().first()
+            assert sub is not None
+            assert sub.member_id == m.id
+            break
+
+    asyncio.run(_check())
 
 
 class _DummyProvider(PushProvider):

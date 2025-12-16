@@ -1049,3 +1049,4 @@
 2025-12-16 fix(web): 전역 링크 스타일(B안) 분리(.text-link/버튼 링크)로 UX 일관성 개선 — PR #96
 2025-12-16 fix(web): 홈 히어로 이미지 선명도 개선(sizes/quality 조정) — PR #96
 2025-12-16 fix(web): typedRoutes 빌드 오류 수정(데스크톱 홈 섹션 링크 타입) — PR #96
+2025-12-16 fix(api,web): PWA/푸시 운영 보완(iOS 아이콘·SW 가드·member_id·암호화) — PR draft, refs #97

@@ -84,6 +84,8 @@ export default async function RootLayout({
       <head>
         {/* 이미지 CDN preconnect */}
         <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
       </head>
       <body>
         <a className="skip-link" href="#main-content">

@@ -1,10 +1,33 @@
 // 브라우저 Web Push 유틸리티(서비스워커/구독 관리)
 
+import { isServiceWorkerEnabled } from './sw';
+
 export type SubscribeResult = {
   endpoint: string;
   p256dh: string;
   auth: string;
 };
+
+function canUsePush(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (!isServiceWorkerEnabled()) return false;
+  return ['serviceWorker' in navigator, 'PushManager' in window, 'Notification' in window].every(Boolean);
+}
+
+function toSubscribeResult(sub: PushSubscription): SubscribeResult | null {
+  const json = sub.toJSON();
+  const endpoint = json.endpoint;
+  if (!endpoint) return null;
+
+  const keys = json.keys;
+  if (!keys) return null;
+
+  const p256dh = keys.p256dh;
+  const auth = keys.auth;
+  if (!p256dh || !auth) return null;
+
+  return { endpoint, p256dh, auth };
+}
 
 // urlBase64 → Uint8Array (VAPID public key 변환)
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -18,28 +41,39 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 export async function ensureServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
-  const reg = await navigator.serviceWorker.register('/sw.js');
-  return reg;
+  if (!isServiceWorkerEnabled()) return null;
+
+  const existing = await navigator.serviceWorker.getRegistration();
+  if (existing) return existing;
+
+  try {
+    return await navigator.serviceWorker.register('/sw.js');
+  } catch (error) {
+    console.info('Service worker registration failed', error);
+    return null;
+  }
 }
 
 export async function getCurrentSubscription(): Promise<PushSubscription | null> {
-  if (!('serviceWorker' in navigator)) return null;
-  const reg = await navigator.serviceWorker.ready;
-  return reg.pushManager.getSubscription();
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
+  if (!isServiceWorkerEnabled()) return null;
+
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) return null;
+  return await reg.pushManager.getSubscription();
 }
 
 export async function subscribePush(vapidPublicKey: string): Promise<SubscribeResult | null> {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+  if (!canUsePush()) return null;
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') return null;
-  const reg = await navigator.serviceWorker.ready;
+  const reg = await ensureServiceWorker();
+  if (!reg) return null;
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
   });
-  const json = sub.toJSON();
-  if (!json.endpoint || !json.keys || !json.keys.p256dh || !json.keys.auth) return null;
-  return { endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth };
+  return toSubscribeResult(sub);
 }
 
 export async function unsubscribePush(): Promise<string | null> {
@@ -49,4 +83,3 @@ export async function unsubscribePush(): Promise<string | null> {
   const ok = await current.unsubscribe().catch(() => false);
   return ok ? endpoint : null;
 }
-
