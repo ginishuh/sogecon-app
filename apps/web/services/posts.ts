@@ -18,13 +18,51 @@ export type Post = {
   comment_count?: number;
 };
 
-export async function listPosts(params: { limit?: number; offset?: number; category?: string } = {}): Promise<Post[]> {
-  const q = new URLSearchParams();
+export type ListPostsParams = {
+  limit?: number;
+  offset?: number;
+  category?: string;
+  categories?: string[];
+};
+
+function assertListPostsParams(params: ListPostsParams) {
+  if (params.category && params.categories && params.categories.length > 0) {
+    throw new Error('category and categories cannot be used together');
+  }
+}
+
+function applyListPostsPagination(q: URLSearchParams, params: ListPostsParams) {
   if (params.limit != null) q.set('limit', String(params.limit));
   if (params.offset != null) q.set('offset', String(params.offset));
-  if (params.category) q.set('category', params.category);
+}
+
+function applyListPostsCategoryFilter(q: URLSearchParams, params: ListPostsParams) {
+  if (params.categories && params.categories.length > 0) {
+    for (const c of params.categories) {
+      q.append('categories', c);
+    }
+    return;
+  }
+  if (params.category) {
+    q.set('category', params.category);
+  }
+}
+
+function buildListPostsQuery(params: ListPostsParams): string {
+  assertListPostsParams(params);
+
+  const q = new URLSearchParams();
+  applyListPostsPagination(q, params);
+  applyListPostsCategoryFilter(q, params);
+
   const qs = q.toString();
-  return apiFetch<Post[]>(`/posts/${qs ? `?${qs}` : ''}`);
+  if (!qs) return '';
+  return `?${qs}`;
+}
+
+export async function listPosts(params: ListPostsParams = {}): Promise<Post[]> {
+  const query = buildListPostsQuery(params);
+  return apiFetch<Post[]>(`/posts/${query}`);
 }
 
 export async function getPost(id: number): Promise<Post> {

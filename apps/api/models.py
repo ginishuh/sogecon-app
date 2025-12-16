@@ -172,6 +172,54 @@ class Event(Base):
 Index("ix_events_starts_at", Event.starts_at)
 
 
+class HeroItem(Base):
+    """홈 히어로 배너 슬롯.
+
+    - B안: 히어로는 별도 '게시글'이 아니라, 행사/게시글을 추천 노출하는 슬롯이다.
+    - target_type/target_id로 실제 대상(행사/게시글)을 참조한다.
+      (다형 FK는 DB 레벨로 강제하기 어렵기 때문에 서비스 계층에서 검증한다.)
+    """
+
+    __tablename__ = "hero_items"
+
+    id = Column(Integer, primary_key=True)
+    target_type = Column(String(16), nullable=False, index=True)  # 'post' | 'event'
+    target_id = Column(Integer, nullable=False, index=True)
+
+    enabled = Column(
+        Boolean, nullable=False, default=True, server_default="1", index=True
+    )
+    pinned = Column(
+        Boolean, nullable=False, default=False, server_default="0", index=True
+    )
+
+    title_override = Column(String(255), nullable=True)
+    description_override = Column(Text, nullable=True)
+    image_override = Column(String(512), nullable=True)
+
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        index=True,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        server_onupdate=func.now(),
+        onupdate=func.now(),
+    )
+
+
+Index("ix_hero_items_updated_at", HeroItem.updated_at)
+Index(
+    "ix_hero_items_pinned_updated",
+    HeroItem.pinned,
+    HeroItem.updated_at,
+)
+
+
 class RSVP(Base):
     __tablename__ = "rsvps"
 

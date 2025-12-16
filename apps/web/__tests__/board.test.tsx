@@ -72,8 +72,8 @@ describe('BoardPage', () => {
   });
 
   it('카테고리 탭 전환 시 새 데이터를 불러온다', async () => {
-    listPostsMock.mockImplementation((params?: { category?: string }) => {
-      if (!params || !params.category) {
+    listPostsMock.mockImplementation((params?: { category?: string; categories?: string[] }) => {
+      if (!params || (params.categories && params.categories.length > 0)) {
         return Promise.resolve([
           { id: 10, title: '자유 게시글', content: '자유롭게', published_at: null, author_id: 1, category: 'discussion' },
         ]);
@@ -91,6 +91,11 @@ describe('BoardPage', () => {
     await waitFor(() => {
       expect(screen.getByText('자유 게시글')).toBeInTheDocument();
     });
+    expect(listPostsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        categories: ['discussion', 'question', 'share', 'congrats'],
+      }),
+    );
 
     const questionTab = screen.getByRole('tab', { name: '질문' });
     fireEvent.click(questionTab);

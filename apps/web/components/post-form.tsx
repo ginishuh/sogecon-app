@@ -7,7 +7,7 @@ import type { Post } from '../services/posts';
 export type PostFormData = {
   title: string;
   content: string;
-  category: 'notice' | 'news' | 'hero';
+  category: 'notice' | 'news';
   pinned: boolean;
   cover_image: string | null;
   images: string[];
@@ -24,9 +24,11 @@ type PostFormProps = {
   onCancel?: () => void;
   /** 관리자 전용 옵션 숨김 (카테고리, 공개 상태, 상단 고정) - 일반 사용자 수정 시 */
   hideAdminOptions?: boolean;
+  /** 레거시/특수 카테고리 등으로 카테고리 변경을 막고 싶을 때 */
+  hideCategory?: boolean;
 };
 
-type CategoryType = 'notice' | 'news' | 'hero';
+type CategoryType = 'notice' | 'news';
 
 const DEFAULT_VALUES = {
   title: '',
@@ -41,10 +43,11 @@ const DEFAULT_VALUES = {
 /** 초기 데이터에서 폼 기본값 추출 */
 function getInitialValues(initialData?: Post) {
   if (!initialData) return DEFAULT_VALUES;
+  const category: CategoryType = initialData.category === 'news' ? 'news' : 'notice';
   return {
     title: initialData.title,
     content: initialData.content,
-    category: (initialData.category as CategoryType) || 'notice',
+    category,
     pinned: initialData.pinned || false,
     coverImage: initialData.cover_image ?? null,
     images: initialData.images || [],
@@ -136,9 +139,9 @@ function usePostFormState(initialData?: Post) {
   };
 }
 
-/** 히어로 카테고리 최대 이미지 수 */
-function getMaxImages(category: CategoryType): number {
-  return category === 'hero' ? 5 : 10;
+/** 게시글 최대 이미지 수 */
+function getMaxImages(): number {
+  return 10;
 }
 
 /** 관리자 전용 상단 필드 (카테고리) */
@@ -172,6 +175,51 @@ function AdminBottomFields({
   );
 }
 
+function PostFormAdminFields({
+  hideAdminOptions,
+  hideCategory,
+  category,
+  setCategory,
+  published,
+  setPublished,
+  pinned,
+  setPinned,
+}: {
+  hideAdminOptions: boolean;
+  hideCategory: boolean;
+  category: CategoryType;
+  setCategory: (v: CategoryType) => void;
+  published: boolean;
+  setPublished: (v: boolean) => void;
+  pinned: boolean;
+  setPinned: (v: boolean) => void;
+}) {
+  if (hideAdminOptions) return null;
+
+  return (
+    <>
+      <div hidden={hideCategory}>
+        <AdminTopFields category={category} setCategory={setCategory} />
+      </div>
+      <AdminBottomFields
+        published={published}
+        setPublished={setPublished}
+        pinned={pinned}
+        setPinned={setPinned}
+      />
+    </>
+  );
+}
+
+function PostFormError({ error }: { error: string | null }) {
+  if (!error) return null;
+  return <ErrorMessage message={error} />;
+}
+
+function isSubmitDisabled(title: string, content: string): boolean {
+  return !title || !content;
+}
+
 export function PostForm({
   initialData,
   submitLabel = '저장',
@@ -181,41 +229,39 @@ export function PostForm({
   onSubmit,
   onCancel,
   hideAdminOptions = false,
+  hideCategory = false,
 }: PostFormProps) {
   const state = usePostFormState(initialData);
   const handleSubmit = () => onSubmit(state.getData());
-  const showAdminFields = !hideAdminOptions;
 
   return (
     <div className="space-y-4">
-      {showAdminFields && (
-        <AdminTopFields category={state.category} setCategory={state.setCategory} />
-      )}
+      <PostFormAdminFields
+        hideAdminOptions={hideAdminOptions}
+        hideCategory={hideCategory}
+        category={state.category}
+        setCategory={state.setCategory}
+        published={state.published}
+        setPublished={state.setPublished}
+        pinned={state.pinned}
+        setPinned={state.setPinned}
+      />
       <TitleField value={state.title} onChange={state.setTitle} />
       <ImageField
-        category={state.category}
         coverImage={state.coverImage}
         images={state.images}
         onCoverChange={state.setCoverImage}
         onImagesChange={state.setImages}
         disabled={isPending}
-        maxImages={getMaxImages(state.category)}
+        maxImages={getMaxImages()}
       />
       <ContentField value={state.content} onChange={state.setContent} />
-      {showAdminFields && (
-        <AdminBottomFields
-          published={state.published}
-          setPublished={state.setPublished}
-          pinned={state.pinned}
-          setPinned={state.setPinned}
-        />
-      )}
-      {error && <ErrorMessage message={error} />}
+      <PostFormError error={error} />
       <FormButtons
         onCancel={onCancel}
         onSubmit={handleSubmit}
         isPending={isPending}
-        disabled={!state.title || !state.content}
+        disabled={isSubmitDisabled(state.title, state.content)}
         submitLabel={submitLabel}
         loadingLabel={loadingLabel}
       />
@@ -244,7 +290,6 @@ function CategoryField({
       >
         <option value="notice">공지</option>
         <option value="news">소식</option>
-        <option value="hero">히어로 (홈 배너)</option>
       </select>
     </label>
   );
@@ -271,7 +316,6 @@ function TitleField({
 }
 
 function ImageField({
-  category,
   coverImage,
   images,
   onCoverChange,
@@ -279,7 +323,6 @@ function ImageField({
   disabled,
   maxImages,
 }: {
-  category: CategoryType;
   coverImage: string | null;
   images: string[];
   onCoverChange: (v: string | null) => void;
@@ -290,7 +333,7 @@ function ImageField({
   return (
     <div className="space-y-1">
       <span className="block text-sm text-slate-700">
-        이미지 {category === 'hero' ? '(필수)' : '(선택)'}
+        이미지 (선택)
       </span>
       <MultiImageUpload
         coverImage={coverImage}
@@ -369,15 +412,18 @@ function PinnedField({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm text-slate-700">
-      <input
-        type="checkbox"
-        checked={value}
-        onChange={(e) => onChange(e.currentTarget.checked)}
-        className="rounded border-slate-300"
-      />
-      상단 고정 (PIN)
-    </label>
+    <div className="space-y-1">
+      <label className="flex items-center gap-2 text-sm text-slate-700">
+        <input
+          type="checkbox"
+          checked={value}
+          onChange={(e) => onChange(e.currentTarget.checked)}
+          className="rounded border-slate-300"
+        />
+        게시판 상단 고정
+      </label>
+      <p className="text-xs text-slate-500">공지/소식 목록에서 상단에 고정됩니다.</p>
+    </div>
   );
 }
 

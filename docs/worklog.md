@@ -1029,3 +1029,23 @@
 2025-12-12 fix(web): 글쓰기/새 행사 생성 버튼 + 게시판 FAB 호버·액티브 스타일 정리 — PR draft
 2025-12-12 test(api): 행사 description 필드 테스트 추가 및 admin_events getattr 정리 — PR draft
 2025-12-12 test(api): 로컬 pytest용 PostgreSQL enum 선행 생성/정리 추가 — PR draft
+2025-12-15 feat(web): 홈 배너 추천 슬롯(hero_items) 전환 — PR draft
+- api: hero_items 테이블 + /hero, /admin/hero 엔드포인트 추가
+- web: 홈 캐러셀에서 행사/게시글로 이동(CTA) + /admin/hero 관리 화면 추가
+2025-12-15 fix(api): is_admin 도입 및 posts 쿼리 충돌 처리 — PR #96
+2025-12-15 fix(web): 히어로 폼 초기화 안전화·레거시 hero 편집 보호 — PR #96
+2025-12-15 test(api): hero 슬롯 예외/CRUD/스킵 테스트 보강 — PR #96
+2025-12-15 docs(docs): PR #96 리뷰 반영 로그 업데이트 — PR #96
+2025-12-15 fix(web): 홈 히어로 CTA Link typed routes 타입 오류 수정 — PR #96
+2025-12-15 chore(schemas): OpenAPI/DTO 번들(openapi.json/index.d.ts) 갱신 — PR #96
+2025-12-16 fix(ci): web 번들 사이즈 체크에서 admin 청크 제외 — PR #96
+2025-12-16 fix(web): Next.js 15.5.8 → 15.5.9 보안 패치 업그레이드 — PR #96
+2025-12-16 feat(web): 관리자 글/행사 목록 배너(히어로) 토글 + 생성 동선 통합 — PR #96
+2025-12-16 fix(dev): dev-up/api-start 및 rum vitals 전송 경로 정리 — PR #96
+2025-12-16 refactor(web): 관리자 메뉴 새 글/새 행사 바로가기 제거 — PR #96
+2025-12-16 refactor(web): 관리자 목록 액션 텍스트 통일 및 행사 '보기' 제거 — PR #96
+2025-12-16 fix(web): 홈 배너 토글 즉시 반영 및 수정 화면 노출 — PR #96
+2025-12-16 feat(web): 홈(PC) 공지/행사/소식 섹션 카드 구성 추가 — PR #96
+2025-12-16 fix(web): 전역 링크 스타일(B안) 분리(.text-link/버튼 링크)로 UX 일관성 개선 — PR #96
+2025-12-16 fix(web): 홈 히어로 이미지 선명도 개선(sizes/quality 조정) — PR #96
+2025-12-16 fix(web): typedRoutes 빌드 오류 수정(데스크톱 홈 섹션 링크 타입) — PR #96

@@ -4,10 +4,9 @@ import { useEffect } from 'react';
 import type { Metric } from 'web-vitals';
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
-const apiBase = process.env.NEXT_PUBLIC_WEB_API_BASE ?? '';
-const vitalsUrl = apiBase
-  ? `${apiBase.replace(/\/$/, '')}/rum/vitals`
-  : '/rum/vitals';
+import { API_BASE } from '../lib/api';
+
+const vitalsUrl = `${API_BASE.replace(/\/$/, '')}/rum/vitals`;
 
 function getNavType(): string | undefined {
   if (typeof performance === 'undefined') return undefined;

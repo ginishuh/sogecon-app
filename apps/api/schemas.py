@@ -20,6 +20,7 @@ from .config import get_settings
 VisibilityLiteral = Literal["all", "cohort", "private"]
 RSVPLiteral = Literal["going", "waitlist", "cancel"]
 EventStatusLiteral = Literal["upcoming", "ongoing", "ended"]
+HeroTargetTypeLiteral = Literal["post", "event"]
 
 _PHONE_PATTERN = re.compile(r'^[0-9+\-\s]{7,20}$')
 _TEXT_LIMITS: dict[str, tuple[int, int, str]] = {
@@ -261,6 +262,75 @@ class EventUpdate(BaseModel):
     ends_at: datetime | None = None
     location: str | None = None
     capacity: int | None = None
+
+
+class HeroItemBase(BaseModel):
+    """홈 히어로 배너 슬롯(추천) 기본 스키마."""
+
+    target_type: HeroTargetTypeLiteral
+    target_id: int
+    enabled: bool = True
+    pinned: bool = False
+    title_override: str | None = None
+    description_override: str | None = None
+    image_override: str | None = None
+
+
+class HeroItemCreate(HeroItemBase):
+    pass
+
+
+class HeroItemUpdate(BaseModel):
+    """히어로 배너 슬롯 부분 업데이트 스키마."""
+
+    target_type: HeroTargetTypeLiteral | None = None
+    target_id: int | None = None
+    enabled: bool | None = None
+    pinned: bool | None = None
+    title_override: str | None = None
+    description_override: str | None = None
+    image_override: str | None = None
+
+
+class HeroItemRead(HeroItemBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class HeroSlide(BaseModel):
+    """홈 히어로 캐러셀용 응답(대상 resolve 포함)."""
+
+    id: int
+    target_type: HeroTargetTypeLiteral
+    target_id: int
+    title: str
+    description: str
+    image: str | None = None
+    href: str
+    unpublished: bool = False
+
+
+class HeroTargetLookupRequest(BaseModel):
+    """관리자용: 대상(게시글/행사) ID 목록으로 hero_item 상태 조회."""
+
+    target_type: HeroTargetTypeLiteral
+    target_ids: list[int]
+
+
+class HeroTargetLookupItem(BaseModel):
+    """관리자용: 대상별 hero_item 요약."""
+
+    target_id: int
+    hero_item_id: int
+    enabled: bool
+    pinned: bool
+
+
+class HeroTargetLookupResponse(BaseModel):
+    items: list[HeroTargetLookupItem]
 
 
 class RSVPBase(BaseModel):

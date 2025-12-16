@@ -2,12 +2,23 @@
 
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '../../hooks/useAuth';
 import { splitPinned } from '../../lib/posts';
 import { listPosts, type Post } from '../../services/posts';
 import { PostCard } from '../../components/post-card';
+import { ButtonLink } from '../../components/ui/button-link';
+
+type Category = 'all' | 'notice' | 'news';
+
+function parseCategory(value: string | null): Category {
+  if (value === 'notice') return 'notice';
+  if (value === 'news') return 'news';
+  if (value === 'all') return 'all';
+  return 'all';
+}
 
 function PinnedList({ posts, limit, onViewAll }: { posts: Post[]; limit: number; onViewAll: () => void }) {
   const toShow = posts.slice(0, limit);
@@ -43,7 +54,7 @@ function PinnedList({ posts, limit, onViewAll }: { posts: Post[]; limit: number;
   );
 }
 
-function PostsList({ posts, category, setCategory }: { posts: Post[]; category: 'all'|'notice'|'news'; setCategory: (c: 'all'|'notice'|'news') => void }) {
+function PostsList({ posts, category, setCategory }: { posts: Post[]; category: Category; setCategory: (c: Category) => void }) {
   const { pinned, regular } = useMemo(() => splitPinned(posts), [posts]);
   const pinnedLimit = 3;
   const showPinnedSection = (category === 'all' || category === 'notice') && pinned.length > 0;
@@ -85,24 +96,33 @@ function WriteButton() {
   const { data: auth } = useAuth();
   if (auth?.kind !== 'admin') return null;
   return (
-    <Link
-      href="/posts/new"
-      className="inline-flex items-center gap-1 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-primaryDark active:bg-brand-primaryDark hover:text-white active:text-white visited:text-white hover:no-underline active:no-underline"
-    >
+    <ButtonLink href="/admin/posts/new" className="gap-1 shadow-sm">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="12" y1="5" x2="12" y2="19" />
         <line x1="5" y1="12" x2="19" y2="12" />
       </svg>
       글쓰기
-    </Link>
+    </ButtonLink>
   );
 }
 
 export default function PostsPage() {
-  const [category, setCategory] = useState<'all'|'notice'|'news'>('all');
+  const searchParams = useSearchParams();
+  const urlCategory = parseCategory(searchParams.get('category'));
+  const [category, setCategory] = useState<Category>(urlCategory);
+
+  useEffect(() => {
+    setCategory(urlCategory);
+  }, [urlCategory]);
+
   const query = useQuery<Post[]>({
     queryKey: ['posts', 20, 0, category],
-    queryFn: () => listPosts({ limit: 20, category: category === 'all' ? undefined : category }),
+    queryFn: () => {
+      if (category === 'all') {
+        return listPosts({ limit: 20, categories: ['notice', 'news'] });
+      }
+      return listPosts({ limit: 20, category });
+    },
   });
 
   if (query.isLoading) {
@@ -113,11 +133,7 @@ export default function PostsPage() {
     return <p className="text-red-600">게시글을 불러오지 못했습니다.</p>;
   }
 
-  let posts = query.data ?? [];
-  // 홈/리스트 UX: hero 카테고리는 기본 뷰에서 제외(명시적으로 hero 선택 시에만 노출)
-  if (category === 'all') {
-    posts = posts.filter((p) => (p.category ?? '') !== 'hero');
-  }
+  const posts = query.data ?? [];
 
   return (
     <div className="space-y-4">

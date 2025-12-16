@@ -11,10 +11,15 @@ from ..repositories import posts as posts_repo
 
 
 async def list_posts(
-    db: AsyncSession, *, limit: int, offset: int, category: str | None = None
+    db: AsyncSession,
+    *,
+    limit: int,
+    offset: int,
+    category: str | None = None,
+    categories: Sequence[str] | None = None,
 ) -> Sequence[models.Post]:
     return await posts_repo.list_posts(
-        db, limit=limit, offset=offset, category=category
+        db, limit=limit, offset=offset, category=category, categories=categories
     )
 
 

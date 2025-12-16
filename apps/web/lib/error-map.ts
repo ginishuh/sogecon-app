@@ -13,6 +13,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   // 게시글/행사 관련
   post_not_found: '게시글을 찾을 수 없습니다.',
   event_not_found: '행사를 찾을 수 없습니다.',
+  hero_item_not_found: '배너를 찾을 수 없습니다.',
   rsvp_not_found: 'RSVP 정보가 없습니다.',
   rsvp_exists: '이미 RSVP가 존재합니다.',
 };
@@ -21,4 +22,3 @@ export function apiErrorToMessage(code?: string, fallback?: string): string {
   const message = code ? ERROR_MESSAGES[code] : undefined;
   return message ?? fallback ?? '요청 처리 중 오류가 발생했습니다.';
 }
-

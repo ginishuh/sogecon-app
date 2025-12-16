@@ -28,10 +28,12 @@ from .observability import init_sentry
 from .ratelimit import create_limiter
 from .routers import (
     admin_events,
+    admin_hero,
     admin_posts,
     auth,
     comments,
     events,
+    hero,
     members,
     notifications,
     posts,
@@ -293,6 +295,7 @@ app.include_router(comments.router)
 app.include_router(events.router)
 app.include_router(rsvps.router)
 app.include_router(auth.router)
+app.include_router(hero.router)
 app.include_router(notifications.router)
 app.include_router(support.router)
 app.include_router(profile.router)
@@ -300,3 +303,4 @@ app.include_router(rum.router)
 app.include_router(uploads.router)
 app.include_router(admin_posts.router)
 app.include_router(admin_events.router)
+app.include_router(admin_hero.router)

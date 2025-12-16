@@ -526,6 +526,25 @@
               ],
               "title": "Category"
             }
+          },
+          {
+            "name": "categories",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Categories"
+            }
           }
         ],
         "responses": {
@@ -1499,6 +1518,65 @@
         }
       }
     },
+    "/hero/": {
+      "get": {
+        "tags": [
+          "hero"
+        ],
+        "summary": "List Hero Slides",
+        "operationId": "list_hero_slides_hero__get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10,
+              "minimum": 1,
+              "default": 5,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "include_unpublished",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Unpublished"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HeroSlide"
+                  },
+                  "title": "Response List Hero Slides Hero  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/notifications/subscriptions": {
       "post": {
         "tags": [
@@ -2455,6 +2533,286 @@
           }
         }
       }
+    },
+    "/admin/hero/": {
+      "get": {
+        "tags": [
+          "admin-hero"
+        ],
+        "summary": "List Admin Hero Items",
+        "operationId": "list_admin_hero_items_admin_hero__get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminHeroListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "admin-hero"
+        ],
+        "summary": "Create Admin Hero Item",
+        "operationId": "create_admin_hero_item_admin_hero__post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeroItemCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeroItemRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/hero/lookup": {
+      "post": {
+        "tags": [
+          "admin-hero"
+        ],
+        "summary": "Lookup Admin Hero Items",
+        "description": "\ub300\uc0c1(\uac8c\uc2dc\uae00/\ud589\uc0ac) ID \ubaa9\ub85d\uc73c\ub85c hero_item \uc0c1\ud0dc\ub97c \uc870\ud68c\ud55c\ub2e4.",
+        "operationId": "lookup_admin_hero_items_admin_hero_lookup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeroTargetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeroTargetLookupResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/hero/{hero_item_id}": {
+      "get": {
+        "tags": [
+          "admin-hero"
+        ],
+        "summary": "Get Admin Hero Item",
+        "operationId": "get_admin_hero_item_admin_hero__hero_item_id__get",
+        "parameters": [
+          {
+            "name": "hero_item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Hero Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeroItemRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "admin-hero"
+        ],
+        "summary": "Update Admin Hero Item",
+        "operationId": "update_admin_hero_item_admin_hero__hero_item_id__patch",
+        "parameters": [
+          {
+            "name": "hero_item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Hero Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeroItemUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeroItemRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "admin-hero"
+        ],
+        "summary": "Delete Admin Hero Item",
+        "operationId": "delete_admin_hero_item_admin_hero__hero_item_id__delete",
+        "parameters": [
+          {
+            "name": "hero_item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Hero Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "title": "Response Delete Admin Hero Item Admin Hero  Hero Item Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2479,6 +2837,27 @@
           "total"
         ],
         "title": "AdminEventListResponse"
+      },
+      "AdminHeroListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HeroItemRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "AdminHeroListResponse"
       },
       "AdminPostListResponse": {
         "properties": {
@@ -2906,6 +3285,371 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "HeroItemCreate": {
+        "properties": {
+          "target_type": {
+            "type": "string",
+            "enum": [
+              "post",
+              "event"
+            ],
+            "title": "Target Type"
+          },
+          "target_id": {
+            "type": "integer",
+            "title": "Target Id"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "pinned": {
+            "type": "boolean",
+            "title": "Pinned",
+            "default": false
+          },
+          "title_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title Override"
+          },
+          "description_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Override"
+          },
+          "image_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Override"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_type",
+          "target_id"
+        ],
+        "title": "HeroItemCreate"
+      },
+      "HeroItemRead": {
+        "properties": {
+          "target_type": {
+            "type": "string",
+            "enum": [
+              "post",
+              "event"
+            ],
+            "title": "Target Type"
+          },
+          "target_id": {
+            "type": "integer",
+            "title": "Target Id"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "pinned": {
+            "type": "boolean",
+            "title": "Pinned",
+            "default": false
+          },
+          "title_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title Override"
+          },
+          "description_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Override"
+          },
+          "image_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Override"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_type",
+          "target_id",
+          "id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "HeroItemRead"
+      },
+      "HeroItemUpdate": {
+        "properties": {
+          "target_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "event"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Type"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled"
+          },
+          "pinned": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pinned"
+          },
+          "title_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title Override"
+          },
+          "description_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Override"
+          },
+          "image_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Override"
+          }
+        },
+        "type": "object",
+        "title": "HeroItemUpdate",
+        "description": "\ud788\uc5b4\ub85c \ubc30\ub108 \uc2ac\ub86f \ubd80\ubd84 \uc5c5\ub370\uc774\ud2b8 \uc2a4\ud0a4\ub9c8."
+      },
+      "HeroSlide": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "target_type": {
+            "type": "string",
+            "enum": [
+              "post",
+              "event"
+            ],
+            "title": "Target Type"
+          },
+          "target_id": {
+            "type": "integer",
+            "title": "Target Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image"
+          },
+          "href": {
+            "type": "string",
+            "title": "Href"
+          },
+          "unpublished": {
+            "type": "boolean",
+            "title": "Unpublished",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "target_type",
+          "target_id",
+          "title",
+          "description",
+          "href"
+        ],
+        "title": "HeroSlide",
+        "description": "\ud648 \ud788\uc5b4\ub85c \uce90\ub7ec\uc140\uc6a9 \uc751\ub2f5(\ub300\uc0c1 resolve \ud3ec\ud568)."
+      },
+      "HeroTargetLookupItem": {
+        "properties": {
+          "target_id": {
+            "type": "integer",
+            "title": "Target Id"
+          },
+          "hero_item_id": {
+            "type": "integer",
+            "title": "Hero Item Id"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "pinned": {
+            "type": "boolean",
+            "title": "Pinned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_id",
+          "hero_item_id",
+          "enabled",
+          "pinned"
+        ],
+        "title": "HeroTargetLookupItem",
+        "description": "\uad00\ub9ac\uc790\uc6a9: \ub300\uc0c1\ubcc4 hero_item \uc694\uc57d."
+      },
+      "HeroTargetLookupRequest": {
+        "properties": {
+          "target_type": {
+            "type": "string",
+            "enum": [
+              "post",
+              "event"
+            ],
+            "title": "Target Type"
+          },
+          "target_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Target Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_type",
+          "target_ids"
+        ],
+        "title": "HeroTargetLookupRequest",
+        "description": "\uad00\ub9ac\uc790\uc6a9: \ub300\uc0c1(\uac8c\uc2dc\uae00/\ud589\uc0ac) ID \ubaa9\ub85d\uc73c\ub85c hero_item \uc0c1\ud0dc \uc870\ud68c."
+      },
+      "HeroTargetLookupResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HeroTargetLookupItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "HeroTargetLookupResponse"
       },
       "ImageUploadResponse": {
         "properties": {

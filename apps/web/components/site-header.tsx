@@ -19,9 +19,8 @@ const ABOUT_ITEMS = [
 const ADMIN_ITEMS = [
   { href: '/admin/posts', label: '게시물 관리' },
   { href: '/admin/events', label: '행사 관리' },
+  { href: '/admin/hero', label: '홈 배너 관리' },
   { href: '/admin/notifications', label: '알림 관리' },
-  { href: '/posts/new', label: '새 글 작성' },
-  { href: '/events/new', label: '새 행사 생성' },
 ] as const;
 
 export function SiteHeader() {
@@ -119,7 +118,7 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
     <div className="hidden lg:flex items-center gap-2">
       <Link
         href="/login"
-        className="px-3 py-2 text-sm text-white bg-[#b60007] rounded-lg no-underline hover:no-underline hover:text-white visited:text-white hover:bg-[#8a0005] transition-colors"
+        className="px-3 py-2 text-sm text-white bg-[#b60007] rounded-lg no-underline hover:no-underline hover:text-white hover:bg-[#8a0005] transition-colors"
       >
         로그인
       </Link>

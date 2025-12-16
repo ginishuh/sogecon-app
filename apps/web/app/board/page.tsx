@@ -20,6 +20,7 @@ const BOARD_CATEGORIES = [
 type BoardCategory = (typeof BOARD_CATEGORIES)[number]['key'];
 
 const PAGE_SIZE = 10;
+const BOARD_POST_CATEGORIES = ['discussion', 'question', 'share', 'congrats'] as const;
 
 function BoardPageInner() {
   const searchParams = useSearchParams();
@@ -38,12 +39,13 @@ function BoardPageInner() {
 
   const query = useQuery<Post[]>({
     queryKey: ['board', category, page],
-    queryFn: () =>
-      listPosts({
-        limit: PAGE_SIZE,
-        offset: page * PAGE_SIZE,
-        category: category === 'all' ? undefined : category,
-      }),
+    queryFn: () => {
+      const baseParams = { limit: PAGE_SIZE, offset: page * PAGE_SIZE };
+      if (category === 'all') {
+        return listPosts({ ...baseParams, categories: [...BOARD_POST_CATEGORIES] });
+      }
+      return listPosts({ ...baseParams, category });
+    },
     // v5: 이전 페이지 데이터 유지(UX 끊김 방지)
     placeholderData: keepPreviousData,
   });
@@ -166,7 +168,7 @@ function BoardPageInner() {
       {/* FAB 글쓰기 버튼 */}
       <Link
         href="/board/new"
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-brand-primary text-white shadow-lg transition-colors hover:bg-brand-primaryDark active:bg-brand-primaryDark hover:text-white active:text-white visited:text-white hover:no-underline active:no-underline"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-brand-primary text-white shadow-lg transition-colors hover:bg-brand-primaryDark active:bg-brand-primaryDark"
         aria-label="새 글 작성"
       >
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

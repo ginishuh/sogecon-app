@@ -3,14 +3,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import type { KeyboardEvent } from 'react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ConfirmDialog } from '../../../components/confirm-dialog';
+import { HeroTargetToggle } from '../../../components/hero-target-toggle';
 import { RequireAdmin } from '../../../components/require-admin';
 import { useToast } from '../../../components/toast';
+import { ButtonLink } from '../../../components/ui/button-link';
 import { useAuth } from '../../../hooks/useAuth';
+import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
+import type { HeroTargetLookupItem } from '../../../services/hero';
 import {
   deletePost,
   listAdminPosts,
@@ -43,7 +47,7 @@ function CategoryBadge({ category }: { category: string | null | undefined }) {
   const labels: Record<string, string> = {
     notice: '공지',
     news: '소식',
-    hero: '히어로',
+    hero: '히어로(구)',
   };
   const label = category ? labels[category] ?? category : '-';
   return <span className="text-xs text-slate-500">{label}</span>;
@@ -94,7 +98,6 @@ function FilterBar({
         <option value="">전체 카테고리</option>
         <option value="notice">공지</option>
         <option value="news">소식</option>
-        <option value="hero">히어로</option>
       </select>
 
       <select
@@ -138,10 +141,21 @@ function FilterBar({
 
 type PostTableRowProps = {
   post: Post;
+  heroItem?: HeroTargetLookupItem;
+  heroPending: boolean;
   onDelete: (post: Post) => void;
+  onToggleHero: (nextOn: boolean) => void;
+  onTogglePinned: (nextPinned: boolean) => void;
 };
 
-function PostTableRow({ post, onDelete }: PostTableRowProps) {
+function PostTableRow({
+  post,
+  heroItem,
+  heroPending,
+  onDelete,
+  onToggleHero,
+  onTogglePinned,
+}: PostTableRowProps) {
   return (
     <tr className="border-b hover:bg-slate-50">
       <td className="px-3 py-2">
@@ -168,23 +182,28 @@ function PostTableRow({ post, onDelete }: PostTableRowProps) {
       <td className="px-3 py-2 text-slate-600">{post.comment_count ?? 0}</td>
       <td className="px-3 py-2 text-slate-600">{formatDate(post.published_at)}</td>
       <td className="px-3 py-2">
-        <div className="flex gap-2">
-          <Link
-            href={`/admin/posts/${post.id}/edit`}
-            className="text-slate-600 hover:text-slate-900"
-            title="수정"
-          >
-            ✏️
-          </Link>
-          <button
-            type="button"
-            className="text-slate-600 hover:text-red-600"
-            title="삭제"
-            onClick={() => onDelete(post)}
-          >
-            🗑️
-          </button>
-        </div>
+        <HeroTargetToggle
+          value={heroItem}
+          isPending={heroPending}
+          onToggle={onToggleHero}
+          onTogglePinned={onTogglePinned}
+        />
+      </td>
+      <td className="px-3 py-2 text-right">
+        <Link
+          href={`/admin/posts/${post.id}/edit`}
+          className="text-sm text-slate-600 hover:text-slate-900"
+        >
+          수정
+        </Link>
+        <span className="mx-1 text-slate-300">|</span>
+        <button
+          type="button"
+          className="text-sm text-red-600 hover:text-red-700"
+          onClick={() => onDelete(post)}
+        >
+          삭제
+        </button>
       </td>
     </tr>
   );
@@ -232,6 +251,10 @@ type PostTableContentProps = {
   isLoading: boolean;
   isError: boolean;
   items: Post[] | undefined;
+  heroById: Map<number, HeroTargetLookupItem>;
+  heroPending: boolean;
+  onToggleHeroFor: (post: Post, nextOn: boolean) => void;
+  onTogglePinnedFor: (post: Post, nextPinned: boolean) => void;
   totalPages: number;
   total: number;
   page: number;
@@ -244,6 +267,10 @@ function PostTableContent({
   isLoading,
   isError,
   items,
+  heroById,
+  heroPending,
+  onToggleHeroFor,
+  onTogglePinnedFor,
   totalPages,
   total,
   page,
@@ -273,16 +300,25 @@ function PostTableContent({
               <th className="px-3 py-2 font-medium text-slate-700">조회</th>
               <th className="px-3 py-2 font-medium text-slate-700">댓글</th>
               <th className="px-3 py-2 font-medium text-slate-700">발행일</th>
-              <th className="px-3 py-2 font-medium text-slate-700">액션</th>
+              <th className="px-3 py-2 font-medium text-slate-700">홈 배너</th>
+              <th className="px-3 py-2 text-right font-medium text-slate-700">액션</th>
             </tr>
           </thead>
           <tbody>
             {items?.map((post) => (
-              <PostTableRow key={post.id} post={post} onDelete={onDelete} />
+              <PostTableRow
+                key={post.id}
+                post={post}
+                heroItem={heroById.get(post.id)}
+                heroPending={heroPending}
+                onDelete={onDelete}
+                onToggleHero={(nextOn) => onToggleHeroFor(post, nextOn)}
+                onTogglePinned={(nextPinned) => onTogglePinnedFor(post, nextPinned)}
+              />
             ))}
             {items?.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
+                <td colSpan={8} className="px-3 py-8 text-center text-slate-500">
                   게시물이 없습니다.
                 </td>
               </tr>
@@ -394,6 +430,8 @@ export default function AdminPostsPage() {
   });
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
+  const postIds = useMemo(() => data?.items.map((post) => post.id) ?? [], [data?.items]);
+  const heroControls = useHeroTargetControls({ targetType: 'post', targetIds: postIds, showToast: show });
 
   if (status !== 'authorized') {
     return (
@@ -408,13 +446,15 @@ export default function AdminPostsPage() {
       <div className="p-6">
         {/* 헤더 */}
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">게시물 관리</h2>
-          <Link
-            href="/posts/new"
-            className="rounded bg-brand-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-primaryDark active:bg-brand-primaryDark hover:text-white active:text-white visited:text-white hover:no-underline active:no-underline"
-          >
+          <div>
+            <h2 className="text-xl font-semibold">게시물 관리</h2>
+            <p className="text-sm text-slate-600">
+              홈 배너는 목록의 “홈 배너” 토글로 지정합니다.
+            </p>
+          </div>
+          <ButtonLink href="/admin/posts/new" className="shadow-sm">
             + 새 글 작성
-          </Link>
+          </ButtonLink>
         </div>
 
         {/* 필터 */}
@@ -434,6 +474,10 @@ export default function AdminPostsPage() {
           isLoading={isLoading}
           isError={isError}
           items={data?.items}
+          heroById={heroControls.heroById}
+          heroPending={heroControls.isPending}
+          onToggleHeroFor={(post, nextOn) => heroControls.toggleHero(post.id, nextOn)}
+          onTogglePinnedFor={(post, nextPinned) => heroControls.togglePinned(post.id, nextPinned)}
           totalPages={totalPages}
           total={data?.total ?? 0}
           page={filters.page}
