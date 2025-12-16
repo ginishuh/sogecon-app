@@ -39,12 +39,30 @@ export type AdminHeroListResponse = {
   total: number;
 };
 
+export type HeroTargetLookupItem = {
+  target_id: number;
+  hero_item_id: number;
+  enabled: boolean;
+  pinned: boolean;
+};
+
+export type HeroTargetLookupResponse = {
+  items: HeroTargetLookupItem[];
+};
+
 export async function listAdminHeroItems(params: { limit?: number; offset?: number } = {}): Promise<AdminHeroListResponse> {
   const q = new URLSearchParams();
   if (params.limit != null) q.set('limit', String(params.limit));
   if (params.offset != null) q.set('offset', String(params.offset));
   const qs = q.toString();
   return apiFetch<AdminHeroListResponse>(`/admin/hero/${qs ? `?${qs}` : ''}`);
+}
+
+export async function lookupAdminHeroItems(params: { target_type: HeroTargetType; target_ids: number[] }): Promise<HeroTargetLookupResponse> {
+  return apiFetch<HeroTargetLookupResponse>(`/admin/hero/lookup`, {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
 }
 
 export async function getAdminHeroItem(id: number): Promise<HeroItem> {
@@ -74,4 +92,3 @@ export async function updateAdminHeroItem(id: number, payload: UpdateHeroItemPay
 export async function deleteAdminHeroItem(id: number): Promise<{ ok: boolean; deleted_id: number }> {
   return apiFetch<{ ok: boolean; deleted_id: number }>(`/admin/hero/${id}`, { method: 'DELETE' });
 }
-

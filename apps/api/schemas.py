@@ -313,6 +313,26 @@ class HeroSlide(BaseModel):
     unpublished: bool = False
 
 
+class HeroTargetLookupRequest(BaseModel):
+    """관리자용: 대상(게시글/행사) ID 목록으로 hero_item 상태 조회."""
+
+    target_type: HeroTargetTypeLiteral
+    target_ids: list[int]
+
+
+class HeroTargetLookupItem(BaseModel):
+    """관리자용: 대상별 hero_item 요약."""
+
+    target_id: int
+    hero_item_id: int
+    enabled: bool
+    pinned: bool
+
+
+class HeroTargetLookupResponse(BaseModel):
+    items: list[HeroTargetLookupItem]
+
+
 class RSVPBase(BaseModel):
     member_id: int
     event_id: int

@@ -142,6 +142,17 @@ async def list_admin_hero_items_with_total(
     return items, total
 
 
+async def list_admin_hero_items_by_targets(
+    db: AsyncSession,
+    *,
+    target_type: schemas.HeroTargetTypeLiteral,
+    target_ids: Sequence[int],
+) -> Sequence[models.HeroItem]:
+    return await hero_items_repo.list_hero_items_by_targets(
+        db, target_type=target_type, target_ids=target_ids
+    )
+
+
 async def get_admin_hero_item(db: AsyncSession, hero_item_id: int) -> models.HeroItem:
     return await hero_items_repo.get_hero_item(db, hero_item_id)
 

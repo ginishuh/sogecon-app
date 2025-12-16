@@ -2629,6 +2629,48 @@
         }
       }
     },
+    "/admin/hero/lookup": {
+      "post": {
+        "tags": [
+          "admin-hero"
+        ],
+        "summary": "Lookup Admin Hero Items",
+        "description": "\ub300\uc0c1(\uac8c\uc2dc\uae00/\ud589\uc0ac) ID \ubaa9\ub85d\uc73c\ub85c hero_item \uc0c1\ud0dc\ub97c \uc870\ud68c\ud55c\ub2e4.",
+        "operationId": "lookup_admin_hero_items_admin_hero_lookup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeroTargetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeroTargetLookupResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/hero/{hero_item_id}": {
       "get": {
         "tags": [
@@ -3537,6 +3579,77 @@
         ],
         "title": "HeroSlide",
         "description": "\ud648 \ud788\uc5b4\ub85c \uce90\ub7ec\uc140\uc6a9 \uc751\ub2f5(\ub300\uc0c1 resolve \ud3ec\ud568)."
+      },
+      "HeroTargetLookupItem": {
+        "properties": {
+          "target_id": {
+            "type": "integer",
+            "title": "Target Id"
+          },
+          "hero_item_id": {
+            "type": "integer",
+            "title": "Hero Item Id"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "pinned": {
+            "type": "boolean",
+            "title": "Pinned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_id",
+          "hero_item_id",
+          "enabled",
+          "pinned"
+        ],
+        "title": "HeroTargetLookupItem",
+        "description": "\uad00\ub9ac\uc790\uc6a9: \ub300\uc0c1\ubcc4 hero_item \uc694\uc57d."
+      },
+      "HeroTargetLookupRequest": {
+        "properties": {
+          "target_type": {
+            "type": "string",
+            "enum": [
+              "post",
+              "event"
+            ],
+            "title": "Target Type"
+          },
+          "target_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Target Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_type",
+          "target_ids"
+        ],
+        "title": "HeroTargetLookupRequest",
+        "description": "\uad00\ub9ac\uc790\uc6a9: \ub300\uc0c1(\uac8c\uc2dc\uae00/\ud589\uc0ac) ID \ubaa9\ub85d\uc73c\ub85c hero_item \uc0c1\ud0dc \uc870\ud68c."
+      },
+      "HeroTargetLookupResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HeroTargetLookupItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "HeroTargetLookupResponse"
       },
       "ImageUploadResponse": {
         "properties": {

@@ -28,6 +28,22 @@ async def list_hero_items(
     return result.scalars().all()
 
 
+async def list_hero_items_by_targets(
+    db: AsyncSession,
+    *,
+    target_type: schemas.HeroTargetTypeLiteral,
+    target_ids: Sequence[int],
+) -> Sequence[models.HeroItem]:
+    if not target_ids:
+        return []
+    stmt = select(models.HeroItem).where(
+        models.HeroItem.target_type == target_type,
+        models.HeroItem.target_id.in_(list(target_ids)),
+    )
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
 async def count_hero_items(db: AsyncSession, *, enabled_only: bool = False) -> int:
     stmt = select(func.count(models.HeroItem.id))
     if enabled_only:
@@ -74,4 +90,3 @@ async def delete_hero_item(db: AsyncSession, hero_item_id: int) -> int:
     await db.delete(item)
     await db.commit()
     return hero_item_id
-

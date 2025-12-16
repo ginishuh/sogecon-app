@@ -2,18 +2,21 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ConfirmDialog } from '../../../components/confirm-dialog';
+import { HeroTargetToggle } from '../../../components/hero-target-toggle';
 import { RequireAdmin } from '../../../components/require-admin';
 import { useAuth } from '../../../hooks/useAuth';
 import { useToast } from '../../../components/toast';
+import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
 import {
   deleteAdminEvent,
   listAdminEvents,
   type AdminEventListResponse,
   type AdminEventListParams,
 } from '../../../services/events';
+import type { HeroTargetLookupItem } from '../../../services/hero';
 
 const PAGE_SIZE = 20;
 
@@ -180,11 +183,19 @@ function EventTable({
   items,
   isLoading,
   isError,
+  heroById,
+  heroPending,
+  onToggleHeroFor,
+  onTogglePinnedFor,
   onDelete,
 }: {
   items: EventRow[];
   isLoading: boolean;
   isError: boolean;
+  heroById: Map<number, HeroTargetLookupItem>;
+  heroPending: boolean;
+  onToggleHeroFor: (event: EventRow, nextOn: boolean) => void;
+  onTogglePinnedFor: (event: EventRow, nextPinned: boolean) => void;
   onDelete: (event: EventRow) => void;
 }) {
   return (
@@ -197,19 +208,20 @@ function EventTable({
             <th className="px-3 py-2 font-medium text-slate-700">정원</th>
             <th className="px-3 py-2 font-medium text-slate-700">참여 현황</th>
             <th className="px-3 py-2 font-medium text-slate-700">상태</th>
+            <th className="px-3 py-2 font-medium text-slate-700">배너</th>
             <th className="px-3 py-2 font-medium text-slate-700 text-right">액션</th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
             <tr>
-              <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
+              <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
                 로딩 중...
               </td>
             </tr>
           ) : isError ? (
             <tr>
-              <td colSpan={6} className="px-3 py-8 text-center text-red-600">
+              <td colSpan={7} className="px-3 py-8 text-center text-red-600">
                 데이터를 불러올 수 없습니다.
               </td>
             </tr>
@@ -240,6 +252,14 @@ function EventTable({
                 <td className="px-3 py-2">
                   <StatusBadge startsAt={evt.starts_at} endsAt={evt.ends_at} />
                 </td>
+                <td className="px-3 py-2">
+                  <HeroTargetToggle
+                    value={heroById.get(evt.id)}
+                    isPending={heroPending}
+                    onToggle={(nextOn) => onToggleHeroFor(evt, nextOn)}
+                    onTogglePinned={(nextPinned) => onTogglePinnedFor(evt, nextPinned)}
+                  />
+                </td>
                 <td className="px-3 py-2 text-right">
                   <Link
                     href={`/events/${evt.id}`}
@@ -267,7 +287,7 @@ function EventTable({
             ))
           ) : (
             <tr>
-              <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
+              <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
                 등록된 행사가 없습니다.
               </td>
             </tr>
@@ -328,7 +348,7 @@ export default function AdminEventsPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<EventRow | null>(null);
-  const toast = useToast();
+  const { show } = useToast();
   const queryClient = useQueryClient();
 
   const listParams = buildListParams(page, query, statusFilter, dateFrom, dateTo);
@@ -339,19 +359,21 @@ export default function AdminEventsPage() {
     staleTime: 10_000,
   });
 
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data?.items]);
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const eventIds = useMemo(() => items.map((evt) => evt.id), [items]);
+  const heroControls = useHeroTargetControls({ targetType: 'event', targetIds: eventIds, showToast: show });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteAdminEvent(id),
     onSuccess: () => {
-      toast.show('행사가 삭제되었습니다.', { type: 'success' });
+      show('행사가 삭제되었습니다.', { type: 'success' });
       void queryClient.invalidateQueries({ queryKey: ['admin-events'] });
       setDeleteTarget(null);
     },
     onError: () => {
-      toast.show('삭제 중 오류가 발생했습니다.', { type: 'error' });
+      show('삭제 중 오류가 발생했습니다.', { type: 'error' });
     },
   });
 
@@ -368,7 +390,7 @@ export default function AdminEventsPage() {
             <p className="text-sm text-slate-600">생성한 행사 목록을 확인합니다.</p>
           </div>
           <Link
-            href="/events/new"
+            href="/admin/events/new"
             className="rounded bg-brand-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-primaryDark active:bg-brand-primaryDark hover:text-white active:text-white visited:text-white hover:no-underline active:no-underline"
           >
             + 새 행사 생성
@@ -409,6 +431,10 @@ export default function AdminEventsPage() {
           items={items}
           isLoading={isLoading}
           isError={isError}
+          heroById={heroControls.heroById}
+          heroPending={heroControls.isPending}
+          onToggleHeroFor={(evt, nextOn) => heroControls.toggleHero(evt.id, nextOn)}
+          onTogglePinnedFor={(evt, nextPinned) => heroControls.togglePinned(evt.id, nextPinned)}
           onDelete={(evt) => setDeleteTarget(evt)}
         />
 

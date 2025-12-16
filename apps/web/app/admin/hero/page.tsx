@@ -99,14 +99,11 @@ export default function AdminHeroPage() {
   return (
     <RequireAdmin fallback={<div className="p-6 text-sm text-slate-600">관리자 전용입니다.</div>}>
       <section className="mx-auto max-w-4xl space-y-4 p-6">
-        <header className="flex items-center justify-between">
+        <header className="space-y-1">
           <h1 className="text-xl font-semibold">홈 배너(히어로) 관리</h1>
-          <Link
-            href="/admin/hero/new"
-            className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-          >
-            새 배너 추가
-          </Link>
+          <p className="text-sm text-slate-600">
+            배너 지정/해제는 “게시물 관리”, “행사 관리”에서 하고, 여기서는 오버라이드/삭제를 관리합니다.
+          </p>
         </header>
 
         <p hidden={!query.isLoading} className="text-sm text-slate-600">
@@ -117,7 +114,7 @@ export default function AdminHeroPage() {
         </p>
 
         <div hidden={!showEmpty} className="rounded border border-slate-200 bg-white p-6 text-sm text-slate-600">
-          등록된 배너가 없습니다. “새 배너 추가”로 추천 슬롯을 만들어주세요.
+          등록된 배너가 없습니다. 게시물/행사 관리에서 배너를 켜주세요.
         </div>
 
         <ul hidden={!hasItems} className="divide-y rounded border border-slate-200 bg-white">

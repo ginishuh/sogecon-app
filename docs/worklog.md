@@ -1040,3 +1040,4 @@
 2025-12-15 chore(schemas): OpenAPI/DTO 번들(openapi.json/index.d.ts) 갱신 — PR #96
 2025-12-16 fix(ci): web 번들 사이즈 체크에서 admin 청크 제외 — PR #96
 2025-12-16 fix(web): Next.js 15.5.8 → 15.5.9 보안 패치 업그레이드 — PR #96
+2025-12-16 feat(web): 관리자 글/행사 목록 배너(히어로) 토글 + 생성 동선 통합 — PR #96

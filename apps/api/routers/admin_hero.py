@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,6 +42,32 @@ async def list_admin_hero_items(
         items=[schemas.HeroItemRead.model_validate(item) for item in items],
         total=total,
     )
+
+
+@router.post("/lookup", response_model=schemas.HeroTargetLookupResponse)
+async def lookup_admin_hero_items(
+    request: Request,
+    payload: schemas.HeroTargetLookupRequest,
+    db: AsyncSession = Depends(get_db),
+) -> schemas.HeroTargetLookupResponse:
+    """대상(게시글/행사) ID 목록으로 hero_item 상태를 조회한다."""
+    require_admin(request)
+    items = await hero_service.list_admin_hero_items_by_targets(
+        db,
+        target_type=payload.target_type,
+        target_ids=payload.target_ids,
+    )
+    out: list[schemas.HeroTargetLookupItem] = []
+    for item in items:
+        out.append(
+            schemas.HeroTargetLookupItem(
+                target_id=cast(int, item.target_id),
+                hero_item_id=cast(int, item.id),
+                enabled=cast(bool, item.enabled),
+                pinned=cast(bool, item.pinned),
+            )
+        )
+    return schemas.HeroTargetLookupResponse(items=out)
 
 
 @router.get("/{hero_item_id}", response_model=schemas.HeroItemRead)
@@ -85,4 +113,3 @@ async def delete_admin_hero_item(
     require_admin(request)
     deleted_id = await hero_service.delete_admin_hero_item(db, hero_item_id)
     return {"ok": True, "deleted_id": deleted_id}
-

@@ -21,8 +21,8 @@ const ADMIN_ITEMS = [
   { href: '/admin/events', label: '행사 관리' },
   { href: '/admin/hero', label: '홈 배너 관리' },
   { href: '/admin/notifications', label: '알림 관리' },
-  { href: '/posts/new', label: '새 글 작성' },
-  { href: '/events/new', label: '새 행사 생성' },
+  { href: '/admin/posts/new', label: '새 글 작성' },
+  { href: '/admin/events/new', label: '새 행사 생성' },
 ] as const;
 
 export function SiteHeader() {

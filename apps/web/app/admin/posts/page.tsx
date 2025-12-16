@@ -3,14 +3,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import type { KeyboardEvent } from 'react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ConfirmDialog } from '../../../components/confirm-dialog';
+import { HeroTargetToggle } from '../../../components/hero-target-toggle';
 import { RequireAdmin } from '../../../components/require-admin';
 import { useToast } from '../../../components/toast';
 import { useAuth } from '../../../hooks/useAuth';
+import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
+import type { HeroTargetLookupItem } from '../../../services/hero';
 import {
   deletePost,
   listAdminPosts,
@@ -137,10 +140,21 @@ function FilterBar({
 
 type PostTableRowProps = {
   post: Post;
+  heroItem?: HeroTargetLookupItem;
+  heroPending: boolean;
   onDelete: (post: Post) => void;
+  onToggleHero: (nextOn: boolean) => void;
+  onTogglePinned: (nextPinned: boolean) => void;
 };
 
-function PostTableRow({ post, onDelete }: PostTableRowProps) {
+function PostTableRow({
+  post,
+  heroItem,
+  heroPending,
+  onDelete,
+  onToggleHero,
+  onTogglePinned,
+}: PostTableRowProps) {
   return (
     <tr className="border-b hover:bg-slate-50">
       <td className="px-3 py-2">
@@ -166,6 +180,14 @@ function PostTableRow({ post, onDelete }: PostTableRowProps) {
       <td className="px-3 py-2 text-slate-600">{post.view_count ?? 0}</td>
       <td className="px-3 py-2 text-slate-600">{post.comment_count ?? 0}</td>
       <td className="px-3 py-2 text-slate-600">{formatDate(post.published_at)}</td>
+      <td className="px-3 py-2">
+        <HeroTargetToggle
+          value={heroItem}
+          isPending={heroPending}
+          onToggle={onToggleHero}
+          onTogglePinned={onTogglePinned}
+        />
+      </td>
       <td className="px-3 py-2">
         <div className="flex gap-2">
           <Link
@@ -231,6 +253,10 @@ type PostTableContentProps = {
   isLoading: boolean;
   isError: boolean;
   items: Post[] | undefined;
+  heroById: Map<number, HeroTargetLookupItem>;
+  heroPending: boolean;
+  onToggleHeroFor: (post: Post, nextOn: boolean) => void;
+  onTogglePinnedFor: (post: Post, nextPinned: boolean) => void;
   totalPages: number;
   total: number;
   page: number;
@@ -243,6 +269,10 @@ function PostTableContent({
   isLoading,
   isError,
   items,
+  heroById,
+  heroPending,
+  onToggleHeroFor,
+  onTogglePinnedFor,
   totalPages,
   total,
   page,
@@ -272,16 +302,25 @@ function PostTableContent({
               <th className="px-3 py-2 font-medium text-slate-700">조회</th>
               <th className="px-3 py-2 font-medium text-slate-700">댓글</th>
               <th className="px-3 py-2 font-medium text-slate-700">발행일</th>
+              <th className="px-3 py-2 font-medium text-slate-700">배너</th>
               <th className="px-3 py-2 font-medium text-slate-700">액션</th>
             </tr>
           </thead>
           <tbody>
             {items?.map((post) => (
-              <PostTableRow key={post.id} post={post} onDelete={onDelete} />
+              <PostTableRow
+                key={post.id}
+                post={post}
+                heroItem={heroById.get(post.id)}
+                heroPending={heroPending}
+                onDelete={onDelete}
+                onToggleHero={(nextOn) => onToggleHeroFor(post, nextOn)}
+                onTogglePinned={(nextPinned) => onTogglePinnedFor(post, nextPinned)}
+              />
             ))}
             {items?.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
+                <td colSpan={8} className="px-3 py-8 text-center text-slate-500">
                   게시물이 없습니다.
                 </td>
               </tr>
@@ -393,6 +432,8 @@ export default function AdminPostsPage() {
   });
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
+  const postIds = useMemo(() => data?.items.map((post) => post.id) ?? [], [data?.items]);
+  const heroControls = useHeroTargetControls({ targetType: 'post', targetIds: postIds, showToast: show });
 
   if (status !== 'authorized') {
     return (
@@ -409,7 +450,7 @@ export default function AdminPostsPage() {
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-semibold">게시물 관리</h2>
           <Link
-            href="/posts/new"
+            href="/admin/posts/new"
             className="rounded bg-brand-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-primaryDark active:bg-brand-primaryDark hover:text-white active:text-white visited:text-white hover:no-underline active:no-underline"
           >
             + 새 글 작성
@@ -433,6 +474,10 @@ export default function AdminPostsPage() {
           isLoading={isLoading}
           isError={isError}
           items={data?.items}
+          heroById={heroControls.heroById}
+          heroPending={heroControls.isPending}
+          onToggleHeroFor={(post, nextOn) => heroControls.toggleHero(post.id, nextOn)}
+          onTogglePinnedFor={(post, nextPinned) => heroControls.togglePinned(post.id, nextPinned)}
           totalPages={totalPages}
           total={data?.total ?? 0}
           page={filters.page}

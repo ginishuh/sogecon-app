@@ -763,6 +763,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/hero/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lookup Admin Hero Items
+         * @description 대상(게시글/행사) ID 목록으로 hero_item 상태를 조회한다.
+         */
+        post: operations["lookup_admin_hero_items_admin_hero_lookup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/hero/{hero_item_id}": {
         parameters: {
             query?: never;
@@ -1073,6 +1093,38 @@ export interface components {
              * @default false
              */
             unpublished: boolean;
+        };
+        /**
+         * HeroTargetLookupItem
+         * @description 관리자용: 대상별 hero_item 요약.
+         */
+        HeroTargetLookupItem: {
+            /** Target Id */
+            target_id: number;
+            /** Hero Item Id */
+            hero_item_id: number;
+            /** Enabled */
+            enabled: boolean;
+            /** Pinned */
+            pinned: boolean;
+        };
+        /**
+         * HeroTargetLookupRequest
+         * @description 관리자용: 대상(게시글/행사) ID 목록으로 hero_item 상태 조회.
+         */
+        HeroTargetLookupRequest: {
+            /**
+             * Target Type
+             * @enum {string}
+             */
+            target_type: "post" | "event";
+            /** Target Ids */
+            target_ids: number[];
+        };
+        /** HeroTargetLookupResponse */
+        HeroTargetLookupResponse: {
+            /** Items */
+            items: components["schemas"]["HeroTargetLookupItem"][];
         };
         /**
          * ImageUploadResponse
@@ -3167,6 +3219,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HeroItemRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lookup_admin_hero_items_admin_hero_lookup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HeroTargetLookupRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeroTargetLookupResponse"];
                 };
             };
             /** @description Validation Error */
