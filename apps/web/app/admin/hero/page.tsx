@@ -135,7 +135,7 @@ export default function AdminHeroPage() {
                     <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">비노출</span>
                   ) : null}
                   {item.pinned ? (
-                    <span className="rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-700">PIN</span>
+                    <span className="rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-700">상단 고정</span>
                   ) : null}
                 </div>
                 <div className="text-xs text-slate-500">
@@ -164,7 +164,7 @@ export default function AdminHeroPage() {
                     disabled={toggleMutation.isPending}
                     className="rounded border-slate-300"
                   />
-                  PIN
+                  상단 고정
                 </label>
                 <Link
                   href={`/admin/hero/${item.id}/edit`}

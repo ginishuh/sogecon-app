@@ -9,6 +9,7 @@ import { HeroTargetToggle } from '../../../components/hero-target-toggle';
 import { RequireAdmin } from '../../../components/require-admin';
 import { useAuth } from '../../../hooks/useAuth';
 import { useToast } from '../../../components/toast';
+import { ButtonLink } from '../../../components/ui/button-link';
 import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
 import {
   deleteAdminEvent,
@@ -384,12 +385,9 @@ export default function AdminEventsPage() {
               생성한 행사 목록을 확인합니다. 홈 배너는 목록의 “홈 배너” 토글로 지정합니다.
             </p>
           </div>
-          <Link
-            href="/admin/events/new"
-            className="rounded bg-brand-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-primaryDark active:bg-brand-primaryDark hover:text-white active:text-white visited:text-white hover:no-underline active:no-underline"
-          >
+          <ButtonLink href="/admin/events/new" className="shadow-sm">
             + 새 행사 생성
-          </Link>
+          </ButtonLink>
         </div>
 
         <FiltersBar

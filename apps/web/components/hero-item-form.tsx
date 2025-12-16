@@ -153,7 +153,7 @@ export function HeroItemForm({
             disabled={isPending}
             className="rounded border-slate-300"
           />
-          노출(활성)
+          홈 배너 노출
         </label>
 
         <label className="flex items-center gap-2 text-sm text-slate-700">
@@ -164,7 +164,7 @@ export function HeroItemForm({
             disabled={isPending}
             className="rounded border-slate-300"
           />
-          상단 고정(PIN)
+          홈 배너 상단 고정
         </label>
       </div>
 

@@ -412,15 +412,18 @@ function PinnedField({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm text-slate-700">
-      <input
-        type="checkbox"
-        checked={value}
-        onChange={(e) => onChange(e.currentTarget.checked)}
-        className="rounded border-slate-300"
-      />
-      상단 고정 (PIN)
-    </label>
+    <div className="space-y-1">
+      <label className="flex items-center gap-2 text-sm text-slate-700">
+        <input
+          type="checkbox"
+          checked={value}
+          onChange={(e) => onChange(e.currentTarget.checked)}
+          className="rounded border-slate-300"
+        />
+        게시판 상단 고정
+      </label>
+      <p className="text-xs text-slate-500">공지/소식 목록에서 상단에 고정됩니다.</p>
+    </div>
   );
 }
 

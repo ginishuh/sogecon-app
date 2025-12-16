@@ -118,7 +118,7 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
     <div className="hidden lg:flex items-center gap-2">
       <Link
         href="/login"
-        className="px-3 py-2 text-sm text-white bg-[#b60007] rounded-lg no-underline hover:no-underline hover:text-white visited:text-white hover:bg-[#8a0005] transition-colors"
+        className="px-3 py-2 text-sm text-white bg-[#b60007] rounded-lg no-underline hover:no-underline hover:text-white hover:bg-[#8a0005] transition-colors"
       >
         로그인
       </Link>

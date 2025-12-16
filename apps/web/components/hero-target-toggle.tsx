@@ -12,13 +12,16 @@ type HeroTargetToggleProps = {
   onTogglePinned: (nextPinned: boolean) => void;
 };
 
-function pinnedTitle(isOn: boolean): string {
-  return isOn ? '상단 고정' : '배너를 먼저 켜주세요';
+function pinnedTitle(opts: { isOn: boolean; hasServerId: boolean }): string {
+  if (!opts.isOn) return '홈 배너를 먼저 켜주세요';
+  if (!opts.hasServerId) return '저장 중입니다. 잠시만요';
+  return '홈 배너 상단 고정';
 }
 
-function isPinDisabled(canInteract: boolean, isOn: boolean): boolean {
+function isPinDisabled(canInteract: boolean, isOn: boolean, hasServerId: boolean): boolean {
   if (!canInteract) return true;
-  return !isOn;
+  if (!isOn) return true;
+  return !hasServerId;
 }
 
 function renderSettingsLink(value?: HeroTargetLookupItem) {
@@ -42,8 +45,9 @@ export function HeroTargetToggle({
 }: HeroTargetToggleProps) {
   const isOn = value?.enabled ?? false;
   const canInteract = !disabled && !isPending;
+  const hasServerId = (value?.hero_item_id ?? 0) > 0;
   const pinned = value?.pinned ?? false;
-  const pinDisabled = isPinDisabled(canInteract, isOn);
+  const pinDisabled = isPinDisabled(canInteract, isOn, hasServerId);
   const settingsLink = renderSettingsLink(value);
 
   return (
@@ -56,12 +60,12 @@ export function HeroTargetToggle({
           disabled={!canInteract}
           className="rounded border-slate-300"
         />
-        배너
+        홈 배너 노출
       </label>
 
       <label
         className="flex items-center gap-1 text-xs text-slate-700"
-        title={pinnedTitle(isOn)}
+        title={pinnedTitle({ isOn, hasServerId })}
       >
         <input
           type="checkbox"
@@ -70,7 +74,7 @@ export function HeroTargetToggle({
           disabled={pinDisabled}
           className="rounded border-slate-300"
         />
-        PIN
+        홈 배너 상단 고정
       </label>
 
       {settingsLink}

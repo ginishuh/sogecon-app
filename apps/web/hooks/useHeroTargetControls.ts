@@ -89,9 +89,22 @@ export function useHeroTargetControls(params: {
       });
       invalidateHero();
     },
-    onError: (err: unknown, _targetId: number, ctx?: { previous?: HeroTargetLookupResponse }) => {
+    onError: (
+      err: unknown,
+      targetId: number,
+      ctx?: { previous?: HeroTargetLookupResponse; targetId?: number }
+    ) => {
+      // lookup 응답이 아직 없던 타이밍에 실패하면(previous=undefined)
+      // optimistic 아이템(hero_item_id=0)이 캐시에 남을 수 있어 정리한다.
+      const rollbackTargetId = ctx?.targetId ?? targetId;
       if (ctx?.previous) {
-        queryClient.setQueryData(lookupKey, ctx.previous);
+        queryClient.setQueryData<HeroTargetLookupResponse>(lookupKey, ctx.previous);
+      } else {
+        queryClient.setQueryData<HeroTargetLookupResponse>(lookupKey, (old) => {
+          const items = old?.items ?? [];
+          const next = items.filter((item) => item.target_id !== rollbackTargetId);
+          return { items: next };
+        });
       }
       showToast(toErrorMessage(err), { type: 'error' });
     },
@@ -148,6 +161,7 @@ export function useHeroTargetControls(params: {
       if (nextOn) createMutation.mutate(targetId);
       return;
     }
+    if (current.hero_item_id <= 0) return;
 
     if (current.enabled === nextOn) return;
     updateMutation.mutate({ id: current.hero_item_id, enabled: nextOn });
@@ -156,6 +170,7 @@ export function useHeroTargetControls(params: {
   const togglePinned = (targetId: number, nextPinned: boolean) => {
     const current = heroById.get(targetId);
     if (!current) return;
+    if (current.hero_item_id <= 0) return;
     if (current.pinned === nextPinned) return;
     updateMutation.mutate({ id: current.hero_item_id, pinned: nextPinned });
   };

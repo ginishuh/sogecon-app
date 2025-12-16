@@ -49,12 +49,12 @@ main:focus {
   main { padding: 1.5rem 2rem 4rem; }
 }
 
-/* 링크 상태 일관 (AA 대비 유지) */
-a { color: theme(colors.brand.700); transition: color 150ms ease; text-decoration: none; }
-a:visited { color: theme(colors.brand.600); }
-a:hover { color: theme(colors.brand.800); text-decoration: underline; }
-a:active { color: theme(colors.brand.900); }
-a:focus-visible { outline: none; text-decoration: underline; }
+/* 링크 스타일: 전역 강제 금지(B안) — 텍스트 링크만 .text-link로 통일 */
+.text-link { color: theme(colors.brand.700); transition: color 150ms ease; text-decoration: none; }
+.text-link:visited { color: theme(colors.brand.600); }
+.text-link:hover { color: theme(colors.brand.800); text-decoration: underline; }
+.text-link:active { color: theme(colors.brand.900); }
+.text-link:focus-visible { outline: none; text-decoration: underline; }
 
 /* 포커스 링 — 토큰 기반 ring */
 :where(button, [role="button"], a, input, select, textarea):focus-visible {

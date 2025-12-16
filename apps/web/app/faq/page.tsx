@@ -51,7 +51,7 @@ const faqSections: FAQSection[] = [
         answer: (
           <>
             비밀번호 재설정 링크는 <em>가입 시 등록한 이메일</em>로 발송됩니다. 메일을 받지 못했다면 스팸함을 확인하거나{' '}
-            <a href="mailto:office@sogang-econ-alumni.kr">office@sogang-econ-alumni.kr</a>로 문의해 주세요. 5회 이상 연속 실패 시
+            <a className="text-link" href="mailto:office@sogang-econ-alumni.kr">office@sogang-econ-alumni.kr</a>로 문의해 주세요. 5회 이상 연속 실패 시
             보안을 위해 10분간 로그인이 제한됩니다.
           </>
         )
@@ -85,7 +85,7 @@ const faqSections: FAQSection[] = [
         question: '행사와 공지는 어디서 관리하나요?',
         answer: (
           <>
-            일반 회원은 홈과 <Link href="/events">행사 페이지</Link>에서 최신 일정을 확인할 수 있습니다. 운영진은 관리자 콘솔에 로그인해 공지/행사
+            일반 회원은 홈과 <Link className="text-link" href="/events">행사 페이지</Link>에서 최신 일정을 확인할 수 있습니다. 운영진은 관리자 콘솔에 로그인해 공지/행사
             등록, 푸시 발송, 통계 확인을 진행합니다.
           </>
         )
@@ -103,7 +103,7 @@ const faqSections: FAQSection[] = [
           <>
             회원 정보는 암호화된 데이터베이스에 저장되며, 관리자 접근은 역할 기반 권한(RBAC)으로 제한됩니다. 열람 기록은 1년간 감사 로그에 보관되고,
             404/410 응답을 반환하는 푸시 구독 정보는 즉시 폐기됩니다. 자세한 내용은{' '}
-            <Link href="/privacy" prefetch={false}>
+            <Link className="text-link" href="/privacy" prefetch={false}>
               개인정보 처리방침
             </Link>
             을 참고하세요.
@@ -114,7 +114,7 @@ const faqSections: FAQSection[] = [
         question: '정책 문서는 어디에서 확인할 수 있나요?',
         answer: (
           <>
-            본 페이지와 함께 <Link href="/terms">이용약관</Link>, <Link href="/privacy">개인정보 처리방침</Link>을 제공합니다. 문서 버전은 꼬리말에
+            본 페이지와 함께 <Link className="text-link" href="/terms">이용약관</Link>, <Link className="text-link" href="/privacy">개인정보 처리방침</Link>을 제공합니다. 문서 버전은 꼬리말에
             명시되며, 개정 시 등록 이메일로 사전 안내를 드립니다.
           </>
         )
@@ -123,7 +123,7 @@ const faqSections: FAQSection[] = [
         question: '문의는 어떤 채널을 이용하면 되나요?',
         answer: (
           <>
-            사무국 대표 메일(<a href="mailto:office@sogang-econ-alumni.kr">office@sogang-econ-alumni.kr</a>) 또는 대표 전화(02-715-1234)로 연락해 주세요.
+            사무국 대표 메일(<a className="text-link" href="mailto:office@sogang-econ-alumni.kr">office@sogang-econ-alumni.kr</a>) 또는 대표 전화(02-715-1234)로 연락해 주세요.
             평일 10:00-17:00에 응대하며, 주말 문의는 다음 영업일에 순차 처리합니다.
           </>
         )

@@ -29,7 +29,7 @@ export default function EventsPage() {
         {events.map((event) => (
           <li key={event.id} className="rounded border border-slate-200 bg-white p-4 shadow-sm">
             <h3 className="font-semibold">
-              <Link href={`/events/${event.id}`}>{event.title}</Link>
+              <Link className="text-link" href={`/events/${event.id}`}>{event.title}</Link>
             </h3>
             <p className="mt-1 text-sm text-slate-700">장소: {event.location}</p>
             <p className="mt-1 text-sm text-slate-700">

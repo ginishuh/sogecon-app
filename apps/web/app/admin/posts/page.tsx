@@ -9,6 +9,7 @@ import { ConfirmDialog } from '../../../components/confirm-dialog';
 import { HeroTargetToggle } from '../../../components/hero-target-toggle';
 import { RequireAdmin } from '../../../components/require-admin';
 import { useToast } from '../../../components/toast';
+import { ButtonLink } from '../../../components/ui/button-link';
 import { useAuth } from '../../../hooks/useAuth';
 import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../lib/api';
@@ -451,12 +452,9 @@ export default function AdminPostsPage() {
               홈 배너는 목록의 “홈 배너” 토글로 지정합니다.
             </p>
           </div>
-          <Link
-            href="/admin/posts/new"
-            className="rounded bg-brand-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-primaryDark active:bg-brand-primaryDark hover:text-white active:text-white visited:text-white hover:no-underline active:no-underline"
-          >
+          <ButtonLink href="/admin/posts/new" className="shadow-sm">
             + 새 글 작성
-          </Link>
+          </ButtonLink>
         </div>
 
         {/* 필터 */}

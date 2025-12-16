@@ -189,9 +189,10 @@ export default function HomeHeroCarousel() {
                   alt=""
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
+                  sizes="(max-width: 768px) calc(100vw - 2rem), (max-width: 1152px) calc(100vw - 4rem), 68rem"
                   priority={i === 0 || i === 1} // 첫 2개 이미지 우선 로드
                   placeholder="blur"
+                  quality={90}
                   blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                 />
               </div>
@@ -214,7 +215,7 @@ export default function HomeHeroCarousel() {
                   <div className="mt-3">
                     <Link
                       href={{ pathname: s.href }}
-                      className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1.5 text-sm text-white backdrop-blur hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                      className="inline-flex items-center gap-1 rounded-full bg-brand-primary px-3 py-1.5 text-sm text-white shadow-sm transition-colors hover:bg-brand-primaryDark hover:text-white hover:no-underline focus:outline-none focus-visible:text-white focus-visible:no-underline focus-visible:ring-2 focus-visible:ring-white/70 active:bg-brand-primaryDark active:text-white"
                       aria-label={`${s.title} 자세히 보기`}
                     >
                       자세히 보기
