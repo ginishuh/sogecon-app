@@ -59,7 +59,7 @@ function ImageThumbnail({
   return (
     <div
       className={`relative group rounded-lg overflow-hidden border-2 transition-colors ${
-        isMain ? 'border-brand-primary ring-2 ring-brand-primary/30' : 'border-slate-200'
+        isMain ? 'border-brand-primary ring-2 ring-brand-primary/30' : 'border-neutral-border'
       }`}
     >
       <div
@@ -84,7 +84,7 @@ function ImageThumbnail({
                 e.stopPropagation();
                 onSetMain();
               }}
-              className="rounded bg-white/90 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-white transition-colors"
+              className="rounded bg-white/90 px-2 py-1 text-xs font-medium text-text-secondary hover:bg-white transition-colors"
               title="메인으로 설정"
             >
               메인
@@ -96,7 +96,7 @@ function ImageThumbnail({
               e.stopPropagation();
               onRemove();
             }}
-            className="rounded-full bg-red-500/90 p-1.5 text-white hover:bg-red-600 transition-colors"
+            className="rounded-full bg-state-error/90 p-1.5 text-white hover:bg-state-error-hover transition-colors"
             aria-label="이미지 삭제"
             title="삭제"
           >
@@ -196,7 +196,7 @@ function UploadDropzone({
       className={`
         flex flex-col items-center justify-center rounded-lg border-2 border-dashed h-28 px-3
         transition-colors
-        ${isDragging ? 'border-brand-primary bg-brand-primary/5' : 'border-slate-300 hover:border-slate-400 bg-slate-50'}
+        ${isDragging ? 'border-brand-primary bg-brand-primary/5' : 'border-neutral-border hover:border-brand-400 bg-surface-raised'}
         ${isInteractive ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}
       `}
       aria-label="이미지 추가"
@@ -212,7 +212,7 @@ function UploadDropzone({
         aria-hidden="true"
       />
       {isUploading ? (
-        <svg className="animate-spin h-6 w-6 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg className="animate-spin h-6 w-6 text-text-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path
             className="opacity-75"
@@ -232,12 +232,12 @@ function UploadDropzone({
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-slate-400"
+            className="text-text-muted"
           >
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          <span className="text-xs text-slate-500 mt-1">추가</span>
+          <span className="text-xs text-text-muted mt-1">추가</span>
         </>
       )}
     </div>
@@ -319,11 +319,11 @@ export function MultiImageUpload({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-slate-600">
+        <span className="text-sm text-text-secondary">
           이미지 {allImages.length}/{maxImages}장
         </span>
         {allImages.length > 0 && (
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-text-muted">
             클릭하여 메인 이미지 선택
           </span>
         )}
@@ -351,12 +351,12 @@ export function MultiImageUpload({
       </div>
 
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-state-error">
           {error}
         </p>
       )}
 
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-text-muted">
         JPEG, PNG, WebP (최대 {MAX_SIZE_MB}MB/장)
       </p>
     </div>

@@ -42,7 +42,7 @@ const ACTIONS: QuickAction[] = [
     href: '/events',
     label: '행사 일정',
     ariaLabel: '행사 일정 바로가기',
-    bgColor: 'bg-yellow-600',
+    bgColor: 'bg-action-amber',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -55,7 +55,7 @@ const ACTIONS: QuickAction[] = [
     href: '/posts',
     label: '총동문회 소식',
     ariaLabel: '총동문회 소식 바로가기',
-    bgColor: 'bg-teal-700',
+    bgColor: 'bg-action-emerald',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -80,7 +80,7 @@ const ACTIONS: QuickAction[] = [
     href: '/board?tab=congrats' as Route,
     label: '경조사 게시판',
     ariaLabel: '경조사 게시판 바로가기',
-    bgColor: 'bg-slate-700',
+    bgColor: 'bg-action-slate',
     showPlusIcon: true,
     icon: (
       <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">

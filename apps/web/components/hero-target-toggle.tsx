@@ -29,7 +29,7 @@ function renderSettingsLink(value?: HeroTargetLookupItem) {
   return (
     <Link
       href={{ pathname: `/admin/hero/${value.hero_item_id}/edit` }}
-      className="text-xs text-slate-600 underline"
+      className="text-xs text-text-secondary underline"
     >
       설정
     </Link>
@@ -52,19 +52,19 @@ export function HeroTargetToggle({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <label className="flex items-center gap-1 text-xs text-slate-700">
+      <label className="flex items-center gap-1 text-xs text-text-secondary">
         <input
           type="checkbox"
           checked={isOn}
           onChange={(e) => onToggle(e.currentTarget.checked)}
           disabled={!canInteract}
-          className="rounded border-slate-300"
+          className="rounded border-neutral-border"
         />
         홈 배너 노출
       </label>
 
       <label
-        className="flex items-center gap-1 text-xs text-slate-700"
+        className="flex items-center gap-1 text-xs text-text-secondary"
         title={pinnedTitle({ isOn, hasServerId })}
       >
         <input
@@ -72,7 +72,7 @@ export function HeroTargetToggle({
           checked={pinned}
           onChange={(e) => onTogglePinned(e.currentTarget.checked)}
           disabled={pinDisabled}
-          className="rounded border-slate-300"
+          className="rounded border-neutral-border"
         />
         홈 배너 상단 고정
       </label>

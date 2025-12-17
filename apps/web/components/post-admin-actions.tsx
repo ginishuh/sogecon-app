@@ -50,13 +50,13 @@ export function PostAdminActions({ postId, postTitle }: PostAdminActionsProps) {
       <div className="flex gap-2">
         <Link
           href={`/admin/posts/${postId}/edit`}
-          className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className="rounded border border-neutral-border px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-raised"
         >
           수정
         </Link>
         <button
           type="button"
-          className="rounded border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
+          className="rounded border border-state-error-ring px-3 py-1.5 text-sm font-medium text-state-error hover:bg-state-error-subtle"
           onClick={() => setShowDeleteDialog(true)}
         >
           삭제

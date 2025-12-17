@@ -79,8 +79,8 @@ export function ConfirmDialog({
 
   const confirmButtonClass =
     variant === 'danger'
-      ? 'bg-red-600 text-white hover:bg-red-700'
-      : 'bg-slate-900 text-white hover:bg-slate-800';
+      ? 'bg-state-error text-white hover:bg-state-error-hover'
+      : 'bg-brand-700 text-white hover:bg-brand-600';
 
   return (
     <dialog
@@ -89,14 +89,14 @@ export function ConfirmDialog({
       onClick={handleBackdropClick}
     >
       <div className="w-80 p-6 sm:w-96">
-        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+        <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
         {description && (
-          <p className="mt-2 text-sm text-slate-600">{description}</p>
+          <p className="mt-2 text-sm text-text-secondary">{description}</p>
         )}
         <div className="mt-6 flex justify-end gap-2">
           <button
             type="button"
-            className="rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="rounded border border-neutral-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-raised disabled:opacity-50"
             onClick={onCancel}
             disabled={isPending}
           >

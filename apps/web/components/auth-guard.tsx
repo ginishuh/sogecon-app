@@ -22,7 +22,7 @@ export function AuthGuard({ children, fallback }: Props) {
 
   if (status === 'error') {
     return (
-      <div className="p-6 text-sm text-red-600">
+      <div className="p-6 text-sm text-state-error">
         서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.
       </div>
     );
@@ -30,7 +30,7 @@ export function AuthGuard({ children, fallback }: Props) {
 
   return (
     fallback ?? (
-      <div className="p-6 text-sm text-slate-500">
+      <div className="p-6 text-sm text-text-muted">
         {status === 'loading' ? '로딩 중…' : '로그인 페이지로 이동 중…'}
       </div>
     )
