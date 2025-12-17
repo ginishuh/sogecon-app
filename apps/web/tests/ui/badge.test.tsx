@@ -20,17 +20,17 @@ describe('Badge', () => {
           Primary
         </span>
         <span
-          class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 ring-1 ring-inset ring-emerald-200"
+          class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-state-success-subtle text-state-success ring-1 ring-inset ring-state-success-ring"
         >
           Success
         </span>
         <span
-          class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-900 ring-1 ring-inset ring-amber-200"
+          class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-state-warning-subtle text-state-warning ring-1 ring-inset ring-state-warning-ring"
         >
           Warning
         </span>
         <span
-          class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-800 ring-1 ring-inset ring-red-200"
+          class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-state-error-subtle text-state-error ring-1 ring-inset ring-state-error-ring"
         >
           Error
         </span>

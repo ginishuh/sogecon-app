@@ -86,6 +86,7 @@ const config: Config = {
           ink: '#1f242d',
           muted: '#5d6673',
           border: '#d8d3cc',
+          subtle: '#f8fafc', // slate-50 equivalent - 배경 스켈레톤/로딩 상태용
         },
         // 퀵 액션 전용 컬러 (Figma 디자인)
         action: {
