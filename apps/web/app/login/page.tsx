@@ -43,22 +43,22 @@ function LoginForm() {
 
   return (
     <section className="mx-auto max-w-sm space-y-4">
-      <p className="text-xs text-slate-500">로그인 후 권한에 따라 접근 가능한 메뉴가 달라집니다.</p>
-      <label className="block text-sm">
+      <p className="text-xs text-text-muted">로그인 후 권한에 따라 접근 가능한 메뉴가 달라집니다.</p>
+      <label className="block text-sm text-text-primary">
         학번
-        <input className="mt-1 w-full rounded border px-2 py-1" value={studentId} onChange={(e) => setStudentId(e.currentTarget.value)} />
+        <input className="mt-1 w-full rounded border border-neutral-border bg-surface px-2 py-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-400" value={studentId} onChange={(e) => setStudentId(e.currentTarget.value)} />
       </label>
-      <label className="block text-sm">
+      <label className="block text-sm text-text-primary">
         비밀번호
         <input
-          className="mt-1 w-full rounded border px-2 py-1"
+          className="mt-1 w-full rounded border border-neutral-border bg-surface px-2 py-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-400"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.currentTarget.value)}
         />
       </label>
       <button
-        className="rounded bg-slate-900 px-3 py-1 text-white disabled:opacity-50"
+        className="rounded bg-brand-700 px-3 py-1 text-text-inverse hover:bg-brand-800 disabled:opacity-50"
         disabled={mutate.isPending || !studentId || !password}
         onClick={() => mutate.mutate()}
       >로그인</button>

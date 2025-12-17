@@ -104,9 +104,9 @@ function EmptyState({ message }: { message: string }) {
 function LoadingState() {
   return (
     <div className="space-y-2">
-      <div className="h-4 w-3/4 rounded bg-slate-100" />
-      <div className="h-4 w-2/3 rounded bg-slate-100" />
-      <div className="h-4 w-1/2 rounded bg-slate-100" />
+      <div className="h-4 w-3/4 rounded bg-neutral-subtle" />
+      <div className="h-4 w-2/3 rounded bg-neutral-subtle" />
+      <div className="h-4 w-1/2 rounded bg-neutral-subtle" />
     </div>
   );
 }
@@ -186,7 +186,7 @@ function NewsSkeletonGrid() {
       {Array.from({ length: 4 }, (_, i) => (
         <div
           key={`news-skeleton-${i}`}
-          className={`aspect-[4/3] rounded-2xl bg-slate-100 ${i === 3 ? 'hidden xl:block' : ''}`}
+          className={`aspect-[4/3] rounded-2xl bg-neutral-subtle ${i === 3 ? 'hidden xl:block' : ''}`}
         />
       ))}
     </div>

@@ -33,9 +33,9 @@ export default function AdminHeroNewPage() {
   });
 
   return (
-    <RequireAdmin fallback={<div className="p-6 text-sm text-slate-600">관리자 전용입니다.</div>}>
+    <RequireAdmin fallback={<div className="p-6 text-sm text-text-secondary">관리자 전용입니다.</div>}>
       <section className="mx-auto max-w-2xl space-y-4 p-6">
-        <nav className="text-sm text-slate-600">
+        <nav className="text-sm text-text-secondary">
           <Link href="/admin/hero" className="hover:underline">
             홈 배너 관리
           </Link>
@@ -44,7 +44,7 @@ export default function AdminHeroNewPage() {
         </nav>
 
         <h1 className="text-xl font-semibold">새 배너 추가</h1>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-text-secondary">
           히어로는 “추천 슬롯”입니다. 행사/게시글을 선택해서 홈 배너에 노출합니다.
         </p>
 

@@ -53,19 +53,51 @@ const config: Config = {
         state: {
           primary: '#8a1e2d',
           secondary: '#334155',
-          success: '#0f766e',
-          info: '#2563eb',
-          warning: '#ca8a04',
-          error: '#b91c1c',
+          // success 스케일: 기본/연한배경/링/호버
+          success: {
+            DEFAULT: '#0f766e',
+            subtle: '#ecfdf5',
+            ring: '#6ee7b7',
+            hover: '#0d6560',
+          },
+          // info 스케일
+          info: {
+            DEFAULT: '#2563eb',
+            subtle: '#eff6ff',
+            ring: '#93c5fd',
+            hover: '#1d4ed8',
+          },
+          // warning 스케일
+          warning: {
+            DEFAULT: '#ca8a04',
+            subtle: '#fefce8',
+            ring: '#fde047',
+            hover: '#a16207',
+          },
+          // error 스케일
+          error: {
+            DEFAULT: '#b91c1c',
+            subtle: '#fef2f2',
+            ring: '#fca5a5',
+            hover: '#991b1b',
+          },
         },
         neutral: {
           ink: '#1f242d',
           muted: '#5d6673',
           border: '#d8d3cc',
+          subtle: '#f8fafc', // slate-50 equivalent - 배경 스켈레톤/로딩 상태용
         },
         // 퀵 액션 전용 컬러 (Figma 디자인)
         action: {
           discussion: '#b08968', // 자유게시판
+          // Quick Actions 6종 (globals.css qa-* 대체)
+          rose: { DEFAULT: '#be123c', hover: '#9f1239' },
+          emerald: { DEFAULT: '#047857', hover: '#065f46' },
+          sky: { DEFAULT: '#0369a1', hover: '#075985' },
+          amber: { DEFAULT: '#b45309', hover: '#92400e' },
+          indigo: { DEFAULT: '#4338ca', hover: '#3730a3' },
+          slate: { DEFAULT: '#1e293b', hover: '#0f172a' },
         },
       },
       fontFamily: {

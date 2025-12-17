@@ -308,15 +308,15 @@ main:focus {
   .home-quick-actions__desc { @apply hidden; }
 }
 
-/* 빠른 실행: 색상 변형(전체 카드 배경 컬러 + 텍스트 흰색) */
+/* 빠른 실행: 색상 변형(action.* 토큰 기반) */
 @layer components {
   .home-quick-actions__item[class*="qa-"] { @apply border-0 text-white; }
-  .home-quick-actions__item.qa-rose { @apply bg-rose-700 hover:bg-rose-600; }
-  .home-quick-actions__item.qa-emerald { @apply bg-emerald-700 hover:bg-emerald-600; }
-  .home-quick-actions__item.qa-sky { @apply bg-sky-700 hover:bg-sky-600; }
-  .home-quick-actions__item.qa-amber { @apply bg-amber-700 hover:bg-amber-600; }
-  .home-quick-actions__item.qa-indigo { @apply bg-indigo-700 hover:bg-indigo-600; }
-  .home-quick-actions__item.qa-slate { @apply bg-slate-800 hover:bg-slate-700; }
+  .home-quick-actions__item.qa-rose { @apply bg-action-rose hover:bg-action-rose-hover; }
+  .home-quick-actions__item.qa-emerald { @apply bg-action-emerald hover:bg-action-emerald-hover; }
+  .home-quick-actions__item.qa-sky { @apply bg-action-sky hover:bg-action-sky-hover; }
+  .home-quick-actions__item.qa-amber { @apply bg-action-amber hover:bg-action-amber-hover; }
+  .home-quick-actions__item.qa-indigo { @apply bg-action-indigo hover:bg-action-indigo-hover; }
+  .home-quick-actions__item.qa-slate { @apply bg-action-slate hover:bg-action-slate-hover; }
   .home-quick-actions__item[class*="qa-"] .home-quick-actions__label { @apply text-white; }
   .home-quick-actions__item[class*="qa-"] .home-quick-actions__desc { @apply text-white/90; }
 }

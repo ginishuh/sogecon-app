@@ -37,7 +37,7 @@ export function PostCard({ title, content, category, pinned, cover_image, publis
             </span>
           ) : null}
           {pinned ? (
-            <span aria-label="pinned" title="상단 고정" className="inline-flex items-center text-amber-700">📌</span>
+            <span aria-label="pinned" title="상단 고정" className="inline-flex items-center text-state-warning">📌</span>
           ) : null}
           {published_at ? (
             <time dateTime={published_at}>{new Date(published_at).toLocaleDateString()}</time>

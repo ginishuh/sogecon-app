@@ -1,3 +1,10 @@
+## 2025-12-17
+
+- refactor(web): 디자인 토큰 일관성 정리 — 기반 작업 (#99)
+- refactor(web): 전체 페이지 디자인 토큰 치환 — slate/red/emerald→semantic (#99, PR #100)
+- refactor(web): 전체 컴포넌트 디자인 토큰 치환 — 하드코딩 0건 달성 (#99, PR #100)
+- fix(web): neutral.subtle 토큰 추가 + 스냅샷 업데이트 (#99, PR #100)
+
 ## 2025-12-11
 
 - docs(agents): git commit/push 대기 규칙 추가 및 지미선 페르소나 톤 정정 (문서/스크립트 동기화)

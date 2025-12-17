@@ -18,14 +18,14 @@ export function SwUpdateBanner() {
     <div
       role="alert"
       aria-live="polite"
-      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between gap-3 bg-slate-800 px-4 py-3 text-white shadow-lg sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-sm sm:rounded-lg"
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between gap-3 bg-brand-700 px-4 py-3 text-white shadow-lg sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-sm sm:rounded-lg"
     >
       <p className="text-sm">새 버전이 있습니다.</p>
       <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={applyUpdate}
-          className="rounded bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-800"
+          className="rounded bg-state-success px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-state-success-hover focus:outline-none focus:ring-2 focus:ring-state-success-ring focus:ring-offset-2 focus:ring-offset-brand-700"
         >
           새로고침
         </button>
@@ -33,7 +33,7 @@ export function SwUpdateBanner() {
           type="button"
           onClick={dismissBanner}
           aria-label="닫기"
-          className="rounded p-1 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-slate-500"
+          className="rounded p-1 text-text-muted transition-colors hover:bg-brand-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-neutral-border"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

@@ -31,13 +31,13 @@ const PAGE_SIZE = 20;
 function StatusBadge({ published }: { published: boolean }) {
   if (published) {
     return (
-      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
+      <span className="inline-flex items-center rounded-full bg-state-success-subtle px-2 py-0.5 text-xs font-medium text-state-success ring-1 ring-state-success-ring">
         공개
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+    <span className="inline-flex items-center rounded-full bg-neutral-subtle px-2 py-0.5 text-xs font-medium text-text-secondary ring-1 ring-neutral-border">
       비공개
     </span>
   );
@@ -50,7 +50,7 @@ function CategoryBadge({ category }: { category: string | null | undefined }) {
     hero: '히어로(구)',
   };
   const label = category ? labels[category] ?? category : '-';
-  return <span className="text-xs text-slate-500">{label}</span>;
+  return <span className="text-xs text-text-muted">{label}</span>;
 }
 
 function formatDate(dateStr: string | null): string {
@@ -91,7 +91,7 @@ function FilterBar({
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
       <select
-        className="rounded border border-slate-300 px-3 py-1.5 text-sm"
+        className="rounded border border-neutral-border px-3 py-1.5 text-sm"
         value={categoryFilter}
         onChange={(e) => onCategoryChange(e.target.value)}
       >
@@ -101,7 +101,7 @@ function FilterBar({
       </select>
 
       <select
-        className="rounded border border-slate-300 px-3 py-1.5 text-sm"
+        className="rounded border border-neutral-border px-3 py-1.5 text-sm"
         value={statusFilter}
         onChange={(e) => onStatusChange(e.target.value)}
       >
@@ -113,7 +113,7 @@ function FilterBar({
       <div className="flex">
         <input
           type="text"
-          className="rounded-l border border-r-0 border-slate-300 px-3 py-1.5 text-sm"
+          className="rounded-l border border-r-0 border-neutral-border px-3 py-1.5 text-sm"
           placeholder="검색어"
           value={searchInput}
           onChange={(e) => onSearchInputChange(e.target.value)}
@@ -121,7 +121,7 @@ function FilterBar({
         />
         <button
           type="button"
-          className="rounded-r border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm hover:bg-slate-100"
+          className="rounded-r border border-neutral-border bg-surface-raised px-3 py-1.5 text-sm hover:bg-surface-raised"
           onClick={onSearch}
         >
           검색
@@ -130,7 +130,7 @@ function FilterBar({
 
       <button
         type="button"
-        className="rounded border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
+        className="rounded border border-neutral-border px-3 py-1.5 text-sm hover:bg-surface-raised"
         onClick={onRefresh}
       >
         새로고침
@@ -157,19 +157,19 @@ function PostTableRow({
   onTogglePinned,
 }: PostTableRowProps) {
   return (
-    <tr className="border-b hover:bg-slate-50">
+    <tr className="border-b hover:bg-surface-raised">
       <td className="px-3 py-2">
         <div className="flex items-center gap-2">
           {post.pinned && <span title="고정됨">📌</span>}
           <Link
             href={`/posts/${post.id}`}
-            className="font-medium text-slate-900 hover:underline"
+            className="font-medium text-text-primary hover:underline"
           >
             {post.title}
           </Link>
         </div>
         {post.author_name && (
-          <div className="text-xs text-slate-500">{post.author_name}</div>
+          <div className="text-xs text-text-muted">{post.author_name}</div>
         )}
       </td>
       <td className="px-3 py-2">
@@ -178,9 +178,9 @@ function PostTableRow({
       <td className="px-3 py-2">
         <StatusBadge published={!!post.published_at} />
       </td>
-      <td className="px-3 py-2 text-slate-600">{post.view_count ?? 0}</td>
-      <td className="px-3 py-2 text-slate-600">{post.comment_count ?? 0}</td>
-      <td className="px-3 py-2 text-slate-600">{formatDate(post.published_at)}</td>
+      <td className="px-3 py-2 text-text-secondary">{post.view_count ?? 0}</td>
+      <td className="px-3 py-2 text-text-secondary">{post.comment_count ?? 0}</td>
+      <td className="px-3 py-2 text-text-secondary">{formatDate(post.published_at)}</td>
       <td className="px-3 py-2">
         <HeroTargetToggle
           value={heroItem}
@@ -192,14 +192,14 @@ function PostTableRow({
       <td className="px-3 py-2 text-right">
         <Link
           href={`/admin/posts/${post.id}/edit`}
-          className="text-sm text-slate-600 hover:text-slate-900"
+          className="text-sm text-text-secondary hover:text-text-primary"
         >
           수정
         </Link>
-        <span className="mx-1 text-slate-300">|</span>
+        <span className="mx-1 text-neutral-border">|</span>
         <button
           type="button"
-          className="text-sm text-red-600 hover:text-red-700"
+          className="text-sm text-state-error hover:text-state-error-hover"
           onClick={() => onDelete(post)}
         >
           삭제
@@ -221,7 +221,7 @@ function Pagination({ page, totalPages, total, onPrev, onNext }: PaginationProps
   if (totalPages <= 1) return null;
   return (
     <div className="mt-4 flex items-center justify-between">
-      <div className="text-sm text-slate-600">총 {total}건</div>
+      <div className="text-sm text-text-secondary">총 {total}건</div>
       <div className="flex gap-1">
         <button
           type="button"
@@ -279,11 +279,11 @@ function PostTableContent({
   onNext,
 }: PostTableContentProps) {
   if (isLoading) {
-    return <div className="py-8 text-center text-sm text-slate-500">로딩 중...</div>;
+    return <div className="py-8 text-center text-sm text-text-muted">로딩 중...</div>;
   }
   if (isError) {
     return (
-      <div className="py-8 text-center text-sm text-red-600">
+      <div className="py-8 text-center text-sm text-state-error">
         데이터를 불러올 수 없습니다.
       </div>
     );
@@ -293,15 +293,15 @@ function PostTableContent({
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead>
-            <tr className="border-b bg-slate-50">
-              <th className="px-3 py-2 font-medium text-slate-700">제목</th>
-              <th className="px-3 py-2 font-medium text-slate-700">카테고리</th>
-              <th className="px-3 py-2 font-medium text-slate-700">상태</th>
-              <th className="px-3 py-2 font-medium text-slate-700">조회</th>
-              <th className="px-3 py-2 font-medium text-slate-700">댓글</th>
-              <th className="px-3 py-2 font-medium text-slate-700">발행일</th>
-              <th className="px-3 py-2 font-medium text-slate-700">홈 배너</th>
-              <th className="px-3 py-2 text-right font-medium text-slate-700">액션</th>
+            <tr className="border-b bg-surface-raised">
+              <th className="px-3 py-2 font-medium text-text-secondary">제목</th>
+              <th className="px-3 py-2 font-medium text-text-secondary">카테고리</th>
+              <th className="px-3 py-2 font-medium text-text-secondary">상태</th>
+              <th className="px-3 py-2 font-medium text-text-secondary">조회</th>
+              <th className="px-3 py-2 font-medium text-text-secondary">댓글</th>
+              <th className="px-3 py-2 font-medium text-text-secondary">발행일</th>
+              <th className="px-3 py-2 font-medium text-text-secondary">홈 배너</th>
+              <th className="px-3 py-2 text-right font-medium text-text-secondary">액션</th>
             </tr>
           </thead>
           <tbody>
@@ -318,7 +318,7 @@ function PostTableContent({
             ))}
             {items?.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-3 py-8 text-center text-slate-500">
+                <td colSpan={8} className="px-3 py-8 text-center text-text-muted">
                   게시물이 없습니다.
                 </td>
               </tr>
@@ -435,20 +435,20 @@ export default function AdminPostsPage() {
 
   if (status !== 'authorized') {
     return (
-      <div className="p-6 text-sm text-slate-600">관리자 로그인이 필요합니다.</div>
+      <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>
     );
   }
 
   return (
     <RequireAdmin
-      fallback={<div className="p-6 text-sm text-slate-600">관리자 전용입니다.</div>}
+      fallback={<div className="p-6 text-sm text-text-secondary">관리자 전용입니다.</div>}
     >
       <div className="p-6">
         {/* 헤더 */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">게시물 관리</h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-text-secondary">
               홈 배너는 목록의 “홈 배너” 토글로 지정합니다.
             </p>
           </div>

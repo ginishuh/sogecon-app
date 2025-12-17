@@ -28,7 +28,7 @@ export default function EventDetailPage() {
     return <p>행사 정보를 불러오는 중…</p>;
   }
   if (eventQuery.isError) {
-    return <p className="text-red-600">행사 정보를 불러오지 못했습니다.</p>;
+    return <p className="text-state-error">행사 정보를 불러오지 못했습니다.</p>;
   }
 
   const event = eventQuery.data!;
@@ -36,7 +36,7 @@ export default function EventDetailPage() {
   return (
     <section className="space-y-4">
       <h2 className="text-xl font-semibold">{event.title}</h2>
-      <div className="text-sm text-slate-700 space-y-1">
+      <div className="text-sm text-text-secondary space-y-1">
         <p>장소: {event.location}</p>
         <p>
           일정: {new Date(event.starts_at).toLocaleString()} ~ {new Date(event.ends_at).toLocaleString()}
@@ -45,7 +45,7 @@ export default function EventDetailPage() {
       </div>
 
       {event.description && (
-        <div className="rounded-md border bg-white p-4 text-sm whitespace-pre-wrap text-slate-800">
+        <div className="rounded-md border bg-white p-4 text-sm whitespace-pre-wrap text-text-primary">
           {event.description}
         </div>
       )}
@@ -109,7 +109,7 @@ function RsvpStatusBlock({
 }) {
   if (!isAuthorized) {
     return (
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-text-muted">
         참여 신청은 로그인 후 가능합니다.{' '}
         <Link className="underline" href={`/login?next=/events/${eventId}`}>
           로그인하기
@@ -118,7 +118,7 @@ function RsvpStatusBlock({
     );
   }
   return (
-    <p className="text-xs text-slate-600">
+    <p className="text-xs text-text-muted">
       현재 상태: {statusText}
     </p>
   );
@@ -165,21 +165,21 @@ function RsvpPanel({ eventId }: { eventId: number }) {
 
       <div className="flex gap-2">
         <button
-          className="rounded bg-emerald-600 px-3 py-1 text-white disabled:opacity-50"
+          className="rounded bg-state-success px-3 py-1 text-text-inverse disabled:opacity-50"
           disabled={mutate.isPending || !isAuthorized}
           onClick={() => mutate.mutate('going')}
         >
           참석
         </button>
         <button
-          className="rounded bg-amber-600 px-3 py-1 text-white disabled:opacity-50"
+          className="rounded bg-state-warning px-3 py-1 text-text-inverse disabled:opacity-50"
           disabled={mutate.isPending || !isAuthorized}
           onClick={() => mutate.mutate('waitlist')}
         >
           대기
         </button>
         <button
-          className="rounded bg-slate-600 px-3 py-1 text-white disabled:opacity-50"
+          className="rounded bg-state-secondary px-3 py-1 text-text-inverse disabled:opacity-50"
           disabled={mutate.isPending || !isAuthorized}
           onClick={() => mutate.mutate('cancel')}
         >
@@ -187,8 +187,8 @@ function RsvpPanel({ eventId }: { eventId: number }) {
         </button>
       </div>
 
-      {message && <p className="text-emerald-700 text-sm">{message}</p>}
-      {error && <p className="text-red-700 text-sm">{error}</p>}
+      {message && <p className="text-state-success text-sm">{message}</p>}
+      {error && <p className="text-state-error text-sm">{error}</p>}
     </div>
   );
 }

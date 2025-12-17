@@ -113,10 +113,10 @@ export function HeroItemForm({
       }}
     >
       <div className="grid gap-3 md:grid-cols-2">
-        <label className="block text-sm text-slate-700">
+        <label className="block text-sm text-text-secondary">
           대상 종류
           <select
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+            className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={form.target_type}
             onChange={(e) => setForm((prev) => ({ ...prev, target_type: e.currentTarget.value as HeroTargetType }))}
             disabled={isPending}
@@ -126,10 +126,10 @@ export function HeroItemForm({
           </select>
         </label>
 
-        <label className="block text-sm text-slate-700">
+        <label className="block text-sm text-text-secondary">
           대상 ID
           <input
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+            className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             type="number"
             min={1}
             value={formatTargetIdValue(form.target_id)}
@@ -138,40 +138,40 @@ export function HeroItemForm({
             inputMode="numeric"
             placeholder="예: 123"
           />
-          <p hidden={targetIdOk} className="mt-1 text-xs text-amber-700">
+          <p hidden={targetIdOk} className="mt-1 text-xs text-state-warning">
             대상 ID는 1 이상이어야 합니다.
           </p>
         </label>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-text-secondary">
           <input
             type="checkbox"
             checked={form.enabled}
             onChange={(e) => setForm((prev) => ({ ...prev, enabled: e.currentTarget.checked }))}
             disabled={isPending}
-            className="rounded border-slate-300"
+            className="rounded border-neutral-border"
           />
           홈 배너 노출
         </label>
 
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-text-secondary">
           <input
             type="checkbox"
             checked={form.pinned}
             onChange={(e) => setForm((prev) => ({ ...prev, pinned: e.currentTarget.checked }))}
             disabled={isPending}
-            className="rounded border-slate-300"
+            className="rounded border-neutral-border"
           />
           홈 배너 상단 고정
         </label>
       </div>
 
-      <label className="block text-sm text-slate-700">
+      <label className="block text-sm text-text-secondary">
         제목(옵션)
         <input
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+          className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
           value={form.title_override}
           onChange={(e) => setForm((prev) => ({ ...prev, title_override: e.currentTarget.value }))}
           disabled={isPending}
@@ -179,10 +179,10 @@ export function HeroItemForm({
         />
       </label>
 
-      <label className="block text-sm text-slate-700">
+      <label className="block text-sm text-text-secondary">
         설명(옵션)
         <textarea
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+          className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
           rows={3}
           value={form.description_override}
           onChange={(e) => setForm((prev) => ({ ...prev, description_override: e.currentTarget.value }))}
@@ -192,26 +192,26 @@ export function HeroItemForm({
       </label>
 
       <div className="space-y-1">
-        <span className="block text-sm text-slate-700">배너 이미지(옵션)</span>
+        <span className="block text-sm text-text-secondary">배너 이미지(옵션)</span>
         <ImageUpload
           value={form.image_override}
           onUpload={(url) => setForm((prev) => ({ ...prev, image_override: url }))}
           onRemove={() => setForm((prev) => ({ ...prev, image_override: null }))}
           disabled={isPending}
         />
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-text-muted">
           행사에는 이미지 필드가 없어서, 행사 배너는 여기서 이미지를 지정해두시는 게 안전합니다.
         </p>
       </div>
 
-      <p hidden={!error} role="alert" className="text-sm text-red-600">
+      <p hidden={!error} role="alert" className="text-sm text-state-error">
         {error}
       </p>
 
       <div className="flex gap-2">
         <button
           type="button"
-          className="rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className="rounded border border-neutral-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-raised"
           onClick={() => onCancel?.()}
           disabled={isPending}
           hidden={!onCancel}
@@ -220,7 +220,7 @@ export function HeroItemForm({
         </button>
         <button
           type="submit"
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded bg-brand-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           disabled={!canSubmit}
           aria-busy={isPending}
         >

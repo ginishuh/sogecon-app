@@ -58,16 +58,16 @@ export default function BoardNewPage() {
     <section className="mx-auto w-full max-w-2xl space-y-5 px-6 py-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold">새 게시글 작성</h1>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-text-secondary">
           커뮤니티 베타 스켈레톤입니다. 향후 회원 프로필과 연계하여 작성자 정보를 보강합니다.
         </p>
-        <Link href="/board" className="text-xs text-slate-500 underline">
+        <Link href="/board" className="text-xs text-text-muted underline">
           ← 목록으로 돌아가기
         </Link>
       </div>
 
       {status === 'unauthorized' ? (
-        <p className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <p className="rounded border border-state-warning-ring bg-state-warning-subtle px-4 py-3 text-sm text-state-warning">
           로그인 후 게시글을 작성할 수 있습니다. 현재 로그인 정보가 없어 제출 시 오류가 발생할 수 있습니다.
         </p>
       ) : null}
@@ -80,10 +80,10 @@ export default function BoardNewPage() {
           mutate.mutate();
         }}
       >
-        <label className="block text-sm text-slate-700">
+        <label className="block text-sm text-text-secondary">
           제목
           <input
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+            className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={title}
             onChange={(e) => setTitle(e.currentTarget.value)}
             placeholder="글 제목을 입력하세요"
@@ -93,10 +93,10 @@ export default function BoardNewPage() {
           />
           <span id="title-help" className="sr-only">게시글 제목</span>
         </label>
-        <label className="block text-sm text-slate-700">
+        <label className="block text-sm text-text-secondary">
           카테고리
           <select
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+            className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={category}
             onChange={(e) => setCategory(e.currentTarget.value as (typeof BOARD_CATEGORY_OPTIONS)[number]['value'])}
             aria-label="카테고리"
@@ -109,7 +109,7 @@ export default function BoardNewPage() {
           </select>
         </label>
         <div className="space-y-1">
-          <span className="block text-sm text-slate-700">커버 이미지 (선택)</span>
+          <span className="block text-sm text-text-secondary">커버 이미지 (선택)</span>
           <ImageUpload
             value={coverImage}
             onUpload={setCoverImage}
@@ -117,10 +117,10 @@ export default function BoardNewPage() {
             disabled={isSubmitting || status === 'unauthorized'}
           />
         </div>
-        <label className="block text-sm text-slate-700">
+        <label className="block text-sm text-text-secondary">
           내용
           <textarea
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+            className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             rows={8}
             value={content}
             onChange={(e) => setContent(e.currentTarget.value)}
@@ -133,13 +133,13 @@ export default function BoardNewPage() {
         </label>
         <button
           type="submit"
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+          className="rounded bg-brand-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
           disabled={isDisabled}
           aria-busy={isSubmitting}
         >
           {isSubmitting ? '작성 중…' : '작성'}
         </button>
-        {error ? <p role="alert" aria-live="polite" className="text-sm text-red-600">{error}</p> : null}
+        {error ? <p role="alert" aria-live="polite" className="text-sm text-state-error">{error}</p> : null}
       </form>
     </section>
   );

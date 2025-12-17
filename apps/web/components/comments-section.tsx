@@ -55,21 +55,21 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
   };
 
   return (
-    <div className="mt-6 border border-slate-300 bg-white">
+    <div className="mt-6 border border-neutral-border bg-white">
       {/* 헤더 */}
-      <div className="border-b border-slate-300 bg-slate-50 px-6 py-3">
-        <h2 className="text-sm font-bold text-slate-900">
-          댓글 <span className="text-slate-500">{comments.length}</span>
+      <div className="border-b border-neutral-border bg-surface-raised px-6 py-3">
+        <h2 className="text-sm font-bold text-text-primary">
+          댓글 <span className="text-text-muted">{comments.length}</span>
         </h2>
       </div>
 
       {/* 댓글 작성 폼 */}
-      <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
+      <div className="border-b border-neutral-border bg-surface-raised px-6 py-4">
         <form onSubmit={handleSubmit}>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
             rows={3}
             placeholder="댓글을 입력하세요..."
             disabled={createMutation.isPending}
@@ -78,7 +78,7 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
             <button
               type="submit"
               disabled={createMutation.isPending || !content.trim()}
-              className="rounded bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-700 disabled:bg-slate-300"
+              className="rounded bg-brand-600 px-4 py-1.5 text-sm text-white hover:bg-brand-700 disabled:bg-neutral-subtle"
             >
               {createMutation.isPending ? '작성 중...' : '댓글 작성'}
             </button>
@@ -89,28 +89,28 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
       {/* 댓글 목록 */}
       <div className="px-6 py-4">
         {isLoading ? (
-          <p className="text-center text-sm text-slate-500">댓글을 불러오는 중...</p>
+          <p className="text-center text-sm text-text-muted">댓글을 불러오는 중...</p>
         ) : comments.length === 0 ? (
-          <p className="text-center text-sm text-slate-500">아직 댓글이 없습니다.</p>
+          <p className="text-center text-sm text-text-muted">아직 댓글이 없습니다.</p>
         ) : (
           <ul className="space-y-4">
             {comments.map((comment) => (
-              <li key={comment.id} className="border-b border-slate-100 pb-4 last:border-0">
+              <li key={comment.id} className="border-b border-neutral-border pb-4 last:border-0">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="mb-1 flex items-center gap-2 text-xs text-slate-600">
+                    <div className="mb-1 flex items-center gap-2 text-xs text-text-secondary">
                       <span className="font-semibold">{comment.author_name || `회원${comment.author_id}`}</span>
                       <span>•</span>
                       <span>
                         {formatFullDate(comment.created_at)}
                       </span>
                     </div>
-                    <p className="whitespace-pre-wrap text-sm text-slate-800">{comment.content}</p>
+                    <p className="whitespace-pre-wrap text-sm text-text-primary">{comment.content}</p>
                   </div>
                   <button
                     onClick={() => handleDelete(comment.id)}
                     disabled={deleteMutation.isPending}
-                    className="ml-4 text-xs text-red-600 hover:text-red-800 disabled:text-slate-400"
+                    className="ml-4 text-xs text-state-error hover:text-state-error-hover disabled:text-text-muted"
                   >
                     삭제
                   </button>

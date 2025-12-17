@@ -30,26 +30,26 @@ export default async function BoardDetailPage({ params }: PageProps) {
     const post = await getPost(id);
     return (
       <div className="mx-auto w-full max-w-4xl px-6 py-6">
-        <Link href="/board" className="inline-block mb-4 text-sm text-slate-600 hover:text-slate-900">
+        <Link href="/board" className="inline-block mb-4 text-sm text-text-secondary hover:text-text-primary">
           ← 목록으로
         </Link>
 
         {/* 게시글 카드 */}
-        <article className="border border-slate-300 bg-white">
+        <article className="border border-neutral-border bg-white">
           {/* 헤더 */}
-          <header className="border-b-2 border-slate-300 bg-slate-50 px-6 py-4">
+          <header className="border-b-2 border-neutral-border bg-surface-raised px-6 py-4">
             <div className="flex items-center gap-2 mb-3">
               {post.category ? (
-                <span className="inline-block rounded bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700">
+                <span className="inline-block rounded bg-neutral-subtle px-2 py-1 text-xs font-medium text-text-secondary">
                   {post.category}
                 </span>
               ) : null}
               {post.pinned ? (
-                <span className="text-red-500">📌</span>
+                <span className="text-state-error">📌</span>
               ) : null}
             </div>
-            <h1 className="text-xl font-bold text-slate-900 mb-3">{post.title}</h1>
-            <div className="flex items-center gap-4 text-xs text-slate-600">
+            <h1 className="text-xl font-bold text-text-primary mb-3">{post.title}</h1>
+            <div className="flex items-center gap-4 text-xs text-text-secondary">
               <span>작성자: {post.author_name || `회원${post.author_id}`}</span>
               <span>•</span>
               <span>
@@ -64,17 +64,17 @@ export default async function BoardDetailPage({ params }: PageProps) {
             <ImageGallery coverImage={post.cover_image} images={post.images} />
 
             <div className="prose prose-sm max-w-none">
-              <div className="whitespace-pre-wrap text-[14px] leading-7 text-slate-800">
+              <div className="whitespace-pre-wrap text-[14px] leading-7 text-text-primary">
                 {post.content}
               </div>
             </div>
           </div>
 
           {/* 하단 버튼 영역 */}
-          <div className="border-t border-slate-200 bg-slate-50 px-6 py-3 flex justify-between">
+          <div className="border-t border-neutral-border bg-surface-raised px-6 py-3 flex justify-between">
             <Link
               href="/board"
-              className="rounded border border-slate-300 bg-white px-4 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
+              className="rounded border border-neutral-border bg-white px-4 py-1.5 text-sm text-text-secondary hover:bg-surface-raised"
             >
               목록
             </Link>

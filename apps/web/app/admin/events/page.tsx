@@ -71,21 +71,21 @@ function FiltersBar({
   onClear: () => void;
 }) {
   return (
-    <div className="mb-4 flex flex-col gap-3 rounded border border-slate-200 bg-white p-3 md:flex-row md:items-end md:gap-4">
-      <label className="flex flex-col gap-1 text-xs text-slate-600">
+    <div className="mb-4 flex flex-col gap-3 rounded border border-neutral-border bg-white p-3 md:flex-row md:items-end md:gap-4">
+      <label className="flex flex-col gap-1 text-xs text-text-secondary">
         제목 검색
         <input
-          className="rounded border border-slate-300 px-3 py-2 text-sm"
+          className="rounded border border-neutral-border px-3 py-2 text-sm"
           placeholder="행사 제목"
           value={query}
           onChange={(e) => onChangeQuery(e.currentTarget.value)}
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-xs text-slate-600">
+      <label className="flex flex-col gap-1 text-xs text-text-secondary">
         상태
         <select
-          className="rounded border border-slate-300 px-3 py-2 text-sm"
+          className="rounded border border-neutral-border px-3 py-2 text-sm"
           value={status}
           onChange={(e) => onChangeStatus(e.currentTarget.value as StatusFilter)}
         >
@@ -96,20 +96,20 @@ function FiltersBar({
         </select>
       </label>
 
-      <label className="flex flex-col gap-1 text-xs text-slate-600">
+      <label className="flex flex-col gap-1 text-xs text-text-secondary">
         시작일(이후)
         <input
-          className="rounded border border-slate-300 px-3 py-2 text-sm"
+          className="rounded border border-neutral-border px-3 py-2 text-sm"
           type="date"
           value={dateFrom}
           onChange={(e) => onChangeDateFrom(e.currentTarget.value)}
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-xs text-slate-600">
+      <label className="flex flex-col gap-1 text-xs text-text-secondary">
         종료일(이전)
         <input
-          className="rounded border border-slate-300 px-3 py-2 text-sm"
+          className="rounded border border-neutral-border px-3 py-2 text-sm"
           type="date"
           value={dateTo}
           onChange={(e) => onChangeDateTo(e.currentTarget.value)}
@@ -118,7 +118,7 @@ function FiltersBar({
 
       <button
         type="button"
-        className="self-start rounded border px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 md:self-auto"
+        className="self-start rounded border px-3 py-2 text-sm text-text-secondary hover:bg-surface-raised md:self-auto"
         onClick={onClear}
       >
         초기화
@@ -159,20 +159,20 @@ function StatusBadge({ startsAt, endsAt }: { startsAt: string; endsAt: string })
 
   if (endMs < now) {
     return (
-      <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+      <span className="inline-flex items-center rounded-full bg-neutral-subtle px-2 py-0.5 text-xs font-medium text-text-secondary ring-1 ring-neutral-border">
         종료
       </span>
     );
   }
   if (startMs <= now && endMs >= now) {
     return (
-      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
+      <span className="inline-flex items-center rounded-full bg-state-success-subtle px-2 py-0.5 text-xs font-medium text-state-success ring-1 ring-state-success-ring">
         진행 중
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-blue-200">
+    <span className="inline-flex items-center rounded-full bg-state-info-subtle px-2 py-0.5 text-xs font-medium text-state-info ring-1 ring-state-info-ring">
       예정
     </span>
   );
@@ -203,49 +203,49 @@ function EventTable({
     <div className="overflow-x-auto">
       <table className="min-w-full text-left text-sm">
         <thead>
-          <tr className="border-b bg-slate-50">
-            <th className="px-3 py-2 font-medium text-slate-700">제목 / 일정</th>
-            <th className="px-3 py-2 font-medium text-slate-700">장소</th>
-            <th className="px-3 py-2 font-medium text-slate-700">정원</th>
-            <th className="px-3 py-2 font-medium text-slate-700">참여 현황</th>
-            <th className="px-3 py-2 font-medium text-slate-700">상태</th>
-            <th className="px-3 py-2 font-medium text-slate-700">홈 배너</th>
-            <th className="px-3 py-2 font-medium text-slate-700 text-right">액션</th>
+          <tr className="border-b bg-surface-raised">
+            <th className="px-3 py-2 font-medium text-text-secondary">제목 / 일정</th>
+            <th className="px-3 py-2 font-medium text-text-secondary">장소</th>
+            <th className="px-3 py-2 font-medium text-text-secondary">정원</th>
+            <th className="px-3 py-2 font-medium text-text-secondary">참여 현황</th>
+            <th className="px-3 py-2 font-medium text-text-secondary">상태</th>
+            <th className="px-3 py-2 font-medium text-text-secondary">홈 배너</th>
+            <th className="px-3 py-2 font-medium text-text-secondary text-right">액션</th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
             <tr>
-              <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
+              <td colSpan={7} className="px-3 py-8 text-center text-text-muted">
                 로딩 중...
               </td>
             </tr>
           ) : isError ? (
             <tr>
-              <td colSpan={7} className="px-3 py-8 text-center text-red-600">
+              <td colSpan={7} className="px-3 py-8 text-center text-state-error">
                 데이터를 불러올 수 없습니다.
               </td>
             </tr>
           ) : items.length > 0 ? (
             items.map((evt) => (
-              <tr key={evt.id} className="border-b hover:bg-slate-50">
+              <tr key={evt.id} className="border-b hover:bg-surface-raised">
                 <td className="px-3 py-2">
                   <div className="flex flex-col">
                     <Link
                       href={`/events/${evt.id}`}
-                      className="font-medium text-slate-900 hover:underline"
+                      className="font-medium text-text-primary hover:underline"
                     >
                       {evt.title}
                     </Link>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-text-muted">
                       {formatRange(evt.starts_at, evt.ends_at)}
                     </span>
                   </div>
                 </td>
-                <td className="px-3 py-2 text-slate-700">{evt.location}</td>
-                <td className="px-3 py-2 text-slate-700">{evt.capacity}</td>
+                <td className="px-3 py-2 text-text-secondary">{evt.location}</td>
+                <td className="px-3 py-2 text-text-secondary">{evt.capacity}</td>
                 <td className="px-3 py-2">
-                  <div className="text-xs text-slate-600">
+                  <div className="text-xs text-text-secondary">
                     참석 {evt.rsvp_counts.going} · 대기 {evt.rsvp_counts.waitlist} · 취소{' '}
                     {evt.rsvp_counts.cancel}
                   </div>
@@ -264,14 +264,14 @@ function EventTable({
                 <td className="px-3 py-2 text-right">
                   <Link
                     href={`/admin/events/${evt.id}/edit`}
-                    className="text-sm text-slate-600 hover:text-slate-900"
+                    className="text-sm text-text-secondary hover:text-text-primary"
                   >
                     수정
                   </Link>
-                  <span className="mx-1 text-slate-300">|</span>
+                  <span className="mx-1 text-neutral-border">|</span>
                   <button
                     type="button"
-                    className="text-sm text-red-600 hover:text-red-700"
+                    className="text-sm text-state-error hover:text-state-error-hover"
                     onClick={() => onDelete(evt)}
                   >
                     삭제
@@ -281,7 +281,7 @@ function EventTable({
             ))
           ) : (
             <tr>
-              <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
+              <td colSpan={7} className="px-3 py-8 text-center text-text-muted">
                 등록된 행사가 없습니다.
               </td>
             </tr>
@@ -309,7 +309,7 @@ function Pagination({
 }) {
   return (
     <div className="mt-4 flex items-center justify-between">
-      <div className="text-xs text-slate-500">
+      <div className="text-xs text-text-muted">
         {isFetching ? '갱신 중...' : `페이지 ${page + 1} / ${totalPages} · 총 ${total}건`}
       </div>
       <div className="flex gap-2">
@@ -372,16 +372,16 @@ export default function AdminEventsPage() {
   });
 
   if (status !== 'authorized') {
-    return <div className="p-6 text-sm text-slate-600">관리자 로그인이 필요합니다.</div>;
+    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
   }
 
   return (
-    <RequireAdmin fallback={<div className="p-6 text-sm text-slate-600">관리자 전용입니다.</div>}>
+    <RequireAdmin fallback={<div className="p-6 text-sm text-text-secondary">관리자 전용입니다.</div>}>
       <div className="p-6">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">행사 관리</h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-text-secondary">
               생성한 행사 목록을 확인합니다. 홈 배너는 목록의 “홈 배너” 토글로 지정합니다.
             </p>
           </div>

@@ -101,6 +101,7 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
               </em>
               로 발송됩니다. 메일을 받지 못했다면 스팸함을 확인하거나 
               <a
+                class="text-link"
                 href="mailto:office@sogang-econ-alumni.kr"
               >
                 office@sogang-econ-alumni.kr
@@ -174,6 +175,7 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
             >
               일반 회원은 홈과 
               <a
+                class="text-link"
                 href="/events"
               >
                 행사 페이지
@@ -219,6 +221,7 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
             >
               회원 정보는 암호화된 데이터베이스에 저장되며, 관리자 접근은 역할 기반 권한(RBAC)으로 제한됩니다. 열람 기록은 1년간 감사 로그에 보관되고, 404/410 응답을 반환하는 푸시 구독 정보는 즉시 폐기됩니다. 자세한 내용은 
               <a
+                class="text-link"
                 href="/privacy"
               >
                 개인정보 처리방침
@@ -239,12 +242,14 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
             >
               본 페이지와 함께 
               <a
+                class="text-link"
                 href="/terms"
               >
                 이용약관
               </a>
               , 
               <a
+                class="text-link"
                 href="/privacy"
               >
                 개인정보 처리방침
@@ -265,6 +270,7 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
             >
               사무국 대표 메일(
               <a
+                class="text-link"
                 href="mailto:office@sogang-econ-alumni.kr"
               >
                 office@sogang-econ-alumni.kr

@@ -36,10 +36,10 @@ export default function ActivatePage() {
         <label className="text-sm">비밀번호
           <input type="password" className="mt-1 w-full rounded border px-3 py-2" value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
-        <button disabled={busy} className="rounded bg-emerald-600 px-4 py-2 text-white disabled:opacity-50">활성화</button>
+        <button disabled={busy} className="rounded bg-state-success px-4 py-2 text-white disabled:opacity-50">활성화</button>
       </form>
       {status === 'authorized' ? (
-        <p className="mt-3 text-sm text-emerald-700">로그인 상태입니다.</p>
+        <p className="mt-3 text-sm text-state-success">로그인 상태입니다.</p>
       ) : null}
     </div>
   );

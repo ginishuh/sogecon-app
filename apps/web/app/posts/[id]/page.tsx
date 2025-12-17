@@ -25,18 +25,18 @@ function PostHeader({ category, pinned, title, authorName, publishedAt, viewCoun
     <header className="space-y-2">
       <div className="flex items-center gap-2">
         {category && (
-          <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+          <span className="rounded bg-surface-raised px-2 py-0.5 text-xs font-medium text-text-secondary">
             {category}
           </span>
         )}
         {pinned && (
-          <span className="text-amber-600" title="상단 고정">
+          <span className="text-state-warning" title="상단 고정">
             📌
           </span>
         )}
       </div>
-      <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
-      <div className="flex items-center gap-3 text-sm text-slate-500">
+      <h1 className="text-2xl font-semibold text-text-primary">{title}</h1>
+      <div className="flex items-center gap-3 text-sm text-text-muted">
         {authorName && <span>{authorName}</span>}
         {publishedAt && (
           <time dateTime={publishedAt}>
@@ -63,7 +63,7 @@ export default async function PostDetailPage({ params }: PageProps) {
     return (
       <article className="mx-auto max-w-3xl space-y-6 px-4 py-6">
         <div className="flex items-center justify-between">
-          <Link href="/posts" className="text-sm text-slate-600 hover:underline">
+          <Link href="/posts" className="text-sm text-text-secondary hover:underline">
             ← 목록으로 돌아가기
           </Link>
           <PostAdminActions postId={post.id} postTitle={post.title} />
@@ -82,7 +82,7 @@ export default async function PostDetailPage({ params }: PageProps) {
         <ImageGallery coverImage={post.cover_image} images={post.images} />
 
         {/* 본문 */}
-        <div className="whitespace-pre-wrap text-base leading-relaxed text-slate-800">
+        <div className="whitespace-pre-wrap text-base leading-relaxed text-text-primary">
           {post.content}
         </div>
       </article>

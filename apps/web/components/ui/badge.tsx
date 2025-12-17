@@ -9,11 +9,11 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 const VARIANT: Record<BadgeVariant, string> = {
   primary: 'bg-brand-100 text-brand-800 ring-1 ring-inset ring-brand-200',
   secondary: 'bg-surface-sunken text-text-primary ring-1 ring-inset ring-neutral-border',
-  success: 'bg-emerald-100 text-emerald-800 ring-1 ring-inset ring-emerald-200',
-  info: 'bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-200',
-  warning: 'bg-amber-100 text-amber-900 ring-1 ring-inset ring-amber-200',
-  error: 'bg-red-100 text-red-800 ring-1 ring-inset ring-red-200',
-  neutral: 'bg-neutral-100 text-neutral-800 ring-1 ring-inset ring-neutral-200',
+  success: 'bg-state-success-subtle text-state-success ring-1 ring-inset ring-state-success-ring',
+  info: 'bg-state-info-subtle text-state-info ring-1 ring-inset ring-state-info-ring',
+  warning: 'bg-state-warning-subtle text-state-warning ring-1 ring-inset ring-state-warning-ring',
+  error: 'bg-state-error-subtle text-state-error ring-1 ring-inset ring-state-error-ring',
+  neutral: 'bg-surface-sunken text-text-secondary ring-1 ring-inset ring-neutral-border',
 };
 
 /** 상태/분류 표시용 배지 — 대비 우선 */

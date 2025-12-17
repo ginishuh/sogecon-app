@@ -49,9 +49,9 @@ export default function AdminHeroEditPage() {
   });
 
   return (
-    <RequireAdmin fallback={<div className="p-6 text-sm text-slate-600">관리자 전용입니다.</div>}>
+    <RequireAdmin fallback={<div className="p-6 text-sm text-text-secondary">관리자 전용입니다.</div>}>
       <section className="mx-auto max-w-2xl space-y-4 p-6">
-        <nav className="text-sm text-slate-600">
+        <nav className="text-sm text-text-secondary">
           <Link href="/admin/hero" className="hover:underline">
             홈 배너 관리
           </Link>
@@ -61,9 +61,9 @@ export default function AdminHeroEditPage() {
 
         <h1 className="text-xl font-semibold">배너 수정</h1>
 
-        {query.isLoading ? <p className="text-sm text-slate-600">불러오는 중…</p> : null}
+        {query.isLoading ? <p className="text-sm text-text-secondary">불러오는 중…</p> : null}
         {query.isError || !query.data ? (
-          <p className="text-sm text-red-600">배너 정보를 불러오지 못했습니다.</p>
+          <p className="text-sm text-state-error">배너 정보를 불러오지 못했습니다.</p>
         ) : (
           <HeroItemForm
             initialData={query.data}

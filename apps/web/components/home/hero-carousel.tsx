@@ -206,7 +206,7 @@ export default function HomeHeroCarousel() {
                   <h2 className="text-[28px] md:text-[30px] lg:text-[32px] font-medium leading-tight tracking-tight text-white mb-2">
                     {s.title}
                     {s.unpublished && isAdmin ? (
-                      <span className="ml-2 rounded bg-amber-400/90 px-1.5 py-0.5 text-[11px] font-semibold text-black align-middle">
+                      <span className="ml-2 rounded bg-state-warning px-1.5 py-0.5 text-[11px] font-semibold text-black align-middle">
                         관리자 미리보기
                       </span>
                     ) : null}

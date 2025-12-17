@@ -281,10 +281,10 @@ function CategoryField({
   onChange: (v: CategoryType) => void;
 }) {
   return (
-    <label className="block text-sm text-slate-700">
+    <label className="block text-sm text-text-secondary">
       카테고리
       <select
-        className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+        className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
         value={value}
         onChange={(e) => onChange(e.currentTarget.value as CategoryType)}
       >
@@ -303,10 +303,10 @@ function TitleField({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="block text-sm text-slate-700">
+    <label className="block text-sm text-text-secondary">
       제목
       <input
-        className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+        className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
         value={value}
         onChange={(e) => onChange(e.currentTarget.value)}
         placeholder="글 제목을 입력하세요"
@@ -332,7 +332,7 @@ function ImageField({
 }) {
   return (
     <div className="space-y-1">
-      <span className="block text-sm text-slate-700">
+      <span className="block text-sm text-text-secondary">
         이미지 (선택)
       </span>
       <MultiImageUpload
@@ -355,10 +355,10 @@ function ContentField({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="block text-sm text-slate-700">
+    <label className="block text-sm text-text-secondary">
       내용
       <textarea
-        className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+        className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
         rows={8}
         value={value}
         onChange={(e) => onChange(e.currentTarget.value)}
@@ -377,25 +377,25 @@ function PublishField({
 }) {
   return (
     <div className="space-y-2">
-      <span className="block text-sm font-medium text-slate-700">공개 상태</span>
+      <span className="block text-sm font-medium text-text-secondary">공개 상태</span>
       <div className="flex gap-4">
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-text-secondary">
           <input
             type="radio"
             name="published"
             checked={value}
             onChange={() => onChange(true)}
-            className="border-slate-300"
+            className="border-neutral-border"
           />
           즉시 공개
         </label>
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-text-secondary">
           <input
             type="radio"
             name="published"
             checked={!value}
             onChange={() => onChange(false)}
-            className="border-slate-300"
+            className="border-neutral-border"
           />
           비공개 (초안)
         </label>
@@ -413,23 +413,23 @@ function PinnedField({
 }) {
   return (
     <div className="space-y-1">
-      <label className="flex items-center gap-2 text-sm text-slate-700">
+      <label className="flex items-center gap-2 text-sm text-text-secondary">
         <input
           type="checkbox"
           checked={value}
           onChange={(e) => onChange(e.currentTarget.checked)}
-          className="rounded border-slate-300"
+          className="rounded border-neutral-border"
         />
         게시판 상단 고정
       </label>
-      <p className="text-xs text-slate-500">공지/소식 목록에서 상단에 고정됩니다.</p>
+      <p className="text-xs text-text-muted">공지/소식 목록에서 상단에 고정됩니다.</p>
     </div>
   );
 }
 
 function ErrorMessage({ message }: { message: string }) {
   return (
-    <p role="alert" className="text-sm text-red-600">
+    <p role="alert" className="text-sm text-state-error">
       {message}
     </p>
   );
@@ -455,7 +455,7 @@ function FormButtons({
       {onCancel && (
         <button
           type="button"
-          className="rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className="rounded border border-neutral-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-raised"
           onClick={onCancel}
         >
           취소
@@ -463,7 +463,7 @@ function FormButtons({
       )}
       <button
         type="button"
-        className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded bg-brand-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         disabled={isPending || disabled}
         onClick={onSubmit}
       >

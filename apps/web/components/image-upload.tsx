@@ -51,7 +51,7 @@ function ImagePreview({
   disabled?: boolean;
 }) {
   return (
-    <div className="relative rounded-lg overflow-hidden border border-slate-200">
+    <div className="relative rounded-lg overflow-hidden border border-neutral-border">
       <div
         role="img"
         aria-label="업로드된 이미지 미리보기"
@@ -92,7 +92,7 @@ function ImagePreview({
 function DropzoneContent({ isUploading, isDragging }: { isUploading: boolean; isDragging: boolean }) {
   if (isUploading) {
     return (
-      <div className="flex flex-col items-center gap-2 text-slate-500">
+      <div className="flex flex-col items-center gap-2 text-text-muted">
         <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path
@@ -107,7 +107,7 @@ function DropzoneContent({ isUploading, isDragging }: { isUploading: boolean; is
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 text-slate-500">
+    <div className="flex flex-col items-center gap-2 text-text-muted">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="32"
@@ -125,7 +125,7 @@ function DropzoneContent({ isUploading, isDragging }: { isUploading: boolean; is
       </svg>
       <div className="text-center">
         <p className="text-sm font-medium">{isDragging ? '여기에 놓으세요' : '클릭 또는 드래그하여 이미지 업로드'}</p>
-        <p className="text-xs text-slate-400 mt-1">JPEG, PNG, WebP (최대 {MAX_SIZE_MB}MB)</p>
+        <p className="text-xs text-text-muted mt-1">JPEG, PNG, WebP (최대 {MAX_SIZE_MB}MB)</p>
       </div>
     </div>
   );
@@ -208,7 +208,7 @@ export function ImageUpload({ onUpload, value, onRemove, disabled = false, class
 
   const isInteractive = !disabled && !isUploading;
   const baseClasses = 'relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors';
-  const stateClasses = isDragging ? 'border-brand-500 bg-brand-50' : 'border-slate-300 hover:border-slate-400 bg-slate-50';
+  const stateClasses = isDragging ? 'border-brand-500 bg-brand-50' : 'border-neutral-border hover:border-brand-400 bg-surface-raised';
   const disabledClasses = isInteractive ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed';
 
   // 이미지가 있으면 미리보기 표시
@@ -253,7 +253,7 @@ export function ImageUpload({ onUpload, value, onRemove, disabled = false, class
       </div>
 
       {error && (
-        <p role="alert" className="mt-2 text-sm text-red-600">
+        <p role="alert" className="mt-2 text-sm text-state-error">
           {error}
         </p>
       )}
