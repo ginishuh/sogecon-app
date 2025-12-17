@@ -38,7 +38,7 @@ export default function SupportContactPage() {
         <label className="text-sm">연락처(선택)
           <input className="mt-1 w-full rounded border px-3 py-2" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="이메일/전화 등" />
         </label>
-        <button disabled={busy} className="rounded bg-emerald-600 px-4 py-2 text-white disabled:opacity-50">보내기</button>
+        <button disabled={busy} className="rounded bg-state-success px-4 py-2 text-white disabled:opacity-50">보내기</button>
       </form>
     </div>
   );

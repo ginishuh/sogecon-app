@@ -15,7 +15,7 @@ export default function EventsPage() {
   }
 
   if (isError) {
-    return <p className="text-red-600">행사를 불러오지 못했습니다.</p>;
+    return <p className="text-state-error">행사를 불러오지 못했습니다.</p>;
   }
 
   if (!events || events.length === 0) {
@@ -27,15 +27,15 @@ export default function EventsPage() {
       <h2 className="text-xl font-semibold">행사</h2>
       <ul className="space-y-3">
         {events.map((event) => (
-          <li key={event.id} className="rounded border border-slate-200 bg-white p-4 shadow-sm">
+          <li key={event.id} className="rounded border border-neutral-border bg-white p-4 shadow-sm">
             <h3 className="font-semibold">
               <Link className="text-link" href={`/events/${event.id}`}>{event.title}</Link>
             </h3>
-            <p className="mt-1 text-sm text-slate-700">장소: {event.location}</p>
-            <p className="mt-1 text-sm text-slate-700">
+            <p className="mt-1 text-sm text-text-secondary">장소: {event.location}</p>
+            <p className="mt-1 text-sm text-text-secondary">
               일정: {new Date(event.starts_at).toLocaleString()} ~ {new Date(event.ends_at).toLocaleString()}
             </p>
-            <p className="mt-2 text-xs text-slate-500">정원: {event.capacity}명</p>
+            <p className="mt-2 text-xs text-text-muted">정원: {event.capacity}명</p>
           </li>
         ))}
       </ul>

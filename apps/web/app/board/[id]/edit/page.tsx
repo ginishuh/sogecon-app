@@ -13,7 +13,7 @@ import { getPost, updatePost, type Post } from '../../../../services/posts';
 
 /** 상태 메시지 컴포넌트 */
 function StatusMessage({ text, error = false }: { text: string; error?: boolean }) {
-  const color = error ? 'text-red-600' : 'text-slate-500';
+  const color = error ? 'text-state-error' : 'text-text-muted';
   return <div className={`p-6 text-sm ${color}`}>{text}</div>;
 }
 
@@ -106,7 +106,7 @@ export default function BoardEditPage() {
   return (
     <div className="mx-auto max-w-2xl p-6">
       {/* 브레드크럼 */}
-      <nav className="mb-4 text-sm text-slate-600">
+      <nav className="mb-4 text-sm text-text-secondary">
         <Link href="/board" className="hover:underline">
           게시판
         </Link>

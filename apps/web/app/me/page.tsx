@@ -35,9 +35,9 @@ const toFormState = (member: MemberDto): ProfileForm => ({
 });
 
 const inputClass =
-  'mt-1 w-full rounded border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200';
+  'mt-1 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200';
 const textareaClass =
-  'mt-1 w-full rounded border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200';
+  'mt-1 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200';
 
 const fieldErrorId = (field: keyof ProfileForm) => `profile-${field}-error`;
 
@@ -71,7 +71,7 @@ function TextField<K extends StringField>({
 
   return (
     <label className="flex flex-col">
-      <span className="font-medium text-slate-800">{label}</span>
+      <span className="font-medium text-text-primary">{label}</span>
       {multiline ? (
         <textarea
           className={textareaClass}
@@ -97,7 +97,7 @@ function TextField<K extends StringField>({
         />
       )}
       {error ? (
-        <p id={errorId} role="alert" className="mt-1 text-xs text-red-600">
+        <p id={errorId} role="alert" className="mt-1 text-xs text-state-error">
           {error}
         </p>
       ) : null}
@@ -113,7 +113,7 @@ type CheckboxFieldProps = {
 
 function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
   return (
-    <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-800">
+    <label className="inline-flex items-center gap-2 text-sm font-medium text-text-primary">
       <input
         type="checkbox"
         checked={checked}
@@ -143,7 +143,7 @@ function VisibilityField({
 
   return (
     <label className="flex flex-col">
-      <span className="font-medium text-slate-800">공개 범위</span>
+      <span className="font-medium text-text-primary">공개 범위</span>
       <select
         className={inputClass}
         value={value}
@@ -154,12 +154,12 @@ function VisibilityField({
         <option value="cohort">기수 한정 공개</option>
         <option value="private">비공개</option>
       </select>
-      <p id={helpId} className="mt-1 text-xs text-slate-500">
+      <p id={helpId} className="mt-1 text-xs text-text-muted">
         전체 공개는 모든 회원에게 노출되며, 기수 한정은 같은 기수 회원만 볼 수 있습니다. 비공개는 본인만 확인
         가능합니다.
       </p>
       {error ? (
-        <p id={errorId} role="alert" className="mt-1 text-xs text-red-600">
+        <p id={errorId} role="alert" className="mt-1 text-xs text-state-error">
           {error}
         </p>
       ) : null}
@@ -169,13 +169,13 @@ function VisibilityField({
 
 function ProfileSummary({ profile }: { profile: MemberDto }) {
   return (
-    <dl className="rounded border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+    <dl className="rounded border border-neutral-border bg-surface-raised p-3 text-xs text-text-muted">
       <div className="flex justify-between">
-        <dt className="font-medium text-slate-700">이메일</dt>
+        <dt className="font-medium text-text-secondary">이메일</dt>
         <dd>{profile.email}</dd>
       </div>
       <div className="mt-1 flex justify-between">
-        <dt className="font-medium text-slate-700">기수</dt>
+        <dt className="font-medium text-text-secondary">기수</dt>
         <dd>{profile.cohort}</dd>
       </div>
     </dl>
@@ -194,7 +194,7 @@ function FormErrorMessage({
     <p
       id={id}
       role="alert"
-      className="rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
+      className="rounded border border-state-error-ring bg-state-error-subtle px-3 py-2 text-xs text-state-error"
     >
       {message}
     </p>
@@ -234,7 +234,7 @@ function AvatarUploader({ avatarUrl, uploading, onUpload }: AvatarUploaderProps)
 
   return (
     <section aria-label="프로필 사진" className="flex items-start gap-4">
-      <div className="relative h-20 w-20 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+      <div className="relative h-20 w-20 overflow-hidden rounded-full border border-neutral-border bg-surface-raised">
         {previewUrl ? (
           <Image
             src={previewUrl}
@@ -254,22 +254,22 @@ function AvatarUploader({ avatarUrl, uploading, onUpload }: AvatarUploaderProps)
             className="object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
+          <div className="flex h-full w-full items-center justify-center text-xs text-text-muted">
             사진 없음
           </div>
         )}
         {uploading ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/70 text-xs text-emerald-600">
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 text-xs text-state-success">
             업로드 중…
           </div>
         ) : null}
       </div>
-      <div className="flex flex-col gap-1 text-xs text-slate-600">
+      <div className="flex flex-col gap-1 text-xs text-text-muted">
         <button
           type="button"
           onClick={handleButtonClick}
           disabled={uploading}
-          className="w-fit rounded border border-emerald-600 px-3 py-1 text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-fit rounded border border-brand-600 px-3 py-1 text-brand-600 transition hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {uploading ? '업로드 중…' : '이미지 선택'}
         </button>
@@ -386,7 +386,7 @@ function ProfileFormSection({
       <TextField field="industry" label="업종(선택)" draft={draft} errors={errors} onChange={onChange} />
       <button
         disabled={busy}
-        className="rounded bg-emerald-600 px-4 py-2 text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded bg-brand-700 px-4 py-2 text-text-inverse transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {busy ? '저장 중…' : '저장'}
       </button>
@@ -542,11 +542,11 @@ export default function MePage() {
 
   let body: ReactNode;
   if (informationStatus === 'loading') {
-    body = <p className="text-sm text-slate-500">로딩 중…</p>;
+    body = <p className="text-sm text-text-muted">로딩 중…</p>;
   } else if (informationStatus === 'unauthorized') {
-    body = <p className="text-sm text-slate-600">로그인 후 이용하세요.</p>;
+    body = <p className="text-sm text-text-muted">로그인 후 이용하세요.</p>;
   } else if (informationStatus === 'fetching') {
-    body = <p className="text-sm text-slate-600">정보를 불러오는 중…</p>;
+    body = <p className="text-sm text-text-muted">정보를 불러오는 중…</p>;
   } else {
     const draft = form as ProfileForm;
     const profile = me as MemberDto;

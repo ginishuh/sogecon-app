@@ -65,11 +65,11 @@ function BoardPageInner() {
 
   return (
     <section className="relative mx-auto w-full max-w-3xl space-y-4 px-4 py-4 pb-24">
-      <header className="flex items-center justify-between border-b border-slate-200 pb-3">
-        <h1 className="text-lg font-semibold text-slate-800">게시판</h1>
+      <header className="flex items-center justify-between border-b border-neutral-border pb-3">
+        <h1 className="text-lg font-semibold text-text-primary">게시판</h1>
       </header>
 
-      <div className="flex items-center gap-2 border-b border-slate-200">
+      <div className="flex items-center gap-2 border-b border-neutral-border">
         <Tabs
           aria-label="게시판 카테고리"
           className="flex-1"
@@ -85,7 +85,7 @@ function BoardPageInner() {
               <div className="space-y-3 pt-3">
                 <div className="flex items-center gap-2">
                   <input
-                    className="flex-1 rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm focus:border-slate-400 focus:bg-white focus:outline-none"
+                    className="flex-1 rounded-full border border-neutral-border bg-surface-raised px-4 py-2 text-sm focus:border-brand-400 focus:bg-white focus:outline-none"
                     value={search}
                     onChange={(e) => {
                       setSearch(e.currentTarget.value);
@@ -95,7 +95,7 @@ function BoardPageInner() {
                   />
                   <button
                     type="button"
-                    className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                    className="rounded-full border border-neutral-border bg-white px-4 py-2 text-sm text-text-secondary hover:bg-surface-raised"
                     onClick={() => setSearch('')}
                   >
                     초기화
@@ -103,13 +103,13 @@ function BoardPageInner() {
                 </div>
 
                 {query.isLoading ? (
-                  <p className="py-8 text-center text-sm text-slate-500">게시글을 불러오는 중입니다…</p>
+                  <p className="py-8 text-center text-sm text-text-muted">게시글을 불러오는 중입니다…</p>
                 ) : null}
                 {query.isError ? (
-                  <p className="py-8 text-center text-sm text-red-600">게시글을 불러오지 못했습니다.</p>
+                  <p className="py-8 text-center text-sm text-state-error">게시글을 불러오지 못했습니다.</p>
                 ) : null}
                 {!query.isLoading && filtered.length === 0 ? (
-                  <p className="py-12 text-center text-sm text-slate-500">
+                  <p className="py-12 text-center text-sm text-text-muted">
                     아직 등록된 게시글이 없습니다.
                   </p>
                 ) : null}
@@ -119,19 +119,19 @@ function BoardPageInner() {
                       <li key={post.id}>
                         <Link
                           href={`/board/${post.id}`}
-                          className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
+                          className="flex items-start gap-3 rounded-lg border border-neutral-border bg-white p-4 transition-colors hover:bg-surface-raised"
                         >
                           {post.category ? (
-                            <span className="mt-0.5 inline-block rounded bg-red-600 px-2 py-0.5 text-xs font-medium text-white">
+                            <span className="mt-0.5 inline-block rounded bg-brand-600 px-2 py-0.5 text-xs font-medium text-white">
                               {post.category}
                             </span>
                           ) : null}
                           <div className="flex-1 space-y-1">
-                            <h3 className="text-[15px] font-medium text-slate-900">
+                            <h3 className="text-[15px] font-medium text-text-primary">
                               {post.pinned && <span className="mr-1">📌</span>}
                               {post.title}
                             </h3>
-                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <div className="flex items-center gap-2 text-xs text-text-muted">
                               <span>{post.author_name || `회원${post.author_id}`}</span>
                               <span>·</span>
                               <span>{formatBoardDate(post.published_at)}</span>
@@ -151,7 +151,7 @@ function BoardPageInner() {
                   <div className="flex justify-center pt-4">
                     <button
                       type="button"
-                      className="rounded-full border border-slate-300 bg-white px-6 py-2.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                      className="rounded-full border border-neutral-border bg-white px-6 py-2.5 text-sm text-text-secondary hover:bg-surface-raised disabled:opacity-40"
                       onClick={() => setPage((prev) => prev + 1)}
                       disabled={(query.data ?? []).length < PAGE_SIZE || query.isLoading}
                     >
@@ -181,7 +181,7 @@ function BoardPageInner() {
 
 export default function BoardPage() {
   return (
-    <Suspense fallback={<section className="mx-auto w-full max-w-3xl px-6 py-6 text-sm text-slate-600">게시판을 불러오는 중…</section>}>
+    <Suspense fallback={<section className="mx-auto w-full max-w-3xl px-6 py-6 text-sm text-text-secondary">게시판을 불러오는 중…</section>}>
       <BoardPageInner />
     </Suspense>
   );

@@ -49,12 +49,12 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
       {/* 기본 필터: 항상 표시 */}
       <fieldset className="flex flex-wrap items-end gap-3" aria-label="기본 검색 필터">
         {basicFields.map(({ key, label, placeholder, inputMode }) => (
-          <label key={key} className="flex flex-col text-xs text-slate-600">
-            <span className="mb-1 font-medium text-slate-700">{label}</span>
+          <label key={key} className="flex flex-col text-xs text-text-muted">
+            <span className="mb-1 font-medium text-text-secondary">{label}</span>
             <input
               inputMode={inputMode}
               autoComplete={autocompleteHints[key]}
-              className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+              className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
               value={value[key]}
               placeholder={placeholder}
               aria-label={label}
@@ -62,10 +62,10 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
             />
           </label>
         ))}
-        <label className="flex flex-col text-xs text-slate-600">
-          <span className="mb-1 font-medium text-slate-700">정렬</span>
+        <label className="flex flex-col text-xs text-text-muted">
+          <span className="mb-1 font-medium text-text-secondary">정렬</span>
           <select
-            className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+            className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
             value={value.sort}
             onChange={(event) => onSortChange(event.target.value as SortOption)}
             aria-label="정렬 옵션"
@@ -97,12 +97,12 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
         aria-label="상세 검색 필터"
       >
         {advancedFields.map(({ key, label, placeholder, inputMode }) => (
-          <label key={key} className="flex flex-col text-xs text-slate-600">
-            <span className="mb-1 font-medium text-slate-700">{label}</span>
+          <label key={key} className="flex flex-col text-xs text-text-muted">
+            <span className="mb-1 font-medium text-text-secondary">{label}</span>
             <input
               inputMode={inputMode}
               autoComplete={autocompleteHints[key]}
-              className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+              className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
               value={value[key]}
               placeholder={placeholder}
               aria-label={label}
@@ -120,7 +120,7 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
 
 function LoadingMessage({ children }: { children: ReactNode }) {
   return (
-    <div role="status" aria-live="polite" className="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+    <div role="status" aria-live="polite" className="rounded border border-neutral-border bg-surface-raised px-3 py-2 text-sm text-text-muted">
       {children}
     </div>
   );
@@ -128,7 +128,7 @@ function LoadingMessage({ children }: { children: ReactNode }) {
 
 function ErrorMessage({ message }: { message: string }) {
   return (
-    <div role="alert" className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+    <div role="alert" className="rounded border border-state-error-ring bg-state-error-subtle px-3 py-2 text-sm text-state-error">
       {message}
     </div>
   );
@@ -136,7 +136,7 @@ function ErrorMessage({ message }: { message: string }) {
 
 function EmptyState() {
   return (
-    <div role="status" aria-live="polite" className="rounded border border-slate-200 bg-slate-50 px-3 py-6 text-center text-sm text-slate-600">
+    <div role="status" aria-live="polite" className="rounded border border-neutral-border bg-surface-raised px-3 py-6 text-center text-sm text-text-muted">
       검색 결과가 없습니다. 필터를 조정하거나 다른 검색어를 입력해보세요.
     </div>
   );
@@ -181,7 +181,7 @@ function DirectoryResults({
         <table className="min-w-[640px] table-fixed border-collapse text-left text-sm">
           <caption className="sr-only">동문 목록 — {sortLabel}</caption>
           <thead>
-            <tr className="border-b bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <tr className="border-b bg-surface-raised text-xs uppercase tracking-wide text-text-muted">
               <th className="p-2" scope="col">이름</th>
               <th className="p-2" scope="col">이메일</th>
               <th className="p-2" scope="col">기수</th>
@@ -195,16 +195,16 @@ function DirectoryResults({
             {items.map((m) => (
               <tr
                 key={m.id}
-                className="border-b last:border-0 cursor-pointer hover:bg-slate-50 transition-colors"
+                className="border-b last:border-0 cursor-pointer hover:bg-surface-raised transition-colors"
                 onClick={() => onMemberClick(m)}
               >
-                <td className="p-2 font-medium text-slate-800">{m.name}</td>
-                <td className="p-2 font-mono text-xs text-slate-500">{m.email}</td>
+                <td className="p-2 font-medium text-text-primary">{m.name}</td>
+                <td className="p-2 font-mono text-xs text-text-muted">{m.email}</td>
                 <td className="p-2">{m.cohort}</td>
                 <td className="p-2">{m.major ?? '-'}</td>
                 <td className="p-2">{m.company ?? '-'}</td>
                 <td className="p-2">{m.industry ?? '-'}</td>
-                <td className="p-2 text-xs uppercase text-slate-500">{m.visibility}</td>
+                <td className="p-2 text-xs uppercase text-text-muted">{m.visibility}</td>
               </tr>
             ))}
           </tbody>
@@ -222,7 +222,7 @@ function DirectoryResults({
             {isLoadingMore ? '불러오는 중…' : loadMoreLabel}
           </Button>
         ) : (
-          <span className="text-xs text-slate-500">더 이상 결과가 없습니다.</span>
+          <span className="text-xs text-text-muted">더 이상 결과가 없습니다.</span>
         )}
       </nav>
     </div>
@@ -270,8 +270,8 @@ function DirectoryPageInner() {
   return (
     <div className="space-y-4 p-6">
       <header className="space-y-2">
-        <h2 className="text-xl font-semibold text-slate-800">동문 수첩</h2>
-        <p className="text-sm text-slate-600">
+        <h2 className="text-xl font-semibold text-text-primary">동문 수첩</h2>
+        <p className="text-sm text-text-muted">
           검색어나 필터를 조합해 동문 정보를 찾아보세요. 공개 범위가 제한된 항목은 표시되지 않을 수 있습니다.
         </p>
       </header>
@@ -284,21 +284,21 @@ function DirectoryPageInner() {
       />
 
       <section className="space-y-3" aria-live="polite">
-        <div className="flex flex-col gap-2 text-sm text-slate-600">
+        <div className="flex flex-col gap-2 text-sm text-text-muted">
           <p>
             총 {totalLabel}명 중 {displayedCount.toLocaleString()}명 표시 (페이지 {currentPage}
             {totalPages ? ` / ${totalPages}` : ''})
           </p>
-          <div className="flex flex-col gap-2 text-xs text-slate-500">
+          <div className="flex flex-col gap-2 text-xs text-text-muted">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-slate-600">공유</span>
+              <span className="font-medium text-text-secondary">공유</span>
               <Button type="button" variant="ghost" size="sm" aria-expanded={shareOpen} aria-controls="share-panel" onClick={() => setShareOpen((v) => !v)}>
                 {shareOpen ? '옵션 닫기' : '링크 표시'}
               </Button>
             </div>
             <div id="share-panel" role="region" aria-label="공유 옵션" hidden={!shareOpen}>
               <div className="flex flex-wrap items-center gap-2">
-                <code className="rounded bg-slate-100 px-2 py-1">{sharePath}</code>
+                <code className="rounded bg-surface-raised px-2 py-1">{sharePath}</code>
                 <Button type="button" variant="secondary" size="sm" onClick={copyShareLink} aria-live="polite">
                   {copied ? '복사 완료' : '복사'}
                 </Button>
@@ -336,7 +336,7 @@ function DirectoryPageInner() {
 
 export default function DirectoryPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-slate-500">로딩 중…</div>}>
+    <Suspense fallback={<div className="p-6 text-sm text-text-muted">로딩 중…</div>}>
       <DirectoryPageInner />
     </Suspense>
   );

@@ -30,7 +30,7 @@ export default function ChangePasswordPage() {
     <div className="p-6 max-w-xl">
       <h2 className="mb-4 text-xl font-semibold">비밀번호 변경</h2>
       {status !== 'authorized' ? (
-        <p className="mb-3 text-sm text-slate-600">로그인 후 이용하세요.</p>
+        <p className="mb-3 text-sm text-text-secondary">로그인 후 이용하세요.</p>
       ) : null}
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
         <label className="text-sm">현재 비밀번호
@@ -39,7 +39,7 @@ export default function ChangePasswordPage() {
         <label className="text-sm">새 비밀번호
           <input type="password" className="mt-1 w-full rounded border px-3 py-2" value={nw} onChange={(e) => setNw(e.target.value)} />
         </label>
-        <button disabled={busy} className="rounded bg-emerald-600 px-4 py-2 text-white disabled:opacity-50">변경</button>
+        <button disabled={busy} className="rounded bg-state-success px-4 py-2 text-white disabled:opacity-50">변경</button>
       </form>
     </div>
   );

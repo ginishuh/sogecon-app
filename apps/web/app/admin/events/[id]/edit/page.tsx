@@ -63,28 +63,28 @@ function EventForm({
 }) {
   return (
     <div className="space-y-4">
-      <label className="block text-sm text-slate-700">
+      <label className="block text-sm text-text-secondary">
         제목
         <input
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+          className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
           value={state.title}
           onChange={(e) => onChange({ title: e.currentTarget.value })}
         />
       </label>
 
-      <label className="block text-sm text-slate-700">
+      <label className="block text-sm text-text-secondary">
         장소
         <input
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+          className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
           value={state.location}
           onChange={(e) => onChange({ location: e.currentTarget.value })}
         />
       </label>
 
-      <label className="block text-sm text-slate-700">
+      <label className="block text-sm text-text-secondary">
         내용
         <textarea
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+          className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
           rows={6}
           placeholder="행사 소개/공지 내용을 입력하세요."
           value={state.description}
@@ -92,10 +92,10 @@ function EventForm({
         />
       </label>
 
-      <label className="block text-sm text-slate-700">
+      <label className="block text-sm text-text-secondary">
         정원
         <input
-          className="mt-1 w-40 rounded border border-slate-300 px-3 py-2"
+          className="mt-1 w-40 rounded border border-neutral-border px-3 py-2"
           type="number"
           value={state.capacity}
           onChange={(e) =>
@@ -104,20 +104,20 @@ function EventForm({
         />
       </label>
 
-      <label className="block text-sm text-slate-700">
+      <label className="block text-sm text-text-secondary">
         시작 일시
         <input
-          className="mt-1 rounded border border-slate-300 px-3 py-2"
+          className="mt-1 rounded border border-neutral-border px-3 py-2"
           type="datetime-local"
           value={state.startsAt}
           onChange={(e) => onChange({ startsAt: e.currentTarget.value })}
         />
       </label>
 
-      <label className="block text-sm text-slate-700">
+      <label className="block text-sm text-text-secondary">
         종료 일시
         <input
-          className="mt-1 rounded border border-slate-300 px-3 py-2"
+          className="mt-1 rounded border border-neutral-border px-3 py-2"
           type="datetime-local"
           value={state.endsAt}
           onChange={(e) => onChange({ endsAt: e.currentTarget.value })}
@@ -127,7 +127,7 @@ function EventForm({
       <div className="flex gap-2">
         <button
           type="button"
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded bg-brand-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           disabled={disabled}
           onClick={onSave}
         >
@@ -135,14 +135,14 @@ function EventForm({
         </button>
         <button
           type="button"
-          className="rounded border px-4 py-2 text-sm text-slate-700"
+          className="rounded border px-4 py-2 text-sm text-text-secondary"
           onClick={onView}
         >
           공개 페이지 보기
         </button>
         <button
           type="button"
-          className="rounded border border-red-300 px-3 py-2 text-sm text-red-700 hover:bg-red-50"
+          className="rounded border border-state-error-ring px-3 py-2 text-sm text-state-error hover:bg-state-error-subtle"
           onClick={onDeleteClick}
         >
           삭제
@@ -235,28 +235,28 @@ export default function AdminEventEditPage() {
   }
 
   if (status === 'unauthorized') {
-    return <div className="p-6 text-sm text-slate-600">관리자 로그인이 필요합니다.</div>;
+    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
   }
 
   if (isError) {
-    return <div className="p-6 text-sm text-red-600">행사를 불러올 수 없습니다.</div>;
+    return <div className="p-6 text-sm text-state-error">행사를 불러올 수 없습니다.</div>;
   }
 
   return (
-    <RequireAdmin fallback={<div className="p-6 text-sm text-slate-600">관리자 전용입니다.</div>}>
+    <RequireAdmin fallback={<div className="p-6 text-sm text-text-secondary">관리자 전용입니다.</div>}>
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">행사 수정</h2>
             {data && (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-text-secondary">
                 #{data.id} · {data.title}
               </p>
             )}
           </div>
           <button
             type="button"
-            className="rounded border px-3 py-2 text-sm text-slate-700"
+            className="rounded border px-3 py-2 text-sm text-text-secondary"
             onClick={() => router.push('/admin/events')}
           >
             목록으로
@@ -264,14 +264,14 @@ export default function AdminEventEditPage() {
         </div>
 
         {isLoading ? (
-          <div className="text-sm text-slate-500">불러오는 중...</div>
+          <div className="text-sm text-text-muted">불러오는 중...</div>
         ) : (
           <>
-            <section className="rounded border border-slate-200 bg-white p-3">
+            <section className="rounded border border-neutral-border bg-white p-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="space-y-0.5">
-                  <div className="text-sm font-medium text-slate-900">홈 배너</div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-sm font-medium text-text-primary">홈 배너</div>
+                  <div className="text-xs text-text-muted">
                     행사 관리 목록에서도 지정할 수 있습니다.
                   </div>
                 </div>

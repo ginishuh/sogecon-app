@@ -1,6 +1,7 @@
 ## 2025-12-17
 
 - refactor(web): 디자인 토큰 일관성 정리 — 기반 작업 (#99)
+- refactor(web): 전체 페이지 디자인 토큰 치환 — slate/red/emerald→semantic (#99, PR #100)
 
 ## 2025-12-11
 

@@ -77,14 +77,14 @@ export default function EditPostPage() {
   });
 
   if (status !== 'authorized') {
-    return <div className="p-6 text-sm text-slate-600">관리자 로그인이 필요합니다.</div>;
+    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
   }
 
   return (
-    <RequireAdmin fallback={<div className="p-6 text-sm text-slate-600">관리자 전용입니다.</div>}>
+    <RequireAdmin fallback={<div className="p-6 text-sm text-text-secondary">관리자 전용입니다.</div>}>
       <div className="mx-auto max-w-2xl p-6">
         {/* 브레드크럼 */}
-        <nav className="mb-4 text-sm text-slate-600">
+        <nav className="mb-4 text-sm text-text-secondary">
           <Link href="/admin/posts" className="hover:underline">
             게시물 관리
           </Link>
@@ -95,18 +95,18 @@ export default function EditPostPage() {
         <h2 className="mb-6 text-xl font-semibold">게시물 수정</h2>
 
         {isLoading ? (
-          <div className="py-8 text-center text-sm text-slate-500">로딩 중...</div>
+          <div className="py-8 text-center text-sm text-text-muted">로딩 중...</div>
         ) : isError || !post ? (
-          <div className="py-8 text-center text-sm text-red-600">
+          <div className="py-8 text-center text-sm text-state-error">
             게시물을 불러올 수 없습니다.
           </div>
         ) : (
           <>
-            <section className="mb-4 rounded border border-slate-200 bg-white p-3">
+            <section className="mb-4 rounded border border-neutral-border bg-white p-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="space-y-0.5">
-                  <div className="text-sm font-medium text-slate-900">홈 배너</div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-sm font-medium text-text-primary">홈 배너</div>
+                  <div className="text-xs text-text-muted">
                     게시물 관리 목록에서도 지정할 수 있습니다.
                   </div>
                 </div>

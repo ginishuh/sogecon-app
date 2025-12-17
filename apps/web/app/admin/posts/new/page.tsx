@@ -48,13 +48,13 @@ export default function AdminNewPostPage() {
   });
 
   if (status !== 'authorized') {
-    return <div className="p-6 text-sm text-slate-600">관리자 로그인이 필요합니다.</div>;
+    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
   }
 
   return (
-    <RequireAdmin fallback={<div className="p-6 text-sm text-slate-600">관리자 전용입니다.</div>}>
+    <RequireAdmin fallback={<div className="p-6 text-sm text-text-secondary">관리자 전용입니다.</div>}>
       <div className="mx-auto max-w-2xl p-6">
-        <nav className="mb-4 text-sm text-slate-600">
+        <nav className="mb-4 text-sm text-text-secondary">
           <Link href="/admin/posts" className="hover:underline">
             게시물 관리
           </Link>
