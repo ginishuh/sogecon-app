@@ -42,10 +42,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             className={
               'pointer-events-auto rounded px-3 py-2 text-sm shadow ' +
               (t.type === 'success'
-                ? 'bg-emerald-600 text-white'
+                ? 'bg-state-success text-text-inverse'
                 : t.type === 'error'
-                ? 'bg-red-600 text-white'
-                : 'bg-slate-800 text-white')
+                ? 'bg-state-error text-text-inverse'
+                : 'bg-text-primary text-text-inverse')
             }
           >
             {t.message}

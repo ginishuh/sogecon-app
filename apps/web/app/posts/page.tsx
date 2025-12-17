@@ -26,7 +26,7 @@ function PinnedList({ posts, limit, onViewAll }: { posts: Post[]; limit: number;
   const hasMore = posts.length > limit;
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-amber-700">고정된 공지</h3>
+      <h3 className="text-sm font-semibold text-state-warning">고정된 공지</h3>
       <ul className="space-y-3">
         {toShow.map((post) => (
           <li key={`pinned-${post.id}`}>
@@ -46,7 +46,7 @@ function PinnedList({ posts, limit, onViewAll }: { posts: Post[]; limit: number;
       {hasMore ? (
         <button
           type="button"
-          className="text-xs text-amber-700 underline"
+          className="text-xs text-state-warning underline"
           onClick={onViewAll}
         >공지 전체 보기</button>
       ) : null}
@@ -61,9 +61,9 @@ function PostsList({ posts, category, setCategory }: { posts: Post[]; category: 
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-2 text-sm">
-        <button onClick={() => setCategory('all')} className={`rounded px-2 py-1 ${category==='all'?'bg-slate-900 text-white':'border'}`}>전체</button>
-        <button onClick={() => setCategory('notice')} className={`rounded px-2 py-1 ${category==='notice'?'bg-slate-900 text-white':'border'}`}>공지</button>
-        <button onClick={() => setCategory('news')} className={`rounded px-2 py-1 ${category==='news'?'bg-slate-900 text-white':'border'}`}>소식</button>
+        <button onClick={() => setCategory('all')} className={`rounded px-2 py-1 ${category==='all'?'bg-brand-700 text-text-inverse':'border border-neutral-border text-text-primary'}`}>전체</button>
+        <button onClick={() => setCategory('notice')} className={`rounded px-2 py-1 ${category==='notice'?'bg-brand-700 text-text-inverse':'border border-neutral-border text-text-primary'}`}>공지</button>
+        <button onClick={() => setCategory('news')} className={`rounded px-2 py-1 ${category==='news'?'bg-brand-700 text-text-inverse':'border border-neutral-border text-text-primary'}`}>소식</button>
       </div>
       {showPinnedSection ? (
         <PinnedList
@@ -130,7 +130,7 @@ export default function PostsPage() {
   }
 
   if (query.isError) {
-    return <p className="text-red-600">게시글을 불러오지 못했습니다.</p>;
+    return <p className="text-state-error">게시글을 불러오지 못했습니다.</p>;
   }
 
   const posts = query.data ?? [];
