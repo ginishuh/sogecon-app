@@ -23,9 +23,9 @@
 - pytest==8.4.2
 
 ## Frontend (apps/web)
-- next: 15.5.8
-- react: 19.2.1
-- react-dom: 19.2.1
+- next: 15.5.9
+- react: 19.2.3
+- react-dom: 19.2.3
 
 ### Dev tools
 - typescript: 5.8.3

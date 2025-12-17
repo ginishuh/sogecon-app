@@ -22,8 +22,8 @@ def check_package_json() -> None:
     expected_deps = {
         "dependencies": {
             "next": "15.5.9",
-            "react": "19.2.1",
-            "react-dom": "19.2.1",
+            "react": "19.2.3",
+            "react-dom": "19.2.3",
         },
         "devDependencies": {
             "eslint": "9.36.0",

@@ -1,5 +1,6 @@
 ## 2025-12-17
 
+- fix(web): React 19.2.3 업데이트 — CVE-2025-55182 (React2Shell RCE) 수정 + CI 버전락 갱신
 - refactor(web): 디자인 토큰 일관성 정리 — 기반 작업 (#99)
 - refactor(web): 전체 페이지 디자인 토큰 치환 — slate/red/emerald→semantic (#99, PR #100)
 - refactor(web): 전체 컴포넌트 디자인 토큰 치환 — 하드코딩 0건 달성 (#99, PR #100)
