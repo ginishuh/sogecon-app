@@ -86,7 +86,7 @@ API_IMAGE=$PREFIX/alumni-api:$PREV WEB_IMAGE=$PREFIX/alumni-web:$PREV \
 컨테이너 대신 Next.js `standalone` 산출물을 systemd 서비스로 구동합니다. DB/API는 기존 컨테이너 구성을 유지합니다.
 
 사전 준비(1회)
-- Node 고정 설치: `asdf plugin add nodejs && asdf install nodejs 22.17.1 && asdf global nodejs 22.17.1`
+- Node 고정 설치: `asdf plugin add nodejs && asdf install nodejs 24.12.0 && asdf global nodejs 24.12.0`
 - systemd 유닛 배치: `sudo cp ops/systemd/sogecon-web.service /etc/systemd/system/ && sudo systemctl enable sogecon-web`
 - Nginx 프록시: `ops/nginx/nginx-site-web.conf` 참고(도메인/인증서 경로 수정 후 적용)
 - 릴리스 경로 생성: `sudo mkdir -p /srv/www/sogecon/releases && sudo chown $USER /srv/www/sogecon -R`

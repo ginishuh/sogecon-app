@@ -3,7 +3,7 @@
 공개 웹 애플리케이션 모노레포입니다. 브랜드는 **서강대학교 경제대학원 총동문회**입니다.
 
 ![Static Badge](https://img.shields.io/badge/Python-3.12.3-3776AB?logo=python&logoColor=white)
-![Static Badge](https://img.shields.io/badge/Node-22.21.1-339933?logo=node.js&logoColor=white)
+![Static Badge](https://img.shields.io/badge/Node-24.12.0-339933?logo=node.js&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/pnpm-10.17.1-F69220?logo=pnpm&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
 ![Static Badge](https://img.shields.io/badge/FastAPI-0.120-009688?logo=fastapi)
@@ -52,7 +52,7 @@ docs/      # 아키텍처/버전/보안/작업로그 문서
 
 ## 사전 요구사항
 - Python 3.12.3
-- Node.js 22.17.1, pnpm 10.17.1 (`corepack enable` 권장)
+- Node.js 24.12.0, pnpm 10.17.1 (`corepack enable` 권장)
 - Docker Desktop 또는 호환 런타임(개발용 Postgres)
 
 ## 빠른 시작(로컬 개발)
@@ -167,7 +167,7 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
 
 - 원클릭(권장): GitHub Actions → `web-standalone-deploy` → environment=`prod`
   - CI가 `apps/web`을 `output: 'standalone'`으로 빌드 → 아카이브 업로드(SCP) → 원격에서 `ops/web-deploy.sh` 실행(릴리스 디렉터리 전개 + `current` 링크 전환 + systemd 재시작) → 헬스체크
-  - 서버 1회 준비: Node 22.17.1(asdf), `/srv/www/sogecon/releases`, Nginx 프록시(127.0.0.1:3000), systemd 유닛(`ops/systemd/sogecon-web.service`) 설치, sudoers(NOPASSWD) 설정
+  - 서버 1회 준비: Node 24.12.0(asdf), `/srv/www/sogecon/releases`, Nginx 프록시(127.0.0.1:3000), systemd 유닛(`ops/systemd/sogecon-web.service`) 설치, sudoers(NOPASSWD) 설정
   - 상세: `docs/agent_runbook_vps.md` (KR) / `_en.md` (EN)
 
 - TL;DR(컨테이너 경로 — 병행 지원)

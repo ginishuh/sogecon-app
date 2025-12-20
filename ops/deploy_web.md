@@ -1,7 +1,7 @@
 # 웹 배포 절차 (초안)
 
 ## 1. 목적
-- Next.js 웹 애플리케이션을 Vercel/Fly/자체 호스팅 등 Node 22.x 환경에 배포할 때 필요한 준비·검증·롤백 절차를 정리한다.
+- Next.js 웹 애플리케이션을 Vercel/Fly/자체 호스팅 등 Node 24.x 환경에 배포할 때 필요한 준비·검증·롤백 절차를 정리한다.
 - 릴리스는 항상 `apps/web` 기준 `pnpm` 워크스페이스에서 수행하며, 배포 전후 로그를 `docs/worklog.md`에 기록한다.
 
 ## 2. 사전 준비
@@ -12,7 +12,7 @@
   - `NEXT_PUBLIC_ANALYTICS_ID`: 분석 도구 ID (없으면 unset)
   - `NEXT_PUBLIC_ENABLE_SW`: 서비스 워커 사용 여부 (`1` 또는 unset)
   - (배포 환경이 CSP 완화가 필요할 경우) `NEXT_PUBLIC_RELAX_CSP=1`
-- **Node 런타임**: `node 22.17.1`, `pnpm 10.17.1` (CI에서도 동일 버전 고정).
+- **Node 런타임**: `node 24.12.0`, `pnpm 10.17.1` (CI에서도 동일 버전 고정).
 - **CI 시크릿**: 위 환경 변수는 CI/CD 공급자의 시크릿 저장소에 사전 등록한다.
 
 > 참고 1: `NEXT_PUBLIC_*` 값은 "빌드타임"에 고정됩니다. `WEB_ENV_FILE`로 런타임에 넣어도 값이 바뀌지 않습니다. 도메인을 교체할 때는 반드시 재빌드가 필요합니다.

@@ -1,3 +1,7 @@
+## 2025-12-20
+
+- build(ci,web): Node.js 24.12.0 전환 + @types/node 24.10.3 갱신 — PR draft
+
 ## 2025-12-17
 
 - fix(web): React 19.2.3 업데이트 — CVE-2025-55182 (React2Shell RCE) 수정 + CI 버전락 갱신
