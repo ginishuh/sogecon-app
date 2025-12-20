@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 30
     environment: ${{ github.event.inputs.environment }}
     env:
-      NODE_VERSION: '22.17.1'
+      NODE_VERSION: '24.12.0'
       PNPM_VERSION: '10.17.1'
       SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
       # Next.js 빌드타임 공개 변수
@@ -137,7 +137,7 @@ jobs:
             tar -xzf "$TAR_NAME" -C "$STAGE_DIR"; \
             SERVER_JS="$STAGE_DIR/apps/web/.next/standalone/apps/web/server.js"; \
             test -f "$SERVER_JS" || { echo "[remote] standalone server.js missing" >&2; exit 1; }; \
-            if command -v node >/dev/null 2>&1; then node --check "$SERVER_JS" >/dev/null 2>&1 || { echo "[remote] server.js syntax check failed" >&2; exit 1; }; node -v || true; else echo "[remote] node not found; ensure Node 22.17.1 is installed (asdf recommended)" >&2; fi; \
+            if command -v node >/dev/null 2>&1; then node --check "$SERVER_JS" >/dev/null 2>&1 || { echo "[remote] server.js syntax check failed" >&2; exit 1; }; node -v || true; else echo "[remote] node not found; ensure Node 24.12.0 is installed (asdf recommended)" >&2; fi; \
             cd /srv/sogecon-app; CI=1 RELEASE_BASE=/srv/www/sogecon SERVICE_NAME=sogecon-web REPO_ROOT="$STAGE_DIR" bash ./ops/web-deploy.sh; \
             URL="$SITE_URL"; [ -n "$URL" ] || URL="http://127.0.0.1:3000/"; \
             echo "[remote] health: $URL"; \

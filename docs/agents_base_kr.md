@@ -86,7 +86,7 @@
 
 ### 서버 배포 환경과 플로우
 - 웹 스탠드얼론(권장):
-  - Next 설정: `apps/web/next.config.js`에 `output: 'standalone'`; Node 22.17.1 고정.
+  - Next 설정: `apps/web/next.config.js`에 `output: 'standalone'`; Node 24.12.0 고정.
   - Systemd + Nginx: `ops/systemd/sogecon-web.service`, `ops/nginx/nginx-site-web.conf` 샘플 사용.
   - CI/CD: `.github/workflows/web-standalone-deploy.yml`가 아티팩트를 빌드/업로드 후 원격에서 `ops/web-deploy.sh`를 실행(릴리스 디렉터리 → `current` 심볼릭 전환 → 재시작). `systemctl`을 위한 sudoers NOPASSWD 필요(런북 참조).
   - 빌드타임 공개변수: `NEXT_PUBLIC_*`는 빌드 타임 고정 — 변경 시 재빌드 필요.

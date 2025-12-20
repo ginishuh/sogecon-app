@@ -165,7 +165,7 @@ Do NOT disable linters or type checkers globally or per file.
 
 ### Server deploy envs and flows
 - Web standalone (recommended):
-  - Next.js config: `apps/web/next.config.js` with `output: 'standalone'`; Node 22.17.1 pinned.
+  - Next.js config: `apps/web/next.config.js` with `output: 'standalone'`; Node 24.12.0 pinned.
   - Systemd + Nginx: sample unit `ops/systemd/sogecon-web.service` and site `ops/nginx/nginx-site-web.conf`.
   - CI/CD: workflow `.github/workflows/web-standalone-deploy.yml` builds the artifact, uploads via SCP, then runs `ops/web-deploy.sh` remotely (release dir → `current` symlink → restart). Sudoers NOPASSWD is required for `systemctl` (see runbook).
   - Build‑time envs: `NEXT_PUBLIC_*` are build‑time only; changing them requires a rebuild.
