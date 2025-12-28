@@ -1,3 +1,7 @@
+## 2025-12-28
+
+- chore(agents): 페르소나 기준 갱신 (에이전트 베이스/스크립트 동기화)
+
 ## 2025-12-20
 
 - build(ci,web): Node.js 24.12.0 전환 + @types/node 24.10.3 갱신 — PR draft
