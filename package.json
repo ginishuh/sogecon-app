@@ -1,7 +1,6 @@
 {
   "name": "sogecon-app-workspace",
   "private": true,
-  "packageManager": "pnpm@10.17.1",
   "pnpm": {
     "overrides": {
       "glob": "10.5.0",

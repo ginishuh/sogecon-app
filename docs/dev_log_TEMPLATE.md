@@ -8,6 +8,6 @@
 
 # 예시
 - Added: /rum/vitals 수집 엔드포인트 및 웹 리포터 연결
-- Changed: web Dockerfile에 corepack pnpm@10.17.1 고정
+- Changed: web Dockerfile pnpm 버전 정책 갱신(10.x 범위)
 - Fixed: Alembic ENUM 리네임 조건부 처리(Postgres 신규 DB 호환)
 - Ops/Docs: Nginx 임시 CSP 완화(테스트 한정), PR #39

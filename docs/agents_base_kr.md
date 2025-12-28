@@ -185,7 +185,7 @@
 - 데브로그(`docs/dev_log_YYMMDD.md`): 하루 3–7줄의 불릿로 요약합니다. 템플릿 `docs/dev_log_TEMPLATE.md` 사용을 권장합니다.
 
 ### Next.js 이미지 하드닝
-- Dockerfile에서 corepack으로 pnpm 버전 고정: `corepack prepare pnpm@10.17.1 --activate`.
+- Dockerfile에서 corepack으로 pnpm 버전 고정(정책: >=10.17.1 <11).
 - 런타임에서 `pnpm` 의존 제거: 빌드 단계에 의존성을 포함하고 실행은 `node node_modules/next/dist/bin/next start -p 3000` 형태로 최소화.
 - 전역 스토어/심링크 누락 문제를 피하기 위해 워크스페이스 범위 설치를 사용.
 

@@ -1,6 +1,10 @@
 ## 2025-12-28
 
 - chore(agents): 페르소나 기준 갱신 (에이전트 베이스/스크립트 동기화)
+- chore(ci,web): pnpm 버전 정책 10.x 범위로 완화 및 packageManager 고정 해제
+- chore(ci,ops): pnpm 최신 10.x 자동 해석 스크립트 추가 및 워크플로/빌드 반영
+- chore(web): baseline-browser-mapping 최신화로 Next.js 경고 정리
+- chore(web): puppeteer 24.34.0 상향(지원 종료 경고 해소)
 
 ## 2025-12-20
 
@@ -1067,3 +1071,5 @@
 2025-12-16 fix(web): typedRoutes 빌드 오류 수정(데스크톱 홈 섹션 링크 타입) — PR #96
 2025-12-16 fix(api,web): PWA/푸시 운영 보완(iOS 아이콘·SW 가드·member_id·암호화) — PR draft, refs #97
 2025-12-16 feat(web): 홈 동문회장 인사말 카드 이미지 적용 — PR draft
+2025-12-28 fix(ci): pnpm 캐시 오류 방지 위해 워크플로우 setup-node 전에 pnpm 설치 순서로 조정 — PR #104
+2025-12-28 fix(ci): pnpm 해석 스크립트에서 engines.pnpm 실패 구분 및 npm view 오류 출력 정리 — PR #104

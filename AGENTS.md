@@ -171,7 +171,7 @@ Do NOT disable linters or type checkers globally or per file.
 - Container flow (supported): Build `infra/api.Dockerfile` and `infra/web.Dockerfile`.
   - Build helper: `ops/cloud-build.sh` (pass `NEXT_PUBLIC_*` as build args).
   - Next.js image hardening
-  - Pin pnpm via corepack in Dockerfile: `corepack prepare pnpm@10.17.1 --activate`.
+  - Pin pnpm via corepack in Dockerfile using the policy range (>=10.17.1 <11).
   - Package the runtime so that `pnpm` is not required at runtime. Prefer `node node_modules/next/dist/bin/next start -p 3000` as CMD.
   - Avoid global stores/symlinks leaking across layers; use workspace‑scoped install in build stage.
 - Runtime start: `ops/cloud-start.sh` (127.0.0.1:3001 API, 3000 Web; Nginx/Caddy reverse-proxy terminates TLS).

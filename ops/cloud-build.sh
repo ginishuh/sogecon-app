@@ -8,6 +8,7 @@ set -euo pipefail
 #   API_IMAGE        : API 이미지 전체 이름을 직접 지정하고 싶은 경우
 #   WEB_IMAGE        : Web 이미지 전체 이름을 직접 지정하고 싶은 경우
 #   PUSH_IMAGES      : 1이면 빌드 후 docker push 수행
+#   PNPM_VERSION     : Web 빌드에 사용할 pnpm 버전(미지정 시 자동 해석)
 #   NEXT_PUBLIC_*    : 웹 빌드 시 주입할 Next.js 공개 환경변수
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -49,6 +50,17 @@ do
     WEB_BUILD_ARGS+=(--build-arg "${arg}=${value}")
   fi
 done
+
+SKIP_API=${SKIP_API:-0}
+SKIP_WEB=${SKIP_WEB:-0}
+
+if [[ "${SKIP_WEB}" != "1" ]]; then
+  if [[ -z "${PNPM_VERSION:-}" ]]; then
+    PNPM_VERSION=$(scripts/resolve_pnpm_version.sh)
+  fi
+  echo "Web pnpm 버전: ${PNPM_VERSION}"
+  WEB_BUILD_ARGS+=(--build-arg "PNPM_VERSION=${PNPM_VERSION}")
+fi
 
 USE_BUILDX=${USE_BUILDX:-}
 PLATFORMS=${PLATFORMS:-}
@@ -94,9 +106,6 @@ if [[ -n "${USE_BUILDX}" || -n "${PLATFORMS}" ]]; then
   build_cmd_api+=(.)
   build_cmd_web+=(.)
 fi
-
-SKIP_API=${SKIP_API:-0}
-SKIP_WEB=${SKIP_WEB:-0}
 
 if [[ "$SKIP_API" != "1" ]]; then
   "${build_cmd_api[@]}"
