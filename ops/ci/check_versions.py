@@ -56,7 +56,7 @@ def check_package_json() -> None:
 
     # Engines guidance to keep local runtime consistent
     engines = data.get("engines", {})
-    expected_engines = {"node": "24.12.0", "pnpm": "10.17.1"}
+    expected_engines = {"node": "24.12.0", "pnpm": ">=10.17.1 <11"}
     if not engines:
         problems.append(
             "apps/web/package.json engines missing (expected node/pnpm pins)"
@@ -71,15 +71,25 @@ def check_package_json() -> None:
 
     # packageManager pin
     pm = data.get("packageManager")
-    if pm != "pnpm@10.17.1":
+    if pm is not None:
         msg = (
-            "apps/web/package.json packageManager should be 'pnpm@10.17.1' "
-            f"but is {pm!r}"
+            "apps/web/package.json packageManager should be omitted "
+            "(pnpm version is managed via engines range)"
         )
         problems.append(msg)
 
     if problems:
         fail("\n".join(problems))
+
+
+def check_workspace_package_manager() -> None:
+    root_pkg = ROOT / "package.json"
+    data = json.loads(root_pkg.read_text(encoding="utf-8"))
+    if data.get("packageManager") is not None:
+        fail(
+            "package.json packageManager should be omitted "
+            "(pnpm version is managed via engines range)"
+        )
 
 
 def normalize_req_line(line: str) -> str:
@@ -142,6 +152,7 @@ def check_requirements() -> None:
 
 
 def main() -> int:
+    check_workspace_package_manager()
     check_package_json()
     check_requirements()
     print("[version-lock] OK")

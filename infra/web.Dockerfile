@@ -7,8 +7,8 @@ ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     CI=true
 
-# Use the exact pnpm version required by the app to avoid engine mismatch
-ARG PNPM_VERSION=10.17.1
+# 앱 엔진 범위를 만족하는 pnpm 버전을 사용해 엔진 불일치를 방지
+ARG PNPM_VERSION=latest-10
 RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app

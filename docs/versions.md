@@ -5,7 +5,9 @@
 ## Runtime
 - Python: 3.12.3 (CI 설정)
 - Node.js: 24.12.0 (`apps/web/package.json#engines`)
-- pnpm: 10.17.1 (`apps/web/package.json#packageManager`, `.npmrc` engine-strict; CI는 Corepack으로 pin)
+- pnpm: 10.x (>=10.17.1 <11) (`apps/web/package.json#engines`, `.npmrc` engine-strict; CI는 범위 검사)
+  - 참고: packageManager 고정은 사용하지 않고 engines 범위로만 관리합니다.
+  - CI/빌드: `scripts/resolve_pnpm_version.sh`가 engines.pnpm 기준 메이저의 `latest-<major>` dist-tag를 사용합니다.
 
 ## Backend (apps/api)
 - fastapi==0.123.5

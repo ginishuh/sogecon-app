@@ -1,6 +1,10 @@
 ## 2025-12-28
 
 - chore(agents): 페르소나 기준 갱신 (에이전트 베이스/스크립트 동기화)
+- chore(ci,web): pnpm 버전 정책 10.x 범위로 완화 및 packageManager 고정 해제
+- chore(ci,ops): pnpm 최신 10.x 자동 해석 스크립트 추가 및 워크플로/빌드 반영
+- chore(web): baseline-browser-mapping 최신화로 Next.js 경고 정리
+- chore(web): puppeteer 24.34.0 상향(지원 종료 경고 해소)
 
 ## 2025-12-20
 

@@ -20,10 +20,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.12.0'
+      - name: Resolve PNPM version
+        id: pnpm-version
+        run: echo "version=$(scripts/resolve_pnpm_version.sh)" >> $GITHUB_OUTPUT
       - name: Pin pnpm version via Corepack
         run: |
           corepack enable
-          corepack prepare pnpm@10.17.1 --activate
+          corepack prepare pnpm@${{ steps.pnpm-version.outputs.version }} --activate
           pnpm -v
       - name: Run repository guards
         run: python ops/ci/guards.py
@@ -105,9 +108,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.12.0'
+      - name: Resolve PNPM version
+        id: pnpm-version
+        run: echo "version=$(scripts/resolve_pnpm_version.sh)" >> $GITHUB_OUTPUT
       - uses: pnpm/action-setup@v4
         with:
-          version: 10.17.1
+          version: ${{ steps.pnpm-version.outputs.version }}
       - name: Get pnpm store directory
         shell: bash
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
