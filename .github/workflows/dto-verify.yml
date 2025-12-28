@@ -33,12 +33,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24.12.0
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-lock.yaml
       - name: Resolve PNPM version
         id: pnpm-version
         run: echo "version=$(scripts/resolve_pnpm_version.sh)" >> $GITHUB_OUTPUT
@@ -47,6 +41,12 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: ${{ steps.pnpm-version.outputs.version }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.12.0
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install schema tool dependencies
         run: pnpm -C packages/schemas install --frozen-lockfile
