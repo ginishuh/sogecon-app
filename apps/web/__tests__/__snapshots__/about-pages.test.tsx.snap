@@ -21,7 +21,7 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
           class="about-hero__title"
           id="about-hero-heading"
         >
-          회장 인사말
+          총동문회장 인사말
         </h1>
         <p
           class="about-hero__description"

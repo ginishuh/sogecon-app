@@ -29,7 +29,7 @@ export default function HomePage() {
         <HomeNoticeList />
       </div>
 
-      {/* 동문회장 인사말 */}
+      {/* 인사말 */}
       <HomeGreetingCard />
     </div>
   );

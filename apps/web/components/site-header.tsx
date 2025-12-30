@@ -10,7 +10,8 @@ import { logoutAll } from '../services/auth';
 import { HeaderDropdown } from './header-dropdown';
 
 const ABOUT_ITEMS = [
-  { href: '/about/greeting', label: '인사말' },
+  { href: '/about/greeting', label: '총동문회장 인사말' },
+  { href: '/about/dean-greeting', label: '대학원장 인사말' },
   { href: '/about/org', label: '조직도' },
   { href: '/about/history', label: '연혁' },
   { href: '/posts?category=notice', label: '공지사항' },

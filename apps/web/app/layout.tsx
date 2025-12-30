@@ -99,7 +99,6 @@ export default async function RootLayout({
             {children}
           </main>
           <footer className="site-footer" role="contentinfo">
-            Public alumni app scaffold — local use only for now.
           </footer>
         </Providers>
       </body>

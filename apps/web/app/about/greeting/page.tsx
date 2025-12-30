@@ -24,7 +24,7 @@ export default function GreetingPage() {
   return (
     <div className="about-page">
       <AboutHero
-        title="회장 인사말"
+        title="총동문회장 인사말"
         description="총동문회 16대 회장 김서강입니다. 2025년 웹 서비스 런치와 함께, 동문 누구나 쉽게 소식을 접하고 의견을 나눌 수 있는 열린 커뮤니티를 만들겠습니다."
         image={{ src: '/images/about/greeting-hero.svg', alt: '총동문회 서강대 캠퍼스 풍경 삽화', priority: true }}
       />
@@ -75,6 +75,7 @@ export default function GreetingPage() {
           ))}
         </ul>
       </section>
+
     </div>
   );
 }
