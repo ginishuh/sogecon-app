@@ -1,11 +1,11 @@
 {
-  "name": "Alumni Web App",
-  "short_name": "AlumniApp",
+  "name": "서강대학교 경제대학원 총동문회",
+  "short_name": "서강경제동문회",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f1f5f9",
   "theme_color": "#800000",
-  "description": "Public alumni application scaffold",
+  "description": "서강대학교 경제대학원 총동문회",
   "icons": [
     {
       "src": "/icons/icon-192.png",

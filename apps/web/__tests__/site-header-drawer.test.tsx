@@ -10,7 +10,8 @@ vi.mock('../components/lazy', () => ({
   LazyDrawerMenu: () => (
     <nav aria-label="전체 메뉴">
       <a href="/faq">FAQ</a>
-      <a href="/about/greeting">인사말</a>
+      <a href="/about/greeting">총동문회장 인사말</a>
+      <a href="/about/dean-greeting">대학원장 인사말</a>
     </nav>
   ),
 }));

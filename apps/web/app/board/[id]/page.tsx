@@ -64,7 +64,7 @@ export default async function BoardDetailPage({ params }: PageProps) {
             <ImageGallery coverImage={post.cover_image} images={post.images} />
 
             <div className="prose prose-sm max-w-none">
-              <div className="whitespace-pre-wrap text-[14px] leading-7 text-text-primary">
+              <div className="whitespace-pre-wrap text-sm leading-7 text-text-primary">
                 {post.content}
               </div>
             </div>

@@ -5,6 +5,7 @@ import { siteConfig } from '../lib/site';
 const staticPaths = [
   '/',
   '/about/greeting',
+  '/about/dean-greeting',
   '/about/org',
   '/about/history',
   '/directory',

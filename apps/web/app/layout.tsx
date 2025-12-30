@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 
 import { Providers } from './providers';
 import { SiteHeader } from '../components/site-header';
+import { SiteFooter } from '../components/site-footer';
 import { Analytics } from '../components/analytics';
 import WebVitalsReporter from '../components/web-vitals-reporter';
 import { siteConfig, ogImage } from '../lib/site';
@@ -99,7 +100,7 @@ export default async function RootLayout({
             {children}
           </main>
           <footer className="site-footer" role="contentinfo">
-            Public alumni app scaffold — local use only for now.
+            <SiteFooter />
           </footer>
         </Providers>
       </body>

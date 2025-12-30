@@ -114,6 +114,7 @@ const config: Config = {
         h2: ['1.375rem', { lineHeight: '1.25' }], // 22px
         h3: ['1.125rem', { lineHeight: '1.3' }], // 18px
         body: ['0.9375rem', { lineHeight: '1.6' }], // 15px
+        caption: ['0.6875rem', { lineHeight: '1.4' }], // 11px — 배지/태그용
         // 레거시 클래스 호환(about 섹션 등)
         'display-xl': ['2.5rem', { lineHeight: '1.15', letterSpacing: '-0.03em' }],
         'display-2xl': ['3.25rem', { lineHeight: '1.1', letterSpacing: '-0.04em' }],

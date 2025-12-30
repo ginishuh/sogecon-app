@@ -20,7 +20,7 @@ describe('Home Quick Actions', () => {
   it('includes greeting preview card', () => {
     renderWithProviders(<HomePage />);
     // Check greeting call-to-action
-    expect(screen.getByRole('heading', { name: '동문회장 인사말' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '동문회장 인사말 전체 보기' })).toHaveAttribute('href', '/about/greeting');
+    expect(screen.getByRole('link', { name: '총동문회장 인사말' })).toHaveAttribute('href', '/about/greeting');
+    expect(screen.getByRole('link', { name: '대학원장 인사말' })).toHaveAttribute('href', '/about/dean-greeting');
   });
 });

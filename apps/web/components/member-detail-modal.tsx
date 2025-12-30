@@ -37,7 +37,7 @@ function BasicInfoSection({ member, visibilityLabel }: { member: Member; visibil
   return (
     <section>
       <div className="flex items-center gap-3 mb-3">
-        <div className="size-16 rounded-full bg-neutral-surface flex items-center justify-center overflow-hidden shrink-0">
+        <div className="size-16 rounded-full bg-neutral-subtle flex items-center justify-center overflow-hidden shrink-0">
           {member.avatar_url ? (
             <div
               className="size-full bg-cover bg-center"
@@ -183,7 +183,7 @@ export default function MemberDetailModal({ member, open, onClose }: MemberDetai
             type="button"
             data-close-btn
             onClick={onClose}
-            className="rounded p-1 text-neutral-muted hover:text-neutral-ink hover:bg-neutral-surface"
+            className="rounded p-1 text-neutral-muted hover:text-neutral-ink hover:bg-neutral-subtle"
             aria-label="닫기"
           >
             <svg className="size-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">

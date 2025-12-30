@@ -1,3 +1,14 @@
+## 2025-12-30
+
+- refactor(web): 디자인 토큰 정합성 정리 — neutral-surface/헥스 하드코딩/ring/폰트 토큰화
+- fix(web): 모바일 햄버거 아이콘 색상 토큰 복원
+- refactor(web): 헤더 지원정보 메뉴를 푸터로 이동
+- style(web): 헤더 메뉴 간격 축소
+- style(web): 헤더 메뉴 패딩/드롭다운 간격 추가 축소
+- fix(web): 소식 탭에서 필터 버튼 유지 및 빈 상태 메시지 처리
+- chore(web): sitemap에 대학원장 인사말 경로 추가
+- refactor(web): 인사말 페이지 레이아웃 통일 및 텍스트 업데이트
+
 ## 2025-12-28
 
 - chore(agents): 페르소나 기준 갱신 (에이전트 베이스/스크립트 동기화)
@@ -1073,3 +1084,4 @@
 2025-12-16 feat(web): 홈 동문회장 인사말 카드 이미지 적용 — PR draft
 2025-12-28 fix(ci): pnpm 캐시 오류 방지 위해 워크플로우 setup-node 전에 pnpm 설치 순서로 조정 — PR #104
 2025-12-28 fix(ci): pnpm 해석 스크립트에서 engines.pnpm 실패 구분 및 npm view 오류 출력 정리 — PR #104
+2025-12-30 feat(web): 인사말 카드 분리 및 대학원장 페이지 추가 — PR draft

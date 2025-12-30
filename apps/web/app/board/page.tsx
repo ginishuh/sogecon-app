@@ -127,7 +127,7 @@ function BoardPageInner() {
                             </span>
                           ) : null}
                           <div className="flex-1 space-y-1">
-                            <h3 className="text-[15px] font-medium text-text-primary">
+                            <h3 className="text-body font-medium text-text-primary">
                               {post.pinned && <span className="mr-1">📌</span>}
                               {post.title}
                             </h3>

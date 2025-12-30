@@ -32,7 +32,7 @@ export function PostCard({ title, content, category, pinned, cover_image, publis
       meta={
         <div className="flex items-center gap-2 text-xs text-neutral-muted">
           {category ? (
-            <span aria-label="category" className="inline-flex min-w-[2.25rem] items-center justify-center rounded bg-brand-surface px-2 py-0.5 text-[11px] font-medium text-brand-700">
+            <span aria-label="category" className="inline-flex min-w-[2.25rem] items-center justify-center rounded bg-brand-surface px-2 py-0.5 text-caption font-medium text-brand-700">
               {category}
             </span>
           ) : null}

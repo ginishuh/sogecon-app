@@ -13,7 +13,8 @@ vi.mock('../components/lazy', () => ({
   LazyDrawerMenu: ({ onClose }: { onClose: () => void }) => (
     <nav aria-label="전체 메뉴">
       <button type="button" onClick={onClose}>닫기</button>
-      <a href="/about/greeting">회장 인사말</a>
+      <a href="/about/greeting">총동문회장 인사말</a>
+      <a href="/about/dean-greeting">대학원장 인사말</a>
       <a href="/about/org">조직도</a>
       <a href="/about/history">역대 회장단</a>
       <a href="/faq">FAQ</a>
@@ -36,7 +37,7 @@ afterEach(() => {
 describe('About static pages', () => {
   it('renders greeting page hero and sections', () => {
     const { asFragment } = render(<GreetingPage />);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('회장 인사말');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('총동문회장 인사말');
     expect(screen.getByLabelText('총동문회 비전 다이어그램')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '디지털 허브 완성' })).toBeInTheDocument();
     expect(screen.getByRole('list', { name: '총동문회 운영 원칙 목록' })).toBeInTheDocument();
@@ -74,7 +75,8 @@ describe('SiteHeader navigation', () => {
 
     expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
     const drawerNav = screen.getByLabelText('전체 메뉴');
-    expect(within(drawerNav).getByRole('link', { name: '회장 인사말' })).toHaveAttribute('href', '/about/greeting');
+    expect(within(drawerNav).getByRole('link', { name: '총동문회장 인사말' })).toHaveAttribute('href', '/about/greeting');
+    expect(within(drawerNav).getByRole('link', { name: '대학원장 인사말' })).toHaveAttribute('href', '/about/dean-greeting');
     expect(within(drawerNav).getByRole('link', { name: '조직도' })).toHaveAttribute('href', '/about/org');
     expect(within(drawerNav).getByRole('link', { name: '역대 회장단' })).toHaveAttribute('href', '/about/history');
     expect(within(drawerNav).getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq');

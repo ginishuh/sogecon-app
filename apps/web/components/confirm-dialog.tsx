@@ -80,7 +80,7 @@ export function ConfirmDialog({
   const confirmButtonClass =
     variant === 'danger'
       ? 'bg-state-error text-white hover:bg-state-error-hover'
-      : 'bg-brand-700 text-white hover:bg-brand-600';
+      : 'bg-brand-700 text-white hover:bg-brand-800';
 
   return (
     <dialog

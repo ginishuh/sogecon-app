@@ -86,7 +86,7 @@ export function NotifyCTA() {
         <button
           disabled={busy}
           onClick={onUnsubscribe}
-          className="flex-1 rounded-[10px] border border-neutral-border px-3 py-2.5 text-sm text-neutral-ink hover:bg-neutral-surface disabled:opacity-50 transition-colors"
+          className="flex-1 rounded-[10px] border border-neutral-border px-3 py-2.5 text-sm text-neutral-ink hover:bg-neutral-subtle disabled:opacity-50 transition-colors"
         >
           알림 끄기
         </button>
@@ -94,7 +94,7 @@ export function NotifyCTA() {
         <button
           disabled={busy}
           onClick={onSubscribe}
-          className="flex-1 rounded-[10px] bg-brand-primary px-3 py-2.5 text-sm text-white hover:bg-[#6c1722] disabled:opacity-50 transition-colors"
+          className="flex-1 rounded-[10px] bg-brand-primary px-3 py-2.5 text-sm text-white hover:bg-brand-800 disabled:opacity-50 transition-colors"
         >
           알림 켜기
         </button>
