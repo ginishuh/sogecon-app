@@ -41,18 +41,18 @@ export function SiteHeader() {
         </Link>
 
         {/* 데스크톱 네비게이션 */}
-        <nav className="hidden lg:flex items-center gap-1" aria-label="주요 메뉴">
+        <nav className="hidden lg:flex items-center gap-0.5" aria-label="주요 메뉴">
           <HeaderDropdown label="총동문회 소개" items={ABOUT_ITEMS} />
-          <Link href="/posts" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
+          <Link href="/posts" className="px-2 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
             소식
           </Link>
-          <Link href="/board" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
+          <Link href="/board" className="px-2 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
             게시판
           </Link>
-          <Link href="/events" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
+          <Link href="/events" className="px-2 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
             행사 일정
           </Link>
-          <Link href="/directory" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
+          <Link href="/directory" className="px-2 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
             동문 수첩
           </Link>
           {isAdmin && <HeaderDropdown label="관리자" items={ADMIN_ITEMS} variant="admin" align="right" />}

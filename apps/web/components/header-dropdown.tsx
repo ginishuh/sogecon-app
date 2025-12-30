@@ -24,8 +24,8 @@ export function HeaderDropdown({ label, items, variant = 'default', align = 'lef
   const [open, setOpen] = useState(false);
 
   const buttonClass = variant === 'admin'
-    ? 'flex items-center gap-1 px-3 py-2 font-kopub text-base text-brand-700 hover:text-brand-800 transition-colors'
-    : 'flex items-center gap-1 px-3 py-2 font-kopub text-base text-neutral-ink hover:text-brand-700 transition-colors';
+    ? 'flex items-center gap-1 px-2 py-2 font-kopub text-base text-brand-700 hover:text-brand-800 transition-colors'
+    : 'flex items-center gap-1 px-2 py-2 font-kopub text-base text-neutral-ink hover:text-brand-700 transition-colors';
 
   const alignClass = align === 'right' ? 'right-0' : 'left-0';
 
