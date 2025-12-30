@@ -1085,3 +1085,4 @@
 2025-12-28 fix(ci): pnpm 캐시 오류 방지 위해 워크플로우 setup-node 전에 pnpm 설치 순서로 조정 — PR #104
 2025-12-28 fix(ci): pnpm 해석 스크립트에서 engines.pnpm 실패 구분 및 npm view 오류 출력 정리 — PR #104
 2025-12-30 feat(web): 인사말 카드 분리 및 대학원장 페이지 추가 — PR draft
+2025-12-30 fix(ops): 웹 릴리스 소유권 자동 정리 — PR draft

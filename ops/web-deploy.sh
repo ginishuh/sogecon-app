@@ -10,6 +10,8 @@ set -euo pipefail
 
 RELEASE_BASE=${RELEASE_BASE:-/srv/www/sogecon}
 SERVICE_NAME=${SERVICE_NAME:-sogecon-web}
+OWNER_USER=${OWNER_USER:-sogecon}
+OWNER_GROUP=${OWNER_GROUP:-sogecon}
 # CI 환경에서는 전개 원본(staging) 경로를 반드시 명시적으로 전달해야 합니다.
 if [ -n "${CI:-}" ]; then
   : "${REPO_ROOT:?REPO_ROOT must be set in CI (standalone staging root)}"
@@ -59,6 +61,16 @@ rsync -a --delete "$PUBLIC_DIR/" "$REL_DIR/apps/web/public/"
 
 # 3.5) 권한 정리 — 서비스 계정(sogecon)이 읽을 수 있도록 디렉터리 755, 파일 644
 chmod -R u=rwX,go=rX "$REL_DIR" || true
+# 3.6) 릴리스 소유권 정리 — 런타임 캐시(.next/cache) 쓰기 권한 확보
+if [ -n "${OWNER_USER}" ] && [ -n "${OWNER_GROUP}" ]; then
+  if [ "$(id -u)" -eq 0 ]; then
+    chown -R "${OWNER_USER}:${OWNER_GROUP}" "$REL_DIR" || warn "릴리스 소유권 변경 실패"
+  elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+    sudo chown -R "${OWNER_USER}:${OWNER_GROUP}" "$REL_DIR" || warn "릴리스 소유권 변경 실패"
+  else
+    warn "릴리스 소유권 변경 권한 없음 (이미지 캐시 쓰기 실패 가능)"
+  fi
+fi
 
 # 4) 심볼릭 링크 전환 (원자적)
 ln -sfn "$REL_DIR" "$RELEASE_BASE/current"
