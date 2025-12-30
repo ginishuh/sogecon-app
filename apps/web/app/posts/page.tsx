@@ -58,6 +58,7 @@ function PostsList({ posts, category, setCategory }: { posts: Post[]; category: 
   const { pinned, regular } = useMemo(() => splitPinned(posts), [posts]);
   const pinnedLimit = 3;
   const showPinnedSection = (category === 'all' || category === 'notice') && pinned.length > 0;
+  const hasContent = pinned.length > 0 || regular.length > 0;
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-2 text-sm">
@@ -72,22 +73,26 @@ function PostsList({ posts, category, setCategory }: { posts: Post[]; category: 
           onViewAll={() => setCategory('notice')}
         />
       ) : null}
-      <ul className="space-y-3">
-        {regular.map((post) => (
-          <li key={post.id}>
-            <Link href={`/posts/${post.id}`} className="block">
-              <PostCard
-                title={post.title}
-                content={post.content}
-                category={post.category}
-                pinned={post.pinned}
-                cover_image={post.cover_image}
-                published_at={post.published_at}
-              />
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {hasContent ? (
+        <ul className="space-y-3">
+          {regular.map((post) => (
+            <li key={post.id}>
+              <Link href={`/posts/${post.id}`} className="block">
+                <PostCard
+                  title={post.title}
+                  content={post.content}
+                  category={post.category}
+                  pinned={post.pinned}
+                  cover_image={post.cover_image}
+                  published_at={post.published_at}
+                />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-neutral-muted">게시글이 아직 없습니다.</p>
+      )}
     </section>
   );
 }
@@ -141,11 +146,7 @@ export default function PostsPage() {
         <h1 className="text-xl font-semibold">공지/소식</h1>
         <WriteButton />
       </div>
-      {posts.length === 0 ? (
-        <p>게시글이 아직 없습니다.</p>
-      ) : (
-        <PostsList posts={posts} category={category} setCategory={setCategory} />
-      )}
+      <PostsList posts={posts} category={category} setCategory={setCategory} />
     </div>
   );
 }
