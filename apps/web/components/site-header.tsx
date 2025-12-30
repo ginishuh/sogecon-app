@@ -30,7 +30,7 @@ export function SiteHeader() {
   const isAdmin = status === 'authorized' && data?.kind === 'admin';
 
   return (
-    <header className="border-b-2 border-[#b60007] bg-white">
+    <header className="border-b-2 border-brand-700 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
         {/* 로고 */}
         <Link href="/" className="flex min-w-0 items-center gap-2 text-brand-primary no-underline hover:no-underline" aria-label="홈으로">
@@ -43,16 +43,16 @@ export function SiteHeader() {
         {/* 데스크톱 네비게이션 */}
         <nav className="hidden lg:flex items-center gap-2" aria-label="주요 메뉴">
           <HeaderDropdown label="총동문회 소개" items={ABOUT_ITEMS} />
-          <Link href="/posts" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
+          <Link href="/posts" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
             소식
           </Link>
-          <Link href="/board" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
+          <Link href="/board" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
             게시판
           </Link>
-          <Link href="/events" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
+          <Link href="/events" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
             행사 일정
           </Link>
-          <Link href="/directory" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors">
+          <Link href="/directory" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
             동문 수첩
           </Link>
           {isAdmin && <HeaderDropdown label="관리자" items={ADMIN_ITEMS} variant="admin" align="right" />}
@@ -64,13 +64,13 @@ export function SiteHeader() {
         {/* 모바일 햄버거 버튼 */}
         <button
           type="button"
-          className="lg:hidden inline-flex items-center justify-center rounded-md border border-[#e8c0c0] px-3 py-2 text-sm transition hover:bg-[#fff5f5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#b60007]"
+          className="lg:hidden inline-flex items-center justify-center rounded-md border border-brand-200 px-3 py-2 text-sm transition hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-700"
           aria-controls="primary-navigation"
           aria-expanded={open}
           aria-label={open ? '전체 메뉴 닫기' : '전체 메뉴 열기'}
           onClick={() => setOpen((v) => !v)}
         >
-          <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="#b60007" strokeWidth={2} viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             {open ? (
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             ) : (
@@ -93,7 +93,7 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
       <div className="hidden lg:flex items-center gap-2">
         <Link
           href="/me"
-          className="flex items-center gap-1.5 px-3 py-2 text-sm text-neutral-ink no-underline hover:no-underline hover:text-[#b60007] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 text-sm text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors"
         >
           <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 14a6 6 0 0 1 12 0" strokeLinecap="round" />
@@ -107,7 +107,7 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
               window.location.href = '/login';
             });
           }}
-          className="px-3 py-2 text-sm text-neutral-muted hover:text-[#b60007] transition-colors"
+          className="px-3 py-2 text-sm text-neutral-muted hover:text-brand-700 transition-colors"
         >
           로그아웃
         </button>
@@ -119,13 +119,13 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
     <div className="hidden lg:flex items-center gap-2">
       <Link
         href="/login"
-        className="px-3 py-2 text-sm text-white bg-[#b60007] rounded-lg no-underline hover:no-underline hover:text-white hover:bg-[#8a0005] transition-colors"
+        className="px-3 py-2 text-sm text-white bg-brand-700 rounded-lg no-underline hover:no-underline hover:text-white hover:bg-brand-800 transition-colors"
       >
         로그인
       </Link>
       <Link
         href="/activate"
-        className="px-3 py-2 text-sm text-[#b60007] border border-[#b60007] rounded-lg no-underline hover:no-underline hover:bg-[#fff5f5] transition-colors"
+        className="px-3 py-2 text-sm text-brand-700 border border-brand-700 rounded-lg no-underline hover:no-underline hover:bg-brand-50 transition-colors"
       >
         계정 활성화
       </Link>

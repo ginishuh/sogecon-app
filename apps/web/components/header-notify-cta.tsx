@@ -72,8 +72,8 @@ export function HeaderNotifyCTA() {
       onClick={onToggle}
       className={`relative p-2 rounded-lg transition-colors disabled:opacity-50 ${
         subscribed
-          ? 'text-[#b60007] hover:bg-[#fff5f5]'
-          : 'text-neutral-muted hover:bg-neutral-surface'
+          ? 'text-brand-700 hover:bg-brand-50'
+          : 'text-neutral-muted hover:bg-neutral-subtle'
       }`}
       aria-label={subscribed ? '알림 끄기' : '알림 켜기'}
       title={subscribed ? '알림 끄기' : '알림 켜기'}
@@ -82,7 +82,7 @@ export function HeaderNotifyCTA() {
         <path d="M10 2a6 6 0 0 0-6 6v3l-1 2h14l-1-2V8a6 6 0 0 0-6-6zM8 15a2 2 0 1 0 4 0" />
       </svg>
       {subscribed && (
-        <span className="absolute top-1 right-1 size-2 bg-[#b60007] rounded-full" />
+        <span className="absolute top-1 right-1 size-2 bg-brand-700 rounded-full" />
       )}
     </button>
   );

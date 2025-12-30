@@ -76,9 +76,9 @@ export function HomeNoticeList() {
               <li key={notice.id}>
                 <Link
                   href={`/posts/${notice.id}`}
-                  className="flex items-center justify-between py-4 hover:bg-neutral-surface/50 transition-colors gap-4"
+                  className="flex items-center justify-between py-4 hover:bg-neutral-subtle/50 transition-colors gap-4"
                 >
-                  <p className="text-[15px] text-neutral-ink line-clamp-2 flex-1">
+                  <p className="text-body text-neutral-ink line-clamp-2 flex-1">
                     {notice.title}
                   </p>
                   <time className="text-base text-neutral-muted shrink-0 self-start">

@@ -54,7 +54,7 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
             <input
               inputMode={inputMode}
               autoComplete={autocompleteHints[key]}
-              className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400"
               value={value[key]}
               placeholder={placeholder}
               aria-label={label}
@@ -65,7 +65,7 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
         <label className="flex flex-col text-xs text-text-muted">
           <span className="mb-1 font-medium text-text-secondary">정렬</span>
           <select
-            className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400"
             value={value.sort}
             onChange={(event) => onSortChange(event.target.value as SortOption)}
             aria-label="정렬 옵션"
@@ -102,7 +102,7 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
             <input
               inputMode={inputMode}
               autoComplete={autocompleteHints[key]}
-              className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400"
               value={value[key]}
               placeholder={placeholder}
               aria-label={label}

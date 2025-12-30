@@ -24,8 +24,8 @@ export function HeaderDropdown({ label, items, variant = 'default', align = 'lef
   const [open, setOpen] = useState(false);
 
   const buttonClass = variant === 'admin'
-    ? 'flex items-center gap-1 px-3 py-2 font-kopub text-base text-[#b60007] hover:text-[#8a0005] transition-colors'
-    : 'flex items-center gap-1 px-3 py-2 font-kopub text-base text-neutral-ink hover:text-[#b60007] transition-colors';
+    ? 'flex items-center gap-1 px-3 py-2 font-kopub text-base text-brand-700 hover:text-brand-800 transition-colors'
+    : 'flex items-center gap-1 px-3 py-2 font-kopub text-base text-neutral-ink hover:text-brand-700 transition-colors';
 
   const alignClass = align === 'right' ? 'right-0' : 'left-0';
 
@@ -54,7 +54,7 @@ export function HeaderDropdown({ label, items, variant = 'default', align = 'lef
             <Link
               key={item.href}
               href={item.href}
-              className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-surface hover:text-[#b60007]"
+              className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-subtle hover:text-brand-700"
             >
               {item.label}
             </Link>

@@ -35,9 +35,9 @@ const toFormState = (member: MemberDto): ProfileForm => ({
 });
 
 const inputClass =
-  'mt-1 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200';
+  'mt-1 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400';
 const textareaClass =
-  'mt-1 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200';
+  'mt-1 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400';
 
 const fieldErrorId = (field: keyof ProfileForm) => `profile-${field}-error`;
 

@@ -1,10 +1,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import type { Route } from 'next';
 import React from 'react';
 
 type GreetingCard = {
   title: string;
-  href: string;
+  href: Route;
   imageSrc: string;
   imageAlt: string;
   imageWidth: number;
