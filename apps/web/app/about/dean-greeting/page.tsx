@@ -1,64 +1,68 @@
+import Image from 'next/image';
 import React from 'react';
-import { AboutHero } from '../../../components/about-hero';
 
 // 정적 페이지: 1시간 ISR 캐싱
 export const revalidate = 3600;
 
-const focusAreas = [
-  {
-    title: '동문 네트워크 확장',
-    body: '재학생과 동문이 함께 성장할 수 있도록 멘토링과 공동 프로젝트를 정례화하겠습니다.'
-  },
-  {
-    title: '실무-학문 연결',
-    body: '산업 현장과 연구 성과가 유기적으로 연결되도록 산학 협력 프로그램을 강화하겠습니다.'
-  },
-  {
-    title: '지속 가능한 리더십',
-    body: '윤리·ESG 관점의 리더십 교육을 확대해 사회에 기여하는 동문 리더를 키우겠습니다.'
-  }
-];
-
 export default function DeanGreetingPage() {
   return (
     <div className="about-page">
-      <AboutHero
-        title="대학원장 인사말"
-        description="경제대학원장으로서 동문과 재학생이 함께 배우고 성장하는 공동체를 만들기 위해 최선을 다하겠습니다."
-        image={{ src: '/images/about/greeting-hero.svg', alt: '경제대학원 캠퍼스 풍경 삽화', priority: true }}
-      />
-
-      <section aria-labelledby="dean-greeting-vision" className="about-section">
-        <div className="about-section__content">
-          <h2 id="dean-greeting-vision" className="about-section__heading">
-            함께 만들어가는 교육 플랫폼
-          </h2>
-          <p>
-            경제대학원은 변화하는 산업 환경 속에서 실무와 학문을 연결하는 교육을 지속해 왔습니다. 앞으로는 총동문회와의
-            협력을 확대해 동문 네트워크를 교육과 연구로 연결하고, 재학생의 역량을 현장에서 바로 발휘할 수 있도록
-            지원하겠습니다.
-          </p>
-          <p>
-            여러분의 경험과 제안을 학교의 성장 동력으로 삼아, 동문이 자부심을 느끼는 교육 플랫폼을 함께 만들어가겠습니다.
-          </p>
-        </div>
+      {/* 히어로: 카드 이미지 */}
+      <section className="w-full">
+        <Image
+          src="/images/about/greeting-dean-card.webp"
+          alt="대학원장 인사말"
+          width={1200}
+          height={670}
+          className="w-full h-auto"
+          priority
+        />
       </section>
 
-      <section aria-labelledby="dean-greeting-focus" className="about-section about-section--stacked">
-        <div className="about-section__content">
-          <h2 id="dean-greeting-focus" className="about-section__heading">
-            핵심 추진 방향
+      {/* 본문: 단일 섹션 */}
+      <section className="about-section about-section--stacked">
+        <div className="about-section__content max-w-3xl mx-auto">
+          <h2 className="about-section__heading text-center">
+            서강경제에 오신 여러분을 환영합니다
           </h2>
-          <p>교육 혁신과 동문 네트워크 강화를 위한 세 가지 축을 제시합니다.</p>
+
+          <p>
+            우리 서강경제는 교수진들의 탁월한 연구역량을 바탕으로 우리나라 경제학 교육에 선도적 역할을 해 온 한편
+            우리나라가 당면한 주요 경제현안과 구조적 문제들을 분석하고 해결방안을 제시하는 등 사회적 역할을 다하고 있습니다.
+            현재 1000여명의 재학생이 속해 있는 우리 서강경제는 1960년 서강대학교 개교와 함께 출발하여
+            1964년 첫 졸업생을 배출한 이후 1968년 대학원 설립, 1990년 단과대학으로 격상되었으며
+            1991년에는 경제전문인력 육성을 목적으로 경제대학원(구 경제정책대학원)을 신설한 바 있습니다.
+          </p>
+
+          <p>
+            서강경제는 1960년대 개설 초기 해외유학 1세대를 교수진으로 영입하는 등 우수한 교수진을 유치하여
+            획기적인 미국식 대학교육제도를 실천했던 유일한 대학으로 대학교육을 선도해 왔으며
+            그 전통을 이어받은 우수한 교수진은 경제학 교육의 질적 향상에 기여해 왔습니다.
+            &lsquo;서강학파&rsquo;로 불리는 서강경제의 교수진은 현대 경제학에 근거한 실용적 연구와 선구적 교육으로
+            한국경제의 발전계획수립과 우수한 인재양성에 기여해 왔습니다.
+          </p>
+
+          <p>
+            현재 한국경제는 4차산업혁명의 큰 시대적 흐름에 대응하는 한편 산업구조의 변화를 도모하여
+            새로운 성장동력을 확보해야 하는 과제에 직면해 있습니다.
+            내부적으로는 고령화, 저출산, 불평등 심화 등의 문제를 해결해야 하는 상황입니다.
+            과거 고도성장이 제조업 기반의 수출 주도 성장전략의 성공적 수행으로 이룩한 것이었다면
+            이제는 첨단 산업에서 선두로 부상하기 위한 도전과 새로운 성장 패러다임이 필요한 상황입니다.
+            이렇게 급변하는 국내외 경제 환경 속에서 시장경제 원리를 제대로 이해하고,
+            경제 각 분야의 프론티어에서 한국 경제를 주도적으로 이끌어갈 수 있는 경제인의 역할은 더욱 중요해지고 있습니다.
+          </p>
+
+          <p>
+            우리 서강경제는 그동안의 성과에 안주하지 않고, 본 대학을 변화하는 시대적 요구에 부응하는
+            교육기관으로서 발전시키기 위해 계속 노력할 것입니다.
+            이러한 노력과 함께 경제대학 동문 여러분 및 재학생 여러분의 지속적인 관심과 애정으로
+            우리 경제대학이 새로운 사회가 요구하는 인재의 산실로 거듭날 것이라 확신합니다.
+          </p>
+
+          <p className="font-medium">
+            앞으로도 계속 지켜봐 주시고, 서강경제의 발전을 위한 지속적인 격려와 성원을 부탁드립니다.
+          </p>
         </div>
-        <ul className="about-section__list" aria-label="대학원장 인사말 핵심 방향 목록">
-          {focusAreas.map((item) => (
-            <li key={item.title} className="about-section__card">
-              <h3 className="about-section__card-title">{item.title}</h3>
-              <p>{item.body}</p>
-            </li>
-          ))}
-        </ul>
       </section>
     </div>
   );

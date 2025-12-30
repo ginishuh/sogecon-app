@@ -2,6 +2,7 @@
 
 - refactor(web): 디자인 토큰 정합성 정리 — neutral-surface/헥스 하드코딩/ring/폰트 토큰화
 - fix(web): 모바일 햄버거 아이콘 색상 토큰 복원
+- refactor(web): 인사말 페이지 레이아웃 통일 및 텍스트 업데이트
 
 ## 2025-12-28
 

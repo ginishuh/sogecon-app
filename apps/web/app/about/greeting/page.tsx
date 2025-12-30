@@ -1,81 +1,62 @@
 import Image from 'next/image';
 import React from 'react';
-import { AboutHero } from '../../../components/about-hero';
 
 // 정적 페이지: 1시간 ISR 캐싱
 export const revalidate = 3600;
 
-const commitments = [
-  {
-    title: '디지털 허브 완성',
-    body: '2025년 하반기 웹 런치를 통해 언제 어디서든 행사·공지·동문 수첩을 확인할 수 있는 원스톱 허브를 완성하겠습니다.'
-  },
-  {
-    title: '투명한 재정과 보고',
-    body: '회비·기금 집행 내역을 분기별 리포트와 데이터 대시보드로 공개하고, 회원 질문에 48시간 이내 응답하는 체계를 유지하겠습니다.'
-  },
-  {
-    title: '함께 성장하는 커뮤니티',
-    body: '현직·동문 멘토링과 산업별 라운드테이블을 정례화해 기수와 세대를 아우르는 실질적인 성장을 지원하겠습니다.'
-  }
-];
-
 export default function GreetingPage() {
   return (
     <div className="about-page">
-      <AboutHero
-        title="총동문회장 인사말"
-        description="총동문회 16대 회장 김서강입니다. 2025년 웹 서비스 런치와 함께, 동문 누구나 쉽게 소식을 접하고 의견을 나눌 수 있는 열린 커뮤니티를 만들겠습니다."
-        image={{ src: '/images/about/greeting-hero.svg', alt: '총동문회 서강대 캠퍼스 풍경 삽화', priority: true }}
-      />
-
-      <section aria-labelledby="greeting-vision-title" className="about-section">
-        <div className="about-section__content">
-          <h2 id="greeting-vision-title" className="about-section__heading">
-            동문이 함께 만드는 미래
-          </h2>
-          <p>
-            지난 30년 동안 총동문회는 서로의 지식과 경험을 나누며 성장해 왔습니다. 이제는 모바일과 웹 어디서나
-            같은 정보를 볼 수 있도록 디지털 전환을 완성해, 멀리 떨어진 동문도 실시간으로 소식을 접할 수 있는
-            환경을 구축하고 있습니다.
-          </p>
-          <p>
-            2025년에는 정기총회와 산업별 라운드테이블, ESG 프로젝트를 아우르는 ‘공유 달력’을 운영해 참여 동선을
-            단순화할 예정입니다. 동문 여러분 한 분, 한 분의 제안이 정책과 프로그램으로 이어지도록 의견 수렴 창구도
-            상시로 열어 두겠습니다.
-          </p>
-        </div>
-        <figure aria-label="총동문회 비전 다이어그램" className="about-section__figure">
-          <Image
-            src="/images/about/greeting-detail.svg"
-            alt="총동문회의 비전을 상징하는 원형 다이어그램"
-            width={520}
-            height={360}
-            className="h-auto w-full rounded-lg object-cover shadow-sm"
-          />
-        </figure>
+      {/* 히어로: 카드 이미지 */}
+      <section className="w-full">
+        <Image
+          src="/images/about/greeting-card.webp"
+          alt="총동문회장 인사말"
+          width={1200}
+          height={670}
+          className="w-full h-auto"
+          priority
+        />
       </section>
 
-      <section aria-labelledby="greeting-commitments-title" className="about-section about-section--stacked">
-        <div className="about-section__content">
-          <h2 id="greeting-commitments-title" className="about-section__heading">
-            약속드리는 세 가지 방향
+      {/* 본문: 단일 섹션 */}
+      <section className="about-section about-section--stacked">
+        <div className="about-section__content max-w-3xl mx-auto">
+          <h2 className="about-section__heading text-center">
+            &lsquo;서강학파&rsquo;의 일원이 되신 것을 환영합니다
           </h2>
+
           <p>
-            총동문회가 추구하는 핵심 가치를 세 가지로 정리했습니다. 모든 사업과 모임은 이 가치 위에서 기획하고,
-            결과를 투명하게 공유하겠습니다.
+            동문 여러분, 반갑습니다.
+            저는 서강대학교 경제대학원 제11대 동문회장을 맡게 된 47기 허민철입니다.
+          </p>
+
+          <p>
+            우리 서강대학교 경제대학원은 &lsquo;서강학파&rsquo;라는 대한민국 경제학계의 자랑스러운 전통 위에서,
+            시대를 선도하는 교육과 연구를 통해 동문들이 사회 각계에서 중추적 역할을 수행할 수 있도록 끊임없이 발전해왔습니다.
+            한강의 기적을 설계한 남덕우 전 총리님을 비롯하여, 역대 경제부총리와 금융통화위원,
+            그리고 수많은 경제 리더들을 배출한 우리 대학원은 이제 AI 경제, ESG 경영, 디지털 금융 등
+            새로운 경제 패러다임을 선도하는 인재 양성의 요람으로 자리매김하고 있습니다.
+          </p>
+
+          <p>
+            저는 동문회장으로서 전통을 계승하되 혁신을 더하여,
+            동문 여러분이 함께 성장하고 서로의 성공이 곧 우리 모두의 자산이 되는 역동적인 동문회를 만들어가겠습니다.
+            특히 실질적인 비즈니스 네트워킹, 세대를 아우르는 멘토링 프로그램,
+            그리고 정책 포럼과 학술 세미나를 통한 사회 기여에 역점을 두겠습니다.
+          </p>
+
+          <p>
+            동문 여러분의 적극적인 참여와 성원이 우리 동문회 발전의 원동력입니다.
+            박성수 원장님과 교수님들, 그리고 신명식 전임 회장님의 헌신적인 노력에 감사드리며,
+            모든 동문 여러분과 함께 서강 경제대학원의 새로운 도약을 이루어가겠습니다.
+          </p>
+
+          <p className="font-medium">
+            감사합니다.
           </p>
         </div>
-        <ul className="about-section__list" aria-label="총동문회 운영 원칙 목록">
-          {commitments.map((item) => (
-            <li key={item.title} className="about-section__card">
-              <h3 className="about-section__card-title">{item.title}</h3>
-              <p>{item.body}</p>
-            </li>
-          ))}
-        </ul>
       </section>
-
     </div>
   );
 }
