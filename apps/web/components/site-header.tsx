@@ -41,7 +41,7 @@ export function SiteHeader() {
         </Link>
 
         {/* 데스크톱 네비게이션 */}
-        <nav className="hidden lg:flex items-center gap-2" aria-label="주요 메뉴">
+        <nav className="hidden lg:flex items-center gap-1" aria-label="주요 메뉴">
           <HeaderDropdown label="총동문회 소개" items={ABOUT_ITEMS} />
           <Link href="/posts" className="px-3 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
             소식
