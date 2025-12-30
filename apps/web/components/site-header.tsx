@@ -64,7 +64,7 @@ export function SiteHeader() {
         {/* 모바일 햄버거 버튼 */}
         <button
           type="button"
-          className="lg:hidden inline-flex items-center justify-center rounded-md border border-brand-200 px-3 py-2 text-sm transition hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-700"
+          className="lg:hidden inline-flex items-center justify-center rounded-md border border-brand-200 px-3 py-2 text-sm text-brand-700 transition hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-700"
           aria-controls="primary-navigation"
           aria-expanded={open}
           aria-label={open ? '전체 메뉴 닫기' : '전체 메뉴 열기'}
