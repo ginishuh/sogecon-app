@@ -6,8 +6,8 @@
 
 ## 2. 사전 준비
 - **필수 환경 변수**
-  - `NEXT_PUBLIC_WEB_API_BASE`: API 베이스 URL (예: `https://api.alumni.sogang-econ.kr`)
-  - `NEXT_PUBLIC_SITE_URL`: 공개 사이트 도메인 (예: `https://alumni.sogang-econ.kr`)
+  - `NEXT_PUBLIC_WEB_API_BASE`: API 베이스 URL (예: `https://api.sogangeconomics.com`)
+  - `NEXT_PUBLIC_SITE_URL`: 공개 사이트 도메인 (예: `https://sogangeconomics.com`)
   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`: 웹 푸시 공개키 (필요 시 빈 문자열 허용)
   - `NEXT_PUBLIC_ANALYTICS_ID`: 분석 도구 ID (없으면 unset)
   - `NEXT_PUBLIC_ENABLE_SW`: 서비스 워커 사용 여부 (`1` 또는 unset)
@@ -52,11 +52,11 @@
 - 배포 대상별 구체 명령 (Vercel CLI, Flyctl 등) 템플릿화
 - Lighthouse 예산 자동 검증 (CI 연동) — `ci/web` 작업과 연계
 
-## 8. 임시 도메인(예: sogecon.wastelite.kr) 빌드 예시
+## 8. 도메인 예시(예: sogangeconomics.com) 빌드 예시
 ```
 IMAGE_PREFIX=ghcr.io/<owner>/<repo> \
-NEXT_PUBLIC_SITE_URL=https://sogecon.wastelite.kr \
-NEXT_PUBLIC_WEB_API_BASE=https://api.sogecon.wastelite.kr \
+NEXT_PUBLIC_SITE_URL=https://sogangeconomics.com \
+NEXT_PUBLIC_WEB_API_BASE=https://api.sogangeconomics.com \
 PLATFORMS=linux/amd64 \# 서버가 x86_64면 권장 (ARM 로컬에서 빌드시)
 USE_BUILDX=1 \        # buildx 사용
 PUSH_IMAGES=1 \

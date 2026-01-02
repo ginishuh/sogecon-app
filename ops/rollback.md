@@ -10,13 +10,13 @@
    - Vercel: `vercel rollback <deployment>` 또는 Dashboard “Promote previous”
    - Fly: `fly deploy --image <previous>` 또는 `fly releases revert`
 2. 캐시 무효화: CDN/에지 캐시를 이전 버전으로 비움 (`vercel deploy --preload false` 등)
-3. 헬스 체크: `curl -I https://alumni.sogang-econ.kr/`
+3. 헬스 체크: `curl -I https://sogangeconomics.com/`
 4. 문제 원인 분석 후 재배포 일정 수립
 
 ## 3. API (FastAPI)
 1. 컨테이너/서비스 재배포: `docker service update --image <prev> alumni-api` 또는 `kubectl rollout undo deployment/alumni-api`
 2. DB 롤백 필요 시 `alembic downgrade <revision>` 적용 (사전 백업 기반)
-3. 헬스 체크: `curl -I https://api.alumni.sogang-econ.kr/healthz`
+3. 헬스 체크: `curl -I https://api.sogangeconomics.com/healthz`
 4. SlowAPI 레이트리밋 상태와 에러 로그 재확인
 
 ## 4. 후속 조치

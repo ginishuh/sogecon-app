@@ -3,9 +3,9 @@
 exports[`SEO metadata configuration > declares title template and open graph baseline 1`] = `
 {
   "alternates": {
-    "canonical": "https://alumni.sogang-econ.kr",
+    "canonical": "https://sogangeconomics.com",
     "languages": {
-      "ko": "https://alumni.sogang-econ.kr",
+      "ko": "https://sogangeconomics.com",
     },
   },
   "applicationName": "총동문회",
@@ -25,7 +25,7 @@ exports[`SEO metadata configuration > declares title template and open graph bas
     "행사",
     "FAQ",
   ],
-  "metadataBase": "https://alumni.sogang-econ.kr/",
+  "metadataBase": "https://sogangeconomics.com/",
   "openGraph": {
     "description": "서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 동문 수첩, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
     "images": [
@@ -33,7 +33,7 @@ exports[`SEO metadata configuration > declares title template and open graph bas
         "alt": "서강대 경제대학원 총동문회 웹 런치 대표 이미지",
         "height": 630,
         "type": "image/png",
-        "url": "https://alumni.sogang-econ.kr/og-default.png",
+        "url": "https://sogangeconomics.com/og-default.png",
         "width": 1200,
       },
     ],
@@ -41,7 +41,7 @@ exports[`SEO metadata configuration > declares title template and open graph bas
     "siteName": "서강대 경제대학원 총동문회",
     "title": "서강대 경제대학원 총동문회 웹 서비스",
     "type": "website",
-    "url": "https://alumni.sogang-econ.kr",
+    "url": "https://sogangeconomics.com",
   },
   "publisher": "서강대 경제대학원 총동문회",
   "robots": {
@@ -60,7 +60,7 @@ exports[`SEO metadata configuration > declares title template and open graph bas
     "card": "summary_large_image",
     "description": "서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 동문 수첩, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.",
     "images": [
-      "https://alumni.sogang-econ.kr/og-default.png",
+      "https://sogangeconomics.com/og-default.png",
     ],
     "title": "서강대 경제대학원 총동문회 웹 서비스",
   },

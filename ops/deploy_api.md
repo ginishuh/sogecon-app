@@ -8,7 +8,7 @@
 - `APP_ENV`: `dev` / `staging` / `prod`
 - `DATABASE_URL`: SQLAlchemy 접속 문자열 (예: `postgresql+psycopg://user:pass@host:5432/db`)
 - `JWT_SECRET`: 세션/토큰 서명 키
-- `CORS_ORIGINS`: 허용 Origin 목록(JSON 문자열). 예: `[{"origin": "https://alumni.sogang-econ.kr"}]`가 아니라 `['https://alumni.sogang-econ.kr']` 형태로 보일 수 있으니, 실제 설정은 다음과 같이 JSON 배열 문자열을 권장: `CORS_ORIGINS=["https://alumni.sogang-econ.kr"]`
+- `CORS_ORIGINS`: 허용 Origin 목록(JSON 문자열). 예: `[{"origin": "https://sogangeconomics.com"}]`가 아니라 `['https://sogangeconomics.com']` 형태로 보일 수 있으니, 실제 설정은 다음과 같이 JSON 배열 문자열을 권장: `CORS_ORIGINS=["https://sogangeconomics.com"]`
 - `RATE_LIMIT_DEFAULT`: 기본 레이트리밋 (예: `120/minute`)
 - `RATE_LIMIT_POST_CREATE`: 멤버 게시글 작성 레이트리밋 (예: `5/minute`)
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
@@ -18,7 +18,7 @@
 - CI/CD 시크릿 스토리지에 위 값을 저장하고 배포 시 주입한다.
 
 ### 쿠키/세션(도메인 전략에 따른 권장값)
-- 기본(같은 상위도메인의 하위 도메인, 예: `sogecon.wastelite.kr` + `api.sogecon.wastelite.kr`):
+- 기본(같은 상위도메인의 하위 도메인, 예: `sogangeconomics.com` + `api.sogangeconomics.com`):
   - `COOKIE_SAMESITE=lax`(기본값) — 같은 사이트(eTLD+1) 간 요청은 쿠키 포함
   - `COOKIE_SECURE=true`(권장; `APP_ENV=prod`면 자동 true)
 - 별도 상위 도메인으로 전환 후(교차 사이트):
@@ -40,7 +40,7 @@
    - (로컬/CI가 ARM이고 서버가 AMD64면) `PLATFORMS=linux/amd64 USE_BUILDX=1`를 함께 지정
 3. DB 마이그레이션 적용: `API_IMAGE=registry/alumni-api:<태그> ENV_FILE=/etc/secrets/api.env ./ops/cloud-migrate.sh`
 4. 서비스 재시작: `API_IMAGE=... WEB_IMAGE=registry/alumni-web:<태그> API_ENV_FILE=/etc/secrets/api.env WEB_ENV_FILE=/etc/secrets/web.env ./ops/cloud-start.sh`
-5. 프로빙: `curl https://api.alumni.sogang-econ.kr/healthz` 응답 확인, 주요 엔드포인트 스팟 체크
+5. 프로빙: `curl https://api.sogangeconomics.com/healthz` 응답 확인, 주요 엔드포인트 스팟 체크
 
 > 참고: `API_ENV_FILE`에는 `DATABASE_URL`, `JWT_SECRET`, `PUSH_*`, `SENTRY_*` 등 필수 시크릿을 포함한다. 컨테이너 업로드 볼륨은 `UPLOADS_DIR=/var/lib/sogecon/uploads` 로 기본 설정되어 있으며, 필요 시 커스터마이즈한다.
 
@@ -61,17 +61,17 @@
 - [ ] 모니터링 알람 미발생
 - [ ] 롤백 계획/백업 확인
 
-## 8. 임시 도메인(예: sogecon.wastelite.kr) 퀵스타트
-1) DNS: `sogecon.wastelite.kr`, `api.sogecon.wastelite.kr` → VPS IP
+## 8. 도메인 예시(예: sogangeconomics.com) 퀵스타트
+1) DNS: `sogangeconomics.com`, `www.sogangeconomics.com`, `api.sogangeconomics.com` → VPS IP
 2) API `.env` 혹은 env-file
    - 레포 루트의 `.env.api.example`을 복사해 `.env.api` 생성 후 값 채움
-   - 최소 구성: `APP_ENV=prod`, `CORS_ORIGINS=["https://sogecon.wastelite.kr"]`, `JWT_SECRET=...`, `DATABASE_URL=...`
+   - 최소 구성: `APP_ENV=prod`, `CORS_ORIGINS=["https://sogangeconomics.com","https://www.sogangeconomics.com"]`, `JWT_SECRET=...`, `DATABASE_URL=...`
    - 쿠키: `COOKIE_SAMESITE=lax`(기본), `COOKIE_SECURE=true`
 3) 마이그레이션/기동
    - `API_IMAGE=... ENV_FILE=.env.api ./ops/cloud-migrate.sh`
    - `API_IMAGE=... WEB_IMAGE=... API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web ./ops/cloud-start.sh`
-4) 프록시: `api.sogecon.wastelite.kr` → `127.0.0.1:3001`(예시 Nginx는 `ops/nginx-examples/` 참고)
-5) 헬스체크: `GET https://api.sogecon.wastelite.kr/healthz` → 200
+4) 프록시: `api.sogangeconomics.com` → `127.0.0.1:3001`(예시 Nginx는 `ops/nginx-examples/` 참고)
+5) 헬스체크: `GET https://api.sogangeconomics.com/healthz` → 200
 
 > 추후 별도 도메인(예: `sogecon.app` 등)으로 전환 시:
 > - `CORS_ORIGINS`에 새 웹 도메인 추가

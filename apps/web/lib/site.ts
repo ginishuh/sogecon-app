@@ -1,5 +1,5 @@
 const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
-const siteUrl = envUrl && envUrl.trim().length > 0 ? envUrl : 'https://alumni.sogang-econ.kr';
+const siteUrl = envUrl && envUrl.trim().length > 0 ? envUrl : 'https://sogangeconomics.com';
 
 export const siteConfig = {
   name: '서강대 경제대학원 총동문회',

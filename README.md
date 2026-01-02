@@ -212,8 +212,8 @@ REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
   - AMD64 빌드: 
     ```bash
     IMAGE_PREFIX=ghcr.io/<owner>/<repo> \
-    NEXT_PUBLIC_SITE_URL=https://sogecon.wastelite.kr \
-    NEXT_PUBLIC_WEB_API_BASE=https://api.sogecon.wastelite.kr \
+    NEXT_PUBLIC_SITE_URL=https://sogangeconomics.com \
+    NEXT_PUBLIC_WEB_API_BASE=https://api.sogangeconomics.com \
     PUSH_IMAGES=1 ./ops/cloud-build.sh
     ```
   - ARM 맥에서 AMD64 서버용: `PLATFORMS=linux/amd64 USE_BUILDX=1` 추가
