@@ -1087,3 +1087,4 @@
 2025-12-30 feat(web): 인사말 카드 분리 및 대학원장 페이지 추가 — PR draft
 2025-12-30 fix(ops): 웹 릴리스 소유권 자동 정리 — PR draft
 2026-01-02 chore(ops): sogangeconomics.com 도메인 전환 반영 — PR draft
+2026-01-02 refactor(api): 미디어 URL 상대경로 저장 + 응답 절대 URL 정규화 — PR draft

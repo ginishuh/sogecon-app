@@ -16,6 +16,12 @@ from pydantic import (
 )
 
 from .config import get_settings
+from .media_utils import (
+    build_media_url,
+    build_media_urls,
+    normalize_media_path,
+    normalize_media_paths,
+)
 
 VisibilityLiteral = Literal["all", "cohort", "private"]
 RSVPLiteral = Literal["going", "waitlist", "cancel"]
@@ -167,6 +173,16 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     author_id: int | None = None
 
+    @field_validator("cover_image", mode="before")
+    @classmethod
+    def _normalize_cover_image(cls, value: str | None) -> str | None:
+        return normalize_media_path(value)
+
+    @field_validator("images", mode="before")
+    @classmethod
+    def _normalize_images(cls, value: list[str] | None) -> list[str] | None:
+        return normalize_media_paths(value)
+
 
 class PostUpdate(BaseModel):
     """게시물 수정용 스키마 (부분 업데이트).
@@ -190,6 +206,16 @@ class PostUpdate(BaseModel):
         description="True면 published_at을 None으로 강제 설정 (비공개 전환)",
     )
 
+    @field_validator("cover_image", mode="before")
+    @classmethod
+    def _normalize_cover_image(cls, value: str | None) -> str | None:
+        return normalize_media_path(value)
+
+    @field_validator("images", mode="before")
+    @classmethod
+    def _normalize_images(cls, value: list[str] | None) -> list[str] | None:
+        return normalize_media_paths(value)
+
 
 class PostRead(PostBase):
     id: int
@@ -199,6 +225,16 @@ class PostRead(PostBase):
     comment_count: int = 0  # 댓글 수 (집계 결과)
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("cover_image", mode="before")
+    @classmethod
+    def _build_cover_image(cls, value: str | None) -> str | None:
+        return build_media_url(value)
+
+    @field_validator("images", mode="before")
+    @classmethod
+    def _build_images(cls, value: list[str] | None) -> list[str] | None:
+        return build_media_urls(value)
 
 
 class CommentBase(BaseModel):
@@ -277,7 +313,10 @@ class HeroItemBase(BaseModel):
 
 
 class HeroItemCreate(HeroItemBase):
-    pass
+    @field_validator("image_override", mode="before")
+    @classmethod
+    def _normalize_image_override(cls, value: str | None) -> str | None:
+        return normalize_media_path(value)
 
 
 class HeroItemUpdate(BaseModel):
@@ -291,6 +330,11 @@ class HeroItemUpdate(BaseModel):
     description_override: str | None = None
     image_override: str | None = None
 
+    @field_validator("image_override", mode="before")
+    @classmethod
+    def _normalize_image_override(cls, value: str | None) -> str | None:
+        return normalize_media_path(value)
+
 
 class HeroItemRead(HeroItemBase):
     id: int
@@ -298,6 +342,11 @@ class HeroItemRead(HeroItemBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("image_override", mode="before")
+    @classmethod
+    def _build_image_override(cls, value: str | None) -> str | None:
+        return build_media_url(value)
 
 
 class HeroSlide(BaseModel):
@@ -311,6 +360,11 @@ class HeroSlide(BaseModel):
     image: str | None = None
     href: str
     unpublished: bool = False
+
+    @field_validator("image", mode="before")
+    @classmethod
+    def _build_image(cls, value: str | None) -> str | None:
+        return build_media_url(value)
 
 
 class HeroTargetLookupRequest(BaseModel):
