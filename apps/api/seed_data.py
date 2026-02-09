@@ -8,6 +8,8 @@
 """
 
 import asyncio
+import os
+import secrets
 import sys
 from pathlib import Path
 
@@ -24,26 +26,41 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 
+_seed_secret_cache: dict[str, str] = {}
+
+
+def load_seed_secret(env_name: str) -> str:
+    """개발 시드용 비밀값 로드 (없으면 임시 랜덤값 생성)."""
+    configured = os.getenv(env_name)
+    if configured:
+        return configured
+
+    cached = _seed_secret_cache.get(env_name)
+    if cached:
+        return cached
+
+    generated = secrets.token_urlsafe(18)
+    _seed_secret_cache[env_name] = generated
+    print(f"  ⚠️  {env_name} 미설정: 임시 랜덤 비밀값을 생성합니다.")
+    return generated
+
+
 # 관리자 계정 생성
 async def create_admin_users(session: AsyncSession) -> None:
     """개발용 관리자 계정 생성 (admin_users + members + member_auth)"""
-    bcrypt = __import__("bcrypt")
-
     admin_users = [
         {
             "student_id": "s47053",
             "email": "ginishuh@gmail.com",
-            "password": "admin1234",
+            "secret_env": "SEED_DEV_ADMIN_SECRET",
             "name": "관리자",
             "cohort": 2017,
         },
     ]
 
     for user_data in admin_users:
-        password = str(user_data["password"])
-        password_hash = bcrypt.hashpw(
-            password.encode(), bcrypt.gensalt()
-        ).decode()
+        secret = load_seed_secret(str(user_data["secret_env"]))
+        password_hash = hash_password(secret)
 
         # 1) admin_users 테이블
         stmt = select(AdminUser).where(AdminUser.student_id == user_data["student_id"])
@@ -96,19 +113,19 @@ async def create_member_auth(session: AsyncSession) -> None:
     member_auth_data = [
         {
             "student_id": "s47054",
-            "password": "member1234"
+            "secret_env": "SEED_DEV_MEMBER_SECRET",
         },
         {
             "student_id": "s47055",
-            "password": "member1234"
+            "secret_env": "SEED_DEV_MEMBER_SECRET",
         },
         {
             "student_id": "s47056",
-            "password": "member1234"
+            "secret_env": "SEED_DEV_MEMBER_SECRET",
         },
         {
             "student_id": "s47058",
-            "password": "member1234"
+            "secret_env": "SEED_DEV_MEMBER_SECRET",
         }
     ]
 
@@ -133,7 +150,7 @@ async def create_member_auth(session: AsyncSession) -> None:
         member_auth = MemberAuth(
             member_id=member.id,
             student_id=auth_data["student_id"],
-            password_hash=hash_password(auth_data["password"])
+            password_hash=hash_password(load_seed_secret(str(auth_data["secret_env"])))
         )
         session.add(member_auth)
         print(f"  ✅ 인증 정보 생성: {auth_data['student_id']}")
@@ -239,9 +256,10 @@ async def async_main() -> None:
 
     print("=" * 50)
     print("✅ 시드 데이터 생성 완료")
-    print("\n📋 생성된 계정 정보:")
-    print("🔧 운영자 계정:")
-    print("  - s47053 (ginishuh@gmail.com) / admin1234")
+    print("\n📋 생성된 계정 정보")
+    print("🔧 운영자 계정: s47053 (ginishuh@gmail.com)")
+    print("  - 인증 비밀값: 환경변수 `SEED_DEV_ADMIN_SECRET`")
+    print("👥 일반 회원 인증 비밀값: 환경변수 `SEED_DEV_MEMBER_SECRET`")
     print("\n👥 일반 회원 계정:")
     print("  - member1@sogecon.app (김철수)")
     print("  - member2@sogecon.app (이영희)")

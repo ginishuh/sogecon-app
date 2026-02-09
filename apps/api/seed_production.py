@@ -8,6 +8,7 @@
 """
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -24,22 +25,30 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 
+def load_required_secret(env_name: str) -> str:
+    """운영 시드 비밀값 로드 (미설정 시 실패)."""
+    configured = os.getenv(env_name)
+    if not configured:
+        raise ValueError(f"필수 환경변수 누락: {env_name}")
+    return configured
+
+
 async def create_production_admins(session: AsyncSession) -> None:
     """운영 환경용 관리자 계정 생성"""
     print("🔧 운영 관리자 계정 생성 중...")
 
-    # 실제 운영용 강력한 비밀번호
+    # 운영 비밀값은 환경변수로만 주입
     admin_users = [
         {
             "student_id": "admin001",
             "email": "admin@sogecon.kr",
-            "password": "Sogecon2025!@#",  # 강력한 비밀번호
+            "secret_env": "SEED_PROD_ADMIN001_SECRET",
             "description": "최고 관리자",
         },
         {
             "student_id": "admin002",
             "email": "master@sogecon.kr",
-            "password": "Master2025!@#",
+            "secret_env": "SEED_PROD_ADMIN002_SECRET",
             "description": "마스터 관리자",
         },
     ]
@@ -53,10 +62,11 @@ async def create_production_admins(session: AsyncSession) -> None:
             print(f"  ⚠️  관리자 계정 이미 존재: {admin_data['email']}")
             continue
 
+        secret = load_required_secret(str(admin_data["secret_env"]))
         admin = AdminUser(
             student_id=admin_data["student_id"],
             email=admin_data["email"],
-            password_hash=hash_password(admin_data["password"]),
+            password_hash=hash_password(secret),
         )
         session.add(admin)
         print(
@@ -138,11 +148,14 @@ async def create_production_member_auth(session: AsyncSession) -> None:
     """운영 환경용 회원 인증 정보 생성"""
     print("🔐 회원 인증 정보 생성 중...")
 
-    # 간단한 비밀번호 (운영에서 변경 필요)
+    # 운영 비밀값은 환경변수로만 주입
     member_auth_data = [
-        {"student_id": "president2025", "password": "President123!"},
-        {"student_id": "vicepresident2025", "password": "Vice123!"},
-        {"student_id": "secretary2025", "password": "Secretary123!"},
+        {"student_id": "president2025", "secret_env": "SEED_PROD_PRESIDENT_SECRET"},
+        {
+            "student_id": "vicepresident2025",
+            "secret_env": "SEED_PROD_VICEPRESIDENT_SECRET",
+        },
+        {"student_id": "secretary2025", "secret_env": "SEED_PROD_SECRETARY_SECRET"},
     ]
 
     for auth_data in member_auth_data:
@@ -164,10 +177,11 @@ async def create_production_member_auth(session: AsyncSession) -> None:
             print(f"  ⚠️  인증 정보 이미 존재: {auth_data['student_id']}")
             continue
 
+        secret = load_required_secret(str(auth_data["secret_env"]))
         member_auth = MemberAuth(
             member_id=member.id,
             student_id=auth_data["student_id"],
-            password_hash=hash_password(auth_data["password"]),
+            password_hash=hash_password(secret),
         )
         session.add(member_auth)
         print(f"  ✅ 인증 정보 생성: {auth_data['student_id']}")
@@ -194,13 +208,13 @@ async def async_main() -> None:
     print("✅ 운영 환경 시드 데이터 생성 완료")
     print("\n📋 생성된 운영 계정 정보:")
     print("🔧 관리자 계정:")
-    print("  - admin001 (admin@sogecon.kr) / Sogecon2025!@#")
-    print("  - admin002 (master@sogecon.kr) / Master2025!@#")
+    print("  - admin001 (admin@sogecon.kr) / SEED_PROD_ADMIN001_SECRET")
+    print("  - admin002 (master@sogecon.kr) / SEED_PROD_ADMIN002_SECRET")
     print("\n👥 초기 회원 계정:")
     print("  - president2025 (홍길동 회장)")
     print("  - vicepresident2025 (김철수 부회장)")
     print("  - secretary2025 (이영희 총무)")
-    print("\n⚠️  중요: 운영 전에 반드시 비밀번호를 변경하세요!")
+    print("\n⚠️  중요: 운영 시드는 환경변수 비밀값 주입 후 실행하세요.")
 
 
 def main() -> None:
