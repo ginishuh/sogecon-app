@@ -21,7 +21,7 @@ def check_package_json() -> None:
 
     expected_deps = {
         "dependencies": {
-            "next": "15.5.9",
+            "next": "15.5.10",
             "react": "19.2.3",
             "react-dom": "19.2.3",
         },
