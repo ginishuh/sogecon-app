@@ -42,13 +42,13 @@ async def create_production_admins(session: AsyncSession) -> None:
         {
             "student_id": "admin001",
             "email": "admin@sogecon.kr",
-            "secret_env": "SEED_PROD_ADMIN001_SECRET",
+            "env_var": "SEED_PROD_ADMIN001_VALUE",
             "description": "최고 관리자",
         },
         {
             "student_id": "admin002",
             "email": "master@sogecon.kr",
-            "secret_env": "SEED_PROD_ADMIN002_SECRET",
+            "env_var": "SEED_PROD_ADMIN002_VALUE",
             "description": "마스터 관리자",
         },
     ]
@@ -62,7 +62,7 @@ async def create_production_admins(session: AsyncSession) -> None:
             print(f"  ⚠️  관리자 계정 이미 존재: {admin_data['email']}")
             continue
 
-        secret = load_required_secret(str(admin_data["secret_env"]))
+        secret = load_required_secret(str(admin_data["env_var"]))
         admin = AdminUser(
             student_id=admin_data["student_id"],
             email=admin_data["email"],
@@ -150,12 +150,12 @@ async def create_production_member_auth(session: AsyncSession) -> None:
 
     # 운영 비밀값은 환경변수로만 주입
     member_auth_data = [
-        {"student_id": "president2025", "secret_env": "SEED_PROD_PRESIDENT_SECRET"},
+        {"student_id": "president2025", "env_var": "SEED_PROD_PRESIDENT_VALUE"},
         {
             "student_id": "vicepresident2025",
-            "secret_env": "SEED_PROD_VICEPRESIDENT_SECRET",
+            "env_var": "SEED_PROD_VICEPRESIDENT_VALUE",
         },
-        {"student_id": "secretary2025", "secret_env": "SEED_PROD_SECRETARY_SECRET"},
+        {"student_id": "secretary2025", "env_var": "SEED_PROD_SECRETARY_VALUE"},
     ]
 
     for auth_data in member_auth_data:
@@ -177,7 +177,7 @@ async def create_production_member_auth(session: AsyncSession) -> None:
             print(f"  ⚠️  인증 정보 이미 존재: {auth_data['student_id']}")
             continue
 
-        secret = load_required_secret(str(auth_data["secret_env"]))
+        secret = load_required_secret(str(auth_data["env_var"]))
         member_auth = MemberAuth(
             member_id=member.id,
             student_id=auth_data["student_id"],
@@ -208,8 +208,8 @@ async def async_main() -> None:
     print("✅ 운영 환경 시드 데이터 생성 완료")
     print("\n📋 생성된 운영 계정 정보:")
     print("🔧 관리자 계정:")
-    print("  - admin001 (admin@sogecon.kr) / SEED_PROD_ADMIN001_SECRET")
-    print("  - admin002 (master@sogecon.kr) / SEED_PROD_ADMIN002_SECRET")
+    print("  - admin001 (admin@sogecon.kr) / SEED_PROD_ADMIN001_VALUE")
+    print("  - admin002 (master@sogecon.kr) / SEED_PROD_ADMIN002_VALUE")
     print("\n👥 초기 회원 계정:")
     print("  - president2025 (홍길동 회장)")
     print("  - vicepresident2025 (김철수 부회장)")
