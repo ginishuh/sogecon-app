@@ -2,6 +2,7 @@
 
 - fix(web): about 인사말 페이지 테스트 기대값을 현재 마크업과 동기화 (heading/img/assertion, snapshot 갱신)
 - chore(web): sucrase 3.35.1 override 적용으로 deprecated glob 전이 의존성 정리
+- sec(web): Next.js 15.5.10 상향으로 GHSA-h25m-26qc-wcjf(DoS) high 취약점 해소
 
 ## 2025-12-30
 
