@@ -4,6 +4,7 @@
 - chore(web): sucrase 3.35.1 override 적용으로 deprecated glob 전이 의존성 정리
 - sec(web): Next.js 15.5.10 상향으로 GHSA-h25m-26qc-wcjf(DoS) high 취약점 해소
 - sec(api): seed_data/seed_production 비밀번호 하드코딩 제거 (환경변수 기반 시드 비밀값 주입)
+- sec(web): lodash 4.17.23 override 적용으로 GHSA-xxjr-mmjv-4gpg(moderate) 해소
 
 ## 2025-12-30
 
