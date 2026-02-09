@@ -37,10 +37,9 @@ afterEach(() => {
 describe('About static pages', () => {
   it('renders greeting page hero and sections', () => {
     const { asFragment } = render(<GreetingPage />);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('총동문회장 인사말');
-    expect(screen.getByLabelText('총동문회 비전 다이어그램')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '디지털 허브 완성' })).toBeInTheDocument();
-    expect(screen.getByRole('list', { name: '총동문회 운영 원칙 목록' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '총동문회장 인사말' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: '‘서강학파’의 일원이 되신 것을 환영합니다' })).toBeInTheDocument();
+    expect(screen.getByText('감사합니다.')).toBeInTheDocument();
     expect(asFragment()).toMatchSnapshot();
   });
 

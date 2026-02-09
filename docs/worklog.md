@@ -1,3 +1,14 @@
+## 2026-02-09
+
+- fix(web): about 인사말 페이지 테스트 기대값을 현재 마크업과 동기화 (heading/img/assertion, snapshot 갱신)
+- chore(web): sucrase 3.35.1 override 적용으로 deprecated glob 전이 의존성 정리
+- sec(web): Next.js 15.5.10 상향으로 GHSA-h25m-26qc-wcjf(DoS) high 취약점 해소
+- sec(api): seed_data/seed_production 비밀번호 하드코딩 제거 (환경변수 기반 시드 비밀값 주입)
+- sec(web): lodash 4.17.23 override 적용으로 GHSA-xxjr-mmjv-4gpg(moderate) 해소
+- fix(ci): version-lock 기준 next 버전을 15.5.10으로 동기화 (repo-guards 실패 해결)
+- fix(api): bandit 오탐(B105) 회피를 위해 seed env key명을 `env_var`로 정리하고 `SEED_*_VALUE`로 치환
+- sec(api): python-multipart 0.0.22 상향(CVE-2026-24486) 및 CI version-lock 동기화
+
 ## 2025-12-30
 
 - refactor(web): 디자인 토큰 정합성 정리 — neutral-surface/헥스 하드코딩/ring/폰트 토큰화
