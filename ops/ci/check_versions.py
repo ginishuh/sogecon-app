@@ -113,7 +113,7 @@ def check_requirements() -> None:
             "psycopg[binary]==3.2.10",
             "alembic==1.16.5",
             "pydantic-settings==2.11.0",
-            "python-multipart==0.0.20",
+            "python-multipart==0.0.22",
             "slowapi==0.1.9",
         ],
         "apps/api/requirements-dev.txt": [

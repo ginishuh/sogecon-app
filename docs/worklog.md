@@ -7,6 +7,7 @@
 - sec(web): lodash 4.17.23 override 적용으로 GHSA-xxjr-mmjv-4gpg(moderate) 해소
 - fix(ci): version-lock 기준 next 버전을 15.5.10으로 동기화 (repo-guards 실패 해결)
 - fix(api): bandit 오탐(B105) 회피를 위해 seed env key명을 `env_var`로 정리하고 `SEED_*_VALUE`로 치환
+- sec(api): python-multipart 0.0.22 상향(CVE-2026-24486) 및 CI version-lock 동기화
 
 ## 2025-12-30
 
