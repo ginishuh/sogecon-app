@@ -14,9 +14,9 @@
     "lint:legacy": "next lint",
     "analyze": "ANALYZE=true next build",
     "test": "vitest run",
-    "e2e": "vitest -c vitest.config.e2e.ts run",
-    "e2e:watch": "vitest -c vitest.config.e2e.ts",
-    "e2e:dev": "WEB_BASE_URL=http://localhost:3000 vitest -c vitest.config.e2e.ts run"
+    "e2e": "vitest -c vitest.config.e2e.mts run",
+    "e2e:watch": "vitest -c vitest.config.e2e.mts",
+    "e2e:dev": "WEB_BASE_URL=http://localhost:3000 vitest -c vitest.config.e2e.mts run"
   },
   "dependencies": {
     "@tanstack/react-query": "5.62.2",

@@ -16,6 +16,7 @@
 - chore(ci): gitleaks 오탐 허용 목록 추가 (.gitleaksignore fingerprint 단위) — refs #108, PR #111
 - chore(schemas): auth 라우터 변경에 따른 OpenAPI 스키마 재생성 — refs #108, PR #111
 - chore(web): next lint → ESLint CLI 마이그레이션 — refs #110
+- chore(web): vitest config .mts 전환 (Vite CJS deprecated 경고 해결) — refs #110
 
 ## 2026-02-09
 
