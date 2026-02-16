@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     rate_limit_post_create: str = Field(
         default="5/minute", alias="RATE_LIMIT_POST_CREATE"
     )
+    # 신뢰할 수 있는 프록시 IP 목록 (X-Forwarded-For 신뢰 경계)
+    # 콤마로 구분된 IP 목록. 비어있으면 XFF를 무시하고 client.host 사용.
+    trusted_proxy_ips: str = Field(default="", alias="TRUSTED_PROXY_IPS")
 
     # Web Push (VAPID)
     vapid_public_key: str = Field(default="", alias="VAPID_PUBLIC_KEY")

@@ -7,6 +7,14 @@
 - sec(api): cryptography 46.0.5, Pillow 12.1.1 상향 — refs #108, PR #109
 - fix(api): uploads.py Pillow resize 타입 명시화
 - chore(config): pyrightconfig.json reportUnknownMemberType을 warning으로 완화 (Pillow 타입 스텁 불완전 대응)
+- refactor(api): auth 구조 분해 — router -> service -> repository 계층 분리 — refs #108
+  - apps/api/repositories/auth.py 생성 (DB 액세스)
+  - apps/api/services/auth_service.py 생성 (세션 파싱/권한/로그인 로직)
+  - apps/api/routers/auth.py 간소화 (라우팅만 담당)
+- fix(api): posts 레이트리밋 XFF 신뢰 경계 개선 — trusted_proxy_ips 설정 추가 — refs #108
+- fix(api): 리뷰 피드백 반영 — 레이트리밋 이중차감/XFF 우회/예외 재전파 — refs #108, PR #111
+- chore(ci): gitleaks 오탐 허용 목록 추가 (.gitleaksignore fingerprint 단위) — refs #108, PR #111
+- chore(schemas): auth 라우터 변경에 따른 OpenAPI 스키마 재생성 — refs #108, PR #111
 
 ## 2026-02-09
 
