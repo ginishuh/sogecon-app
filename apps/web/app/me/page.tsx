@@ -1,10 +1,9 @@
 "use client";
 
 import Image from 'next/image';
-import type { components } from 'schemas';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { API_BASE, ApiError, apiFetch } from '../../lib/api';
+import { ApiError } from '../../lib/api';
 import { useToast } from '../../components/toast';
 import {
   buildProfilePayload,
@@ -13,8 +12,7 @@ import {
   ProfileVisibility,
   validateProfileForm,
 } from './validation';
-
-type MemberDto = components['schemas']['MemberRead'];
+import { getMe, updateMe, updateAvatar, type MemberDto, API_BASE } from '../../services/me';
 
 const asDisplayString = (value: string | null | undefined): string => value ?? '';
 
@@ -415,7 +413,7 @@ export default function MePage() {
     }
     void (async () => {
       try {
-        const data = await apiFetch<MemberDto>('/me/');
+        const data = await getMe();
         if (cancelled) return;
         setMe(data);
         setForm(toFormState(data));
@@ -461,10 +459,7 @@ export default function MePage() {
     setBusy(true);
     try {
       const payload = buildProfilePayload(form);
-      const updated = await apiFetch<MemberDto>('/me/', {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      });
+      const updated = await updateMe(payload);
       setMe(updated);
       setForm(toFormState(updated));
       setErrors({});
@@ -508,10 +503,7 @@ export default function MePage() {
     try {
       const formData = new FormData();
       formData.append('avatar', file);
-      const updated = await apiFetch<MemberDto>('/me/avatar', {
-        method: 'POST',
-        body: formData,
-      });
+      const updated = await updateAvatar(formData);
       setMe(updated);
       setForm(toFormState(updated));
       setErrors((prev) => {

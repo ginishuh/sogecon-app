@@ -4,9 +4,15 @@ import { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { RequireAdmin } from '../../../components/require-admin';
 import { useToast } from '../../../components/toast';
-import { apiFetch } from '../../../lib/api';
 import { useQuery } from '@tanstack/react-query';
-import { getNotificationStats, getSendLogs, pruneSendLogs, type SendLog, type NotificationStats } from '../../../services/notifications';
+import {
+  getNotificationStats,
+  getSendLogs,
+  pruneSendLogs,
+  sendTestNotification,
+  type SendLog,
+  type NotificationStats,
+} from '../../../services/notifications';
 
 type RangeOpt = NonNullable<NotificationStats['range']>;
 
@@ -149,10 +155,7 @@ export default function AdminNotificationsPage() {
     setBusy(true);
     try {
       const payload = { title, body, url: url || undefined };
-      const res = await apiFetch<{ accepted: number; failed: number }>(
-        '/notifications/admin/notifications/test',
-        { method: 'POST', body: JSON.stringify(payload) }
-      );
+      const res = await sendTestNotification(payload);
       toast.show(`발송 요청 완료: 성공 ${res.accepted}, 실패 ${res.failed}`, { type: 'success' });
     } catch {
       toast.show('발송 중 오류가 발생했습니다.', { type: 'error' });

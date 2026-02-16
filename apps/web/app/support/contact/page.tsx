@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useToast } from '../../../components/toast';
-import { apiFetch } from '../../../lib/api';
+import { submitContact } from '../../../services/support';
 
 export default function SupportContactPage() {
   const toast = useToast();
@@ -15,7 +15,7 @@ export default function SupportContactPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      await apiFetch('/support/contact', { method: 'POST', body: JSON.stringify({ subject, body, contact: contact || undefined }) });
+      await submitContact({ subject, body, contact: contact || undefined });
       toast.show('문의가 접수되었습니다.', { type: 'success' });
       setSubject(''); setBody(''); setContact('');
     } catch {
