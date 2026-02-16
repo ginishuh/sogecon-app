@@ -1,9 +1,0 @@
-# gitleaks 설정: 오탐 허용 목록
-# See: https://github.com/gitleaks/gitleaks#configuration
-
-[allowlist]
-description = "Allowlist for false positives"
-paths = [
-    '''apps/api/routers/auth\.py''',
-    '''apps/api/services/auth_service\.py''',
-]

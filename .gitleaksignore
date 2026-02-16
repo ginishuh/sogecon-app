@@ -1,0 +1,4 @@
+# gitleaks 오탐 fingerprint 예외 목록
+# payload.password가 generic-api-key로 오탐됨
+5a2f17d3656567c5870bbe762d19c695b9a03c07:apps/api/routers/auth.py:generic-api-key:82
+5a2f17d3656567c5870bbe762d19c695b9a03c07:apps/api/routers/auth.py:generic-api-key:90
