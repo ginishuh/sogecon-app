@@ -1,9 +1,12 @@
 ## 2026-02-16
 
-- chore(web,api,docs): 1차 안정화 - 서비스 계층 정리 및 버전 문서 정합화 — refs #108
+- chore(web,api,docs): 1차 안정화 - 서비스 계층 정리 및 버전 문서 정합화 — refs #108, PR #109
 - chore(web): services/me.ts, services/support.ts 생성 및 페이지 계층 apiFetch 우회 제거 — refs #108
 - fix(test): test_media_mount.py import 정렬 수정 (ruff I001) — refs #108
 - docs(versions): next 15.5.10, python-multipart 0.0.22 반영 — refs #108
+- sec(api): cryptography 46.0.5, Pillow 11.3.0 상향 — refs #108, PR #109
+- fix(api): uploads.py Pillow resize 타입 명시화
+- chore(config): pyrightconfig.json reportUnknownMemberType을 warning으로 완화 (Pillow 타입 스텁 불완전 대응)
 
 ## 2026-02-09
 
