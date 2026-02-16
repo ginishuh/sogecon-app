@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from collections import defaultdict, deque
 from http import HTTPStatus
+from ipaddress import ip_address, ip_network
 from typing import cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -14,7 +15,8 @@ from ..db import get_db
 from ..errors import ApiError
 from ..repositories import posts as posts_repo
 from ..services import posts_service
-from .auth import is_admin, require_admin, require_member
+from ..services.auth_service import is_admin
+from .auth import require_admin, require_member
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -23,7 +25,86 @@ def _is_test_client(request: Request) -> bool:
     return bool(request.client and request.client.host == "testclient")
 
 
+# ---- 레이트리밋 키 추출 (XFF 신뢰 경계 포함) ----
+
+# 멤버 게시글 작성 레이트리밋 (in-memory)
+# 주의: 멀티워커 환경에서는 워커 간 상태가 공유되지 않아 일관성이 깨질 수 있음.
+# 운영 환경에서는 Redis 기반 분산 레이트리밋(slowapi + Redis)으로 전환 권장.
 _MEMBER_RATE_TABLE: dict[str, deque[float]] = defaultdict(deque)
+
+
+def _parse_trusted_proxies(raw: str) -> list[str]:
+    """신뢰할 프록시 IP 목록 파싱 (CIDR 지원)."""
+    if not raw:
+        return []
+    result: list[str] = []
+    for part in raw.split(","):
+        ip_str = part.strip()
+        if not ip_str:
+            continue
+        try:
+            # CIDR 표기법 검증 (예: 10.0.0.0/8, 192.168.1.0/24)
+            if "/" in ip_str:
+                ip_network(ip_str, strict=False)
+            else:
+                ip_address(ip_str)
+            result.append(ip_str)
+        except ValueError:
+            pass  # 잘못된 형식은 무시
+    return result
+
+
+def _is_ip_trusted(ip_str: str, trusted_networks: list[str]) -> bool:
+    """IP가 신뢰하는 프록시 대역에 속하는지 확인."""
+    if not trusted_networks:
+        return False
+    try:
+        client_ip = ip_address(ip_str)
+    except ValueError:
+        return False
+    for net_str in trusted_networks:
+        try:
+            if "/" in net_str:
+                if client_ip in ip_network(net_str, strict=False):
+                    return True
+            elif client_ip == ip_address(net_str):
+                return True
+        except ValueError:
+            pass
+    return False
+
+
+def _get_client_ip_for_rate_limit(request: Request) -> str:
+    """레이트리밋용 클라이언트 IP 추출.
+
+    X-Forwarded-For 처리 정책:
+    1. trusted_proxy_ips 설정이 있고, 직접 연결 IP가 신뢰 목록에 있을 때만 XFF 사용.
+    2. XFF가 있으면 가장 첫 번째(좌측) IP를 사용 (원본 클라이언트).
+    3. 그 외에는 request.client.host 사용.
+
+    주의: 잘못된 신뢰 경계 설정은 스푸핑 공격에 노출될 수 있음.
+    """
+    settings = get_settings()
+    trusted = _parse_trusted_proxies(settings.trusted_proxy_ips)
+
+    # 직접 연결된 IP가 신뢰 목록에 없으면 XFF 무시
+    if request.client and request.client.host:
+        direct_ip = request.client.host
+    else:
+        return "unknown"
+
+    # 신뢰할 수 있는 프록시를 통한 요청인지 확인
+    if not _is_ip_trusted(direct_ip, trusted):
+        return direct_ip
+
+    # XFF 헤더에서 첫 번째 IP 추출 (가장 원본에 가까운)
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        parts = [p.strip() for p in xff.split(",") if p.strip()]
+        if parts:
+            return parts[0]
+
+    return direct_ip
 
 
 def _parse_rate_limit(raw: str) -> tuple[int, float]:
@@ -52,10 +133,15 @@ def _parse_rate_limit(raw: str) -> tuple[int, float]:
 
 
 def _enforce_member_post_limit(request: Request, limit_value: str) -> None:
+    """멤버 게시글 작성 레이트리밋 적용.
+
+    주의: 현재 in-memory 구현으로 멀티워커 환경에서 일관성이 보장되지 않음.
+    운영 환경에서는 Redis 기반 분산 레이트리밋으로 전환 권장.
+    """
     if _is_test_client(request):
         return
     amount, window = _parse_rate_limit(limit_value)
-    key = request.client.host if request.client else "unknown"
+    key = _get_client_ip_for_rate_limit(request)
     now = time.monotonic()
     bucket = _MEMBER_RATE_TABLE[key]
     while bucket and now - bucket[0] > window:

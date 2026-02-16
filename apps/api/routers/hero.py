@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import schemas
 from ..db import get_db
 from ..services import hero_service
-from .auth import is_admin
+from ..services.auth_service import is_admin
 
 router = APIRouter(prefix="/hero", tags=["hero"])
 
