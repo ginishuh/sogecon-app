@@ -79,15 +79,17 @@ def _get_client_ip_for_rate_limit(request: Request) -> str:
 
     X-Forwarded-For 처리 정책:
     1. trusted_proxy_ips 설정이 있고, 직접 연결 IP가 신뢰 목록에 있을 때만 XFF 사용.
-    2. XFF가 있으면 가장 첫 번째(좌측) IP를 사용 (원본 클라이언트).
-    3. 그 외에는 request.client.host 사용.
+    2. XFF가 있으면 우측에서 역순 파싱해 첫 non-trusted hop을 원본 IP로 확정.
+       (클라이언트가 XFF 좌측에 임의 값을 주입하는 것을 방지)
+    3. 신뢰 체인을 모두 통과하면 XFF 첫 번째(좌측) IP 사용.
+    4. 그 외에는 request.client.host 사용.
 
     주의: 잘못된 신뢰 경계 설정은 스푸핑 공격에 노출될 수 있음.
     """
     settings = get_settings()
     trusted = _parse_trusted_proxies(settings.trusted_proxy_ips)
 
-    # 직접 연결된 IP가 신뢰 목록에 없으면 XFF 무시
+    # 직접 연결된 IP
     if request.client and request.client.host:
         direct_ip = request.client.host
     else:
@@ -97,14 +99,23 @@ def _get_client_ip_for_rate_limit(request: Request) -> str:
     if not _is_ip_trusted(direct_ip, trusted):
         return direct_ip
 
-    # XFF 헤더에서 첫 번째 IP 추출 (가장 원본에 가까운)
+    # XFF 헤더 파싱
     xff = request.headers.get("x-forwarded-for", "")
-    if xff:
-        parts = [p.strip() for p in xff.split(",") if p.strip()]
-        if parts:
-            return parts[0]
+    if not xff:
+        return direct_ip
 
-    return direct_ip
+    parts = [p.strip() for p in xff.split(",") if p.strip()]
+    if not parts:
+        return direct_ip
+
+    # 우측에서 역순으로 첫 non-trusted IP 찾기
+    # (신뢰하는 프록시 체인을 건너뛰고 실제 클라이언트 IP 확정)
+    for ip_str in reversed(parts):
+        if not _is_ip_trusted(ip_str, trusted):
+            return ip_str
+
+    # 모든 hop이 신뢰하는 프록시인 경우, 가장 좌측(원본) IP 사용
+    return parts[0]
 
 
 def _parse_rate_limit(raw: str) -> tuple[int, float]:

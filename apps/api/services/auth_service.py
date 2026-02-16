@@ -225,15 +225,21 @@ async def login_admin(
     request: Request,
     student_id: str,
     password: str,
+    *,
+    skip_rate_limit: bool = False,
 ) -> dict[str, str]:
     """관리자 로그인 처리.
 
     관리자 자격을 검증하고 세션을 설정한다.
     관리자도 Member 테이블의 id를 세션에 저장 (posts.author_id FK 호환).
+
+    Args:
+        skip_rate_limit: True면 레이트리밋 건너뜀 (상위 라우터에서 이미 차감한 경우)
     """
-    settings = get_settings()
-    if settings.app_env == "prod" and not _is_test_client(request):
-        consume_limit(limiter_login, request, settings.rate_limit_login)
+    if not skip_rate_limit:
+        settings = get_settings()
+        if settings.app_env == "prod" and not _is_test_client(request):
+            consume_limit(limiter_login, request, settings.rate_limit_login)
 
     bcrypt = __import__("bcrypt")
 
@@ -269,11 +275,18 @@ async def login_member(
     request: Request,
     student_id: str,
     password: str,
+    *,
+    skip_rate_limit: bool = False,
 ) -> dict[str, str]:
-    """멤버 로그인 처리."""
-    settings = get_settings()
-    if settings.app_env == "prod" and not _is_test_client(request):
-        consume_limit(limiter_login, request, settings.rate_limit_login)
+    """멤버 로그인 처리.
+
+    Args:
+        skip_rate_limit: True면 레이트리밋 건너뜀 (상위 라우터에서 이미 차감한 경우)
+    """
+    if not skip_rate_limit:
+        settings = get_settings()
+        if settings.app_env == "prod" and not _is_test_client(request):
+            consume_limit(limiter_login, request, settings.rate_limit_login)
 
     bcrypt = __import__("bcrypt")
 

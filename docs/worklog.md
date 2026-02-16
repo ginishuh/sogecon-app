@@ -12,6 +12,7 @@
   - apps/api/services/auth_service.py 생성 (세션 파싱/권한/로그인 로직)
   - apps/api/routers/auth.py 간소화 (라우팅만 담당)
 - fix(api): posts 레이트리밋 XFF 신뢰 경계 개선 — trusted_proxy_ips 설정 추가 — refs #108
+- fix(api): 리뷰 피드백 반영 — 레이트리밋 이중차감/XFF 우회/예외 재전파 — refs #108, PR #111
 
 ## 2026-02-09
 
