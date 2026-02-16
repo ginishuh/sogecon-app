@@ -114,6 +114,20 @@ Do NOT disable linters or type checkers globally or per file.
   - Files over 600 lines,
   - Other policy violations declared here.
 
+<!-- EXECUTION_DISCIPLINE_BLOCK:START -->
+### Execution Discipline (Caution > Speed)
+- Apply this strictly on non-trivial work; for trivial tasks, keep it lightweight.
+- Think before coding: state assumptions, surface ambiguity, and ask when unclear.
+- If multiple interpretations exist, present options instead of silently choosing one.
+- Prefer the simplest valid approach; explicitly avoid speculative features/abstractions.
+- Keep changes surgical: edit only what is required for the request.
+- Do not refactor, reformat, or "clean up" adjacent unrelated code.
+- Remove only the unused code/imports introduced by your own change.
+- Convert requests into verifiable goals (e.g., reproduce bug -> fix -> test green).
+- For multi-step tasks, keep a short plan with verification per step.
+- Success criteria must be concrete enough to validate independently.
+<!-- EXECUTION_DISCIPLINE_BLOCK:END -->
+
 ## Exceptions & Waivers
 - Only the migration bootstrap `apps/api/migrations/env.py` may keep `# noqa: E402`.
 - Temporary waivers must include: linked issue, owner, expiry date. Waivers live next to code, not global configs.
