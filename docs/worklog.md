@@ -14,6 +14,7 @@
 - fix(api): posts 레이트리밋 XFF 신뢰 경계 개선 — trusted_proxy_ips 설정 추가 — refs #108
 - fix(api): 리뷰 피드백 반영 — 레이트리밋 이중차감/XFF 우회/예외 재전파 — refs #108, PR #111
 - chore(ci): gitleaks 오탐 허용 목록 추가 (.gitleaksignore fingerprint 단위) — refs #108, PR #111
+- chore(schemas): auth 라우터 변경에 따른 OpenAPI 스키마 재생성 — refs #108, PR #111
 
 ## 2026-02-09
 

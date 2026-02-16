@@ -247,6 +247,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Login
+         * @description 통합 로그인 (관리자 우선, 실패 시 멤버 시도).
+         *
+         *     레이트리밋은 이 라우터에서 1회만 차감 (서비스 함수에서는 skip).
+         */
+        post: operations["login_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Logout Endpoint
+         * @description 로그아웃 (세션 제거).
+         */
+        post: operations["logout_endpoint_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Me
+         * @description 관리자 자기정보 (하위호환).
+         */
+        get: operations["me_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/member/login": {
         parameters: {
             query?: never;
@@ -258,9 +320,7 @@ export interface paths {
         put?: never;
         /**
          * Member Login
-         * @description 하위호환 멤버 로그인 엔드포인트.
-         *
-         *     통합 로직으로 세션을 설정하며, 멤버 자격만 검사한다.
+         * @description 멤버 로그인.
          */
         post: operations["member_login_auth_member_login_post"];
         delete?: never;
@@ -278,7 +338,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Member Logout */
+        /**
+         * Member Logout
+         * @description 멤버 로그아웃.
+         */
         post: operations["member_logout_auth_member_logout_post"];
         delete?: never;
         options?: never;
@@ -295,9 +358,7 @@ export interface paths {
         };
         /**
          * Member Me
-         * @description 멤버 자기정보: 웹 프론트 타입 정의에 맞춰 email을 반환.
-         *
-         *     세션에 email이 없을 수 있어 Member 테이블을 조회하여 보강한다.
+         * @description 멤버 이메일 조회.
          */
         get: operations["member_me_auth_member_me_get"];
         put?: never;
@@ -318,13 +379,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Member Activate
-         * @description 멤버 활성화: 서명 토큰 검증 후 Member/MemberAuth를 생성 또는 갱신.
-         *
-         *     토큰 페이로드 예: {"email": "user@example.com", "name": "User", "cohort": 1}
-         *     개발 단계에서는 itsdangerous 서명 토큰을 사용한다.
+         * Member Activate Endpoint
+         * @description 멤버 활성화 (토큰 검증 후 계정 생성/비밀번호 설정).
          */
-        post: operations["member_activate_auth_member_activate_post"];
+        post: operations["member_activate_endpoint_auth_member_activate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -340,64 +398,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Change Password */
-        post: operations["change_password_auth_member_change_password_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Login */
-        post: operations["login_auth_login_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Logout */
-        post: operations["logout_auth_logout_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
         /**
-         * Me
-         * @description 관리자 자기정보(하위호환): 관리자 세션이 있을 때만 200.
-         *
-         *     통합 세션을 사용하더라도 roles에 'admin'이 있어야 통과한다.
+         * Change Password
+         * @description 비밀번호 변경.
          */
-        get: operations["me_auth_me_get"];
-        put?: never;
-        post?: never;
+        post: operations["change_password_auth_member_change_password_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -413,10 +418,7 @@ export interface paths {
         };
         /**
          * Session
-         * @description 통합 세션 조회 엔드포인트.
-         *
-         *     반환 형식: { kind: 'admin'|'member', student_id, email, name, id? }
-         *     세션이 없으면 401.
+         * @description 통합 세션 조회 (kind, student_id, email, name, id 반환).
          */
         get: operations["session_auth_session_get"];
         put?: never;
@@ -2278,6 +2280,81 @@ export interface operations {
             };
         };
     };
+    login_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    logout_endpoint_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    me_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string | number;
+                    };
+                };
+            };
+        };
+    };
     member_login_auth_member_login_post: {
         parameters: {
             query?: never;
@@ -2353,7 +2430,7 @@ export interface operations {
             };
         };
     };
-    member_activate_auth_member_activate_post: {
+    member_activate_endpoint_auth_member_activate_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2419,81 +2496,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    login_auth_login_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginPayload"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    logout_auth_logout_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    me_auth_me_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string | number;
-                    };
                 };
             };
         };

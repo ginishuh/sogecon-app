@@ -1225,13 +1225,107 @@
         }
       }
     },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login",
+        "description": "\ud1b5\ud569 \ub85c\uadf8\uc778 (\uad00\ub9ac\uc790 \uc6b0\uc120, \uc2e4\ud328 \uc2dc \uba64\ubc84 \uc2dc\ub3c4).\n\n\ub808\uc774\ud2b8\ub9ac\ubc0b\uc740 \uc774 \ub77c\uc6b0\ud130\uc5d0\uc11c 1\ud68c\ub9cc \ucc28\uac10 (\uc11c\ube44\uc2a4 \ud568\uc218\uc5d0\uc11c\ub294 skip).",
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Login Auth Login Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Logout Endpoint",
+        "description": "\ub85c\uadf8\uc544\uc6c3 (\uc138\uc158 \uc81c\uac70).",
+        "operationId": "logout_endpoint_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Me",
+        "description": "\uad00\ub9ac\uc790 \uc790\uae30\uc815\ubcf4 (\ud558\uc704\ud638\ud658).",
+        "operationId": "me_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "type": "object",
+                  "title": "Response Me Auth Me Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/member/login": {
       "post": {
         "tags": [
           "auth"
         ],
         "summary": "Member Login",
-        "description": "\ud558\uc704\ud638\ud658 \uba64\ubc84 \ub85c\uadf8\uc778 \uc5d4\ub4dc\ud3ec\uc778\ud2b8.\n\n\ud1b5\ud569 \ub85c\uc9c1\uc73c\ub85c \uc138\uc158\uc744 \uc124\uc815\ud558\uba70, \uba64\ubc84 \uc790\uaca9\ub9cc \uac80\uc0ac\ud55c\ub2e4.",
+        "description": "\uba64\ubc84 \ub85c\uadf8\uc778.",
         "operationId": "member_login_auth_member_login_post",
         "requestBody": {
           "content": {
@@ -1277,6 +1371,7 @@
           "auth"
         ],
         "summary": "Member Logout",
+        "description": "\uba64\ubc84 \ub85c\uadf8\uc544\uc6c3.",
         "operationId": "member_logout_auth_member_logout_post",
         "responses": {
           "204": {
@@ -1291,7 +1386,7 @@
           "auth"
         ],
         "summary": "Member Me",
-        "description": "\uba64\ubc84 \uc790\uae30\uc815\ubcf4: \uc6f9 \ud504\ub860\ud2b8 \ud0c0\uc785 \uc815\uc758\uc5d0 \ub9de\ucdb0 email\uc744 \ubc18\ud658.\n\n\uc138\uc158\uc5d0 email\uc774 \uc5c6\uc744 \uc218 \uc788\uc5b4 Member \ud14c\uc774\ube14\uc744 \uc870\ud68c\ud558\uc5ec \ubcf4\uac15\ud55c\ub2e4.",
+        "description": "\uba64\ubc84 \uc774\uba54\uc77c \uc870\ud68c.",
         "operationId": "member_me_auth_member_me_get",
         "responses": {
           "200": {
@@ -1316,9 +1411,9 @@
         "tags": [
           "auth"
         ],
-        "summary": "Member Activate",
-        "description": "\uba64\ubc84 \ud65c\uc131\ud654: \uc11c\uba85 \ud1a0\ud070 \uac80\uc99d \ud6c4 Member/MemberAuth\ub97c \uc0dd\uc131 \ub610\ub294 \uac31\uc2e0.\n\n\ud1a0\ud070 \ud398\uc774\ub85c\ub4dc \uc608: {\"email\": \"user@example.com\", \"name\": \"User\", \"cohort\": 1}\n\uac1c\ubc1c \ub2e8\uacc4\uc5d0\uc11c\ub294 itsdangerous \uc11c\uba85 \ud1a0\ud070\uc744 \uc0ac\uc6a9\ud55c\ub2e4.",
-        "operationId": "member_activate_auth_member_activate_post",
+        "summary": "Member Activate Endpoint",
+        "description": "\uba64\ubc84 \ud65c\uc131\ud654 (\ud1a0\ud070 \uac80\uc99d \ud6c4 \uacc4\uc815 \uc0dd\uc131/\ube44\ubc00\ubc88\ud638 \uc124\uc815).",
+        "operationId": "member_activate_endpoint_auth_member_activate_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1339,7 +1434,7 @@
                     "type": "string"
                   },
                   "type": "object",
-                  "title": "Response Member Activate Auth Member Activate Post"
+                  "title": "Response Member Activate Endpoint Auth Member Activate Post"
                 }
               }
             }
@@ -1363,6 +1458,7 @@
           "auth"
         ],
         "summary": "Change Password",
+        "description": "\ube44\ubc00\ubc88\ud638 \ubcc0\uacbd.",
         "operationId": "change_password_auth_member_change_password_post",
         "requestBody": {
           "content": {
@@ -1402,105 +1498,13 @@
         }
       }
     },
-    "/auth/login": {
-      "post": {
-        "tags": [
-          "auth"
-        ],
-        "summary": "Login",
-        "operationId": "login_auth_login_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginPayload"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object",
-                  "title": "Response Login Auth Login Post"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/auth/logout": {
-      "post": {
-        "tags": [
-          "auth"
-        ],
-        "summary": "Logout",
-        "operationId": "logout_auth_logout_post",
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          }
-        }
-      }
-    },
-    "/auth/me": {
-      "get": {
-        "tags": [
-          "auth"
-        ],
-        "summary": "Me",
-        "description": "\uad00\ub9ac\uc790 \uc790\uae30\uc815\ubcf4(\ud558\uc704\ud638\ud658): \uad00\ub9ac\uc790 \uc138\uc158\uc774 \uc788\uc744 \ub54c\ub9cc 200.\n\n\ud1b5\ud569 \uc138\uc158\uc744 \uc0ac\uc6a9\ud558\ub354\ub77c\ub3c4 roles\uc5d0 'admin'\uc774 \uc788\uc5b4\uc57c \ud1b5\uacfc\ud55c\ub2e4.",
-        "operationId": "me_auth_me_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "integer"
-                      }
-                    ]
-                  },
-                  "type": "object",
-                  "title": "Response Me Auth Me Get"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/auth/session": {
       "get": {
         "tags": [
           "auth"
         ],
         "summary": "Session",
-        "description": "\ud1b5\ud569 \uc138\uc158 \uc870\ud68c \uc5d4\ub4dc\ud3ec\uc778\ud2b8.\n\n\ubc18\ud658 \ud615\uc2dd: { kind: 'admin'|'member', student_id, email, name, id? }\n\uc138\uc158\uc774 \uc5c6\uc73c\uba74 401.",
+        "description": "\ud1b5\ud569 \uc138\uc158 \uc870\ud68c (kind, student_id, email, name, id \ubc18\ud658).",
         "operationId": "session_auth_session_get",
         "responses": {
           "200": {
