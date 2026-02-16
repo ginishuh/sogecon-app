@@ -39,7 +39,8 @@ def _resize_image_if_needed(img: Image.Image, max_pixels: int) -> Image.Image:
     else:
         new_height = max_pixels
         new_width = int(width * (max_pixels / height))
-    return img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    new_size: tuple[int, int] = (new_width, new_height)
+    return img.resize(new_size, Image.Resampling.LANCZOS)
 
 
 @router.post("/images", response_model=ImageUploadResponse)

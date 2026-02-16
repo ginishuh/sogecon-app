@@ -1,5 +1,23 @@
 import { apiFetch } from '../lib/api';
 
+export type TestNotificationPayload = {
+  title: string;
+  body: string;
+  url?: string;
+};
+
+export type TestNotificationResult = {
+  accepted: number;
+  failed: number;
+};
+
+export async function sendTestNotification(payload: TestNotificationPayload): Promise<TestNotificationResult> {
+  return apiFetch<TestNotificationResult>('/notifications/admin/notifications/test', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export type SubscriptionPayload = {
   endpoint: string;
   p256dh: string;

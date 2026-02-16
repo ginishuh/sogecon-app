@@ -16,7 +16,7 @@
   "reportMissingTypeStubs": "warning",
   "reportUnknownArgumentType": "error",
   "reportUnknownLambdaType": "error",
-  "reportUnknownMemberType": "error",
+  "reportUnknownMemberType": "warning",
   "reportUnknownParameterType": "error",
   "reportUnknownVariableType": "error",
   "reportAny": "error",

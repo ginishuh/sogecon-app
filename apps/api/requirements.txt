@@ -10,7 +10,7 @@ bcrypt==4.2.0
 itsdangerous==2.2.0
 email-validator==2.2.0
 pywebpush==2.0.0
-cryptography==44.0.1
-Pillow==10.4.0
+cryptography==46.0.5
+Pillow==12.1.1
 sentry-sdk[starlette]==2.40.0
 apscheduler==3.11.0
