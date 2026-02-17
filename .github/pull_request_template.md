@@ -38,7 +38,6 @@
 - 일반
   - [ ] Conventional Commits 규칙을 따른다(`type(scope): subject`, 72자 이내)
   - [ ] 한국어 커밋/PR 설명, 한국어 코드 주석(베이스 문서 규정 준수)
-  - [ ] `docs/worklog.md` 업데이트(코드 변경마다 1줄)
   - [ ] `docs/dev_log_YYMMDD.md` 최신 항목 포함(비-문서 변경 푸시용)
 - 품질/규칙(Repo Guards와 일치)
   - [ ] 린트 우회 주석 없음(`eslint-disable`, `@ts-...`, `# type: ignore`, `# noqa` 등)

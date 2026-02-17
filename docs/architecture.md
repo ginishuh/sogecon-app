@@ -71,7 +71,7 @@
 - **정적 검사**: `ruff`, `pyright`, `eslint`, `tsc --noEmit`.
 - **테스트**: `pytest -q`로 API 단위 테스트, 웹 쪽은 `vitest`/`@testing-library/react` 도입 예정.
 - **CI 파이프라인**: PR Ready 전환 시 lint → type check → build 순서. 비밀 검출은 `gitleaks`로 수행.
-- **로그 정책**: 코드 변경 시 `docs/worklog.md`, 개발 세션 별로 `docs/dev_log_YYMMDD.md` 업데이트.
+- **로그 정책**: 상세 이력은 커밋/PR 히스토리로 관리하고, 개발 세션 별로 `docs/dev_log_YYMMDD.md`를 업데이트.
 
 ## 배포 및 환경 구성
 - **개발 환경**: `make web-dev`(포트 3000), `make api-dev`(포트 3001). 필요 시 `make db-up`으로 PostgreSQL 16 컨테이너 기동.

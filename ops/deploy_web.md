@@ -2,7 +2,7 @@
 
 ## 1. 목적
 - Next.js 웹 애플리케이션을 Vercel/Fly/자체 호스팅 등 Node 24.x 환경에 배포할 때 필요한 준비·검증·롤백 절차를 정리한다.
-- 릴리스는 항상 `apps/web` 기준 `pnpm` 워크스페이스에서 수행하며, 배포 전후 로그를 `docs/worklog.md`에 기록한다.
+- 릴리스는 항상 `apps/web` 기준 `pnpm` 워크스페이스에서 수행하며, 배포 전후 로그는 해당 일자의 `docs/dev_log_YYMMDD.md`에 기록한다.
 
 ## 2. 사전 준비
 - **필수 환경 변수**
@@ -46,7 +46,7 @@
 - 배포 실패 시:
   1. 트래픽을 이전 버전 인스턴스로 즉시 전환 (blue/green 또는 previous deployment)
   2. 실패 원인 로그 수집 (`pnpm -C apps/web build` 실패 로그, 런타임 에러 스택)
-  3. `docs/worklog.md` 에 실패 기록 & 재배포 일정 공유
+  3. `docs/dev_log_YYMMDD.md` 에 실패 기록 & 재배포 일정 공유
 
 ## 7. 추후 보강 항목
 - 배포 대상별 구체 명령 (Vercel CLI, Flyctl 등) 템플릿화

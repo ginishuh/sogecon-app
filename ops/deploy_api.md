@@ -32,7 +32,7 @@
 3. 테스트: `.venv/bin/pytest -q`
 4. 런타임 확인: `.venv/bin/uvicorn apps.api.main:app --host 0.0.0.0 --port 3001`
 5. 다른 터미널에서 헬스 체크: `curl -I http://localhost:3001/healthz` → `200 OK`
-6. 종료 후 `docs/worklog.md` 에 검증 결과 기록
+6. 종료 후 해당 일자의 `docs/dev_log_YYMMDD.md`에 검증 결과 기록
 
 ## 4. 배포 절차 (예시)
 1. `main` 병합 → CI에서 `pytest`, `pyright`, `ruff` 성공 확인
