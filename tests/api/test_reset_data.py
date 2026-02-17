@@ -25,6 +25,8 @@ def _run_in_test_session(fn: Callable[[AsyncSession], Awaitable[None]]) -> None:
     if override is None:
         raise RuntimeError("get_db override not found")
 
+    # 테스트 fixture가 주입한 DB 세션 override를 재사용해
+    # 별도 엔진 생성 없이 동일 트랜잭션 컨텍스트에서 검증한다.
     async def _run() -> None:
         async for session in override():
             await fn(session)
@@ -50,6 +52,13 @@ async def _seed_reset_target_data(session: AsyncSession) -> None:
             member_id=member.id,
             student_id=member.student_id,
             password_hash="dummy-hash",
+        )
+    )
+    session.add(
+        models.AdminUser(
+            student_id="reset-admin",
+            email="reset-admin@example.com",
+            password_hash="dummy-admin-hash",
         )
     )
 
@@ -132,6 +141,14 @@ async def _seed_reset_target_data(session: AsyncSession) -> None:
         )
     )
     session.add(
+        models.HeroItem(
+            target_type="event",
+            target_id=event.id,
+            enabled=True,
+            pinned=False,
+        )
+    )
+    session.add(
         SupportTicket(
             member_email="member@example.com",
             subject="문의",
@@ -147,6 +164,9 @@ async def _assert_counts_after_reset(session: AsyncSession) -> None:
     member_count = await session.scalar(select(func.count()).select_from(models.Member))
     auth_count = await session.scalar(
         select(func.count()).select_from(models.MemberAuth)
+    )
+    admin_count = await session.scalar(
+        select(func.count()).select_from(models.AdminUser)
     )
     post_count = await session.scalar(select(func.count()).select_from(models.Post))
     comment_count = await session.scalar(
@@ -165,10 +185,13 @@ async def _assert_counts_after_reset(session: AsyncSession) -> None:
     sched_log_count = await session.scalar(
         select(func.count()).select_from(models.ScheduledNotificationLog)
     )
+    event_count = await session.scalar(select(func.count()).select_from(models.Event))
+    hero_count = await session.scalar(select(func.count()).select_from(models.HeroItem))
     ticket_count = await session.scalar(select(func.count()).select_from(SupportTicket))
 
     assert member_count == 0
     assert auth_count == 0
+    assert admin_count == 0
     assert post_count == 0
     assert comment_count == 0
     assert rsvp_count == 0
@@ -176,6 +199,8 @@ async def _assert_counts_after_reset(session: AsyncSession) -> None:
     assert sub_count == 1
     assert send_log_count == 1
     assert sched_log_count == 1
+    assert event_count == 1
+    assert hero_count == 1
     assert ticket_count == 1
 
 
@@ -198,6 +223,8 @@ def test_reset_transition_data_keeps_logs(client: object) -> None:
     async def _do_reset(session: AsyncSession) -> None:
         summary = await reset_transition_data(session)
         assert "signup_requests" in summary.skipped_tables
+        assert "events" in summary.preserved_tables
+        assert "hero_items" in summary.preserved_tables
 
     _run_in_test_session(_do_reset)
     _run_in_test_session(_assert_counts_after_reset)

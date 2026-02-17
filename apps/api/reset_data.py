@@ -43,16 +43,23 @@ DELETE_STEPS: Final[tuple[DeleteStep, ...]] = (
     DeleteStep("posts"),
     DeleteStep("rsvps"),
     DeleteStep("member_auth"),
+    DeleteStep("admin_users"),
     DeleteStep("notification_preferences"),
     DeleteStep("push_subscriptions", where_clause="member_id IS NOT NULL"),
     DeleteStep("signup_requests"),
     DeleteStep("members"),
 )
 
+ALLOWED_DELETE_TABLES: Final[frozenset[str]] = frozenset(
+    step.table for step in DELETE_STEPS
+)
+
 PRESERVED_TABLES: Final[tuple[str, ...]] = (
     "notification_send_logs",
     "scheduled_notification_logs",
     "support_tickets",
+    "events",
+    "hero_items",
 )
 
 
@@ -70,6 +77,8 @@ async def _table_exists(session: AsyncSession, table_name: str) -> bool:
 
 
 def _build_delete_sql(step: DeleteStep) -> str:
+    if step.table not in ALLOWED_DELETE_TABLES:
+        raise ValueError(f"허용되지 않은 테이블: {step.table}")
     if step.where_clause:
         return f'DELETE FROM "{step.table}" WHERE {step.where_clause}'
     return f'DELETE FROM "{step.table}"'

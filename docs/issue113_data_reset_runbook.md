@@ -3,6 +3,7 @@
 ## 목적
 - 기존 더미 회원/인증/신청 데이터를 초기화하고 가입신청 기반 플로우로 전환합니다.
 - 운영 로그성 데이터(`notification_send_logs`, `scheduled_notification_logs`, `support_tickets`)는 보존합니다.
+- 운영 콘텐츠 성격의 `events`, `hero_items`는 보존합니다.
 
 ## 사전 조건
 - 점검창에서 실행합니다.
@@ -35,10 +36,18 @@ make seed-data
 - `posts`
 - `rsvps`
 - `member_auth`
+- `admin_users`
 - `notification_preferences`
 - `push_subscriptions` 중 `member_id IS NOT NULL`
 - `signup_requests` (테이블이 아직 없으면 자동 스킵)
 - `members`
+
+## 보존 대상(현재)
+- `notification_send_logs`
+- `scheduled_notification_logs`
+- `support_tickets`
+- `events`
+- `hero_items`
 
 ## 주의사항
 - `ALLOW_DESTRUCTIVE_RESET=1`이 없으면 커맨드는 실패합니다.

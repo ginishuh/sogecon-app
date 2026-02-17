@@ -106,7 +106,7 @@
   - 프론트 동작 영향이 있으면 요약에 `(프론트 영향)`을 포함합니다.
   - `[skip-commitlog]`는 문서 전용 커밋에서만 허용합니다.
 - 비-문서 변경 푸시는 당일 `docs/dev_log_YYMMDD.md`가 반드시 포함되어야 합니다.
- - PR은 `.github/pull_request_template.md` 템플릿을 반드시 사용합니다. Draft 단계에서는 상단 섹션만 채우고, Ready for Review로 전환하기 전에 템플릿 체크리스트를 모두 완료합니다.
+- PR은 `.github/pull_request_template.md` 템플릿을 반드시 사용합니다. Draft 단계에서는 상단 섹션만 채우고, Ready for Review로 전환하기 전에 템플릿 체크리스트를 모두 완료합니다.
 - Git 명령 대기 원칙: `git commit`/`git push`(로컬 훅 포함) 중에는 사용자가 멈추라 할 때만 중단하고, 조용해도 최소 3분은 기다립니다. 5분쯤 되면 중단 전에 사용자에게 먼저 묻고 결정하며, 자동 재시도는 금지합니다.
 
 ### 계획서(PR 포함) 정책
