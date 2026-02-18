@@ -13,10 +13,11 @@ import os
 from dataclasses import dataclass
 from typing import Final, cast
 
-from sqlalchemy import inspect, text
+from sqlalchemy import column, delete, inspect, table
 from sqlalchemy.engine import Connection, CursorResult
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.dml import Delete
 
 from apps.api.db import get_db_session
 
@@ -27,7 +28,7 @@ ALLOW_RESET_VALUE: Final[str] = "1"
 @dataclass(frozen=True)
 class DeleteStep:
     table: str
-    where_clause: str | None = None
+    member_id_not_null_only: bool = False
 
 
 @dataclass(frozen=True)
@@ -45,7 +46,7 @@ DELETE_STEPS: Final[tuple[DeleteStep, ...]] = (
     DeleteStep("member_auth"),
     DeleteStep("admin_users"),
     DeleteStep("notification_preferences"),
-    DeleteStep("push_subscriptions", where_clause="member_id IS NOT NULL"),
+    DeleteStep("push_subscriptions", member_id_not_null_only=True),
     DeleteStep("signup_requests"),
     DeleteStep("members"),
 )
@@ -76,12 +77,14 @@ async def _table_exists(session: AsyncSession, table_name: str) -> bool:
     return await conn.run_sync(_has_table, table_name)
 
 
-def _build_delete_sql(step: DeleteStep) -> str:
+def _build_delete_statement(step: DeleteStep) -> Delete:
     if step.table not in ALLOWED_DELETE_TABLES:
         raise ValueError(f"허용되지 않은 테이블: {step.table}")
-    if step.where_clause:
-        return f'DELETE FROM "{step.table}" WHERE {step.where_clause}'
-    return f'DELETE FROM "{step.table}"'
+    if step.member_id_not_null_only:
+        table_clause = table(step.table, column("member_id"))
+        return delete(table_clause).where(table_clause.c.member_id.is_not(None))
+    table_clause = table(step.table)
+    return delete(table_clause)
 
 
 def _normalize_rowcount(value: int | None) -> int:
@@ -101,7 +104,7 @@ async def reset_transition_data(session: AsyncSession) -> ResetSummary:
             if not await _table_exists(session, step.table):
                 skipped_tables.append(step.table)
                 continue
-            result = await session.execute(text(_build_delete_sql(step)))
+            result = await session.execute(_build_delete_statement(step))
             cursor_result = cast(CursorResult[object], result)
             deleted_rows[step.table] = _normalize_rowcount(cursor_result.rowcount)
         await session.commit()
@@ -121,8 +124,8 @@ def _format_summary(summary: ResetSummary) -> str:
     lines.append("✅ 전환 데이터 리셋 완료")
     lines.append("")
     lines.append("삭제된 테이블:")
-    for table, count in summary.deleted_rows.items():
-        lines.append(f"- {table}: {count} row(s)")
+    for table_name, count in summary.deleted_rows.items():
+        lines.append(f"- {table_name}: {count} row(s)")
     if summary.skipped_tables:
         lines.append("")
         lines.append("스킵된 테이블(현재 스키마에 없음):")

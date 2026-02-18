@@ -115,6 +115,20 @@ if [ "$python_changed" = true ]; then
 
   # Note: pytest is now handled by CI to speed up local pushes
   echo "[hooks] Tests will be run by CI - skipping local pytest execution"
+
+  if [ -z "$PY_BIN" ]; then
+    echo "[hooks] Error: python runtime not found for bandit scan."
+    exit 1
+  fi
+
+  if "$PY_BIN" -m bandit --version >/dev/null 2>&1; then
+    echo "[hooks] Running bandit security scan"
+    "$PY_BIN" -m bandit -r apps/api -x apps/api/migrations -q
+  else
+    echo "[hooks] Error: bandit not available in active environment."
+    echo "[hooks] Install with: $PY_BIN -m pip install -r apps/api/requirements-dev.txt"
+    exit 1
+  fi
 fi
 
 ## Web build is handled by CI. Pre-push does not build the web app.
