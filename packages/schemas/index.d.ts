@@ -1259,6 +1259,12 @@ export interface components {
             industry?: string | null;
             /** Id */
             id: number;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "pending" | "active" | "suspended" | "rejected";
             /** Avatar Url */
             readonly avatar_url: string | null;
         };
