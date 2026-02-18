@@ -12,15 +12,36 @@ import {
   type SignupRequestRead,
 } from '../../services/signup-requests';
 
+type Feedback = {
+  tone: 'success' | 'error';
+  message: string;
+};
+
 function parseCohort(value: string): number | null {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed <= 0) return null;
   return parsed;
 }
 
+function FeedbackBanner({ feedback }: { feedback: Feedback | null }) {
+  if (feedback == null) return null;
+
+  const className =
+    feedback.tone === 'success'
+      ? 'border-state-success-ring bg-state-success-subtle text-state-success'
+      : 'border-state-error-ring bg-state-error-subtle text-state-error';
+
+  return (
+    <p className={`rounded border px-3 py-2 text-sm ${className}`} role="status">
+      {feedback.message}
+    </p>
+  );
+}
+
 export default function SignupPage() {
   const { show } = useToast();
   const [submitted, setSubmitted] = useState<SignupRequestRead | null>(null);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [form, setForm] = useState({
     studentId: '',
     email: '',
@@ -34,15 +55,18 @@ export default function SignupPage() {
   const mutate = useMutation({
     mutationFn: (payload: SignupRequestCreatePayload) => createSignupRequest(payload),
     onSuccess: (data) => {
+      const message = '가입신청이 접수되었습니다.';
       setSubmitted(data);
-      show('가입신청이 접수되었습니다.', { type: 'success' });
+      setFeedback({ tone: 'success', message });
+      show(message, { type: 'success' });
     },
     onError: (error: unknown) => {
-      if (error instanceof ApiError) {
-        show(apiErrorToMessage(error.code, error.message), { type: 'error' });
-        return;
-      }
-      show('가입신청 처리 중 오류가 발생했습니다.', { type: 'error' });
+      const message =
+        error instanceof ApiError
+          ? apiErrorToMessage(error.code, error.message)
+          : '가입신청 처리 중 오류가 발생했습니다.';
+      setFeedback({ tone: 'error', message });
+      show(message, { type: 'error' });
     },
   });
 
@@ -50,9 +74,13 @@ export default function SignupPage() {
     e.preventDefault();
     const cohort = parseCohort(form.cohort);
     if (cohort == null) {
-      show('기수를 숫자로 입력해 주세요.', { type: 'error' });
+      const message = '기수를 숫자로 입력해 주세요.';
+      setFeedback({ tone: 'error', message });
+      show(message, { type: 'error' });
       return;
     }
+
+    setFeedback(null);
     mutate.mutate({
       student_id: form.studentId.trim(),
       email: form.email.trim(),
@@ -72,6 +100,7 @@ export default function SignupPage() {
           심사 상태가 <b className="text-text-primary">대기 중</b>으로 접수되었습니다.
           승인 후 전달받은 활성화 토큰으로 비밀번호 설정을 진행해 주세요.
         </p>
+        <FeedbackBanner feedback={feedback} />
         <dl className="grid gap-2 rounded border border-neutral-border bg-surface-raised p-4 text-sm">
           <div className="flex justify-between gap-3">
             <dt className="text-text-muted">신청번호</dt>
@@ -117,6 +146,8 @@ export default function SignupPage() {
         onSubmit={onSubmit}
         className="grid gap-4 rounded-xl border border-neutral-border bg-white p-6"
       >
+        <FeedbackBanner feedback={feedback} />
+
         <label className="text-sm text-text-primary">
           학번
           <input

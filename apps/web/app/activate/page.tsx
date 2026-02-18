@@ -9,6 +9,26 @@ import { ApiError } from '../../lib/api';
 import { apiErrorToMessage } from '../../lib/error-map';
 import { activate } from '../../services/member';
 
+type Feedback = {
+  tone: 'success' | 'error';
+  message: string;
+};
+
+function FeedbackBanner({ feedback }: { feedback: Feedback | null }) {
+  if (feedback == null) return null;
+
+  const className =
+    feedback.tone === 'success'
+      ? 'border-state-success-ring bg-state-success-subtle text-state-success'
+      : 'border-state-error-ring bg-state-error-subtle text-state-error';
+
+  return (
+    <p className={`rounded border px-3 py-2 text-sm ${className}`} role="status">
+      {feedback.message}
+    </p>
+  );
+}
+
 export default function ActivatePage() {
   return (
     <Suspense fallback={<div className="max-w-xl p-6 text-sm text-text-secondary">활성화 화면을 준비 중입니다…</div>}>
@@ -24,20 +44,25 @@ function ActivateForm() {
   const [token, setToken] = useState(() => params.get('token') ?? '');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    setFeedback(null);
     try {
       await activate({ token, password });
       await invalidate();
-      toast.show('활성화 및 로그인 완료', { type: 'success' });
+      const message = '활성화 및 로그인 완료';
+      setFeedback({ tone: 'success', message });
+      toast.show(message, { type: 'success' });
     } catch (error: unknown) {
-      if (error instanceof ApiError) {
-        toast.show(apiErrorToMessage(error.code, error.message), { type: 'error' });
-      } else {
-        toast.show('활성화에 실패했습니다. 토큰/비밀번호를 확인하세요.', { type: 'error' });
-      }
+      const message =
+        error instanceof ApiError
+          ? apiErrorToMessage(error.code, error.message)
+          : '활성화에 실패했습니다. 토큰/비밀번호를 확인하세요.';
+      setFeedback({ tone: 'error', message });
+      toast.show(message, { type: 'error' });
     } finally {
       setBusy(false);
     }
@@ -50,6 +75,7 @@ function ActivateForm() {
         관리자 승인 후 전달받은 활성화 토큰으로 비밀번호를 설정해 로그인 상태를 생성합니다.
       </p>
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
+        <FeedbackBanner feedback={feedback} />
         <label className="text-sm">
           토큰
           <input

@@ -26,6 +26,26 @@ import {
 
 const PAGE_SIZE = 20;
 
+type Feedback = {
+  tone: 'success' | 'error';
+  message: string;
+};
+
+function FeedbackBanner({ feedback }: { feedback: Feedback | null }) {
+  if (feedback == null) return null;
+
+  const className =
+    feedback.tone === 'success'
+      ? 'border-state-success-ring bg-state-success-subtle text-state-success'
+      : 'border-state-error-ring bg-state-error-subtle text-state-error';
+
+  return (
+    <div className={`rounded border px-3 py-2 text-sm ${className}`} role="status">
+      {feedback.message}
+    </div>
+  );
+}
+
 function useSignupRequestsModel() {
   const { show } = useToast();
   const queryClient = useQueryClient();
@@ -37,6 +57,7 @@ function useSignupRequestsModel() {
   const [rejectTarget, setRejectTarget] = useState<SignupRequestRead | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [lastApprove, setLastApprove] = useState<SignupApproveResponse | null>(null);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   const listParams = useMemo(
     () => ({
@@ -55,18 +76,22 @@ function useSignupRequestsModel() {
   });
 
   const handleError = (error: unknown, fallbackMessage: string) => {
-    if (error instanceof ApiError) {
-      show(apiErrorToMessage(error.code, error.message), { type: 'error' });
-      return;
-    }
-    show(fallbackMessage, { type: 'error' });
+    const message =
+      error instanceof ApiError
+        ? apiErrorToMessage(error.code, error.message)
+        : fallbackMessage;
+
+    setFeedback({ tone: 'error', message });
+    show(message, { type: 'error' });
   };
 
   const approveMutation = useMutation({
     mutationFn: (id: number) => approveAdminSignupRequest(id),
     onSuccess: (data) => {
+      const message = '가입신청을 승인했습니다.';
       setLastApprove(data);
-      show('가입신청을 승인했습니다.', { type: 'success' });
+      setFeedback({ tone: 'success', message });
+      show(message, { type: 'success' });
       void queryClient.invalidateQueries({ queryKey: ['admin-signup-requests'] });
     },
     onError: (error: unknown) => handleError(error, '승인 처리 중 오류가 발생했습니다.'),
@@ -76,7 +101,9 @@ function useSignupRequestsModel() {
     mutationFn: (params: { id: number; reason: string }) =>
       rejectAdminSignupRequest(params.id, params.reason),
     onSuccess: () => {
-      show('가입신청을 반려했습니다.', { type: 'success' });
+      const message = '가입신청을 반려했습니다.';
+      setFeedback({ tone: 'success', message });
+      show(message, { type: 'success' });
       setRejectTarget(null);
       setRejectReason('');
       void queryClient.invalidateQueries({ queryKey: ['admin-signup-requests'] });
@@ -88,9 +115,13 @@ function useSignupRequestsModel() {
     if (lastApprove == null) return;
     try {
       await navigator.clipboard.writeText(lastApprove.activation_token);
-      show('활성화 토큰을 복사했습니다.', { type: 'success' });
+      const message = '활성화 토큰을 복사했습니다.';
+      setFeedback({ tone: 'success', message });
+      show(message, { type: 'success' });
     } catch {
-      show('클립보드 복사에 실패했습니다. 직접 복사해 주세요.', { type: 'error' });
+      const message = '클립보드 복사에 실패했습니다. 직접 복사해 주세요.';
+      setFeedback({ tone: 'error', message });
+      show(message, { type: 'error' });
     }
   };
 
@@ -111,6 +142,8 @@ function useSignupRequestsModel() {
     setRejectReason,
     lastApprove,
     copyActivationToken,
+    feedback,
+    clearFeedback: () => setFeedback(null),
   };
 }
 
@@ -134,6 +167,8 @@ function AdminSignupRequestsContent() {
         </p>
       </header>
 
+      <FeedbackBanner feedback={model.feedback} />
+
       <ApproveTokenCard lastApprove={model.lastApprove} onCopy={model.copyActivationToken} />
 
       <FiltersPanel
@@ -142,6 +177,7 @@ function AdminSignupRequestsContent() {
         onSearchInput={model.setSearchInput}
         onStatusFilter={model.setStatusFilter}
         onSearch={() => {
+          model.clearFeedback();
           model.setSearch(model.searchInput);
           model.setPage(0);
         }}
@@ -154,6 +190,7 @@ function AdminSignupRequestsContent() {
         onReason={model.setRejectReason}
         onConfirm={() => {
           if (!model.rejectTarget) return;
+          model.clearFeedback();
           model.rejectMutation.mutate({
             id: model.rejectTarget.id,
             reason: model.rejectReason.trim(),
@@ -165,29 +202,20 @@ function AdminSignupRequestsContent() {
         }}
       />
 
-      <div className="overflow-x-auto rounded border border-neutral-border bg-white">
-        <table className="min-w-[980px] text-left text-sm">
-          <thead>
-            <tr className="border-b bg-surface-raised">
-              <th className="px-3 py-2">기본 정보</th>
-              <th className="px-3 py-2">상태</th>
-              <th className="px-3 py-2">신청/결정 시각</th>
-              <th className="px-3 py-2 text-right">액션</th>
-            </tr>
-          </thead>
-          <SignupRequestsTable
-            state={listState}
-            items={items}
-            isApprovePending={model.approveMutation.isPending}
-            isRejectPending={model.rejectMutation.isPending}
-            onApprove={(id) => model.approveMutation.mutate(id)}
-            onStartReject={(row) => {
-              model.setRejectTarget(row);
-              model.setRejectReason('');
-            }}
-          />
-        </table>
-      </div>
+      <SignupRequestsTable
+        state={listState}
+        items={items}
+        isApprovePending={model.approveMutation.isPending}
+        isRejectPending={model.rejectMutation.isPending}
+        onApprove={(id) => {
+          model.clearFeedback();
+          model.approveMutation.mutate(id);
+        }}
+        onStartReject={(row) => {
+          model.setRejectTarget(row);
+          model.setRejectReason('');
+        }}
+      />
 
       <PaginationBar
         page={model.page}

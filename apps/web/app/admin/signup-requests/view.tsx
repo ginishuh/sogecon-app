@@ -31,6 +31,19 @@ export function getListState(params: {
   return 'ready';
 }
 
+function ListFallback({ state }: { state: ListState }) {
+  if (state === 'loading') {
+    return <p className="rounded border border-neutral-border bg-white px-3 py-8 text-center text-text-muted">로딩 중...</p>;
+  }
+  if (state === 'error') {
+    return <p className="rounded border border-neutral-border bg-white px-3 py-8 text-center text-state-error">목록을 불러오지 못했습니다.</p>;
+  }
+  if (state === 'empty') {
+    return <p className="rounded border border-neutral-border bg-white px-3 py-8 text-center text-text-muted">조회 결과가 없습니다.</p>;
+  }
+  return null;
+}
+
 export function ApproveTokenCard({
   lastApprove,
   onCopy,
@@ -159,6 +172,57 @@ export function RejectPanel({
   );
 }
 
+function SignupRequestMobileCard({
+  row,
+  isApprovePending,
+  isRejectPending,
+  onApprove,
+  onStartReject,
+}: {
+  row: SignupRequestRead;
+  isApprovePending: boolean;
+  isRejectPending: boolean;
+  onApprove: (id: number) => void;
+  onStartReject: (row: SignupRequestRead) => void;
+}) {
+  return (
+    <article className="rounded border border-neutral-border bg-white p-3">
+      <p className="font-medium text-text-primary">{row.name} ({row.student_id})</p>
+      <p className="text-xs text-text-secondary">{row.email}</p>
+      <p className="mt-1 text-xs text-text-muted">
+        기수 {row.cohort}
+        {row.major ? ` · ${row.major}` : ''}
+        {row.phone ? ` · ${row.phone}` : ''}
+      </p>
+      <div className="mt-2 flex items-center justify-between">
+        <span className={`inline-flex rounded px-2 py-0.5 text-xs ring-1 ${statusBadgeClass(row.status)}`}>
+          {row.status}
+        </span>
+        <p className="text-xs text-text-muted">신청: {formatDate(row.requested_at)}</p>
+      </div>
+      {row.reject_reason ? <p className="mt-1 text-xs text-state-error">반려 사유: {row.reject_reason}</p> : null}
+      <div className="mt-3 flex justify-end gap-2">
+        <button
+          type="button"
+          className="rounded border border-state-success-ring px-3 py-1.5 text-xs text-state-success disabled:opacity-40"
+          disabled={row.status !== 'pending' || isApprovePending}
+          onClick={() => onApprove(row.id)}
+        >
+          승인
+        </button>
+        <button
+          type="button"
+          className="rounded border border-state-error-ring px-3 py-1.5 text-xs text-state-error disabled:opacity-40"
+          disabled={row.status !== 'pending' || isRejectPending}
+          onClick={() => onStartReject(row)}
+        >
+          반려
+        </button>
+      </div>
+    </article>
+  );
+}
+
 export function SignupRequestsTable({
   state,
   items,
@@ -174,93 +238,82 @@ export function SignupRequestsTable({
   onApprove: (id: number) => void;
   onStartReject: (row: SignupRequestRead) => void;
 }) {
-  if (state === 'loading') {
-    return (
-      <tbody>
-        <tr>
-          <td colSpan={4} className="px-3 py-8 text-center text-text-muted">
-            로딩 중...
-          </td>
-        </tr>
-      </tbody>
-    );
-  }
-
-  if (state === 'error') {
-    return (
-      <tbody>
-        <tr>
-          <td colSpan={4} className="px-3 py-8 text-center text-state-error">
-            목록을 불러오지 못했습니다.
-          </td>
-        </tr>
-      </tbody>
-    );
-  }
-
-  if (state === 'empty') {
-    return (
-      <tbody>
-        <tr>
-          <td colSpan={4} className="px-3 py-8 text-center text-text-muted">
-            조회 결과가 없습니다.
-          </td>
-        </tr>
-      </tbody>
-    );
-  }
+  if (state !== 'ready') return <ListFallback state={state} />;
 
   return (
-    <tbody>
-      {items.map((row) => (
-        <tr key={row.id} className="border-b align-top">
-          <td className="px-3 py-2">
-            <p className="font-medium text-text-primary">
-              {row.name} ({row.student_id})
-            </p>
-            <p className="text-xs text-text-secondary">{row.email}</p>
-            <p className="mt-1 text-xs text-text-muted">
-              기수 {row.cohort}
-              {row.major ? ` · ${row.major}` : ''}
-              {row.phone ? ` · ${row.phone}` : ''}
-            </p>
-          </td>
-          <td className="px-3 py-2">
-            <span className={`inline-flex rounded px-2 py-0.5 text-xs ring-1 ${statusBadgeClass(row.status)}`}>
-              {row.status}
-            </span>
-            {row.reject_reason ? (
-              <p className="mt-1 text-xs text-state-error">{row.reject_reason}</p>
-            ) : null}
-          </td>
-          <td className="px-3 py-2 text-xs text-text-secondary">
-            <p>신청: {formatDate(row.requested_at)}</p>
-            <p>결정: {formatDate(row.decided_at)}</p>
-            <p>활성화: {formatDate(row.activated_at)}</p>
-          </td>
-          <td className="px-3 py-2 text-right">
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                className="rounded border border-state-success-ring px-3 py-1.5 text-xs text-state-success disabled:opacity-40"
-                disabled={row.status !== 'pending' || isApprovePending}
-                onClick={() => onApprove(row.id)}
-              >
-                승인
-              </button>
-              <button
-                type="button"
-                className="rounded border border-state-error-ring px-3 py-1.5 text-xs text-state-error disabled:opacity-40"
-                disabled={row.status !== 'pending' || isRejectPending}
-                onClick={() => onStartReject(row)}
-              >
-                반려
-              </button>
-            </div>
-          </td>
-        </tr>
-      ))}
-    </tbody>
+    <>
+      <div className="space-y-3 md:hidden">
+        {items.map((row) => (
+          <SignupRequestMobileCard
+            key={`mobile:${row.id}`}
+            row={row}
+            isApprovePending={isApprovePending}
+            isRejectPending={isRejectPending}
+            onApprove={onApprove}
+            onStartReject={onStartReject}
+          />
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded border border-neutral-border bg-white md:block">
+        <table className="min-w-[980px] text-left text-sm">
+          <thead>
+            <tr className="border-b bg-surface-raised">
+              <th className="px-3 py-2">기본 정보</th>
+              <th className="px-3 py-2">상태</th>
+              <th className="px-3 py-2">신청/결정 시각</th>
+              <th className="px-3 py-2 text-right">액션</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((row) => (
+              <tr key={row.id} className="border-b align-top">
+                <td className="px-3 py-2">
+                  <p className="font-medium text-text-primary">{row.name} ({row.student_id})</p>
+                  <p className="text-xs text-text-secondary">{row.email}</p>
+                  <p className="mt-1 text-xs text-text-muted">
+                    기수 {row.cohort}
+                    {row.major ? ` · ${row.major}` : ''}
+                    {row.phone ? ` · ${row.phone}` : ''}
+                  </p>
+                </td>
+                <td className="px-3 py-2">
+                  <span className={`inline-flex rounded px-2 py-0.5 text-xs ring-1 ${statusBadgeClass(row.status)}`}>
+                    {row.status}
+                  </span>
+                  {row.reject_reason ? <p className="mt-1 text-xs text-state-error">{row.reject_reason}</p> : null}
+                </td>
+                <td className="px-3 py-2 text-xs text-text-secondary">
+                  <p>신청: {formatDate(row.requested_at)}</p>
+                  <p>결정: {formatDate(row.decided_at)}</p>
+                  <p>활성화: {formatDate(row.activated_at)}</p>
+                </td>
+                <td className="px-3 py-2 text-right">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      className="rounded border border-state-success-ring px-3 py-1.5 text-xs text-state-success disabled:opacity-40"
+                      disabled={row.status !== 'pending' || isApprovePending}
+                      onClick={() => onApprove(row.id)}
+                    >
+                      승인
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded border border-state-error-ring px-3 py-1.5 text-xs text-state-error disabled:opacity-40"
+                      disabled={row.status !== 'pending' || isRejectPending}
+                      onClick={() => onStartReject(row)}
+                    >
+                      반려
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
