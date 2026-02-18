@@ -2,12 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import type { Route } from 'next';
 import React, { useState } from 'react';
 import Drawer from './ui/drawer';
 import { useAuth } from '../hooks/useAuth';
 import { LazyDrawerMenu } from './lazy';
 import { logoutAll } from '../services/auth';
 import { HeaderDropdown } from './header-dropdown';
+import { hasPermissionSession, isAdminSession, type AdminPermissionToken } from '../lib/rbac';
 
 const ABOUT_ITEMS = [
   { href: '/about/greeting', label: '총동문회장 인사말' },
@@ -17,17 +19,28 @@ const ABOUT_ITEMS = [
   { href: '/posts?category=notice', label: '공지사항' },
 ] as const;
 
-const ADMIN_ITEMS = [
-  { href: '/admin/posts', label: '게시물 관리' },
-  { href: '/admin/events', label: '행사 관리' },
-  { href: '/admin/hero', label: '홈 배너 관리' },
-  { href: '/admin/notifications', label: '알림 관리' },
+const ADMIN_ITEMS: Array<{
+  href: Route;
+  label: string;
+  permission: AdminPermissionToken;
+}> = [
+  { href: '/admin/posts', label: '게시물 관리', permission: 'admin_posts' },
+  { href: '/admin/events', label: '행사 관리', permission: 'admin_events' },
+  { href: '/admin/hero', label: '홈 배너 관리', permission: 'admin_hero' },
+  { href: '/admin/notifications', label: '알림 관리', permission: 'admin_notifications' },
+  { href: '/admin/signup-requests', label: '가입신청 심사', permission: 'admin_signup' },
+  { href: '/admin/admin-users', label: '관리자 권한', permission: 'admin_roles' },
 ] as const;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { status, data } = useAuth();
-  const isAdmin = status === 'authorized' && data?.kind === 'admin';
+  const isAdmin = status === 'authorized' && isAdminSession(data);
+  const adminItems = isAdmin
+    ? ADMIN_ITEMS
+        .filter((item) => hasPermissionSession(data, item.permission))
+        .map(({ href, label }) => ({ href, label }))
+    : [];
 
   return (
     <header className="border-b-2 border-brand-700 bg-white">
@@ -55,7 +68,9 @@ export function SiteHeader() {
           <Link href="/directory" className="px-2 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
             동문 수첩
           </Link>
-          {isAdmin && <HeaderDropdown label="관리자" items={ADMIN_ITEMS} variant="admin" align="right" />}
+          {adminItems.length > 0 ? (
+            <HeaderDropdown label="관리자" items={adminItems} variant="admin" align="right" />
+          ) : null}
         </nav>
 
         {/* 데스크톱 우측 버튼들 */}
@@ -124,9 +139,12 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
         로그인
       </Link>
       <Link
-        href="/activate"
+        href="/signup"
         className="px-3 py-2 text-sm text-brand-700 border border-brand-700 rounded-lg no-underline hover:no-underline hover:bg-brand-50 transition-colors"
       >
+        신규 가입신청
+      </Link>
+      <Link href="/activate" className="px-2 text-xs text-text-secondary underline">
         계정 활성화
       </Link>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Route } from 'next';
 import { Suspense, useState } from 'react';
@@ -62,6 +63,14 @@ function LoginForm() {
         disabled={mutate.isPending || !studentId || !password}
         onClick={() => mutate.mutate()}
       >로그인</button>
+      <div className="flex flex-wrap gap-3 text-xs">
+        <Link href="/signup" className="text-brand-700 underline">
+          신규 가입신청
+        </Link>
+        <Link href="/activate" className="text-text-secondary underline">
+          승인 후 계정 활성화
+        </Link>
+      </div>
     </section>
   );
 }

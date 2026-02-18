@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 
 import { HeroItemForm } from '../../../../../components/hero-item-form';
-import { RequireAdmin } from '../../../../../components/require-admin';
+import { RequirePermission } from '../../../../../components/require-permission';
 import { useToast } from '../../../../../components/toast';
 import { ApiError } from '../../../../../lib/api';
 import { apiErrorToMessage } from '../../../../../lib/error-map';
@@ -49,7 +49,10 @@ export default function AdminHeroEditPage() {
   });
 
   return (
-    <RequireAdmin fallback={<div className="p-6 text-sm text-text-secondary">관리자 전용입니다.</div>}>
+    <RequirePermission
+      permission="admin_hero"
+      fallback={<div className="p-6 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>}
+    >
       <section className="mx-auto max-w-2xl space-y-4 p-6">
         <nav className="text-sm text-text-secondary">
           <Link href="/admin/hero" className="hover:underline">
@@ -76,7 +79,6 @@ export default function AdminHeroEditPage() {
           />
         )}
       </section>
-    </RequireAdmin>
+    </RequirePermission>
   );
 }
-

@@ -5,10 +5,16 @@ const ERROR_MESSAGES: Record<string, string> = {
   login_failed: '학번 또는 비밀번호가 올바르지 않습니다.',
   admin_member_record_missing: '관리자 계정에 회원 정보가 없습니다. 관리자에게 문의하세요.',
   unauthorized: '로그인이 필요합니다.',
+  admin_permission_required: '해당 기능에 대한 관리자 권한이 없습니다.',
+  super_admin_required: 'super_admin 권한이 필요합니다.',
 
   // 회원 관련
   member_not_found: '회원 정보를 찾을 수 없습니다.',
   member_exists: '이미 등록된 회원입니다.',
+  member_already_active: '이미 활성화된 회원입니다.',
+  signup_already_pending: '이미 심사 대기 중인 신청이 있습니다.',
+  signup_request_not_found: '가입신청을 찾을 수 없습니다.',
+  signup_request_not_pending: '대기 중인 신청만 처리할 수 있습니다.',
 
   // 게시글/행사 관련
   post_not_found: '게시글을 찾을 수 없습니다.',
@@ -16,6 +22,13 @@ const ERROR_MESSAGES: Record<string, string> = {
   hero_item_not_found: '배너를 찾을 수 없습니다.',
   rsvp_not_found: 'RSVP 정보가 없습니다.',
   rsvp_exists: '이미 RSVP가 존재합니다.',
+
+  // 관리자 권한 변경 관련
+  admin_user_not_found: '관리자 계정을 찾을 수 없습니다.',
+  roles_empty: '최소 1개 이상의 role을 선택해 주세요.',
+  admin_grade_required: 'admin 또는 super_admin 권한이 필요합니다.',
+  self_demotion_forbidden: '자기 자신의 super_admin 권한은 제거할 수 없습니다.',
+  last_super_admin_forbidden: '마지막 super_admin 권한은 제거할 수 없습니다.',
 };
 
 export function apiErrorToMessage(code?: string, fallback?: string): string {

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { ConfirmDialog } from '../../../components/confirm-dialog';
-import { RequireAdmin } from '../../../components/require-admin';
+import { RequirePermission } from '../../../components/require-permission';
 import { useToast } from '../../../components/toast';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
@@ -97,7 +97,10 @@ export default function AdminHeroPage() {
   });
 
   return (
-    <RequireAdmin fallback={<div className="p-6 text-sm text-text-secondary">관리자 전용입니다.</div>}>
+    <RequirePermission
+      permission="admin_hero"
+      fallback={<div className="p-6 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>}
+    >
       <section className="mx-auto max-w-4xl space-y-4 p-6">
         <header className="space-y-1">
           <h1 className="text-xl font-semibold">홈 배너(히어로) 관리</h1>
@@ -217,6 +220,6 @@ export default function AdminHeroPage() {
           onCancel={() => setDeleteTarget(null)}
         />
       </section>
-    </RequireAdmin>
+    </RequirePermission>
   );
 }

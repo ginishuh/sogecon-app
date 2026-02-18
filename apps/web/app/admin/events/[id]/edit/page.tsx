@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 
 import { ConfirmDialog } from '../../../../../components/confirm-dialog';
 import { HeroTargetToggle } from '../../../../../components/hero-target-toggle';
-import { RequireAdmin } from '../../../../../components/require-admin';
+import { RequirePermission } from '../../../../../components/require-permission';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { useHeroTargetControls } from '../../../../../hooks/useHeroTargetControls';
 import { useToast } from '../../../../../components/toast';
@@ -243,7 +243,10 @@ export default function AdminEventEditPage() {
   }
 
   return (
-    <RequireAdmin fallback={<div className="p-6 text-sm text-text-secondary">관리자 전용입니다.</div>}>
+    <RequirePermission
+      permission="admin_events"
+      fallback={<div className="p-6 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>}
+    >
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
         <div className="flex items-center justify-between">
           <div>
@@ -307,6 +310,6 @@ export default function AdminEventEditPage() {
         onConfirm={() => deleteMutation.mutate()}
         onCancel={() => setShowDelete(false)}
       />
-    </RequireAdmin>
+    </RequirePermission>
   );
 }

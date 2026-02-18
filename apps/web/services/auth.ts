@@ -6,6 +6,7 @@ export type Session = {
   email: string;
   name: string;
   id?: number | null;
+  roles: string[];
 };
 
 // 통합 세션 조회
