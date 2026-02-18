@@ -10,5 +10,48 @@ else
   echo "[hooks] pnpm not found; skipping commit message lint."
 fi
 
-exit 0
+if [ ! -f "$MSG_FILE" ]; then
+  echo "[hooks] commit message file missing; skipping commitlog guard."
+  exit 0
+fi
 
+msg="$(cat "$MSG_FILE" 2>/dev/null || true)"
+staged="$(git diff --cached --name-only --diff-filter=ACMRTUXB)"
+
+if [ -z "$staged" ]; then
+  exit 0
+fi
+
+doc_only=true
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  if [[ "$file" =~ ^docs/ ]] || [[ "$file" =~ \.(md|MD|txt|adoc|rst)$ ]] || [[ "$file" == README.md ]] || [[ "$file" == CONTRIBUTING.md ]] || [[ "$file" == SECURITY.md ]] || [[ "$file" == LICENSE ]]; then
+    continue
+  fi
+  doc_only=false
+  break
+done <<< "$staged"
+
+if echo "$msg" | grep -qi '\[skip-commitlog\]'; then
+  if [ "$doc_only" = true ]; then
+    exit 0
+  fi
+  echo "[hooks] [skip-commitlog] is allowed only for doc-only commits."
+  exit 1
+fi
+
+if [ "$doc_only" = true ]; then
+  exit 0
+fi
+
+pattern='^Log:[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} \| [^|]+ \| [^|]+ \| [^|]+ \| .+'
+if ! echo "$msg" | grep -Eq "$pattern"; then
+  echo "[hooks] Code/script change requires a commit log line in message body."
+  cat <<'EOF'
+Required format:
+Log: YYYY-MM-DD HH:MM | 작성자 | 타입 | 요약 | 파일1,파일2
+EOF
+  exit 1
+fi
+
+exit 0

@@ -141,7 +141,8 @@ make schema-gen
 
 ## 커밋/PR 규칙
 - Conventional Commits 필수: `type(scope): subject`(72자 이내). 타입/스코프는 `docs/commit_message_convention.md` 참고.
-- 비-문서 변경 시: `docs/worklog.md` 1줄 요약, 푸시 시 당일 `docs/dev_log_YYMMDD.md` 포함.
+- 코드/스크립트 변경 커밋은 커밋 메시지 본문에 `Log: YYYY-MM-DD HH:MM | 작성자 | 타입 | 요약 | 파일1,파일2` 형식의 커밋로그 1줄을 포함합니다.
+- 비-문서 변경 푸시는 당일 `docs/dev_log_YYMMDD.md`를 반드시 포함합니다.
 - PR 템플릿 사용: `.github/pull_request_template.md`. Draft에서는 상단만, Ready 전 체크리스트 완비.
 - 에이전트/코드 품질 규칙: `AGENTS.md`, `docs/agents_base*.md` 우선.
 

@@ -90,9 +90,13 @@ Do NOT disable linters or type checkers globally or per file.
 - Allowed types: `feat|fix|refactor|perf|test|chore|build|ci|docs`; scopes: `api|web|schemas|infra|docs|ops|ci|build`.
 - Use imperative, present-tense subjects; Korean is fine. Details: `docs/commit_message_convention.md`.
 - The `commit-msg` hook runs `@commitlint/cli` (pinned) via pnpm dlx and must pass locally; CI re-validates recent commits.
-- Non-doc changes must update `docs/worklog.md`; pushes must include the current `docs/dev_log_YYMMDD.md` entry.
-  - Worklog format: one line per commit/merge — `YYYY-MM-DD type(scope): subject — PR #NN[, refs #issue]` (80–120 chars). Details go to PRs/issues.
-  - Dev log format: short daily bullets (3–7 lines). Use the template `docs/dev_log_TEMPLATE.md`.
+- For any commit that touches code/scripts, include a commit-log line in the commit message body:
+  - `Log: YYYY-MM-DD HH:MM | Author | type | summary | file1,file2`
+  - If frontend behavior changes, include `(frontend impact)` in `summary`.
+  - `[skip-commitlog]` is allowed only for doc-only commits.
+- Commit/PR history is the canonical detailed change log.
+- Non-doc pushes must include the current `docs/dev_log_YYMMDD.md` entry.
+- Dev log format: short daily bullets (3–7 lines). Use the template `docs/dev_log_TEMPLATE.md`.
 - PRs must use the repository PR template `.github/pull_request_template.md`. In Draft, fill only the top sections; before marking Ready for Review, complete all checklists in the template.
 - Git operations patience: During `git commit`/`git push` (local hooks included), never abort manually unless the user instructs; wait at least 3 minutes of silence, and if it nears 5 minutes ask the user before stopping—no auto-retries.
 

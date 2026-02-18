@@ -101,8 +101,12 @@
 - type: `feat|fix|refactor|perf|test|chore|build|ci|docs`, scope: `api|web|schemas|infra|docs|ops|ci|build`.
 - 제목은 명령형·현재 시제로 작성하며 한국어 사용 가능. 자세한 규칙: `docs/commit_message_convention.md`.
 - `commit-msg` 훅이 pnpm dlx 기반 고정 버전 `@commitlint/cli`로 즉시 검증하며, CI에서도 최근 커밋을 재검증합니다.
-- 비-문서 변경은 `docs/worklog.md` 한 줄 요약 필수, 푸시 시 당일 `docs/dev_log_YYMMDD.md`가 포함되어야 합니다.
- - PR은 `.github/pull_request_template.md` 템플릿을 반드시 사용합니다. Draft 단계에서는 상단 섹션만 채우고, Ready for Review로 전환하기 전에 템플릿 체크리스트를 모두 완료합니다.
+- 코드/스크립트가 포함된 커밋은 커밋 메시지 본문에 다음 형식의 커밋로그 1줄을 포함해야 합니다.
+  - `Log: YYYY-MM-DD HH:MM | 작성자 | 타입 | 요약 | 파일1,파일2`
+  - 프론트 동작 영향이 있으면 요약에 `(프론트 영향)`을 포함합니다.
+  - `[skip-commitlog]`는 문서 전용 커밋에서만 허용합니다.
+- 비-문서 변경 푸시는 당일 `docs/dev_log_YYMMDD.md`가 반드시 포함되어야 합니다.
+- PR은 `.github/pull_request_template.md` 템플릿을 반드시 사용합니다. Draft 단계에서는 상단 섹션만 채우고, Ready for Review로 전환하기 전에 템플릿 체크리스트를 모두 완료합니다.
 - Git 명령 대기 원칙: `git commit`/`git push`(로컬 훅 포함) 중에는 사용자가 멈추라 할 때만 중단하고, 조용해도 최소 3분은 기다립니다. 5분쯤 되면 중단 전에 사용자에게 먼저 묻고 결정하며, 자동 재시도는 금지합니다.
 
 ### 계획서(PR 포함) 정책
@@ -192,11 +196,9 @@
   - 서브도메인 구성: `lax` + `secure` 권장.
   - 별도 도메인(교차 사이트): `none` + `secure`(HTTPS 필수).
 
-## 커밋/PR 규칙(워크로그/데브로그 형식)
-- 워크로그(`docs/worklog.md`): 커밋/머지당 1줄 요약만 기록합니다.
-  - 형식: `YYYY-MM-DD type(scope): subject — PR #NN[, refs #이슈]` (80–120자)
-  - 세부 내용은 PR/이슈에 남기고, 워크로그는 인덱스 성격으로 유지합니다.
-- 데브로그(`docs/dev_log_YYMMDD.md`): 하루 3–7줄의 불릿로 요약합니다. 템플릿 `docs/dev_log_TEMPLATE.md` 사용을 권장합니다.
+## 커밋/PR 규칙(커밋로그 기준)
+- 상세 변경 이력은 Git 커밋/PR 히스토리를 기준으로 관리합니다.
+- 데브로그(`docs/dev_log_YYMMDD.md`)는 비-문서 변경 푸시 시 필수이며, 하루 3–7줄로 요약합니다(템플릿 `docs/dev_log_TEMPLATE.md` 권장).
 
 ### Next.js 이미지 하드닝
 - Dockerfile에서 corepack으로 pnpm 버전 고정(정책: >=10.17.1 <11).

@@ -30,19 +30,6 @@ else
   echo "[hooks] Warning: python3 not found; skipping repo guards"
 fi
 
-worklog_staged=false
-for file in "${FILES[@]}"; do
-  if [[ "$file" == docs/worklog.md ]]; then
-    worklog_staged=true
-    break
-  fi
-done
-
-if [ "$worklog_staged" = false ]; then
-  echo "[hooks] docs/worklog.md must be updated for non-documentation changes."
-  exit 1
-fi
-
 python_targets=()
 for file in "${FILES[@]}"; do
   if [[ "$file" == *.py ]]; then
