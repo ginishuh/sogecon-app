@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useToast } from '../../components/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { ApiError } from '../../lib/api';
@@ -10,6 +10,14 @@ import { apiErrorToMessage } from '../../lib/error-map';
 import { activate } from '../../services/member';
 
 export default function ActivatePage() {
+  return (
+    <Suspense fallback={<div className="max-w-xl p-6 text-sm text-text-secondary">활성화 화면을 준비 중입니다…</div>}>
+      <ActivateForm />
+    </Suspense>
+  );
+}
+
+function ActivateForm() {
   const { status, invalidate } = useAuth();
   const toast = useToast();
   const params = useSearchParams();

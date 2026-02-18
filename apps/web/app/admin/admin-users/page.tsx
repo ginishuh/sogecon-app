@@ -117,7 +117,7 @@ export default function AdminUsersPage() {
         <header className="space-y-2">
           <h1 className="text-xl font-semibold text-text-primary">관리자 권한 관리</h1>
           <p className="text-sm text-text-secondary">
-            조회는 `admin_roles` 권한으로 가능하며, 실제 권한 변경은 `super_admin`만 가능합니다.
+            조회는 <code>admin_roles</code> 권한으로 가능하며, 실제 권한 변경은 <code>super_admin</code>만 가능합니다.
           </p>
           {!isSuperAdmin ? (
             <p className="text-sm text-state-warning">

@@ -234,7 +234,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
         )}
       </div>
 
-      {/* 관리자 메뉴 (관리자만, 펼침/접힘) */}
+      {/* 관리자 메뉴 (관리자 등급에서만 섹션 노출, 세부 항목은 permission으로 추가 필터링) */}
       <RequireAdmin fallback={null}>
         <div
           className="border-t border-neutral-border pt-4"
