@@ -16,10 +16,10 @@ from apps.api.ratelimit import consume_limit
 from apps.api.repositories import notifications as subs_repo
 from apps.api.repositories import send_logs as logs_repo
 from apps.api.routers.auth import (
-    CurrentAdmin,
     CurrentMember,
-    require_admin,
+    CurrentUser,
     require_member,
+    require_permission,
 )
 from apps.api.services import notifications_service as notif_svc
 from apps.api.services import scheduled_notifications_service as sched_svc
@@ -106,7 +106,10 @@ class TestPushPayload(BaseModel):
 @router.post("/admin/notifications/test", status_code=202)
 async def send_test_push(
     _payload: TestPushPayload,
-    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    _admin: Annotated[
+        CurrentUser,
+        Depends(require_permission("admin_notifications", allow_admin_fallback=False)),
+    ],
     request: Request,
     db: AsyncSession = Depends(get_db),
     provider: notif_svc.PushProvider = Depends(get_push_provider),
@@ -133,7 +136,10 @@ class SendLogRead(BaseModel):
 
 @router.get("/admin/notifications/logs")
 async def get_send_logs(
-    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    _admin: Annotated[
+        CurrentUser,
+        Depends(require_permission("admin_notifications", allow_admin_fallback=False)),
+    ],
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
 ) -> list[SendLogRead]:
@@ -165,7 +171,10 @@ class NotificationStats(BaseModel):
 
 @router.get("/admin/notifications/stats")
 async def get_stats(
-    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    _admin: Annotated[
+        CurrentUser,
+        Depends(require_permission("admin_notifications", allow_admin_fallback=False)),
+    ],
     db: AsyncSession = Depends(get_db),
     range: str = "7d",
 ) -> NotificationStats:
@@ -218,7 +227,10 @@ class PruneLogsPayload(BaseModel):
 @router.post("/admin/notifications/prune-logs")
 async def prune_logs(
     payload: PruneLogsPayload,
-    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    _admin: Annotated[
+        CurrentUser,
+        Depends(require_permission("admin_notifications", allow_admin_fallback=False)),
+    ],
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, int | str]:
     days = max(1, int(payload.older_than_days))
@@ -237,7 +249,10 @@ class TriggerScheduledPayload(BaseModel):
 @router.post("/admin/notifications/trigger-scheduled", status_code=202)
 async def trigger_scheduled_notifications(
     payload: TriggerScheduledPayload,
-    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    _admin: Annotated[
+        CurrentUser,
+        Depends(require_permission("admin_notifications", allow_admin_fallback=False)),
+    ],
     db: AsyncSession = Depends(get_db),
     provider: notif_svc.PushProvider = Depends(get_push_provider),
 ) -> dict[str, str | int]:
@@ -284,7 +299,10 @@ class ScheduledLogRead(BaseModel):
 
 @router.get("/admin/notifications/scheduled-logs")
 async def get_scheduled_logs(
-    _admin: Annotated[CurrentAdmin, Depends(require_admin)],
+    _admin: Annotated[
+        CurrentUser,
+        Depends(require_permission("admin_notifications", allow_admin_fallback=False)),
+    ],
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
 ) -> list[ScheduledLogRead]:

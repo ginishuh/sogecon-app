@@ -208,7 +208,7 @@ class TestAdminPostList:
     def test_admin_list_requires_admin(self, member_login: TestClient) -> None:
         """일반 회원은 관리자 목록에 접근할 수 없다."""
         res = member_login.get("/admin/posts/")
-        assert res.status_code == HTTPStatus.UNAUTHORIZED
+        assert res.status_code == HTTPStatus.FORBIDDEN
 
     def test_admin_list_requires_auth(self, client: TestClient) -> None:
         """비로그인 사용자는 관리자 목록에 접근할 수 없다."""

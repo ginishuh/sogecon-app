@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.api import models
 from apps.api.db import get_db
 from apps.api.main import app
-from apps.api.services.auth_service import create_member_activation_token
+from apps.api.services.activation_service import create_member_activation_token
 
 
 def _run_in_test_session(fn: Callable[[AsyncSession], Awaitable[None]]) -> None:
@@ -140,7 +140,7 @@ def test_member_activate_expired_token_401(
 ) -> None:
     _, token = _create_signup_and_approve(admin_login, "abc-expire")
     monkeypatch.setattr(
-        "apps.api.services.auth_service.ACTIVATION_TOKEN_MAX_AGE_SECONDS",
+        "apps.api.services.activation_service.ACTIVATION_TOKEN_MAX_AGE_SECONDS",
         1,
     )
 

@@ -20,6 +20,7 @@ from ..services import signup_service
 from ..services.auth_service import (
     CurrentAdmin,
     CurrentMember,
+    CurrentUser,
     activate_member,
     change_member_password,
     get_member_email,
@@ -30,7 +31,19 @@ from ..services.auth_service import (
     logout,
     require_admin,
     require_member,
+    require_permission,
+    require_super_admin,
 )
+
+__all__ = [
+    "CurrentAdmin",
+    "CurrentMember",
+    "CurrentUser",
+    "require_admin",
+    "require_member",
+    "require_permission",
+    "require_super_admin",
+]
 
 
 def _is_test_client(request: Request) -> bool:

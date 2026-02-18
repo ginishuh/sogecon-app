@@ -142,6 +142,25 @@ async def get_member_by_student_id(db: AsyncSession, student_id: str) -> models.
     return row
 
 
+async def list_members_by_student_ids(
+    db: AsyncSession, student_ids: Sequence[str]
+) -> Sequence[models.Member]:
+    if not student_ids:
+        return []
+    stmt = select(models.Member).where(models.Member.student_id.in_(student_ids))
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
+async def update_member_roles(
+    db: AsyncSession, *, member: models.Member, roles: str
+) -> models.Member:
+    setattr(member, "roles", roles)
+    await db.commit()
+    await db.refresh(member)
+    return member
+
+
 async def update_member_profile(
     db: AsyncSession, *, member_id: int, data: schemas.MemberUpdate
 ) -> models.Member:

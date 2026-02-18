@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import cast
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +13,7 @@ from .. import schemas
 from ..db import get_db
 from ..repositories import posts as posts_repo
 from ..services import posts_service
-from .auth import require_admin
+from .auth import CurrentUser, require_permission
 
 router = APIRouter(prefix="/admin/posts", tags=["admin-posts"])
 
@@ -51,12 +51,13 @@ class AdminPostListResponse(BaseModel):
 
 @router.get("/", response_model=AdminPostListResponse)
 async def list_admin_posts(
-    request: Request,
     params: AdminPostQueryParams = Depends(get_admin_post_params),
     db: AsyncSession = Depends(get_db),
+    _admin: CurrentUser = Depends(
+        require_permission("admin_posts", allow_admin_fallback=False)
+    ),
 ) -> AdminPostListResponse:
     """관리자용 게시물 목록 (비공개 포함)."""
-    require_admin(request)
     filters: posts_repo.AdminPostFilters = {
         "category": params.category,
         "status": params.status,

@@ -153,6 +153,33 @@ class MemberListFilters(TypedDict, total=False):
     sort: str
 
 
+RoleGradeLiteral = Literal["member", "admin", "super_admin"]
+
+
+class AdminUserRolesRead(BaseModel):
+    student_id: str
+    email: EmailStr | None = None
+    name: str | None = None
+    has_member_record: bool
+    roles: list[str]
+    grade: RoleGradeLiteral
+    permissions: list[str]
+
+
+class AdminUserRolesListResponse(BaseModel):
+    items: list[AdminUserRolesRead]
+    total: int
+
+
+class AdminUserRolesUpdatePayload(BaseModel):
+    roles: list[str] = Field(default_factory=list)
+
+
+class AdminUserRolesUpdateResponse(BaseModel):
+    updated: AdminUserRolesRead
+    decided_by_student_id: str
+
+
 class SignupRequestBase(BaseModel):
     student_id: str
     email: EmailStr
