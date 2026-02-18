@@ -13,7 +13,7 @@
 - `RATE_LIMIT_POST_CREATE`: 멤버 게시글 작성 레이트리밋 (예: `5/minute`)
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
 - `PUSH_ENCRYPT_AT_REST`, `PUSH_KEK`: 푸시 구독 암호화 옵션
-- (선택) 관리자 bootstrap 시드: `SEED_PROD_ADMIN001_VALUE`, `SEED_PROD_ADMIN002_VALUE`
+- (선택) 관리자 bootstrap 시드: `SEED_PROD_ADMIN001_VALUE`
 - `MEDIA_ROOT`, `MEDIA_URL_BASE`: 업로드 경로 (기본값 사용 가능)
 - Sentry/관측: `SENTRY_DSN`, `RELEASE`, `SENTRY_TRACES_SAMPLE_RATE`(기본 0.05), `SENTRY_PROFILES_SAMPLE_RATE`(기본 0.0), `SENTRY_SEND_DEFAULT_PII`(필요 시 `true`)
 - CI/CD 시크릿 스토리지에 위 값을 저장하고 배포 시 주입한다.
@@ -45,7 +45,7 @@
 6. 프로빙: `curl https://api.sogangeconomics.com/healthz` 응답 확인, 주요 엔드포인트 스팟 체크
 
 > 참고: `API_ENV_FILE`에는 `DATABASE_URL`, `JWT_SECRET`, `PUSH_*`, `SENTRY_*` 등 필수 시크릿을 포함한다. 컨테이너 업로드 볼륨은 `UPLOADS_DIR=/var/lib/sogecon/uploads` 로 기본 설정되어 있으며, 필요 시 커스터마이즈한다.
-> 관리자 bootstrap 시드를 실행할 경우 `SEED_PROD_ADMIN001_VALUE`, `SEED_PROD_ADMIN002_VALUE`를 `.env.api`에 설정해야 한다.
+> 관리자 bootstrap 시드를 실행할 경우 `SEED_PROD_ADMIN001_VALUE`를 `.env.api`에 설정해야 한다.
 
 ## 5. 모니터링 & 알림
 - 구조화 로그(JSON Lines) 수집 시스템에 배포 버전 태그

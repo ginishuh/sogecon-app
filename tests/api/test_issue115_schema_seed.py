@@ -132,7 +132,6 @@ def test_seed_production_creates_admin_bootstrap_only(
 ) -> None:
     assert client is not None
     monkeypatch.setenv("SEED_PROD_ADMIN001_VALUE", "prod-admin-1")
-    monkeypatch.setenv("SEED_PROD_ADMIN002_VALUE", "prod-admin-2")
 
     async def _run(session: AsyncSession) -> None:
         await create_production_admins(session)
@@ -147,9 +146,9 @@ def test_seed_production_creates_admin_bootstrap_only(
             select(func.count()).select_from(models.MemberAuth)
         )
 
-        assert admin_count == 2
-        assert member_count == 2
-        assert auth_count == 2
+        assert admin_count == 1
+        assert member_count == 1
+        assert auth_count == 1
 
         row = await session.execute(
             select(models.Member.roles).where(models.Member.student_id == "admin001")

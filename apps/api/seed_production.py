@@ -46,14 +46,6 @@ async def create_production_admins(session: AsyncSession) -> None:
             "cohort": 2000,
             "roles": "super_admin,admin,member",
         },
-        {
-            "student_id": "admin002",
-            "email": "master@sogecon.kr",
-            "env_var": "SEED_PROD_ADMIN002_VALUE",
-            "name": "마스터 관리자",
-            "cohort": 2001,
-            "roles": "admin,member",
-        },
     ]
 
     for admin_data in admin_users:
@@ -129,7 +121,6 @@ async def async_main() -> None:
     print("\n📋 생성된 운영 계정 정보")
     print("🔧 관리자 bootstrap 계정:")
     print("  - admin001 (super_admin,admin,member) / SEED_PROD_ADMIN001_VALUE")
-    print("  - admin002 (admin,member) / SEED_PROD_ADMIN002_VALUE")
 
 
 def main() -> None:
