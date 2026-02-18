@@ -65,6 +65,7 @@ Do NOT disable linters or type checkers globally or per file.
 ## Testing & CI Expectations
 - Pyright runs in strict mode; Ruff enforces complexity; ESLint enforces TS rules above.
 - Python tools (ruff, pyright, pytest) MUST run from the project `.venv`. Make targets (`make venv`, `make api-install`, `make test-api`) are provided.
+- OpenAPI/DTO sync is mandatory for API-contract changes (`apps/api/**`, `scripts/export_openapi.py`, `packages/schemas/**`): before push, export OpenAPI and regenerate DTO (`python scripts/export_openapi.py` + `pnpm -C packages/schemas run gen-dts`), and commit `packages/schemas/openapi.json` + `packages/schemas/index.d.ts`. Pre-push must fail on drift.
 
 -### Local Run Modes (Dev vs Mirror)
 - Dev profile (local only): use the root `compose.yaml` with `docker compose --profile dev up -d` for hot reload (Next.js dev + uvicorn --reload). Never run the dev profile on servers; the helper script `scripts/compose-dev-up.sh` includes a production guard.

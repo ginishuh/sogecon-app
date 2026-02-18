@@ -438,7 +438,7 @@ export interface paths {
         };
         /**
          * Session
-         * @description 통합 세션 조회 (kind, student_id, email, name, id 반환).
+         * @description 통합 세션 조회 (kind, student_id, email, name, id, roles 반환).
          */
         get: operations["session_auth_session_get"];
         put?: never;

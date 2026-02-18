@@ -64,6 +64,7 @@
 ## 테스트·CI 기대치
 - Pyright strict, Ruff 복잡도 검사, ESLint로 TS 규칙 강제.
 - Python 도구(ruff/pyright/pytest)는 반드시 레포의 `.venv`에서 실행합니다. `make venv`, `make api-install`, `make test-api` 타겟을 사용하세요.
+- API 계약 변경(`apps/api/**`, `scripts/export_openapi.py`, `packages/schemas/**`) 시 OpenAPI/DTO 동기화는 필수입니다. 푸시 전 `python scripts/export_openapi.py` + `pnpm -C packages/schemas run gen-dts`를 실행하고, `packages/schemas/openapi.json`/`packages/schemas/index.d.ts`를 함께 커밋해야 합니다. 불일치 시 pre-push 훅이 실패해야 합니다.
 
 ### 로컬 실행 모드(Dev vs Mirror)
  - Dev 프로필(로컬 전용): 루트 `compose.yaml`에서 `docker compose --profile dev up -d`로 기동합니다. Next dev(HMR) + uvicorn `--reload`로 코드 변경이 즉시 반영됩니다. 서버(운영)에서 dev 프로필 실행은 금지하며, `scripts/compose-dev-up.sh`에 생산 환경 가드가 포함되어 있습니다.
