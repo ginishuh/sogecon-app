@@ -2879,6 +2879,45 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "admin-roles"
+        ],
+        "summary": "Create Admin User",
+        "operationId": "create_admin_user_admin_admin_users__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUserCreatePayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/admin/admin-users/{student_id}/roles": {
@@ -3189,6 +3228,68 @@
         ],
         "title": "AdminPostListResponse",
         "description": "\uad00\ub9ac\uc790 \uac8c\uc2dc\ubb3c \ubaa9\ub85d \uc751\ub2f5."
+      },
+      "AdminUserCreatePayload": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "title": "Student Id"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "cohort": {
+            "type": "integer",
+            "maximum": 9999.0,
+            "minimum": 1.0,
+            "title": "Cohort"
+          },
+          "temporary_password": {
+            "type": "string",
+            "maxLength": 72,
+            "minLength": 8,
+            "title": "Temporary Password"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Roles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "email",
+          "name",
+          "cohort",
+          "temporary_password"
+        ],
+        "title": "AdminUserCreatePayload"
+      },
+      "AdminUserCreateResponse": {
+        "properties": {
+          "created": {
+            "$ref": "#/components/schemas/AdminUserRolesRead"
+          },
+          "created_by_student_id": {
+            "type": "string",
+            "title": "Created By Student Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created",
+          "created_by_student_id"
+        ],
+        "title": "AdminUserCreateResponse"
       },
       "AdminUserRolesListResponse": {
         "properties": {

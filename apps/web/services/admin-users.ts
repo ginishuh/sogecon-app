@@ -26,6 +26,29 @@ export type AdminUserRolesUpdateResponse = {
   decided_by_student_id: string;
 };
 
+export type AdminUserCreatePayload = {
+  student_id: string;
+  email: string;
+  name: string;
+  cohort: number;
+  temporary_password: string;
+  roles: string[];
+};
+
+export type AdminUserCreateResponse = {
+  created: AdminUserRolesRead;
+  created_by_student_id: string;
+};
+
+export async function createAdminUser(
+  payload: AdminUserCreatePayload
+): Promise<AdminUserCreateResponse> {
+  return apiFetch<AdminUserCreateResponse>('/admin/admin-users/', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function patchAdminUserRoles(
   studentId: string,
   roles: string[]
