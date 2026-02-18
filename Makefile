@@ -3,7 +3,7 @@
         web-start web-stop web-restart web-status \
         dev-up dev-down dev-status \
         db-reset db-test-reset db-reset-all api-migrate api-migrate-test \
-        seed-data reset-data \
+        seed-data seed-prod reset-data \
         ghcr-login pull-images deploy-local
 
 # Detect active virtualenv; fallback to project-local .venv
@@ -177,6 +177,14 @@ seed-data:
 	fi
 	@echo "[seed] Creating seed data..."
 	"$(VENV_BIN)/python" -m apps.api.seed_data
+
+seed-prod:
+	@if [ ! -x "$(VENV_BIN)/python" ]; then \
+		echo "[make] Python not found in '$(VENV_BIN)'. Run 'make venv' and 'make api-install'."; \
+		exit 1; \
+	fi
+	@echo "[seed] Creating production admin bootstrap data..."
+	"$(VENV_BIN)/python" -m apps.api.seed_production
 
 reset-data:
 	@if [ ! -x "$(VENV_BIN)/python" ]; then \

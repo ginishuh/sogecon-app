@@ -18,6 +18,11 @@ on:
         required: false
         default: false
         type: boolean
+      seed_admin:
+        description: 'Run admin bootstrap seed from .env.api'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -82,6 +87,7 @@ jobs:
           API_HEALTH: ${{ steps.health.outputs.api_health }}
           WEB_HEALTH: ${{ steps.health.outputs.site_url }}
           SKIP_MIGRATE: ${{ github.event.inputs.skip_migrate }}
+          SEED_ADMIN: ${{ github.event.inputs.seed_admin }}
           DOCKER_NETWORK: ${{ env.DOCKER_NETWORK }}
           DEPLOY_ENV: ${{ github.event.inputs.environment }}
         run: |
@@ -102,6 +108,7 @@ jobs:
           printf -v API_HEALTH_ESC '%q' "$API_HEALTH"
           printf -v WEB_HEALTH_ESC '%q' "$WEB_HEALTH_CLEAN"
           printf -v SKIP_MIGRATE_ESC '%q' "$SKIP_MIGRATE"
+          printf -v SEED_ADMIN_ESC '%q' "$SEED_ADMIN"
           printf -v DOCKER_NETWORK_ESC '%q' "${DOCKER_NETWORK:-}"
 
           ssh -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
@@ -112,6 +119,7 @@ jobs:
             API_HEALTH=$API_HEALTH_ESC \
             WEB_HEALTH=$WEB_HEALTH_ESC \
             SKIP_MIGRATE=$SKIP_MIGRATE_ESC \
+            SEED_ADMIN_INNER=$SEED_ADMIN_ESC \
             DOCKER_NETWORK_INNER=$DOCKER_NETWORK_ESC \
             bash -s << 'EOF'
           set -euo pipefail
@@ -132,6 +140,13 @@ jobs:
               bash ./ops/cloud-migrate.sh
           else
             echo "[deploy] Skip migrate"
+          fi
+
+          if [ "$SEED_ADMIN_INNER" = "true" ]; then
+            API_IMAGE="$IMAGE_PREFIX/alumni-api:$TAG" ENV_FILE=.env.api DOCKER_NETWORK="$DOCKER_NETWORK_INNER" \
+              bash ./ops/cloud-seed-admin.sh
+          else
+            echo "[deploy] Skip admin bootstrap seed"
           fi
 
           API_IMAGE="$IMAGE_PREFIX/alumni-api:$TAG" \
@@ -216,5 +231,6 @@ jobs:
         run: |
           echo "Deployed to $DEPLOY_ENV" >> "$GITHUB_STEP_SUMMARY"
           echo "Tag: $TAG" >> "$GITHUB_STEP_SUMMARY"
+          echo "Seed admin: ${{ github.event.inputs.seed_admin }}" >> "$GITHUB_STEP_SUMMARY"
           echo "API: $IMAGE_PREFIX/alumni-api:$TAG" >> "$GITHUB_STEP_SUMMARY"
           echo "WEB: $IMAGE_PREFIX/alumni-web:$TAG" >> "$GITHUB_STEP_SUMMARY"

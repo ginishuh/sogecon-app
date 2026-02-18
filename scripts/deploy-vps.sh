@@ -7,7 +7,8 @@ set -euo pipefail
 #
 # Usage:
 #   bash scripts/deploy-vps.sh -t <tag> [--prefix ghcr.io/org/repo] [--env .env.api] [--web-env .env.web] \
-#       [--skip-migrate] [--uploads /var/lib/sogecon/uploads] [--api-health URL] [--web-health URL]
+#       [--skip-migrate] [--seed-admin] [--uploads /var/lib/sogecon/uploads] \
+#       [--api-health URL] [--web-health URL]
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
@@ -19,6 +20,7 @@ WEB_ENV_FILE=".env.web"
 UPLOADS_DIR="/var/lib/sogecon/uploads"
 NET_NAME=""
 DO_MIGRATE=1
+DO_SEED_ADMIN=0
 API_HEALTH=""
 WEB_HEALTH=""
 HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-60}
@@ -39,6 +41,8 @@ while [[ $# -gt 0 ]]; do
       NET_NAME="$2"; shift 2;;
     --skip-migrate)
       DO_MIGRATE=0; shift 1;;
+    --seed-admin)
+      DO_SEED_ADMIN=1; shift 1;;
     --api-health)
       API_HEALTH="$2"; shift 2;;
     --web-health)
@@ -77,6 +81,11 @@ fi
 if [[ "$DO_MIGRATE" -eq 1 ]]; then
   echo "[deploy] Run DB migration"
   ENV_FILE="$ENV_FILE" API_IMAGE="$API_IMAGE" DOCKER_NETWORK="$NET_NAME" bash "$ROOT_DIR/ops/cloud-migrate.sh"
+fi
+
+if [[ "$DO_SEED_ADMIN" -eq 1 ]]; then
+  echo "[deploy] Run admin bootstrap seed"
+  ENV_FILE="$ENV_FILE" API_IMAGE="$API_IMAGE" DOCKER_NETWORK="$NET_NAME" bash "$ROOT_DIR/ops/cloud-seed-admin.sh"
 fi
 
 echo "[deploy] Restart containers"
