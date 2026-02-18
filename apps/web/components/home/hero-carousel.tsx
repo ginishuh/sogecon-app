@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { listHeroSlides, type HeroSlide } from '../../services/hero';
 import { useAuth } from '../../hooks/useAuth';
 import { HeroSkeleton } from '../ui/skeleton';
+import { isAdminSession } from '../../lib/rbac';
 
 type Slide = { id: string; image: string; title: string; description: string; href: string; unpublished?: boolean };
 
@@ -62,7 +63,7 @@ function buildSlides(data: HeroSlide[], opts: { max: number }): Slide[] {
 
 export default function HomeHeroCarousel() {
   const auth = useAuth();
-  const isAdmin = auth.status === 'authorized' && auth.data?.kind === 'admin';
+  const isAdmin = auth.status === 'authorized' && isAdminSession(auth.data);
   const q = useQuery<HeroSlide[]>({
     queryKey: ['hero', 'slides', 8, isAdmin],
     queryFn: () => listHeroSlides({ limit: 8, include_unpublished: !!isAdmin }),

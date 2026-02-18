@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { PostForm, type PostFormData } from '../../../../components/post-form';
-import { RequireAdmin } from '../../../../components/require-admin';
+import { RequirePermission } from '../../../../components/require-permission';
 import { useToast } from '../../../../components/toast';
 import { useAuth } from '../../../../hooks/useAuth';
 import { ApiError } from '../../../../lib/api';
@@ -52,7 +52,10 @@ export default function AdminNewPostPage() {
   }
 
   return (
-    <RequireAdmin fallback={<div className="p-6 text-sm text-text-secondary">관리자 전용입니다.</div>}>
+    <RequirePermission
+      permission="admin_posts"
+      fallback={<div className="p-6 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>}
+    >
       <div className="mx-auto max-w-2xl p-6">
         <nav className="mb-4 text-sm text-text-secondary">
           <Link href="/admin/posts" className="hover:underline">
@@ -73,7 +76,6 @@ export default function AdminNewPostPage() {
           onCancel={() => router.push('/admin/posts')}
         />
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 }
-

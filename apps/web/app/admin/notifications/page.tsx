@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
-import { RequireAdmin } from '../../../components/require-admin';
+import { RequirePermission } from '../../../components/require-permission';
 import { useToast } from '../../../components/toast';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -179,7 +179,10 @@ export default function AdminNotificationsPage() {
   };
 
   return (
-    <RequireAdmin fallback={<div className="p-4 text-sm text-text-secondary">관리자 전용입니다.</div>}>
+    <RequirePermission
+      permission="admin_notifications"
+      fallback={<div className="p-4 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>}
+    >
       <div className="p-6">
         <h2 className="mb-4 text-xl font-semibold">테스트 알림 발송(Admin)</h2>
         <div className="mb-6 flex max-w-xl flex-col gap-3">
@@ -217,6 +220,6 @@ export default function AdminNotificationsPage() {
           setLogLimit={setLogLimit}
         />
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 }

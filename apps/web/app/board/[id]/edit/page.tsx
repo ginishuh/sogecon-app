@@ -9,6 +9,7 @@ import { useToast } from '../../../../components/toast';
 import { useAuth } from '../../../../hooks/useAuth';
 import { ApiError } from '../../../../lib/api';
 import { apiErrorToMessage } from '../../../../lib/error-map';
+import { isAdminSession } from '../../../../lib/rbac';
 import { getPost, updatePost, type Post } from '../../../../services/posts';
 
 /** 상태 메시지 컴포넌트 */
@@ -78,7 +79,7 @@ export default function BoardEditPage() {
   });
 
   // 권한 체크용 (mutation 내에서 사용)
-  const isAdmin = auth?.kind === 'admin';
+  const isAdmin = isAdminSession(auth);
 
   const mutation = useMutation({
     mutationFn: (data: PostFormData) => updatePost(postId, buildUpdatePayload(data, post, isAdmin)),

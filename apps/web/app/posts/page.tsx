@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '../../hooks/useAuth';
 import { splitPinned } from '../../lib/posts';
+import { hasPermissionSession } from '../../lib/rbac';
 import { listPosts, type Post } from '../../services/posts';
 import { PostCard } from '../../components/post-card';
 import { ButtonLink } from '../../components/ui/button-link';
@@ -99,7 +100,7 @@ function PostsList({ posts, category, setCategory }: { posts: Post[]; category: 
 
 function WriteButton() {
   const { data: auth } = useAuth();
-  if (auth?.kind !== 'admin') return null;
+  if (!hasPermissionSession(auth, 'admin_posts')) return null;
   return (
     <ButtonLink href="/admin/posts/new" className="gap-1 shadow-sm">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../lib/api';
 import { apiErrorToMessage } from '../lib/error-map';
+import { isAdminSession } from '../lib/rbac';
 import { deletePost } from '../services/posts';
 import { ConfirmDialog } from './confirm-dialog';
 import { useToast } from './toast';
@@ -41,7 +42,7 @@ export function PostAdminActions({ postId, postTitle }: PostAdminActionsProps) {
   });
 
   // 관리자가 아니면 렌더링하지 않음
-  if (auth?.kind !== 'admin') {
+  if (!isAdminSession(auth)) {
     return null;
   }
 

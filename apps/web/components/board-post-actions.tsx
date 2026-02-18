@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../lib/api';
 import { apiErrorToMessage } from '../lib/error-map';
+import { isAdminSession } from '../lib/rbac';
 import { deletePost } from '../services/posts';
 import { ConfirmDialog } from './confirm-dialog';
 import { useToast } from './toast';
@@ -44,7 +45,7 @@ export function BoardPostActions({ postId, postTitle, authorId }: BoardPostActio
 
   // 작성자 본인 또는 관리자만 표시
   const isAuthor = auth?.id === authorId;
-  const isAdmin = auth?.kind === 'admin';
+  const isAdmin = isAdminSession(auth);
   if (!isAuthor && !isAdmin) {
     return null;
   }
