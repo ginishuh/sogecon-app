@@ -132,6 +132,8 @@ def test_admin_signup_review_approve_and_reject(
     assert approve_body["request"]["status"] == "approved"
     assert approve_body["request"]["decided_by_student_id"] == "__seed__admin"
     assert approve_body["activation_context"]["signup_request_id"] == signup_id
+    assert isinstance(approve_body["activation_token"], str)
+    assert approve_body["activation_token"] != ""
 
     async def _assert_approved_member(session: AsyncSession) -> None:
         stmt = select(models.Member).where(models.Member.student_id == "s116004")

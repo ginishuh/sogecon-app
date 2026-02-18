@@ -1595,6 +1595,8 @@ export interface components {
         SignupApproveResponse: {
             request: components["schemas"]["SignupRequestRead"];
             activation_context: components["schemas"]["SignupActivationContextResponse"];
+            /** Activation Token */
+            activation_token: string;
         };
         /** SignupRejectPayload */
         SignupRejectPayload: {

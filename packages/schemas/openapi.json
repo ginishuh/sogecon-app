@@ -5091,12 +5091,17 @@
           },
           "activation_context": {
             "$ref": "#/components/schemas/SignupActivationContextResponse"
+          },
+          "activation_token": {
+            "type": "string",
+            "title": "Activation Token"
           }
         },
         "type": "object",
         "required": [
           "request",
-          "activation_context"
+          "activation_context",
+          "activation_token"
         ],
         "title": "SignupApproveResponse"
       },
