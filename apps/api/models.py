@@ -300,6 +300,8 @@ class SignupRequest(Base):
     name = Column(String(255), nullable=False)
     cohort = Column(Integer, nullable=False)
     major = Column(String(255), nullable=True)
+    phone = Column(String(64), nullable=True)
+    note = Column(Text, nullable=True)
     status = Column(
         String(16),
         nullable=False,

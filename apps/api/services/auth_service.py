@@ -5,7 +5,6 @@
 """
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -21,6 +20,7 @@ from ..models import Member
 from ..ratelimit import consume_limit
 from ..repositories import auth as auth_repo
 from ..repositories import members as members_repo
+from .roles_service import ensure_member_role, has_permission, normalize_roles
 
 # 로그인 레이트리밋 (slowapi)
 limiter_login = Limiter(key_func=get_remote_address)
@@ -61,27 +61,6 @@ class CurrentUser:
 # ---- 세션 파싱/정규화 ----
 
 
-def _normalize_roles(value: object) -> list[str]:
-    """세션에 저장된 roles 값을 문자열/리스트 모두 수용하여 리스트[str]로 정규화."""
-    if isinstance(value, str):
-        parts = [r.strip() for r in value.split(",") if r.strip()]
-        return parts
-    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
-        out: list[str] = []
-        for item in cast(Sequence[object], value):
-            if isinstance(item, str) and item:
-                out.append(item)
-        return out
-    return []
-
-
-def _ensure_member_role(roles: list[str]) -> list[str]:
-    """roles에 'member'가 없으면 선두에 추가하여 반환."""
-    if "member" in roles:
-        return roles
-    return ["member", *roles]
-
-
 def _get_admin_session(req: Request) -> CurrentAdmin | None:
     """레거시 admin 세션 파싱."""
     raw: Any = req.session.get("admin")
@@ -105,7 +84,7 @@ def _get_user_session(req: Request) -> CurrentUser | None:
     data = cast("dict[str, object] | None", raw)
     if isinstance(data, dict):
         sid = data.get("student_id")
-        roles = _normalize_roles(data.get("roles"))
+        roles = normalize_roles(data.get("roles"))
         mid = data.get("id")
         email = data.get("email")
         if isinstance(sid, str) and sid:
@@ -176,6 +155,45 @@ def require_admin(req: Request) -> CurrentAdmin:
     if admin:
         return admin
     raise HTTPException(status_code=401, detail="unauthorized")
+
+
+def require_permission(
+    permission: str,
+    *,
+    allow_admin_fallback: bool = True,
+) -> Any:
+    """기능권한 의존성 팩토리.
+
+    - `super_admin`은 항상 통과.
+    - roles에 해당 permission이 있으면 통과.
+    - `allow_admin_fallback=True`이면 기존 `admin` 등급도 임시 통과.
+    """
+
+    def _dependency(req: Request) -> CurrentUser:
+        user = _get_user_session(req)
+        if user is not None:
+            if has_permission(
+                user.roles,
+                permission,
+                allow_admin_fallback=allow_admin_fallback,
+            ):
+                return user
+            raise HTTPException(status_code=403, detail="admin_permission_required")
+
+        legacy_admin = _get_admin_session(req)
+        if legacy_admin is not None and allow_admin_fallback:
+            return CurrentUser(
+                student_id=legacy_admin.student_id,
+                roles=["admin"],
+                id=legacy_admin.id,
+                email=legacy_admin.email,
+            )
+
+        if legacy_admin is not None:
+            raise HTTPException(status_code=403, detail="admin_permission_required")
+        raise HTTPException(status_code=401, detail="unauthorized")
+
+    return _dependency
 
 
 def is_admin(req: Request) -> bool:
@@ -260,10 +278,13 @@ async def login_admin(
             detail="admin_member_record_missing",
         ) from None
 
+    member_roles = ensure_member_role(
+        normalize_roles(cast(str, member.roles))
+    )
     _set_user_session(
         request,
         student_id=cast(str, admin.student_id),
-        roles=["admin"],
+        roles=member_roles,
         id=cast(int, member.id),
         email=(cast(str | None, admin.email) or cast(str, admin.student_id)),
     )
@@ -296,7 +317,7 @@ async def login_member(
     if not bcrypt.checkpw(password.encode(), creds.password_hash.encode()):
         raise HTTPException(status_code=401, detail="login_failed")
 
-    roles = _ensure_member_role(_normalize_roles(member.roles))
+    roles = ensure_member_role(normalize_roles(member.roles))
     sid_raw: object = cast(object, member.student_id)
     if not (isinstance(sid_raw, str) and sid_raw):
         raise HTTPException(status_code=500, detail="invalid_member_student_id")

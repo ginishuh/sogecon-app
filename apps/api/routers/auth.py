@@ -12,9 +12,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .. import schemas
 from ..config import get_settings
 from ..db import get_db
 from ..ratelimit import consume_limit
+from ..services import signup_service
 from ..services.auth_service import (
     CurrentAdmin,
     CurrentMember,
@@ -114,6 +116,20 @@ async def member_login(
 ) -> dict[str, str]:
     """멤버 로그인."""
     return await login_member(db, request, payload.student_id, payload.password)
+
+
+@router.post(
+    "/member/signup",
+    response_model=schemas.SignupRequestRead,
+    status_code=201,
+)
+async def member_signup(
+    payload: schemas.SignupRequestCreate,
+    db: AsyncSession = Depends(get_db),
+) -> schemas.SignupRequestRead:
+    """신규 가입신청 생성."""
+    row = await signup_service.create_signup_request(db, payload)
+    return schemas.SignupRequestRead.model_validate(row)
 
 
 @router.post("/member/logout", status_code=204)
