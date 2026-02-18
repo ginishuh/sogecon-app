@@ -4065,6 +4065,17 @@
             "type": "integer",
             "title": "Id"
           },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "active",
+              "suspended",
+              "rejected"
+            ],
+            "title": "Status",
+            "default": "active"
+          },
           "avatar_url": {
             "anyOf": [
               {

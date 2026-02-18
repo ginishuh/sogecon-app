@@ -2,7 +2,7 @@
 """
 운영 환경용 시드 데이터 생성 스크립트
 
-실제 운영에 사용할 초기 데이터를 생성합니다.
+관리자 bootstrap 계정만 생성/갱신합니다.
 사용법:
     python -m apps.api.seed_production
 """
@@ -22,7 +22,7 @@ from apps.api.models import AdminUser, Member, MemberAuth, Visibility
 
 def hash_password(password: str) -> str:
     """비밀번호 해시화"""
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def load_required_secret(env_name: str) -> str:
@@ -34,157 +34,84 @@ def load_required_secret(env_name: str) -> str:
 
 
 async def create_production_admins(session: AsyncSession) -> None:
-    """운영 환경용 관리자 계정 생성"""
-    print("🔧 운영 관리자 계정 생성 중...")
+    """운영 환경용 관리자 bootstrap 계정 생성/갱신."""
+    print("🔧 운영 관리자 bootstrap 계정 생성 중...")
 
-    # 운영 비밀값은 환경변수로만 주입
     admin_users = [
         {
             "student_id": "admin001",
             "email": "admin@sogecon.kr",
             "env_var": "SEED_PROD_ADMIN001_VALUE",
-            "description": "최고 관리자",
+            "name": "최고 관리자",
+            "cohort": 2000,
+            "roles": "super_admin,admin,member",
         },
         {
             "student_id": "admin002",
             "email": "master@sogecon.kr",
             "env_var": "SEED_PROD_ADMIN002_VALUE",
-            "description": "마스터 관리자",
+            "name": "마스터 관리자",
+            "cohort": 2001,
+            "roles": "admin,member",
         },
     ]
 
     for admin_data in admin_users:
-        # 기존 계정 확인
-        stmt = select(AdminUser).where(AdminUser.student_id == admin_data["student_id"])
-        result = await session.execute(stmt)
-        existing = result.scalars().first()
-        if existing:
-            print(f"  ⚠️  관리자 계정 이미 존재: {admin_data['email']}")
-            continue
-
         secret = load_required_secret(str(admin_data["env_var"]))
-        admin = AdminUser(
-            student_id=admin_data["student_id"],
-            email=admin_data["email"],
-            password_hash=hash_password(secret),
-        )
-        session.add(admin)
-        print(
-            f"  ✅ 관리자 계정 생성: {admin_data['student_id']} ({admin_data['email']})"
-        )
+        password_hash = hash_password(secret)
 
-    await session.commit()
+        stmt = select(AdminUser).where(AdminUser.student_id == admin_data["student_id"])
+        existing_admin = (await session.execute(stmt)).scalars().first()
+        if existing_admin is None:
+            session.add(
+                AdminUser(
+                    student_id=str(admin_data["student_id"]),
+                    email=str(admin_data["email"]),
+                    password_hash=password_hash,
+                )
+            )
+            print(
+                f"  ✅ 관리자 계정 생성: "
+                f"{admin_data['student_id']} ({admin_data['email']})"
+            )
+        else:
+            print(f"  ⚠️  관리자 계정 이미 존재: {admin_data['student_id']}")
 
+        stmt = select(Member).where(Member.student_id == admin_data["student_id"])
+        existing_member = (await session.execute(stmt)).scalars().first()
+        if existing_member is None:
+            member = Member(
+                student_id=str(admin_data["student_id"]),
+                email=str(admin_data["email"]),
+                name=str(admin_data["name"]),
+                cohort=int(admin_data["cohort"]),
+                roles=str(admin_data["roles"]),
+                status="active",
+                visibility=Visibility.ALL,
+            )
+            session.add(member)
+            await session.flush()
+            member_id = member.id
+            print("    → 회원 정보 생성")
+        else:
+            member_id = existing_member.id
+            print("    → 회원 정보 이미 존재")
 
-async def create_production_members(session: AsyncSession) -> None:
-    """운영 환경용 동문회 초기 회원 생성"""
-    print("👥 동문회 초기 회원 생성 중...")
-
-    # 실제 동문회원 데이터 (예시)
-    members = [
-        {
-            "student_id": "president2025",
-            "email": "president@sogecon.kr",
-            "name": "홍길동",
-            "cohort": 1985,
-            "major": "경제학",
-            "roles": "member,alumni,president",
-            "visibility": Visibility.ALL,
-            "phone": "02-1234-5678",
-            "company": "서강대학교 경제대학원",
-            "department": "총동문회",
-            "job_title": "회장",
-            "industry": "교육/학술",
-        },
-        {
-            "student_id": "vicepresident2025",
-            "email": "vice-president@sogecon.kr",
-            "name": "김철수",
-            "cohort": 1987,
-            "major": "국제통상",
-            "roles": "member,alumni,vice-president",
-            "visibility": Visibility.ALL,
-            "phone": "02-9876-5432",
-            "company": "무역투자협회",
-            "department": "중동부",
-            "job_title": "상무이사",
-            "industry": "무역/투자",
-        },
-        {
-            "student_id": "secretary2025",
-            "email": "secretary@sogecon.kr",
-            "name": "이영희",
-            "cohort": 1990,
-            "major": "재정학",
-            "roles": "member,alumni,secretary",
-            "visibility": Visibility.ALL,
-            "phone": "02-5555-7777",
-            "company": "기획재정부",
-            "department": "기획조정팀",
-            "job_title": "과장",
-            "industry": "공공/정부",
-        },
-    ]
-
-    for member_data in members:
-        # 기존 회원 확인
-        stmt = select(Member).where(Member.student_id == member_data["student_id"])
-        result = await session.execute(stmt)
-        existing = result.scalars().first()
-        if existing:
-            print(f"  ⚠️  회원 계정 이미 존재: {member_data['student_id']}")
-            continue
-
-        member = Member(**member_data)
-        session.add(member)
-        print(
-            f"  ✅ 회원 계정 생성: {member_data['student_id']} ({member_data['name']})"
-        )
-
-    await session.commit()
-
-
-async def create_production_member_auth(session: AsyncSession) -> None:
-    """운영 환경용 회원 인증 정보 생성"""
-    print("🔐 회원 인증 정보 생성 중...")
-
-    # 운영 비밀값은 환경변수로만 주입
-    member_auth_data = [
-        {"student_id": "president2025", "env_var": "SEED_PROD_PRESIDENT_VALUE"},
-        {
-            "student_id": "vicepresident2025",
-            "env_var": "SEED_PROD_VICEPRESIDENT_VALUE",
-        },
-        {"student_id": "secretary2025", "env_var": "SEED_PROD_SECRETARY_VALUE"},
-    ]
-
-    for auth_data in member_auth_data:
-        # 회원 정보 확인
-        stmt = select(Member).where(Member.student_id == auth_data["student_id"])
-        result = await session.execute(stmt)
-        member = result.scalars().first()
-        if not member:
-            print(f"  ⚠️  회원 정보 없음: {auth_data['student_id']}")
-            continue
-
-        # 기존 인증 정보 확인
         stmt = select(MemberAuth).where(
-            MemberAuth.student_id == auth_data["student_id"]
+            MemberAuth.student_id == admin_data["student_id"]
         )
-        result = await session.execute(stmt)
-        existing = result.scalars().first()
-        if existing:
-            print(f"  ⚠️  인증 정보 이미 존재: {auth_data['student_id']}")
-            continue
-
-        secret = load_required_secret(str(auth_data["env_var"]))
-        member_auth = MemberAuth(
-            member_id=member.id,
-            student_id=auth_data["student_id"],
-            password_hash=hash_password(secret),
-        )
-        session.add(member_auth)
-        print(f"  ✅ 인증 정보 생성: {auth_data['student_id']}")
+        existing_auth = (await session.execute(stmt)).scalars().first()
+        if existing_auth is None:
+            session.add(
+                MemberAuth(
+                    member_id=member_id,
+                    student_id=str(admin_data["student_id"]),
+                    password_hash=password_hash,
+                )
+            )
+            print("    → 인증 정보 생성")
+        else:
+            print("    → 인증 정보 이미 존재")
 
     await session.commit()
 
@@ -195,38 +122,25 @@ async def async_main() -> None:
     print("=" * 50)
 
     async with get_db_session() as session:
-        # 운영 관리자 계정 생성
         await create_production_admins(session)
-
-        # 동문회 초기 회원 생성
-        await create_production_members(session)
-
-        # 회원 인증 정보 생성
-        await create_production_member_auth(session)
 
     print("=" * 50)
     print("✅ 운영 환경 시드 데이터 생성 완료")
-    print("\n📋 생성된 운영 계정 정보:")
-    print("🔧 관리자 계정:")
-    print("  - admin001 (admin@sogecon.kr) / SEED_PROD_ADMIN001_VALUE")
-    print("  - admin002 (master@sogecon.kr) / SEED_PROD_ADMIN002_VALUE")
-    print("\n👥 초기 회원 계정:")
-    print("  - president2025 (홍길동 회장)")
-    print("  - vicepresident2025 (김철수 부회장)")
-    print("  - secretary2025 (이영희 총무)")
-    print("\n⚠️  중요: 운영 시드는 환경변수 비밀값 주입 후 실행하세요.")
+    print("\n📋 생성된 운영 계정 정보")
+    print("🔧 관리자 bootstrap 계정:")
+    print("  - admin001 (super_admin,admin,member) / SEED_PROD_ADMIN001_VALUE")
+    print("  - admin002 (admin,member) / SEED_PROD_ADMIN002_VALUE")
 
 
 def main() -> None:
     """메인 실행 함수"""
-    # 프로젝트 루트를 Python 경로에 추가
     project_root = Path(__file__).parent.parent.parent
     sys.path.insert(0, str(project_root))
 
     try:
         asyncio.run(async_main())
-    except (RuntimeError, ValueError, OSError) as e:
-        print(f"❌ 시드 데이터 생성 실패: {e}")
+    except (RuntimeError, ValueError, OSError) as exc:
+        print(f"❌ 시드 데이터 생성 실패: {exc}")
         sys.exit(1)
 
 
