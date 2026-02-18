@@ -20,6 +20,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .. import models
 from ..config import get_settings
 from ..errors import NotFoundError
 from ..ratelimit import consume_limit
@@ -411,7 +412,7 @@ def _load_activation_payload(token: str) -> ActivationPayload:
 async def _resolve_activation_signup_request(
     db: AsyncSession,
     payload: ActivationPayload,
-) -> Any:
+) -> models.SignupRequest:
     row = await signup_requests_repo.get_signup_request_by_id(
         db,
         payload.signup_request_id,
@@ -438,7 +439,10 @@ async def _resolve_activation_signup_request(
     return row
 
 
-async def _resolve_activation_member(db: AsyncSession, student_id: str) -> Any:
+async def _resolve_activation_member(
+    db: AsyncSession,
+    student_id: str,
+) -> models.Member:
     try:
         member = await members_repo.get_member_by_student_id(db, student_id)
     except NotFoundError:
@@ -446,6 +450,7 @@ async def _resolve_activation_member(db: AsyncSession, student_id: str) -> Any:
             status_code=409,
             detail="activation_member_missing",
         ) from None
+    # 승인 후 활성화 직전 상태 변경(예: suspended) 방어
     if cast(str, member.status) != "active":
         raise HTTPException(status_code=403, detail="member_not_active")
     return member
@@ -464,7 +469,7 @@ async def activate_member(
 
     payload = _load_activation_payload(token)
     row = await _resolve_activation_signup_request(db, payload)
-    member = await _resolve_activation_member(db, cast(str, row.student_id))
+    member = await _resolve_activation_member(db, payload.student_id)
 
     # 비밀번호 해시 생성 및 저장
     bcrypt = __import__("bcrypt")
@@ -539,16 +544,9 @@ async def get_session_info(
     if u:
         kind = "admin" if "admin" in u.roles else "member"
         member = await members_repo.get_member_by_student_id(db, u.student_id)
-        email = (
-            u.email
-            or (member.email if member and isinstance(member.email, str) else "")
-        )
-        name = member.name if member and isinstance(member.name, str) else ""
-        member_id = (
-            cast(int, member.id)
-            if member
-            else (u.id if isinstance(u.id, int) else None)
-        )
+        email = u.email or (member.email if isinstance(member.email, str) else "")
+        name = member.name if isinstance(member.name, str) else ""
+        member_id = cast(int, member.id)
         return {
             "kind": kind,
             "student_id": u.student_id,
@@ -562,15 +560,18 @@ async def get_session_info(
     admin = _get_admin_session(request)
     if admin:
         member = await members_repo.get_member_by_student_id(db, admin.student_id)
-        name = member.name if member and isinstance(member.name, str) else ""
-        member_id = cast(int, member.id) if member else admin.id
+        name = member.name if isinstance(member.name, str) else ""
+        member_id = cast(int, member.id)
+        roles = ensure_member_role(normalize_roles(cast(str, member.roles)))
+        if "admin" not in roles:
+            roles = ["admin", *roles]
         return {
             "kind": "admin",
             "student_id": admin.student_id,
             "email": admin.email,
             "name": name,
             "id": member_id,
-            "roles": ["admin", "member"],
+            "roles": roles,
         }
 
     raw: Any = request.session.get("member")
@@ -580,17 +581,18 @@ async def get_session_info(
         sid = sid_obj if isinstance(sid_obj, str) else None
         if sid:
             member = await members_repo.get_member_by_student_id(db, sid)
-            email = member.email if member and isinstance(member.email, str) else ""
-            name = member.name if member and isinstance(member.name, str) else ""
+            email = member.email if isinstance(member.email, str) else ""
+            name = member.name if isinstance(member.name, str) else ""
             mid_obj = data.get("id")
             _id = int(mid_obj) if isinstance(mid_obj, (int, str)) else None
+            roles = ensure_member_role(normalize_roles(cast(str, member.roles)))
             return {
                 "kind": "member",
                 "student_id": sid,
                 "email": email,
                 "name": name,
                 "id": _id,
-                "roles": ["member"],
+                "roles": roles,
             }
 
     raise HTTPException(status_code=401, detail="unauthorized")
