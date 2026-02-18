@@ -5,6 +5,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import cast
 
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models
@@ -31,6 +33,16 @@ class AdminRoleView:
     roles: list[str]
     grade: RoleGradeLiteral
     permissions: list[str]
+
+
+@dataclass(frozen=True)
+class AdminUserCreateCommand:
+    student_id: str
+    email: str
+    name: str
+    cohort: int
+    temporary_password: str
+    roles: object
 
 
 def _build_admin_role_view(
@@ -76,6 +88,121 @@ async def list_admin_role_views(db: AsyncSession) -> Sequence[AdminRoleView]:
         )
         for admin_user in admin_users
     ]
+
+
+async def _find_member_by_student_id(
+    db: AsyncSession, student_id: str
+) -> models.Member | None:
+    stmt = select(models.Member).where(models.Member.student_id == student_id)
+    result = await db.execute(stmt)
+    return result.scalars().first()
+
+
+async def _find_member_by_email(
+    db: AsyncSession, email: str
+) -> models.Member | None:
+    stmt = select(models.Member).where(models.Member.email == email)
+    result = await db.execute(stmt)
+    return result.scalars().first()
+
+
+async def create_admin_user(
+    db: AsyncSession,
+    *,
+    actor_student_id: str,
+    command: AdminUserCreateCommand,
+) -> AdminRoleView:
+    if await auth_repo.get_admin_by_student_id(db, command.student_id) is not None:
+        raise ApiError(
+            code="admin_user_already_exists",
+            detail="AdminUser already exists",
+            status=409,
+        )
+
+    normalized_roles = normalize_assignable_roles(command.roles)
+    if "admin" not in normalized_roles and "super_admin" not in normalized_roles:
+        raise ApiError(
+            code="admin_grade_required",
+            detail="At least one of admin/super_admin is required",
+            status=422,
+        )
+    serialized_roles = serialize_roles(normalized_roles)
+    bcrypt = __import__("bcrypt")
+    password_hash = bcrypt.hashpw(
+        command.temporary_password.encode(), bcrypt.gensalt()
+    ).decode()
+
+    member = await _find_member_by_student_id(db, command.student_id)
+    if member is None:
+        member_with_email = await _find_member_by_email(db, command.email)
+        if member_with_email is not None:
+            raise ApiError(
+                code="member_email_already_in_use",
+                detail="Email is already used by another member",
+                status=409,
+            )
+        member = models.Member(
+            student_id=command.student_id,
+            email=command.email,
+            name=command.name,
+            cohort=command.cohort,
+            roles=serialized_roles,
+            status="active",
+            visibility=models.Visibility.ALL,
+        )
+        db.add(member)
+        await db.flush()
+    else:
+        member_email = cast(str | None, member.email)
+        if isinstance(member_email, str) and member_email != command.email:
+            raise ApiError(
+                code="member_email_mismatch",
+                detail="Existing member email does not match payload",
+                status=409,
+            )
+        if member_email is None:
+            setattr(member, "email", command.email)
+        setattr(member, "roles", serialized_roles)
+        setattr(member, "status", "active")
+
+    admin_user = models.AdminUser(
+        student_id=command.student_id,
+        email=command.email,
+        password_hash=password_hash,
+    )
+    db.add(admin_user)
+
+    auth_row = await auth_repo.get_member_auth_by_student_id(db, command.student_id)
+    if auth_row is None:
+        db.add(
+            models.MemberAuth(
+                member_id=cast(int, member.id),
+                student_id=command.student_id,
+                password_hash=password_hash,
+            )
+        )
+    else:
+        setattr(auth_row, "member_id", cast(int, member.id))
+        setattr(auth_row, "password_hash", password_hash)
+
+    try:
+        await db.commit()
+    except IntegrityError as err:
+        await db.rollback()
+        raise ApiError(
+            code="admin_user_create_conflict",
+            detail="Failed to create admin user due to conflict",
+            status=409,
+        ) from err
+
+    await db.refresh(admin_user)
+    await db.refresh(member)
+    logger.info(
+        "admin_user_created target=%s by=%s",
+        command.student_id,
+        actor_student_id,
+    )
+    return _build_admin_role_view(admin_user, member)
 
 
 async def update_admin_user_roles(

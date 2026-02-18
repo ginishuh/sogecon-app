@@ -25,6 +25,10 @@ const ERROR_MESSAGES: Record<string, string> = {
 
   // 관리자 권한 변경 관련
   admin_user_not_found: '관리자 계정을 찾을 수 없습니다.',
+  admin_user_already_exists: '이미 관리자 계정이 존재합니다.',
+  admin_user_create_conflict: '관리자 계정 생성 중 충돌이 발생했습니다.',
+  member_email_already_in_use: '이미 다른 회원이 사용 중인 이메일입니다.',
+  member_email_mismatch: '기존 회원 정보의 이메일과 입력값이 다릅니다.',
   roles_empty: '최소 1개 이상의 role을 선택해 주세요.',
   admin_grade_required: 'admin 또는 super_admin 권한이 필요합니다.',
   self_demotion_forbidden: '자기 자신의 super_admin 권한은 제거할 수 없습니다.',

@@ -178,6 +178,35 @@ class AdminUserRolesUpdateResponse(BaseModel):
     decided_by_student_id: str
 
 
+class AdminUserCreatePayload(BaseModel):
+    student_id: str
+    email: EmailStr
+    name: str
+    cohort: int = Field(ge=1, le=9999)
+    temporary_password: str = Field(min_length=8, max_length=72)
+    roles: list[str] = Field(default_factory=lambda: ["member", "admin"])
+
+    @field_validator("student_id", "name")
+    @classmethod
+    def _trim_required_text(cls, value: str) -> str:
+        trimmed = value.strip()
+        if not trimmed:
+            raise ValueError("필수 입력값이 비어 있습니다.")
+        return trimmed
+
+    @field_validator("temporary_password")
+    @classmethod
+    def _validate_temporary_password(cls, value: str) -> str:
+        if value.strip() != value:
+            raise ValueError("임시 비밀번호 앞뒤 공백은 허용되지 않습니다.")
+        return value
+
+
+class AdminUserCreateResponse(BaseModel):
+    created: AdminUserRolesRead
+    created_by_student_id: str
+
+
 class SignupRequestBase(BaseModel):
     student_id: str
     email: EmailStr

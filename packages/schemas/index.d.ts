@@ -834,7 +834,8 @@ export interface paths {
         /** List Admin Users */
         get: operations["list_admin_users_admin_admin_users__get"];
         put?: never;
-        post?: never;
+        /** Create Admin User */
+        post: operations["create_admin_user_admin_admin_users__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -936,6 +937,30 @@ export interface components {
             items: components["schemas"]["PostRead"][];
             /** Total */
             total: number;
+        };
+        /** AdminUserCreatePayload */
+        AdminUserCreatePayload: {
+            /** Student Id */
+            student_id: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Name */
+            name: string;
+            /** Cohort */
+            cohort: number;
+            /** Temporary Password */
+            temporary_password: string;
+            /** Roles */
+            roles?: string[];
+        };
+        /** AdminUserCreateResponse */
+        AdminUserCreateResponse: {
+            created: components["schemas"]["AdminUserRolesRead"];
+            /** Created By Student Id */
+            created_by_student_id: string;
         };
         /** AdminUserRolesListResponse */
         AdminUserRolesListResponse: {
@@ -3654,6 +3679,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminUserRolesListResponse"];
+                };
+            };
+        };
+    };
+    create_admin_user_admin_admin_users__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUserCreatePayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserCreateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

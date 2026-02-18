@@ -118,6 +118,76 @@ def test_super_admin_can_list_and_patch_admin_roles(
     assert posts_res.status_code == HTTPStatus.FORBIDDEN
 
 
+def test_super_admin_can_create_admin_user(admin_login: TestClient) -> None:
+    create_res = admin_login.post(
+        "/admin/admin-users/",
+        json={
+            "student_id": "newadmin001",
+            "email": "newadmin001@example.com",
+            "name": "신규 관리자",
+            "cohort": 50,
+            "temporary_password": "temp-pass-001",
+            "roles": ["admin", "admin_posts"],
+        },
+    )
+    assert create_res.status_code == HTTPStatus.CREATED
+    body = create_res.json()
+    assert body["created_by_student_id"] == "__seed__admin"
+    assert body["created"]["student_id"] == "newadmin001"
+    assert body["created"]["roles"] == ["member", "admin", "admin_posts"]
+
+    admin_login.post("/auth/logout")
+    _login_admin(admin_login, student_id="newadmin001", password="temp-pass-001")
+
+    posts_res = admin_login.get("/admin/posts/")
+    assert posts_res.status_code == HTTPStatus.OK
+
+    events_res = admin_login.get("/admin/events/")
+    assert events_res.status_code == HTTPStatus.FORBIDDEN
+
+
+def test_admin_without_super_admin_cannot_create_admin_user(client: TestClient) -> None:
+    _seed_admin_identity(
+        student_id="manager002",
+        password="manager-pass",
+        roles="admin,member,admin_roles",
+    )
+    _login_admin(client, student_id="manager002", password="manager-pass")
+
+    create_res = client.post(
+        "/admin/admin-users/",
+        json={
+            "student_id": "blocked001",
+            "email": "blocked001@example.com",
+            "name": "권한 없음",
+            "cohort": 50,
+            "temporary_password": "temp-pass-002",
+            "roles": ["admin", "admin_posts"],
+        },
+    )
+    assert create_res.status_code == HTTPStatus.FORBIDDEN
+    assert create_res.json()["detail"] == "super_admin_required"
+
+
+def test_create_admin_user_returns_conflict_when_already_exists(
+    admin_login: TestClient,
+) -> None:
+    payload = {
+        "student_id": "dupadmin001",
+        "email": "dupadmin001@example.com",
+        "name": "중복 관리자",
+        "cohort": 60,
+        "temporary_password": "temp-pass-003",
+        "roles": ["admin"],
+    }
+    first_res = admin_login.post("/admin/admin-users/", json=payload)
+    assert first_res.status_code == HTTPStatus.CREATED
+
+    second_res = admin_login.post("/admin/admin-users/", json=payload)
+    assert second_res.status_code == HTTPStatus.CONFLICT
+    assert second_res.json()["code"] == "admin_user_already_exists"
+
+
 def test_admin_without_super_admin_cannot_patch_roles(client: TestClient) -> None:
     _seed_admin_identity(
         student_id="manager001",

@@ -9,8 +9,10 @@ import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
 import { ADMIN_PERMISSION_TOKENS, isSuperAdminSession } from '../../../lib/rbac';
 import {
+  createAdminUser,
   listAdminUsers,
   patchAdminUserRoles,
+  type AdminUserCreatePayload,
   type AdminUserRolesRead,
 } from '../../../services/admin-users';
 
@@ -123,6 +125,134 @@ function SaveRoleButton({
     >
       저장
     </button>
+  );
+}
+
+function AdminUserCreateForm({
+  isPending,
+  onSubmit,
+}: {
+  isPending: boolean;
+  onSubmit: (payload: AdminUserCreatePayload) => void;
+}) {
+  const [studentId, setStudentId] = useState('');
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [cohort, setCohort] = useState('');
+  const [temporaryPassword, setTemporaryPassword] = useState('');
+  const [roles, setRoles] = useState<string[]>(['member', 'admin']);
+
+  const toggleRole = (role: string, checked: boolean) => {
+    setRoles((prev) => {
+      const without = prev.filter((token) => token !== role);
+      return checked ? normalizeRoles([...without, role]) : without;
+    });
+  };
+
+  const canSubmit =
+    studentId.trim().length > 0 &&
+    email.trim().length > 0 &&
+    name.trim().length > 0 &&
+    cohort.trim().length > 0 &&
+    temporaryPassword.length >= 8 &&
+    roles.length > 0;
+
+  return (
+    <form
+      className="space-y-3 rounded border border-neutral-border bg-white p-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!canSubmit || isPending) return;
+        onSubmit({
+          student_id: studentId.trim(),
+          email: email.trim(),
+          name: name.trim(),
+          cohort: Number(cohort),
+          temporary_password: temporaryPassword,
+          roles,
+        });
+      }}
+    >
+      <h2 className="text-sm font-semibold text-text-primary">신규 관리자 계정 생성 (super_admin 전용)</h2>
+      <div className="grid gap-2 md:grid-cols-2">
+        <label className="text-xs text-text-secondary">
+          학번
+          <input
+            className="mt-1 w-full rounded border border-neutral-border px-2 py-1 text-sm text-text-primary"
+            value={studentId}
+            onChange={(e) => setStudentId(e.currentTarget.value)}
+            placeholder="admin003"
+            disabled={isPending}
+          />
+        </label>
+        <label className="text-xs text-text-secondary">
+          이메일
+          <input
+            className="mt-1 w-full rounded border border-neutral-border px-2 py-1 text-sm text-text-primary"
+            value={email}
+            onChange={(e) => setEmail(e.currentTarget.value)}
+            placeholder="admin003@sogecon.kr"
+            disabled={isPending}
+          />
+        </label>
+        <label className="text-xs text-text-secondary">
+          이름
+          <input
+            className="mt-1 w-full rounded border border-neutral-border px-2 py-1 text-sm text-text-primary"
+            value={name}
+            onChange={(e) => setName(e.currentTarget.value)}
+            placeholder="신규 관리자"
+            disabled={isPending}
+          />
+        </label>
+        <label className="text-xs text-text-secondary">
+          기수
+          <input
+            type="number"
+            className="mt-1 w-full rounded border border-neutral-border px-2 py-1 text-sm text-text-primary"
+            value={cohort}
+            onChange={(e) => setCohort(e.currentTarget.value)}
+            placeholder="60"
+            disabled={isPending}
+          />
+        </label>
+      </div>
+
+      <label className="block text-xs text-text-secondary">
+        임시 비밀번호 (8자 이상)
+        <input
+          type="password"
+          className="mt-1 w-full rounded border border-neutral-border px-2 py-1 text-sm text-text-primary"
+          value={temporaryPassword}
+          onChange={(e) => setTemporaryPassword(e.currentTarget.value)}
+          placeholder="초기 비밀번호 입력"
+          disabled={isPending}
+        />
+      </label>
+
+      <div className="space-y-1">
+        <p className="text-xs text-text-secondary">초기 권한</p>
+        <RoleChecklist
+          studentId="new-admin"
+          draftRoles={roles}
+          disabled={isPending}
+          onToggle={(sid, role, checked) => {
+            void sid;
+            toggleRole(role, checked);
+          }}
+        />
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          className="rounded bg-brand-700 px-3 py-1.5 text-xs text-white disabled:opacity-40"
+          disabled={!canSubmit || isPending}
+        >
+          관리자 생성
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -356,6 +486,24 @@ export default function AdminUsersPage() {
     },
   });
 
+  const createMutation = useMutation({
+    mutationFn: (payload: AdminUserCreatePayload) => createAdminUser(payload),
+    onSuccess: (response) => {
+      const message = `관리자 계정을 생성했습니다. (${response.created.student_id})`;
+      setFeedback({ tone: 'success', message });
+      show(message, { type: 'success' });
+      void queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
+    onError: (error: unknown) => {
+      const message =
+        error instanceof ApiError
+          ? apiErrorToMessage(error.code, error.message)
+          : '관리자 계정 생성 중 오류가 발생했습니다.';
+      setFeedback({ tone: 'error', message });
+      show(message, { type: 'error' });
+    },
+  });
+
   const rows = useMemo(() => listQuery.data?.items ?? [], [listQuery.data]);
 
   const toggleRole = (studentId: string, role: string, checked: boolean) => {
@@ -391,6 +539,16 @@ export default function AdminUsersPage() {
         </header>
 
         <FeedbackBanner feedback={feedback} />
+
+        {isSuperAdmin ? (
+          <AdminUserCreateForm
+            isPending={createMutation.isPending}
+            onSubmit={(payload) => {
+              setFeedback(null);
+              createMutation.mutate(payload);
+            }}
+          />
+        ) : null}
 
         <AdminUsersBody
           rows={rows}

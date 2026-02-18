@@ -66,3 +66,40 @@ async def patch_admin_user_roles(
         updated=updated_read,
         decided_by_student_id=actor.student_id,
     )
+
+
+@router.post(
+    "/",
+    response_model=schemas.AdminUserCreateResponse,
+    status_code=201,
+)
+async def create_admin_user(
+    payload: schemas.AdminUserCreatePayload,
+    actor: Annotated[CurrentUser, Depends(require_super_admin)],
+    db: AsyncSession = Depends(get_db),
+) -> schemas.AdminUserCreateResponse:
+    created = await admin_roles_service.create_admin_user(
+        db,
+        actor_student_id=actor.student_id,
+        command=admin_roles_service.AdminUserCreateCommand(
+            student_id=payload.student_id,
+            email=str(payload.email),
+            name=payload.name,
+            cohort=payload.cohort,
+            temporary_password=payload.temporary_password,
+            roles=payload.roles,
+        ),
+    )
+    created_read = schemas.AdminUserRolesRead(
+        student_id=created.student_id,
+        email=created.email,
+        name=created.name,
+        has_member_record=created.has_member_record,
+        roles=created.roles,
+        grade=created.grade,
+        permissions=created.permissions,
+    )
+    return schemas.AdminUserCreateResponse(
+        created=created_read,
+        created_by_student_id=actor.student_id,
+    )
