@@ -43,6 +43,22 @@ if [ "${#FILES[@]}" -eq 0 ]; then
   exit 0
 fi
 
+resolve_python_bin() {
+  if [ -n "${VIRTUAL_ENV:-}" ] && [ -x "$VIRTUAL_ENV/bin/python" ]; then
+    echo "$VIRTUAL_ENV/bin/python"
+    return
+  fi
+  if [ -x ".venv/bin/python" ]; then
+    echo ".venv/bin/python"
+    return
+  fi
+  if command -v python >/dev/null 2>&1; then
+    command -v python
+    return
+  fi
+  echo ""
+}
+
 doc_only=true
 for file in "${FILES[@]}"; do
   if [[ "$file" =~ ^docs/ ]] || [[ "$file" =~ \.(md|MD|txt|adoc|rst)$ ]] || [[ "$file" == README.md ]] || [[ "$file" == CONTRIBUTING.md ]] || [[ "$file" == SECURITY.md ]] || [[ "$file" == LICENSE ]]; then
@@ -74,7 +90,7 @@ fi
 python_changed=false
 req_changed=false
 web_changed=false
-schemas_changed=false
+api_contract_changed=false
 for file in "${FILES[@]}"; do
   if [[ "$file" == *.py ]]; then
     python_changed=true
@@ -85,22 +101,20 @@ for file in "${FILES[@]}"; do
   if [[ "$file" == apps/web/* ]] && [[ "$file" =~ \.(ts|tsx|js|jsx)$ ]]; then
     web_changed=true
   fi
-  if [[ "$file" == packages/schemas/* ]]; then
-    schemas_changed=true
+  if [[ "$file" == apps/api/* ]] || [[ "$file" == packages/schemas/* ]] || [[ "$file" == scripts/export_openapi.py ]]; then
+    api_contract_changed=true
   fi
 done
 
+PY_BIN="$(resolve_python_bin)"
+
 if [ "$python_changed" = true ]; then
-  PY_BIN=""
-  if [ -n "${VIRTUAL_ENV:-}" ] && [ -x "$VIRTUAL_ENV/bin/python" ]; then
-    PY_BIN="$VIRTUAL_ENV/bin/python"
-  elif [ -x ".venv/bin/python" ]; then
-    PY_BIN=".venv/bin/python"
-  elif command -v python >/dev/null 2>&1; then
-    PY_BIN="$(command -v python)"
+  if [ -z "$PY_BIN" ]; then
+    echo "[hooks] Error: python runtime not found."
+    exit 1
   fi
 
-  if [ -n "$PY_BIN" ] && "$PY_BIN" -m pyright --version >/dev/null 2>&1; then
+  if "$PY_BIN" -m pyright --version >/dev/null 2>&1; then
     echo "[hooks] Running pyright type check"
     "$PY_BIN" -m pyright --project pyrightconfig.json
   else
@@ -133,16 +147,27 @@ fi
 
 ## Web build is handled by CI. Pre-push does not build the web app.
 
-if [ "$schemas_changed" = true ]; then
-  if command -v pnpm >/dev/null 2>&1; then
-    if curl -sf --max-time 2 http://localhost:3001/healthz >/dev/null 2>&1; then
-      echo "[hooks] Regenerating schema package"
-      pnpm -C packages/schemas run gen
-    else
-      echo "[hooks] Warning: API not reachable; skipping schema generation"
-    fi
-  else
-    echo "[hooks] Warning: pnpm not found; skipping schema generation"
+if [ "$api_contract_changed" = true ]; then
+  if [ -z "$PY_BIN" ]; then
+    echo "[hooks] Error: python runtime not found for OpenAPI export."
+    exit 1
+  fi
+  if ! command -v pnpm >/dev/null 2>&1; then
+    echo "[hooks] Error: pnpm not found for DTO generation."
+    exit 1
+  fi
+
+  echo "[hooks] Verifying OpenAPI/DTO sync"
+  "$PY_BIN" scripts/export_openapi.py
+  pnpm -C packages/schemas run gen-dts
+
+  if ! git diff --quiet -- packages/schemas/openapi.json packages/schemas/index.d.ts; then
+    echo "[hooks] Error: OpenAPI/DTO artifacts are out of sync."
+    echo "[hooks] Run: make schema-gen"
+    echo "[hooks] Then commit updated schema files:"
+    echo "  - packages/schemas/openapi.json"
+    echo "  - packages/schemas/index.d.ts"
+    exit 1
   fi
 fi
 

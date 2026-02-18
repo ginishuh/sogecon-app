@@ -178,5 +178,5 @@ async def change_password(
 async def session(
     request: Request, db: AsyncSession = Depends(get_db)
 ) -> dict[str, object]:
-    """통합 세션 조회 (kind, student_id, email, name, id 반환)."""
+    """통합 세션 조회 (kind, student_id, email, name, id, roles 반환)."""
     return await get_session_info(db, request)

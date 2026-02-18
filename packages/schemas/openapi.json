@@ -1546,7 +1546,7 @@
           "auth"
         ],
         "summary": "Session",
-        "description": "\ud1b5\ud569 \uc138\uc158 \uc870\ud68c (kind, student_id, email, name, id \ubc18\ud658).",
+        "description": "\ud1b5\ud569 \uc138\uc158 \uc870\ud68c (kind, student_id, email, name, id, roles \ubc18\ud658).",
         "operationId": "session_auth_session_get",
         "responses": {
           "200": {
@@ -5091,12 +5091,17 @@
           },
           "activation_context": {
             "$ref": "#/components/schemas/SignupActivationContextResponse"
+          },
+          "activation_token": {
+            "type": "string",
+            "title": "Activation Token"
           }
         },
         "type": "object",
         "required": [
           "request",
-          "activation_context"
+          "activation_context",
+          "activation_token"
         ],
         "title": "SignupApproveResponse"
       },

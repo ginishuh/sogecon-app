@@ -438,7 +438,7 @@ export interface paths {
         };
         /**
          * Session
-         * @description 통합 세션 조회 (kind, student_id, email, name, id 반환).
+         * @description 통합 세션 조회 (kind, student_id, email, name, id, roles 반환).
          */
         get: operations["session_auth_session_get"];
         put?: never;
@@ -1595,6 +1595,8 @@ export interface components {
         SignupApproveResponse: {
             request: components["schemas"]["SignupRequestRead"];
             activation_context: components["schemas"]["SignupActivationContextResponse"];
+            /** Activation Token */
+            activation_token: string;
         };
         /** SignupRejectPayload */
         SignupRejectPayload: {

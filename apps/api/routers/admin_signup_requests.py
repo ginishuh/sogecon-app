@@ -9,7 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import schemas
 from ..db import get_db
 from ..services import signup_service
-from ..services.auth_service import CurrentUser, require_permission
+from ..services.auth_service import (
+    CurrentUser,
+    create_member_activation_token,
+    require_permission,
+)
 
 router = APIRouter(prefix="/admin/signup-requests", tags=["admin-signup-requests"])
 
@@ -37,6 +41,7 @@ class SignupActivationContextResponse(BaseModel):
 class SignupApproveResponse(BaseModel):
     request: schemas.SignupRequestRead
     activation_context: SignupActivationContextResponse
+    activation_token: str
 
 
 class SignupRejectPayload(BaseModel):
@@ -86,6 +91,12 @@ async def approve_signup_request(
             email=context.email,
             name=context.name,
             cohort=context.cohort,
+        ),
+        activation_token=create_member_activation_token(
+            signup_request_id=context.signup_request_id,
+            student_id=context.student_id,
+            cohort=context.cohort,
+            name=context.name,
         ),
     )
 
