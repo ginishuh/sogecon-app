@@ -42,7 +42,7 @@ class AdminUserCreateCommand:
     name: str
     cohort: int
     temporary_password: str
-    roles: object
+    roles: list[str]
 
 
 def _build_admin_role_view(
