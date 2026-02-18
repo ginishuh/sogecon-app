@@ -27,6 +27,8 @@ VisibilityLiteral = Literal["all", "cohort", "private"]
 RSVPLiteral = Literal["going", "waitlist", "cancel"]
 EventStatusLiteral = Literal["upcoming", "ongoing", "ended"]
 HeroTargetTypeLiteral = Literal["post", "event"]
+MemberStatusLiteral = Literal["pending", "active", "suspended", "rejected"]
+SignupRequestStatusLiteral = Literal["pending", "approved", "rejected", "activated"]
 
 _PHONE_PATTERN = re.compile(r'^[0-9+\-\s]{7,20}$')
 _TEXT_LIMITS: dict[str, tuple[int, int, str]] = {
@@ -53,6 +55,7 @@ class MemberBase(BaseModel):
     cohort: int
     major: str | None = None
     roles: str = "member"
+    status: MemberStatusLiteral = "active"
     visibility: VisibilityLiteral = "all"
     birth_date: str | None = None  # 'YYYY-MM-DD'
     birth_lunar: bool | None = None
@@ -148,6 +151,34 @@ class MemberListFilters(TypedDict, total=False):
     exclude_private: bool
     job_title: str
     sort: str
+
+
+class SignupRequestBase(BaseModel):
+    student_id: str
+    email: EmailStr
+    name: str
+    cohort: int
+    major: str | None = None
+    status: SignupRequestStatusLiteral = "pending"
+    requested_at: datetime | None = None
+    decided_at: datetime | None = None
+    activated_at: datetime | None = None
+    decided_by_student_id: str | None = None
+    reject_reason: str | None = None
+
+
+class SignupRequestCreate(BaseModel):
+    student_id: str
+    email: EmailStr
+    name: str
+    cohort: int
+    major: str | None = None
+
+
+class SignupRequestRead(SignupRequestBase):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AdminEventListFilters(TypedDict, total=False):

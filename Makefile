@@ -3,7 +3,7 @@
         web-start web-stop web-restart web-status \
         dev-up dev-down dev-status \
         db-reset db-test-reset db-reset-all api-migrate api-migrate-test \
-        seed-data reset-data \
+        seed-data seed-admin reset-data \
         ghcr-login pull-images deploy-local
 
 # Detect active virtualenv; fallback to project-local .venv
@@ -177,6 +177,8 @@ seed-data:
 	fi
 	@echo "[seed] Creating seed data..."
 	"$(VENV_BIN)/python" -m apps.api.seed_data
+
+seed-admin: seed-data
 
 reset-data:
 	@if [ ! -x "$(VENV_BIN)/python" ]; then \

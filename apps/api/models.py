@@ -5,6 +5,7 @@ from typing import cast
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     Column,
     DateTime,
     Enum,
@@ -13,6 +14,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base, relationship
@@ -44,6 +46,12 @@ def _enum_values(enum_cls: type[enum.Enum]) -> list[str]:
 
 class Member(Base):
     __tablename__ = "members"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'active', 'suspended', 'rejected')",
+            name="ck_members_status",
+        ),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(String(20), nullable=False, unique=True, index=True)
@@ -52,6 +60,13 @@ class Member(Base):
     cohort = Column(Integer, nullable=False)
     major = Column(String(255), nullable=True)
     roles = Column(String(255), nullable=False, default="member")
+    status = Column(
+        String(16),
+        nullable=False,
+        default="active",
+        server_default="active",
+        index=True,
+    )
     # Enum 라벨을 DB에 소문자(value)로 저장하도록 values_callable 지정
     visibility = Column(
         Enum(
@@ -261,6 +276,46 @@ class AdminUser(Base):
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+
+class SignupRequest(Base):
+    __tablename__ = "signup_requests"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'approved', 'rejected', 'activated')",
+            name="ck_signup_requests_status",
+        ),
+        Index("ix_signup_requests_status_requested_at", "status", "requested_at"),
+        Index(
+            "uq_signup_requests_student_id_pending",
+            "student_id",
+            unique=True,
+            postgresql_where=text("status = 'pending'"),
+        ),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(String(20), nullable=False, index=True)
+    email = Column(String(255), nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    cohort = Column(Integer, nullable=False)
+    major = Column(String(255), nullable=True)
+    status = Column(
+        String(16),
+        nullable=False,
+        default="pending",
+        server_default="pending",
+        index=True,
+    )
+    requested_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    decided_at = Column(DateTime(timezone=True), nullable=True)
+    activated_at = Column(DateTime(timezone=True), nullable=True)
+    decided_by_student_id = Column(String(20), nullable=True)
+    reject_reason = Column(Text, nullable=True)
 
 
 # Web Push 구독 정보(민감 데이터: endpoint/key는 운영에서 암호화 저장 고려)

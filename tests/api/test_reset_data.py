@@ -122,6 +122,15 @@ async def _seed_reset_target_data(session: AsyncSession) -> None:
         )
     )
     session.add(
+        models.SignupRequest(
+            student_id="signup-001",
+            email="signup-001@example.com",
+            name="신청자",
+            cohort=2024,
+            status="pending",
+        )
+    )
+    session.add(
         models.NotificationSendLog(
             ok=1,
             status_code=202,
@@ -179,6 +188,9 @@ async def _assert_counts_after_reset(session: AsyncSession) -> None:
     sub_count = await session.scalar(
         select(func.count()).select_from(models.PushSubscription)
     )
+    signup_count = await session.scalar(
+        select(func.count()).select_from(models.SignupRequest)
+    )
     send_log_count = await session.scalar(
         select(func.count()).select_from(models.NotificationSendLog)
     )
@@ -197,6 +209,7 @@ async def _assert_counts_after_reset(session: AsyncSession) -> None:
     assert rsvp_count == 0
     assert pref_count == 0
     assert sub_count == 1
+    assert signup_count == 0
     assert send_log_count == 1
     assert sched_log_count == 1
     assert event_count == 1
@@ -222,7 +235,7 @@ def test_reset_transition_data_keeps_logs(client: object) -> None:
 
     async def _do_reset(session: AsyncSession) -> None:
         summary = await reset_transition_data(session)
-        assert "signup_requests" in summary.skipped_tables
+        assert "signup_requests" in summary.deleted_rows
         assert "events" in summary.preserved_tables
         assert "hero_items" in summary.preserved_tables
 
