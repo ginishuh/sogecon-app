@@ -55,7 +55,6 @@ class MemberBase(BaseModel):
     cohort: int
     major: str | None = None
     roles: str = "member"
-    status: MemberStatusLiteral = "active"
     visibility: VisibilityLiteral = "all"
     birth_date: str | None = None  # 'YYYY-MM-DD'
     birth_lunar: bool | None = None
@@ -75,6 +74,7 @@ class MemberCreate(MemberBase):
 
 class MemberRead(MemberBase):
     id: int
+    status: MemberStatusLiteral = "active"
     avatar_path: str | None = Field(default=None, exclude=True)
 
     model_config = ConfigDict(from_attributes=True)
