@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import cast
@@ -17,6 +18,8 @@ from .roles_service import (
     parse_roles,
     serialize_roles,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -79,6 +82,7 @@ async def update_admin_user_roles(
     db: AsyncSession,
     *,
     target_student_id: str,
+    actor_student_id: str,
     roles: object,
 ) -> AdminRoleView:
     admin_user = await auth_repo.get_admin_by_student_id(db, target_student_id)
@@ -97,7 +101,20 @@ async def update_admin_user_roles(
             status=409,
         ) from None
 
+    previous_roles = cast(str, member.roles)
+    previous_profile = parse_roles(previous_roles)
     normalized_roles = normalize_assignable_roles(roles)
+
+    if (
+        target_student_id == actor_student_id
+        and "super_admin" not in normalized_roles
+    ):
+        raise ApiError(
+            code="self_demotion_forbidden",
+            detail="Cannot remove super_admin from yourself",
+            status=422,
+        )
+
     if "admin" not in normalized_roles and "super_admin" not in normalized_roles:
         raise ApiError(
             code="admin_grade_required",
@@ -105,8 +122,30 @@ async def update_admin_user_roles(
             status=422,
         )
 
+    if (
+        previous_profile.grade == "super_admin"
+        and "super_admin" not in normalized_roles
+    ):
+        views = await list_admin_role_views(db)
+        super_admin_count = len(
+            [view for view in views if view.grade == "super_admin"]
+        )
+        if super_admin_count <= 1:
+            raise ApiError(
+                code="last_super_admin_forbidden",
+                detail="Cannot remove the last super_admin",
+                status=422,
+            )
+
     serialized = serialize_roles(normalized_roles)
     updated = await members_repo.update_member_roles(
         db, member=member, roles=serialized
+    )
+    logger.info(
+        "roles_updated target=%s by=%s old=%s new=%s",
+        target_student_id,
+        actor_student_id,
+        previous_roles,
+        serialized,
     )
     return _build_admin_role_view(admin_user, updated)

@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, cast
@@ -166,7 +167,7 @@ def require_permission(
     permission: str,
     *,
     allow_admin_fallback: bool = True,
-) -> Any:
+) -> Callable[[Request], CurrentUser]:
     """기능권한 의존성 팩토리.
 
     - `super_admin`은 항상 통과.

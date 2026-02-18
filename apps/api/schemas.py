@@ -22,6 +22,7 @@ from .media_utils import (
     normalize_media_path,
     normalize_media_paths,
 )
+from .services.roles_service import RoleGradeLiteral
 
 VisibilityLiteral = Literal["all", "cohort", "private"]
 RSVPLiteral = Literal["going", "waitlist", "cancel"]
@@ -151,9 +152,6 @@ class MemberListFilters(TypedDict, total=False):
     exclude_private: bool
     job_title: str
     sort: str
-
-
-RoleGradeLiteral = Literal["member", "admin", "super_admin"]
 
 
 class AdminUserRolesRead(BaseModel):

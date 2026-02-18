@@ -50,6 +50,7 @@ async def patch_admin_user_roles(
     updated = await admin_roles_service.update_admin_user_roles(
         db,
         target_student_id=student_id,
+        actor_student_id=actor.student_id,
         roles=payload.roles,
     )
     updated_read = schemas.AdminUserRolesRead(

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import cast
 
 from fastapi import HTTPException
 from itsdangerous import (
@@ -57,7 +57,7 @@ def load_activation_payload(token: str) -> ActivationPayload:
         salt=ACTIVATION_SIGNER_NAMESPACE,
     )
     try:
-        data_raw: Any = serializer.loads(
+        data_raw: object = serializer.loads(
             token,
             max_age=ACTIVATION_TOKEN_MAX_AGE_SECONDS,
         )
