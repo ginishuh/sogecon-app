@@ -22,6 +22,7 @@ from .media_utils import (
     normalize_media_path,
     normalize_media_paths,
 )
+from .services.roles_service import RoleGradeLiteral
 
 VisibilityLiteral = Literal["all", "cohort", "private"]
 RSVPLiteral = Literal["going", "waitlist", "cancel"]
@@ -151,6 +152,30 @@ class MemberListFilters(TypedDict, total=False):
     exclude_private: bool
     job_title: str
     sort: str
+
+
+class AdminUserRolesRead(BaseModel):
+    student_id: str
+    email: EmailStr | None = None
+    name: str | None = None
+    has_member_record: bool
+    roles: list[str]
+    grade: RoleGradeLiteral
+    permissions: list[str]
+
+
+class AdminUserRolesListResponse(BaseModel):
+    items: list[AdminUserRolesRead]
+    total: int
+
+
+class AdminUserRolesUpdatePayload(BaseModel):
+    roles: list[str] = Field(default_factory=list)
+
+
+class AdminUserRolesUpdateResponse(BaseModel):
+    updated: AdminUserRolesRead
+    decided_by_student_id: str
 
 
 class SignupRequestBase(BaseModel):

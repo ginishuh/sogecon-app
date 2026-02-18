@@ -824,6 +824,40 @@ export interface paths {
         patch: operations["update_admin_hero_item_admin_hero__hero_item_id__patch"];
         trace?: never;
     };
+    "/admin/admin-users/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Admin Users */
+        get: operations["list_admin_users_admin_admin_users__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/admin-users/{student_id}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Patch Admin User Roles */
+        patch: operations["patch_admin_user_roles_admin_admin_users__student_id__roles_patch"];
+        trace?: never;
+    };
     "/admin/signup-requests/": {
         parameters: {
             query?: never;
@@ -902,6 +936,44 @@ export interface components {
             items: components["schemas"]["PostRead"][];
             /** Total */
             total: number;
+        };
+        /** AdminUserRolesListResponse */
+        AdminUserRolesListResponse: {
+            /** Items */
+            items: components["schemas"]["AdminUserRolesRead"][];
+            /** Total */
+            total: number;
+        };
+        /** AdminUserRolesRead */
+        AdminUserRolesRead: {
+            /** Student Id */
+            student_id: string;
+            /** Email */
+            email?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Has Member Record */
+            has_member_record: boolean;
+            /** Roles */
+            roles: string[];
+            /**
+             * Grade
+             * @enum {string}
+             */
+            grade: "member" | "admin" | "super_admin";
+            /** Permissions */
+            permissions: string[];
+        };
+        /** AdminUserRolesUpdatePayload */
+        AdminUserRolesUpdatePayload: {
+            /** Roles */
+            roles?: string[];
+        };
+        /** AdminUserRolesUpdateResponse */
+        AdminUserRolesUpdateResponse: {
+            updated: components["schemas"]["AdminUserRolesRead"];
+            /** Decided By Student Id */
+            decided_by_student_id: string;
         };
         /** Body_upload_avatar_me_avatar_post */
         Body_upload_avatar_me_avatar_post: {
@@ -3553,6 +3625,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HeroItemRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_admin_users_admin_admin_users__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserRolesListResponse"];
+                };
+            };
+        };
+    };
+    patch_admin_user_roles_admin_admin_users__student_id__roles_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                student_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUserRolesUpdatePayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserRolesUpdateResponse"];
                 };
             };
             /** @description Validation Error */

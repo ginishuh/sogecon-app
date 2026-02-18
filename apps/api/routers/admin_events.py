@@ -5,14 +5,14 @@ from __future__ import annotations
 from datetime import datetime
 from typing import cast
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
 from ..db import get_db
 from ..services import events_service
-from .auth import require_admin
+from .auth import CurrentUser, require_permission
 
 router = APIRouter(prefix="/admin/events", tags=["admin-events"])
 
@@ -53,11 +53,12 @@ class AdminEventListResponse(BaseModel):
 
 @router.get("/", response_model=AdminEventListResponse)
 async def list_admin_events(
-    request: Request,
     params: AdminEventQueryParams = Depends(get_admin_event_params),
     db: AsyncSession = Depends(get_db),
+    _admin: CurrentUser = Depends(
+        require_permission("admin_events", allow_admin_fallback=False)
+    ),
 ) -> AdminEventListResponse:
-    require_admin(request)
     filters: schemas.AdminEventListFilters = {}
     if params.q is not None:
         filters["q"] = params.q
@@ -92,21 +93,23 @@ async def list_admin_events(
 
 @router.patch("/{event_id}", response_model=schemas.EventRead)
 async def update_admin_event(
-    request: Request,
     event_id: int,
     payload: schemas.EventUpdate,
     db: AsyncSession = Depends(get_db),
+    _admin: CurrentUser = Depends(
+        require_permission("admin_events", allow_admin_fallback=False)
+    ),
 ) -> schemas.EventRead:
-    require_admin(request)
     event = await events_service.update_event(db, event_id, payload)
     return schemas.EventRead.model_validate(event)
 
 
 @router.delete("/{event_id}", status_code=204)
 async def delete_admin_event(
-    request: Request,
     event_id: int,
     db: AsyncSession = Depends(get_db),
+    _admin: CurrentUser = Depends(
+        require_permission("admin_events", allow_admin_fallback=False)
+    ),
 ) -> None:
-    require_admin(request)
     await events_service.delete_event(db, event_id)

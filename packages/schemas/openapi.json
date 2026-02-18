@@ -2860,6 +2860,79 @@
         }
       }
     },
+    "/admin/admin-users/": {
+      "get": {
+        "tags": [
+          "admin-roles"
+        ],
+        "summary": "List Admin Users",
+        "operationId": "list_admin_users_admin_admin_users__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserRolesListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/admin-users/{student_id}/roles": {
+      "patch": {
+        "tags": [
+          "admin-roles"
+        ],
+        "summary": "Patch Admin User Roles",
+        "operationId": "patch_admin_user_roles_admin_admin_users__student_id__roles_patch",
+        "parameters": [
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Student Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUserRolesUpdatePayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserRolesUpdateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/signup-requests/": {
       "get": {
         "tags": [
@@ -3116,6 +3189,124 @@
         ],
         "title": "AdminPostListResponse",
         "description": "\uad00\ub9ac\uc790 \uac8c\uc2dc\ubb3c \ubaa9\ub85d \uc751\ub2f5."
+      },
+      "AdminUserRolesListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminUserRolesRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "AdminUserRolesListResponse"
+      },
+      "AdminUserRolesRead": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "title": "Student Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "has_member_record": {
+            "type": "boolean",
+            "title": "Has Member Record"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Roles"
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "member",
+              "admin",
+              "super_admin"
+            ],
+            "title": "Grade"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Permissions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "has_member_record",
+          "roles",
+          "grade",
+          "permissions"
+        ],
+        "title": "AdminUserRolesRead"
+      },
+      "AdminUserRolesUpdatePayload": {
+        "properties": {
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Roles"
+          }
+        },
+        "type": "object",
+        "title": "AdminUserRolesUpdatePayload"
+      },
+      "AdminUserRolesUpdateResponse": {
+        "properties": {
+          "updated": {
+            "$ref": "#/components/schemas/AdminUserRolesRead"
+          },
+          "decided_by_student_id": {
+            "type": "string",
+            "title": "Decided By Student Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "updated",
+          "decided_by_student_id"
+        ],
+        "title": "AdminUserRolesUpdateResponse"
       },
       "Body_upload_avatar_me_avatar_post": {
         "properties": {

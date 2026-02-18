@@ -5,34 +5,31 @@
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, cast
 
 from fastapi import HTTPException, Request
-from itsdangerous import (
-    BadData,
-    BadSignature,
-    SignatureExpired,
-    URLSafeTimedSerializer,
-)
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import models
 from ..config import get_settings
 from ..errors import NotFoundError
 from ..ratelimit import consume_limit
 from ..repositories import auth as auth_repo
 from ..repositories import members as members_repo
 from ..repositories import signup_requests as signup_requests_repo
+from .activation_service import (
+    load_activation_payload,
+    resolve_activation_member,
+    resolve_activation_signup_request,
+)
 from .roles_service import ensure_member_role, has_permission, normalize_roles
 
 # 로그인 레이트리밋 (slowapi)
 limiter_login = Limiter(key_func=get_remote_address)
-ACTIVATION_SIGNER_NAMESPACE = "member-activate-v2"
-ACTIVATION_TOKEN_MAX_AGE_SECONDS = 72 * 60 * 60
 
 
 def _is_test_client(request: Request) -> bool:
@@ -65,12 +62,6 @@ class CurrentUser:
     roles: list[str]
     id: int | None = None
     email: str | None = None
-
-
-@dataclass(frozen=True)
-class ActivationPayload:
-    signup_request_id: int
-    student_id: str
 
 
 # ---- 세션 파싱/정규화 ----
@@ -176,7 +167,7 @@ def require_permission(
     permission: str,
     *,
     allow_admin_fallback: bool = True,
-) -> Any:
+) -> Callable[[Request], CurrentUser]:
     """기능권한 의존성 팩토리.
 
     - `super_admin`은 항상 통과.
@@ -209,6 +200,21 @@ def require_permission(
         raise HTTPException(status_code=401, detail="unauthorized")
 
     return _dependency
+
+
+def require_super_admin(req: Request) -> CurrentUser:
+    """super_admin 권한 필요 의존성."""
+    user = _get_user_session(req)
+    if user is not None:
+        if "super_admin" in user.roles:
+            return user
+        raise HTTPException(status_code=403, detail="super_admin_required")
+
+    legacy_admin = _get_admin_session(req)
+    if legacy_admin is not None:
+        raise HTTPException(status_code=403, detail="super_admin_required")
+
+    raise HTTPException(status_code=401, detail="unauthorized")
 
 
 def is_admin(req: Request) -> bool:
@@ -354,108 +360,6 @@ def logout(request: Request) -> None:
     _clear_session(request)
 
 
-def create_member_activation_token(
-    *,
-    signup_request_id: int,
-    student_id: str,
-    cohort: int,
-    name: str,
-) -> str:
-    settings = get_settings()
-    serializer = URLSafeTimedSerializer(
-        settings.jwt_secret,
-        salt=ACTIVATION_SIGNER_NAMESPACE,
-    )
-    return serializer.dumps(
-        {
-            "signup_request_id": signup_request_id,
-            "student_id": student_id,
-            "cohort": cohort,
-            "name": name,
-        }
-    )
-
-
-def _load_activation_payload(token: str) -> ActivationPayload:
-    settings = get_settings()
-    serializer = URLSafeTimedSerializer(
-        settings.jwt_secret,
-        salt=ACTIVATION_SIGNER_NAMESPACE,
-    )
-    try:
-        data_raw: Any = serializer.loads(
-            token,
-            max_age=ACTIVATION_TOKEN_MAX_AGE_SECONDS,
-        )
-    except (SignatureExpired, BadSignature, BadData) as err:
-        raise HTTPException(
-            status_code=401,
-            detail="invalid_or_expired_activation_token",
-        ) from err
-
-    if not isinstance(data_raw, dict):
-        raise HTTPException(status_code=422, detail="invalid_payload")
-    data = cast(dict[str, object], data_raw)
-    signup_request_id_obj = data.get("signup_request_id")
-    student_id_obj = data.get("student_id")
-    if not isinstance(signup_request_id_obj, int) or not isinstance(
-        student_id_obj, str
-    ):
-        raise HTTPException(status_code=422, detail="invalid_payload")
-
-    return ActivationPayload(
-        signup_request_id=signup_request_id_obj,
-        student_id=student_id_obj,
-    )
-
-
-async def _resolve_activation_signup_request(
-    db: AsyncSession,
-    payload: ActivationPayload,
-) -> models.SignupRequest:
-    row = await signup_requests_repo.get_signup_request_by_id(
-        db,
-        payload.signup_request_id,
-    )
-    if row is None:
-        raise HTTPException(
-            status_code=401,
-            detail="invalid_or_expired_activation_token",
-        )
-    if cast(str, row.student_id) != payload.student_id:
-        raise HTTPException(
-            status_code=401,
-            detail="invalid_or_expired_activation_token",
-        )
-
-    row_status = cast(str, row.status)
-    if row_status == "activated":
-        raise HTTPException(status_code=409, detail="activation_already_used")
-    if row_status != "approved":
-        raise HTTPException(
-            status_code=401,
-            detail="invalid_or_expired_activation_token",
-        )
-    return row
-
-
-async def _resolve_activation_member(
-    db: AsyncSession,
-    student_id: str,
-) -> models.Member:
-    try:
-        member = await members_repo.get_member_by_student_id(db, student_id)
-    except NotFoundError:
-        raise HTTPException(
-            status_code=409,
-            detail="activation_member_missing",
-        ) from None
-    # 승인 후 활성화 직전 상태 변경(예: suspended) 방어
-    if cast(str, member.status) != "active":
-        raise HTTPException(status_code=403, detail="member_not_active")
-    return member
-
-
 async def activate_member(
     db: AsyncSession,
     request: Request,
@@ -467,9 +371,9 @@ async def activate_member(
     if settings.app_env == "prod" and not _is_test_client(request):
         consume_limit(limiter_login, request, settings.rate_limit_login)
 
-    payload = _load_activation_payload(token)
-    row = await _resolve_activation_signup_request(db, payload)
-    member = await _resolve_activation_member(db, payload.student_id)
+    payload = load_activation_payload(token)
+    row = await resolve_activation_signup_request(db, payload)
+    member = await resolve_activation_member(db, payload.student_id)
 
     # 비밀번호 해시 생성 및 저장
     bcrypt = __import__("bcrypt")

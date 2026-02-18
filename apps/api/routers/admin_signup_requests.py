@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import schemas
 from ..db import get_db
 from ..services import signup_service
+from ..services.activation_service import create_member_activation_token
 from ..services.auth_service import (
     CurrentUser,
-    create_member_activation_token,
     require_permission,
 )
 
@@ -52,7 +52,9 @@ class SignupRejectPayload(BaseModel):
 async def list_signup_requests(
     params: SignupRequestListParams = Depends(),
     db: AsyncSession = Depends(get_db),
-    _user: CurrentUser = Depends(require_permission("admin_signup")),
+    _user: CurrentUser = Depends(
+        require_permission("admin_signup", allow_admin_fallback=False)
+    ),
 ) -> SignupRequestListResponse:
     filters: schemas.SignupRequestListFilters = {}
     if params.q is not None:
@@ -76,7 +78,9 @@ async def list_signup_requests(
 async def approve_signup_request(
     signup_request_id: int,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_permission("admin_signup")),
+    user: CurrentUser = Depends(
+        require_permission("admin_signup", allow_admin_fallback=False)
+    ),
 ) -> SignupApproveResponse:
     row, context = await signup_service.approve_signup_request(
         db,
@@ -106,7 +110,9 @@ async def reject_signup_request(
     signup_request_id: int,
     payload: SignupRejectPayload,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_permission("admin_signup")),
+    user: CurrentUser = Depends(
+        require_permission("admin_signup", allow_admin_fallback=False)
+    ),
 ) -> schemas.SignupRequestRead:
     row = await signup_service.reject_signup_request(
         db,
