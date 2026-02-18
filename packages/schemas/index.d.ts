@@ -329,6 +329,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/member/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Member Signup
+         * @description 신규 가입신청 생성.
+         */
+        post: operations["member_signup_auth_member_signup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/member/logout": {
         parameters: {
             query?: never;
@@ -802,6 +822,57 @@ export interface paths {
         head?: never;
         /** Update Admin Hero Item */
         patch: operations["update_admin_hero_item_admin_hero__hero_item_id__patch"];
+        trace?: never;
+    };
+    "/admin/signup-requests/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Signup Requests */
+        get: operations["list_signup_requests_admin_signup_requests__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/signup-requests/{signup_request_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Signup Request */
+        post: operations["approve_signup_request_admin_signup_requests__signup_request_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/signup-requests/{signup_request_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Signup Request */
+        post: operations["reject_signup_request_admin_signup_requests__signup_request_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
 }
@@ -1506,6 +1577,94 @@ export interface components {
             status_code: number | null;
             /** Endpoint Tail */
             endpoint_tail: string | null;
+        };
+        /** SignupActivationContextResponse */
+        SignupActivationContextResponse: {
+            /** Signup Request Id */
+            signup_request_id: number;
+            /** Student Id */
+            student_id: string;
+            /** Email */
+            email: string;
+            /** Name */
+            name: string;
+            /** Cohort */
+            cohort: number;
+        };
+        /** SignupApproveResponse */
+        SignupApproveResponse: {
+            request: components["schemas"]["SignupRequestRead"];
+            activation_context: components["schemas"]["SignupActivationContextResponse"];
+        };
+        /** SignupRejectPayload */
+        SignupRejectPayload: {
+            /** Reason */
+            reason: string;
+        };
+        /** SignupRequestCreate */
+        SignupRequestCreate: {
+            /** Student Id */
+            student_id: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Name */
+            name: string;
+            /** Cohort */
+            cohort: number;
+            /** Major */
+            major?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** SignupRequestListResponse */
+        SignupRequestListResponse: {
+            /** Items */
+            items: components["schemas"]["SignupRequestRead"][];
+            /** Total */
+            total: number;
+        };
+        /** SignupRequestRead */
+        SignupRequestRead: {
+            /** Student Id */
+            student_id: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Name */
+            name: string;
+            /** Cohort */
+            cohort: number;
+            /** Major */
+            major?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Note */
+            note?: string | null;
+            /**
+             * Status
+             * @default pending
+             * @enum {string}
+             */
+            status: "pending" | "approved" | "rejected" | "activated";
+            /** Requested At */
+            requested_at?: string | null;
+            /** Decided At */
+            decided_at?: string | null;
+            /** Activated At */
+            activated_at?: string | null;
+            /** Decided By Student Id */
+            decided_by_student_id?: string | null;
+            /** Reject Reason */
+            reject_reason?: string | null;
+            /** Id */
+            id: number;
         };
         /** SubscriptionPayload */
         SubscriptionPayload: {
@@ -2383,6 +2542,39 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    member_signup_auth_member_signup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupRequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignupRequestRead"];
                 };
             };
             /** @description Validation Error */
@@ -3359,6 +3551,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HeroItemRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_signup_requests_admin_signup_requests__get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                q?: string | null;
+                status?: ("pending" | "approved" | "rejected" | "activated") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignupRequestListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_signup_request_admin_signup_requests__signup_request_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                signup_request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignupApproveResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_signup_request_admin_signup_requests__signup_request_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                signup_request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupRejectPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignupRequestRead"];
                 };
             };
             /** @description Validation Error */

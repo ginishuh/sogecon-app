@@ -159,6 +159,8 @@ class SignupRequestBase(BaseModel):
     name: str
     cohort: int
     major: str | None = None
+    phone: str | None = None
+    note: str | None = None
     status: SignupRequestStatusLiteral = "pending"
     requested_at: datetime | None = None
     decided_at: datetime | None = None
@@ -173,12 +175,29 @@ class SignupRequestCreate(BaseModel):
     name: str
     cohort: int
     major: str | None = None
+    phone: str | None = None
+    note: str | None = None
+
+    @field_validator("phone")
+    @classmethod
+    def _validate_phone(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        trimmed = value.strip()
+        if not _PHONE_PATTERN.fullmatch(trimmed):
+            raise ValueError("전화번호는 숫자, +, -, 공백으로만 7~20자 입력해주세요.")
+        return trimmed
 
 
 class SignupRequestRead(SignupRequestBase):
     id: int
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SignupRequestListFilters(TypedDict, total=False):
+    q: str
+    status: SignupRequestStatusLiteral
 
 
 class AdminEventListFilters(TypedDict, total=False):
