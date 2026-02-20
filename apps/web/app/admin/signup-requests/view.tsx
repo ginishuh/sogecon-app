@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  buildActivationMessage,
+  buildActivationUrl,
+} from '../../../lib/activation';
 import type {
   SignupApproveResponse,
   SignupRequestRead,
@@ -46,30 +50,68 @@ function ListFallback({ state }: { state: ListState }) {
 
 export function ApproveTokenCard({
   lastApprove,
-  onCopy,
+  onCopyToken,
+  onCopyLink,
+  onCopyMessage,
 }: {
   lastApprove: SignupApproveResponse | null;
-  onCopy: () => void;
+  onCopyToken: () => void;
+  onCopyLink: () => void;
+  onCopyMessage: () => void;
 }) {
   if (lastApprove == null) return null;
 
+  const { name, student_id } = lastApprove.activation_context;
+  const activationUrl = buildActivationUrl(lastApprove.activation_token);
+  const activationMessage = buildActivationMessage(name, student_id, activationUrl);
+
+  const copyBtnClass =
+    'rounded border border-state-success-ring px-3 py-1 text-xs text-state-success hover:bg-white';
+
   return (
-    <div className="rounded border border-state-success-ring bg-state-success-subtle p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium text-state-success">
-          최근 승인: {lastApprove.activation_context.name} ({lastApprove.activation_context.student_id})
-        </p>
-        <button
-          type="button"
-          className="rounded border border-state-success-ring px-3 py-1 text-xs text-state-success hover:bg-white"
-          onClick={onCopy}
-        >
-          활성화 토큰 복사
-        </button>
-      </div>
-      <p className="mt-2 break-all rounded bg-white px-3 py-2 text-xs text-text-secondary">
-        {lastApprove.activation_token}
+    <div className="space-y-3 rounded border border-state-success-ring bg-state-success-subtle p-4">
+      <p className="text-sm font-medium text-state-success">
+        최근 승인: {name} ({student_id})
       </p>
+
+      {/* 토큰 */}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-medium text-state-success">활성화 토큰</span>
+          <button type="button" className={copyBtnClass} onClick={onCopyToken}>
+            토큰 복사
+          </button>
+        </div>
+        <p className="break-all rounded bg-white px-3 py-2 text-xs text-text-secondary">
+          {lastApprove.activation_token}
+        </p>
+      </div>
+
+      {/* 활성화 링크 */}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-medium text-state-success">활성화 링크</span>
+          <button type="button" className={copyBtnClass} onClick={onCopyLink}>
+            링크 복사
+          </button>
+        </div>
+        <p className="break-all rounded bg-white px-3 py-2 text-xs text-text-secondary">
+          {activationUrl}
+        </p>
+      </div>
+
+      {/* 안내문구 */}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-medium text-state-success">안내문구</span>
+          <button type="button" className={copyBtnClass} onClick={onCopyMessage}>
+            안내문구 복사
+          </button>
+        </div>
+        <p className="whitespace-pre-line break-all rounded bg-white px-3 py-2 text-xs text-text-secondary">
+          {activationMessage}
+        </p>
+      </div>
     </div>
   );
 }

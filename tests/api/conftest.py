@@ -17,6 +17,27 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from apps.api import models
 from apps.api.db import get_db
 from apps.api.main import app
+from apps.api.routers.notifications import limiter_notifications
+from apps.api.routers.support import limiter as limiter_support
+from apps.api.services.auth_service import limiter_login
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limiters() -> Generator[None, None, None]:
+    """테스트 간 레이트리밋 카운터 누적을 방지한다."""
+    limiters = [
+        getattr(app.state, "limiter", None),
+        limiter_login,
+        limiter_notifications,
+        limiter_support,
+    ]
+    for limiter in limiters:
+        if limiter is not None:
+            limiter.reset()
+    yield
+    for limiter in limiters:
+        if limiter is not None:
+            limiter.reset()
 
 
 @pytest.fixture()
