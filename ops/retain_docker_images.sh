@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # Retain only the most recent N images per repository prefix.
-# Default: prefix=ghcr.io/ginishuh/sogecon-app/ keep=2
-PREFIX=${PREFIX:-ghcr.io/ginishuh/sogecon-app/}
+# Default: prefix=local/sogecon/ keep=2
+PREFIX=${PREFIX:-local/sogecon/}
 KEEP=${KEEP:-2}
 DRY_RUN=${DRY_RUN:-}
 

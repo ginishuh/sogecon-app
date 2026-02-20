@@ -2,10 +2,10 @@
 
 > English version: `docs/agent_runbook_vps_en.md`
 
-본 문서는 VPS에 레포를 클론한 뒤 에이전트(Codex CLI/Claude)가 안전하게 배포/재배포 작업을 수행할 수 있도록 표준 절차를 제공합니다. 컨테이너 이미지는 GHCR 기준입니다.
+본 문서는 VPS에 레포를 클론한 뒤 에이전트(Codex CLI/Claude)가 안전하게 배포/재배포 작업을 수행할 수 있도록 표준 절차를 제공합니다. 기본 배포는 서버에서 로컬 이미지를 빌드하는 방식입니다.
 
 ## 요구 사항
-- Docker 설치 및 `docker login ghcr.io` 권한(PAT 또는 GitHub Actions에서 전달)
+- Docker 설치
 - Nginx/Caddy 등 리버스 프록시(127.0.0.1:3000/3001 프록시)
 - 레포 위치: `/srv/sogecon-app` (권장)
 
@@ -24,56 +24,39 @@ sudo mkdir -p /var/lib/sogecon/uploads
 sudo chown 1000:1000 /var/lib/sogecon/uploads
 ```
 
-## 2) 배포 경로 A — GitHub Actions(권장)
-1. CI가 `build-push` 워크플로로 GHCR에 이미지 푸시
-2. 수동으로 `deploy` 워크플로 실행
-   - 입력값: `tag`(커밋 SHA 7자리 등), `environment=prod`, `skip_migrate` 여부
-   - 워크플로가 VPS에 SSH 접속 후 `pull → migrate → restart → health` 순서로 실행
-
-필요한 GitHub 설정(Environments: `prod`)
-- Variables(vars): `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_WEB_API_BASE`, 필요 시 `NEXT_PUBLIC_*`, (권장) `DOCKER_NETWORK`(예: `sogecon_net`)
-- Secrets: `SSH_HOST`, `SSH_USER`, `SSH_KEY`, (옵션) `SSH_PORT`, `GHCR_PAT`(read:packages)
-
-## 3) 배포 경로 B — 서버에서 직접 배포(수동)
+## 2) 배포 경로 A — 서버 로컬 빌드(권장)
 체크리스트(요약)
 - [ ] 전용 네트워크 존재(`sogecon_net`)
 - [ ] `.env.api`에 `DATABASE_URL=postgresql+psycopg://…@sogecon-db:5432/…`
-- [ ] 이미지 pull → 마이그레이션 → 재기동 순서
+- [ ] 로컬 빌드 → 마이그레이션 → 재기동 순서
 - [ ] 헬스체크 200(워밍업 ≤90s 허용)
 ```bash
 cd /srv/sogecon-app
-export PREFIX=ghcr.io/<owner>/<repo>
 export TAG=<커밋SHA7 또는 릴리스 태그>
 
-# 1) 이미지 풀
-docker pull $PREFIX/alumni-api:$TAG
-docker pull $PREFIX/alumni-web:$TAG
-
-# 2) DB 마이그레이션(스키마 변경이 있을 때)
-docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
-API_IMAGE=$PREFIX/alumni-api:$TAG ENV_FILE=.env.api DOCKER_NETWORK=sogecon_net \
-  bash ./ops/cloud-migrate.sh
-
-# 3) 서비스 재시작
-API_IMAGE=$PREFIX/alumni-api:$TAG \
-WEB_IMAGE=$PREFIX/alumni-web:$TAG \
-API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
-DOCKER_NETWORK=sogecon_net \
-  bash ./ops/cloud-start.sh
-
-# 4) 헬스체크
-for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://api.<도메인>/healthz || true); [ "$code" = 200 ] && break; sleep 1; done
-for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://<도메인>/ || true); [ "$code" = 200 ] && break; sleep 1; done
-
-## 비상 절차(롤백)
-```bash
-PREV=<stable-tag>
-docker pull $PREFIX/alumni-api:$PREV
-docker pull $PREFIX/alumni-web:$PREV
-API_IMAGE=$PREFIX/alumni-api:$PREV WEB_IMAGE=$PREFIX/alumni-web:$PREV \
-  DOCKER_NETWORK=sogecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
-  bash ./ops/cloud-start.sh
+bash ./scripts/deploy-vps.sh -t "$TAG" --local-build \
+  --network sogecon_net \
+  --api-health https://api.<도메인>/healthz \
+  --web-health https://<도메인>/
 ```
+
+## 3) 배포 경로 B — 외부 레지스트리 이미지 pull(선택)
+레지스트리를 반드시 써야 하는 경우에만 사용합니다.
+```bash
+cd /srv/sogecon-app
+export PREFIX=<registry>/<namespace>/<repo>
+export TAG=<커밋SHA7 또는 릴리스 태그>
+
+bash ./scripts/deploy-vps.sh -t "$TAG" -p "$PREFIX" --pull-images \
+  --network sogecon_net \
+  --api-health https://api.<도메인>/healthz \
+  --web-health https://<도메인>/
+
+# 비상 롤백
+export PREV=<stable-tag>
+bash ./scripts/deploy-vps.sh -t "$PREV" -p "$PREFIX" --pull-images \
+  --network sogecon_net \
+  --skip-migrate
 ```
 
 ## 4) 쿠키/도메인 전환 스위치
@@ -133,13 +116,9 @@ sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart
   - systemd 상태/재시작 횟수: `systemctl show -p ActiveState,RestartCount sogecon-web`
   - 헬스엔드포인트를 크론/외부 모니터로 주기 확인(200 응답)
 
-### GitHub Actions 배포(권장)
-- 워크플로: `.github/workflows/web-standalone-deploy.yml`
-- 트리거: GitHub → Actions → `web-standalone-deploy` → Run workflow (environment=`prod`)
-- GitHub Environment `prod`에 필요한 값
-  - Secrets: `SSH_HOST`, `SSH_USER`, `SSH_KEY`(PEM), `SSH_PORT`(옵션)
-  - Variables: `NEXT_PUBLIC_SITE_URL` (헬스체크에 사용)
-- 서버 선행 준비: 위 사전 준비(1회)와 `/srv/sogecon-app` 레포 클론 필요.
+### GitHub CD 정책
+- GitHub Actions 기반 배포 워크플로우(`build-push`, `deploy`, `web-standalone-*`)는 사용하지 않습니다.
+- GitHub는 CI/검증 용도로만 사용하고, 실제 배포는 VPS 온박스(운영자 또는 에이전트)가 실행합니다.
 
 ### 경로 정책(/opt vs 레포 내부)
 - 기본(권장): `/srv/www/sogecon`에 릴리스 전개, `/srv/www/sogecon/current` 심볼릭 링크 운용
@@ -156,5 +135,5 @@ sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart
 ## 참고 문서
 - 배포 절차(상세): `ops/deploy_api.md`, `ops/deploy_web.md`
 - Nginx 예시: `ops/nginx-examples/`
-- CI 워크플로: `.github/workflows/build-push.yml`, `.github/workflows/deploy.yml`
+- CI 워크플로: `.github/workflows/ci.yml`, `.github/workflows/dto-verify.yml`, `.github/workflows/codeql.yml`
 - SSOT(운영/품질 규칙): `docs/agents_base.md`, `docs/agents_base_kr.md`

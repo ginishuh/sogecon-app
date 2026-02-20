@@ -1,9 +1,9 @@
 # VPS Agent Runbook (for Docker + Nginx servers)
 
-This runbook helps an on‑box agent (Codex CLI/Claude) deploy and redeploy the app on a VPS using container images (GHCR).
+This runbook helps an on‑box agent (Codex CLI/Claude) deploy and redeploy the app on a VPS. The default path builds images directly on the VPS.
 
 ## Requirements
-- Docker installed; ability to `docker login ghcr.io` (via PAT or injected token)
+- Docker installed
 - Reverse proxy (Nginx/Caddy) forwarding 443 → 127.0.0.1:3000 (Web) and 127.0.0.1:3001 (API)
 - Repo path on server: `/srv/sogecon-app` (recommended)
 
@@ -22,56 +22,39 @@ sudo mkdir -p /var/lib/sogecon/uploads
 sudo chown 1000:1000 /var/lib/sogecon/uploads
 ```
 
-## 2) Deploy path A — via GitHub Actions (recommended)
-1) CI runs `build-push` to push images to GHCR.
-2) Manually run `deploy` workflow:
-   - Inputs: `tag` (commit SHA or release tag), `environment=prod`, `skip_migrate` (optional)
-   - The workflow SSHes into the VPS and runs: pull → migrate → restart → health checks
-
-GitHub Environment `prod` (suggested)
-- Variables: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_WEB_API_BASE`, and other `NEXT_PUBLIC_*` as needed. (Recommended) `DOCKER_NETWORK` (e.g., `sogecon_net`).
-- Secrets: `SSH_HOST`, `SSH_USER`, `SSH_KEY`, optional `SSH_PORT`, `GHCR_PAT` (read:packages)
-
-## 3) Deploy path B — manual on the server
+## 2) Deploy path A — on-box local build (recommended)
 Checklist (quick)
 - [ ] Dedicated network exists (`sogecon_net`)
 - [ ] `.env.api` uses container DNS in `DATABASE_URL` (e.g., `sogecon-db`)
-- [ ] Pull images → migrate → restart order
+- [ ] Local build → migrate → restart order
 - [ ] Health 200 (allow warm‑up ≤90s)
 ```bash
 cd /srv/sogecon-app
-PREFIX=ghcr.io/<owner>/<repo>
 TAG=<commit-sha-or-release>
 
-# 1) Pull images
-docker pull $PREFIX/alumni-api:$TAG
-docker pull $PREFIX/alumni-web:$TAG
-
-# 2) DB migration (when schema changed)
-docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
-API_IMAGE=$PREFIX/alumni-api:$TAG ENV_FILE=.env.api DOCKER_NETWORK=sogecon_net \
-  bash ./ops/cloud-migrate.sh
-
-# 3) Restart services
-API_IMAGE=$PREFIX/alumni-api:$TAG \
-WEB_IMAGE=$PREFIX/alumni-web:$TAG \
-API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
-DOCKER_NETWORK=sogecon_net \
-  bash ./ops/cloud-start.sh
-
-# 4) Health checks (retry up to 90s)
-for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://api.<domain>/healthz || true); [ "$code" = 200 ] && break; sleep 1; done
-for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://<domain>/ || true); [ "$code" = 200 ] && break; sleep 1; done
-
-## Emergency rollback
-```bash
-PREV=<stable-tag>
-docker pull $PREFIX/alumni-api:$PREV
-docker pull $PREFIX/alumni-web:$PREV
-API_IMAGE=$PREFIX/alumni-api:$PREV WEB_IMAGE=$PREFIX/alumni-web:$PREV \
-  DOCKER_NETWORK=sogecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
-  bash ./ops/cloud-start.sh
+bash ./scripts/deploy-vps.sh -t "$TAG" --local-build \
+  --network sogecon_net \
+  --api-health https://api.<domain>/healthz \
+  --web-health https://<domain>/
 ```
+
+## 3) Deploy path B — pull from external registry (optional)
+Use this path only when you explicitly need a registry.
+```bash
+cd /srv/sogecon-app
+PREFIX=<registry>/<namespace>/<repo>
+TAG=<commit-sha-or-release>
+
+bash ./scripts/deploy-vps.sh -t "$TAG" -p "$PREFIX" --pull-images \
+  --network sogecon_net \
+  --api-health https://api.<domain>/healthz \
+  --web-health https://<domain>/
+
+# Emergency rollback
+PREV=<stable-tag>
+bash ./scripts/deploy-vps.sh -t "$PREV" -p "$PREFIX" --pull-images \
+  --network sogecon_net \
+  --skip-migrate
 ```
 
 ## 4) Cookie/domain switches
@@ -131,13 +114,9 @@ Notes
   - systemd state/restart count: `systemctl show -p ActiveState,RestartCount sogecon-web`
   - External health probe for `/` endpoint (expect 200)
 
-### GitHub Actions deploy (recommended)
-- Workflow: `.github/workflows/web-standalone-deploy.yml`
-- Trigger: GitHub → Actions → `web-standalone-deploy` → Run workflow (environment=`prod`)
-- GitHub Environment `prod` must define
-  - Secrets: `SSH_HOST`, `SSH_USER`, `SSH_KEY` (PEM), optional `SSH_PORT`
-  - Variables: `NEXT_PUBLIC_SITE_URL` (for health check)
-- Server prerequisites: one‑time setup above and a repo clone at `/srv/sogecon-app`.
+### GitHub CD policy
+- GitHub Actions deployment workflows (`build-push`, `deploy`, `web-standalone-*`) are no longer used.
+- GitHub is used for CI/verification only; deployment runs on the VPS (operator or on-box agent).
 
 ### Path policy (/opt vs in‑repo)
 - Default (recommended): deploy releases to `/srv/www/sogecon`, operate via `/srv/www/sogecon/current` symlink
@@ -154,5 +133,5 @@ Notes
 ## References
 - Detailed deploy docs: `ops/deploy_api.md`, `ops/deploy_web.md`
 - Nginx examples: `ops/nginx-examples/`
-- CI workflows: `.github/workflows/build-push.yml`, `.github/workflows/deploy.yml`
+- CI workflows: `.github/workflows/ci.yml`, `.github/workflows/dto-verify.yml`, `.github/workflows/codeql.yml`
 - SSOT (quality/ops rules): `docs/agents_base.md`, `docs/agents_base_kr.md`
