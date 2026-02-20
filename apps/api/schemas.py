@@ -113,6 +113,8 @@ class MemberUpdate(BaseModel):
         if value is None:
             return None
         trimmed = value.strip()
+        if not trimmed:
+            return None
         if not _PHONE_PATTERN.fullmatch(trimmed):
             raise ValueError("전화번호는 숫자, +, -, 공백으로만 7~20자 입력해주세요.")
         return trimmed

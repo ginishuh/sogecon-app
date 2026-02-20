@@ -89,13 +89,13 @@
 - 웹 스탠드얼론(권장):
   - Next 설정: `apps/web/next.config.js`에 `output: 'standalone'`; Node 24.12.0 고정.
   - Systemd + Nginx: `ops/systemd/sogecon-web.service`, `ops/nginx/nginx-site-web.conf` 샘플 사용.
-  - CI/CD: `.github/workflows/web-standalone-deploy.yml`가 아티팩트를 빌드/업로드 후 원격에서 `ops/web-deploy.sh`를 실행(릴리스 디렉터리 → `current` 심볼릭 전환 → 재시작). `systemctl`을 위한 sudoers NOPASSWD 필요(런북 참조).
+  - 배포 운영: 서버 온박스 수동/에이전트 실행 기준(`pnpm -C apps/web build` → `ops/web-deploy.sh`). 릴리스 디렉터리 → `current` 심볼릭 전환 → 재시작 순서이며, `systemctl`을 위한 sudoers NOPASSWD가 필요함(런북 참조).
   - 빌드타임 공개변수: `NEXT_PUBLIC_*`는 빌드 타임 고정 — 변경 시 재빌드 필요.
 - 컨테이너 플로우(지원 지속): `infra/api.Dockerfile`, `infra/web.Dockerfile`을 빌드.
   - 빌드 헬퍼: `ops/cloud-build.sh`(`NEXT_PUBLIC_*`는 build args로 전달).
   - 런타임 기동: `ops/cloud-start.sh`(API 127.0.0.1:3001, Web 3000). TLS는 Nginx/Caddy에서 종료.
   - DB 마이그레이션: `ops/cloud-migrate.sh`(Alembic).
-  - 이미지 레지스트리: GHCR 권장(`ghcr.io/<owner>/<repo>/alumni-{api,web}:<tag>`). 멀티아치는 `PLATFORMS=linux/amd64 USE_BUILDX=1`.
+  - 이미지 레지스트리: 필수 아님. 기본은 VPS 로컬 빌드(`scripts/deploy-vps.sh --local-build`, `IMAGE_PREFIX=local/sogecon`)이며, 필요 시 `--pull-images`로 임의 레지스트리 사용 가능. 멀티아치는 `PLATFORMS=linux/amd64 USE_BUILDX=1`.
 
 ## 커밋/PR 규칙
 - 모든 커밋은 Conventional Commits 형식을 따릅니다: `type(scope): subject`(헤더 72자 제한).
@@ -187,7 +187,7 @@
   - Next의 공개변수는 빌드타임 고정입니다. 변경 시 재빌드가 필요합니다.
 - 런타임 기동: `ops/cloud-start.sh`(API 127.0.0.1:3001, Web 3000). TLS는 Nginx/Caddy에서 종료.
 - DB 마이그레이션: `ops/cloud-migrate.sh`(Alembic).
-- 이미지 레지스트리: GHCR 권장(`ghcr.io/<owner>/<repo>/alumni-{api,web}:<tag>`). 다른 레지스트리도 무방.
+- 이미지 레지스트리: 필수 아님. 기본은 VPS 로컬 빌드(`scripts/deploy-vps.sh --local-build`, `IMAGE_PREFIX=local/sogecon`)이며, 필요 시 `--pull-images`로 임의 레지스트리 사용 가능.
 - 멀티아치: ARM에서 AMD64 서버용을 빌드할 땐 `PLATFORMS=linux/amd64 USE_BUILDX=1` 사용.
 - 환경파일 규칙:
   - 로컬 개발: 루트 `.env`(API가 로컬 실행 시 자동 로드).

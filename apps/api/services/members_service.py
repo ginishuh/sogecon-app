@@ -6,9 +6,11 @@ import time
 from collections import OrderedDict
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Never
 
 from PIL import Image, UnidentifiedImageError
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models, schemas
@@ -25,6 +27,39 @@ _MEMBER_COUNT_CACHE_MAX = 64
 _member_count_cache: OrderedDict[
     tuple[tuple[str, str], ...], tuple[float, int]
 ] = OrderedDict()
+
+
+def _raise_member_conflict_from_integrity_error(exc: IntegrityError) -> Never:
+    """members 유니크 제약 충돌을 안정적인 409 코드로 변환."""
+    message = str(exc.orig).lower()
+    if (
+        "ix_members_phone" in message
+        or "members.phone" in message
+        or "key (phone)" in message
+    ):
+        raise AlreadyExistsError(
+            code="member_phone_already_in_use",
+            detail="Phone already in use",
+        ) from exc
+    if (
+        "ix_members_email" in message
+        or "members.email" in message
+        or "key (email)" in message
+    ):
+        raise AlreadyExistsError(
+            code="member_exists",
+            detail="Email already in use",
+        ) from exc
+    if (
+        "ix_members_student_id" in message
+        or "members.student_id" in message
+        or "key (student_id)" in message
+    ):
+        raise AlreadyExistsError(
+            code="member_exists",
+            detail="Student ID already in use",
+        ) from exc
+    raise exc
 
 
 def _load_and_normalize_image(file_bytes: bytes) -> Image.Image:
@@ -153,7 +188,23 @@ async def create_member(
     result = await db.execute(stmt)
     if result.scalars().first() is not None:
         raise AlreadyExistsError(code="member_exists", detail="Email already in use")
-    return await members_repo.create_member(db, payload)
+    phone = payload.phone.strip() if isinstance(payload.phone, str) else None
+    normalized_phone = phone or None
+    if isinstance(normalized_phone, str):
+        stmt = select(models.Member.id).where(models.Member.phone == normalized_phone)
+        phone_result = await db.execute(stmt)
+        if phone_result.scalar_one_or_none() is not None:
+            raise AlreadyExistsError(
+                code="member_phone_already_in_use",
+                detail="Phone already in use",
+            )
+    if normalized_phone != payload.phone:
+        payload = payload.model_copy(update={"phone": normalized_phone})
+    try:
+        return await members_repo.create_member(db, payload)
+    except IntegrityError as exc:
+        await db.rollback()
+        _raise_member_conflict_from_integrity_error(exc)
 
 
 async def get_member_by_email(db: AsyncSession, email: str) -> models.Member:
@@ -176,10 +227,29 @@ async def update_member_profile(
         key: value.strip() if isinstance(value, str) else value
         for key, value in raw_payload.items()
     }
+    phone_value = sanitized_data.get("phone")
+    if isinstance(phone_value, str):
+        normalized_phone = phone_value.strip() or None
+        sanitized_data["phone"] = normalized_phone
+        if isinstance(normalized_phone, str):
+            stmt = select(models.Member.id).where(
+                models.Member.phone == normalized_phone,
+                models.Member.id != member_id,
+            )
+            result = await db.execute(stmt)
+            if result.scalar_one_or_none() is not None:
+                raise AlreadyExistsError(
+                    code="member_phone_already_in_use",
+                    detail="Phone already in use",
+                )
     sanitized = data.model_copy(update=sanitized_data)
-    return await members_repo.update_member_profile(
-        db, member_id=member_id, data=sanitized
-    )
+    try:
+        return await members_repo.update_member_profile(
+            db, member_id=member_id, data=sanitized
+        )
+    except IntegrityError as exc:
+        await db.rollback()
+        _raise_member_conflict_from_integrity_error(exc)
 
 
 async def update_member_avatar(

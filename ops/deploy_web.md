@@ -27,10 +27,10 @@
    - 검증 완료 후 `Ctrl+C` 로 종료
 4. 프리뷰에서 CSP 완화가 필요한 경우 `.env.local` 에 `NEXT_PUBLIC_RELAX_CSP=1` 설정 후 HMR 동작 확인
 
-## 4. 배포 절차 (예시: CI/CD)
-1. `main` 브랜치 병합 → CI `pnpm -C apps/web build` 성공 여부 확인
-2. 이미지 빌드: `IMAGE_PREFIX=registry/alumni NEXT_PUBLIC_WEB_API_BASE=https://api... NEXT_PUBLIC_SITE_URL=https://alumni... PUSH_IMAGES=1 ./ops/cloud-build.sh`
-3. 런타임 재시작: `API_IMAGE=registry/alumni-api:<태그> WEB_IMAGE=registry/alumni-web:<태그> WEB_ENV_FILE=/etc/secrets/web.env ./ops/cloud-start.sh`
+## 4. 배포 절차 (예시: 수동/온박스)
+1. `main` 반영 후 로컬 또는 VPS에서 `pnpm -C apps/web build` 성공 여부 확인
+2. 이미지 빌드: `IMAGE_PREFIX=local/sogecon NEXT_PUBLIC_WEB_API_BASE=https://api... NEXT_PUBLIC_SITE_URL=https://alumni... PUSH_IMAGES=0 ./ops/cloud-build.sh`
+3. 런타임 재시작: `API_IMAGE=local/sogecon/alumni-api:<태그> WEB_IMAGE=local/sogecon/alumni-web:<태그> WEB_ENV_FILE=/etc/secrets/web.env ./ops/cloud-start.sh`
 4. `/` 또는 주요 페이지에 대한 헬스체크 수행
 5. CDN/리버스 프록시 캐시 무효화 (필요 시)
 
@@ -54,12 +54,12 @@
 
 ## 8. 도메인 예시(예: sogangeconomics.com) 빌드 예시
 ```
-IMAGE_PREFIX=ghcr.io/<owner>/<repo> \
+IMAGE_PREFIX=local/sogecon \
 NEXT_PUBLIC_SITE_URL=https://sogangeconomics.com \
 NEXT_PUBLIC_WEB_API_BASE=https://api.sogangeconomics.com \
 PLATFORMS=linux/amd64 \# 서버가 x86_64면 권장 (ARM 로컬에서 빌드시)
 USE_BUILDX=1 \        # buildx 사용
-PUSH_IMAGES=1 \
+PUSH_IMAGES=0 \
 ./ops/cloud-build.sh
 ```
 

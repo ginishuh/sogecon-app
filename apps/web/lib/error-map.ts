@@ -11,6 +11,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   // 회원 관련
   member_not_found: '회원 정보를 찾을 수 없습니다.',
   member_exists: '이미 등록된 회원입니다.',
+  member_phone_already_in_use: '이미 다른 회원이 사용 중인 전화번호입니다.',
   member_already_active: '이미 활성화된 회원입니다.',
   signup_already_pending: '이미 심사 대기 중인 신청이 있습니다.',
   signup_request_not_found: '가입신청을 찾을 수 없습니다.',

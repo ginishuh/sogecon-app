@@ -4,7 +4,7 @@
         dev-up dev-down dev-status \
         db-reset db-test-reset db-reset-all api-migrate api-migrate-test \
         seed-data seed-prod reset-data \
-        ghcr-login pull-images deploy-local
+        deploy-local
 
 # Detect active virtualenv; fallback to project-local .venv
 VENV_DIR ?= $(if $(VIRTUAL_ENV),$(VIRTUAL_ENV),.venv)
@@ -195,36 +195,12 @@ reset-data:
 	@echo "[reset] Required: ALLOW_DESTRUCTIVE_RESET=1"
 	"$(VENV_BIN)/python" -m apps.api.reset_data
 
-# --- GHCR / Local deploy (VPS 미러) ---
-# GHCR 로그인 도우미
-# - 필요 환경변수: GHCR_USER(깃허브 사용자명), GHCR_PAT(PAT with read:packages)
-ghcr-login:
-	@if [ -z "$$GHCR_USER" ]; then \
-		echo "[ghcr] GHCR_USER 환경변수를 깃허브 사용자명으로 설정하세요." >&2; \
-		exit 1; \
-	fi
-	@if [ -z "$$GHCR_PAT" ]; then \
-		echo "[ghcr] GHCR_PAT 환경변수가 필요합니다(read:packages)." >&2; \
-		exit 1; \
-	fi
-	@echo "[ghcr] Login ghcr.io as $$GHCR_USER" && echo "$$GHCR_PAT" | docker login ghcr.io -u "$$GHCR_USER" --password-stdin
+# --- Local deploy (VPS 미러) ---
+# 이미지 프리픽스(로컬 기본)
+IMAGE_PREFIX ?= local/sogecon
 
-# 이미지 프리픽스 자동 추정(필요 시 override): ghcr.io/<owner>/<repo>
-IMAGE_PREFIX ?= $(shell git remote get-url origin 2>/dev/null | sed -E 's#.*github.com[:/]([^/]+)/([^/.]+)(\.git)?#ghcr.io/\1/\2#')
-
-# 로컬에서 GHCR 이미지 풀
-# 사용법: make pull-images TAG=<commit_sha>
-pull-images:
-	@if [ -z "$(TAG)" ]; then \
-		echo "[deploy] TAG=<commit_sha> 를 지정하세요." >&2; \
-		exit 1; \
-	fi
-	@echo "[deploy] Pull images: $(IMAGE_PREFIX)/alumni-api:$(TAG) & alumni-web:$(TAG)"
-	docker pull "$(IMAGE_PREFIX)/alumni-api:$(TAG)"
-	docker pull "$(IMAGE_PREFIX)/alumni-web:$(TAG)"
-
-# 로컬에서 VPS와 동일 흐름으로 배포(pull→migrate→restart)
-# 필수: TAG=<commit_sha> (CI build-push의 이미지 태그)
+# 로컬에서 VPS와 동일 흐름으로 배포(build→migrate→restart)
+# 필수: TAG=<commit_sha>
 # 선택: SKIP_MIGRATE=1, DOCKER_NETWORK=<net>, API_HEALTH=<url>, WEB_HEALTH=<url>
 deploy-local:
 	@if [ -z "$(TAG)" ]; then \
@@ -232,7 +208,7 @@ deploy-local:
 		exit 1; \
 	fi
 	@echo "[deploy] Using IMAGE_PREFIX=$(IMAGE_PREFIX) TAG=$(TAG)"
-	@bash scripts/deploy-vps.sh -t "$(TAG)" -p "$(IMAGE_PREFIX)" \
+	@bash scripts/deploy-vps.sh -t "$(TAG)" -p "$(IMAGE_PREFIX)" --local-build \
 	  $(if $(DOCKER_NETWORK),--network "$(DOCKER_NETWORK)",) \
 	  $(if $(SKIP_MIGRATE),--skip-migrate,) \
 	  $(if $(API_HEALTH),--api-health "$(API_HEALTH)",) \

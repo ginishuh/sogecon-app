@@ -80,7 +80,7 @@ class Member(Base):
     # B v1 확장: 표시용 생일(양/음) + 연락처(간단 문자열)
     birth_date = Column(String(10), nullable=True)  # 'YYYY-MM-DD'
     birth_lunar = Column(Boolean, nullable=True)
-    phone = Column(String(64), nullable=True)
+    phone = Column(String(64), nullable=True, unique=True, index=True)
     # B v1 확장 필드(표시/연락/소속/주소/업종)
     company = Column(String(255), nullable=True)
     department = Column(String(255), nullable=True)

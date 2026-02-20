@@ -185,7 +185,7 @@ Do NOT disable linters or type checkers globally or per file.
 - Web standalone (recommended):
   - Next.js config: `apps/web/next.config.js` with `output: 'standalone'`; Node 24.12.0 pinned.
   - Systemd + Nginx: sample unit `ops/systemd/sogecon-web.service` and site `ops/nginx/nginx-site-web.conf`.
-  - CI/CD: workflow `.github/workflows/web-standalone-deploy.yml` builds the artifact, uploads via SCP, then runs `ops/web-deploy.sh` remotely (release dir → `current` symlink → restart). Sudoers NOPASSWD is required for `systemctl` (see runbook).
+  - Deploy operation: run on-box manually (or via on-box agent): `pnpm -C apps/web build` → `ops/web-deploy.sh` (release dir → `current` symlink → restart). Sudoers NOPASSWD is required for `systemctl` (see runbook).
   - Build‑time envs: `NEXT_PUBLIC_*` are build‑time only; changing them requires a rebuild.
 - Container flow (supported): Build `infra/api.Dockerfile` and `infra/web.Dockerfile`.
   - Build helper: `ops/cloud-build.sh` (pass `NEXT_PUBLIC_*` as build args).
@@ -195,7 +195,7 @@ Do NOT disable linters or type checkers globally or per file.
   - Avoid global stores/symlinks leaking across layers; use workspace‑scoped install in build stage.
 - Runtime start: `ops/cloud-start.sh` (127.0.0.1:3001 API, 3000 Web; Nginx/Caddy reverse-proxy terminates TLS).
 - DB migrations: `ops/cloud-migrate.sh` (Alembic).
-- Image registry: GHCR (`ghcr.io/<owner>/<repo>/alumni-{api,web}:<tag>`) is recommended; alternatives OK.
+- Image registry: optional. Default deploy path builds images on VPS (`scripts/deploy-vps.sh --local-build`, `IMAGE_PREFIX=local/sogecon`). If needed, `--pull-images` can use any registry.
 - Multi-arch: if building on ARM for an AMD64 VPS, use `PLATFORMS=linux/amd64 USE_BUILDX=1`.
 - Env files convention:
   - Local dev: root `.env` (auto-loaded by API only for local runs).
