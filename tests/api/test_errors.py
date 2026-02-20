@@ -32,6 +32,32 @@ def test_member_create_conflict_code(admin_login: TestClient) -> None:
     assert data["code"] == "member_exists"
 
 
+def test_member_create_phone_conflict_code(admin_login: TestClient) -> None:
+    client = admin_login
+    first_payload = {
+        "student_id": "phone001",
+        "email": "phone001@example.com",
+        "name": "Phone A",
+        "cohort": 2025,
+        "phone": "010-9999-0001",
+    }
+    second_payload = {
+        "student_id": "phone002",
+        "email": "phone002@example.com",
+        "name": "Phone B",
+        "cohort": 2025,
+        "phone": "010-9999-0001",
+    }
+    res1 = client.post("/members/", json=first_payload)
+    assert res1.status_code == HTTPStatus.CREATED
+
+    res2 = client.post("/members/", json=second_payload)
+    assert res2.status_code == HTTPStatus.CONFLICT
+    data = res2.json()
+    assert data["status"] == HTTPStatus.CONFLICT
+    assert data["code"] == "member_phone_already_in_use"
+
+
 def test_post_not_found_returns_problem_details(client: TestClient) -> None:
     res = client.get("/posts/999999")
     assert res.status_code == HTTPStatus.NOT_FOUND

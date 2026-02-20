@@ -39,7 +39,7 @@ async def create_production_admins(session: AsyncSession) -> None:
 
     admin_users = [
         {
-            "student_id": "admin001",
+            "student_id": "s47053",
             "email": "admin@sogecon.kr",
             "env_var": "SEED_PROD_ADMIN001_VALUE",
             "name": "최고 관리자",
@@ -120,7 +120,7 @@ async def async_main() -> None:
     print("✅ 운영 환경 시드 데이터 생성 완료")
     print("\n📋 생성된 운영 계정 정보")
     print("🔧 관리자 bootstrap 계정:")
-    print("  - admin001 (super_admin,admin,member) / SEED_PROD_ADMIN001_VALUE")
+    print("  - s47053 (super_admin,admin,member) / SEED_PROD_ADMIN001_VALUE")
 
 
 def main() -> None:

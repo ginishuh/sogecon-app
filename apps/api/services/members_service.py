@@ -153,6 +153,18 @@ async def create_member(
     result = await db.execute(stmt)
     if result.scalars().first() is not None:
         raise AlreadyExistsError(code="member_exists", detail="Email already in use")
+    phone = payload.phone.strip() if isinstance(payload.phone, str) else None
+    normalized_phone = phone or None
+    if isinstance(normalized_phone, str):
+        stmt = select(models.Member.id).where(models.Member.phone == normalized_phone)
+        phone_result = await db.execute(stmt)
+        if phone_result.scalar_one_or_none() is not None:
+            raise AlreadyExistsError(
+                code="member_phone_already_in_use",
+                detail="Phone already in use",
+            )
+    if normalized_phone != payload.phone:
+        payload = payload.model_copy(update={"phone": normalized_phone})
     return await members_repo.create_member(db, payload)
 
 
@@ -176,6 +188,18 @@ async def update_member_profile(
         key: value.strip() if isinstance(value, str) else value
         for key, value in raw_payload.items()
     }
+    phone_value = sanitized_data.get("phone")
+    if isinstance(phone_value, str):
+        stmt = select(models.Member.id).where(
+            models.Member.phone == phone_value,
+            models.Member.id != member_id,
+        )
+        result = await db.execute(stmt)
+        if result.scalar_one_or_none() is not None:
+            raise AlreadyExistsError(
+                code="member_phone_already_in_use",
+                detail="Phone already in use",
+            )
     sanitized = data.model_copy(update=sanitized_data)
     return await members_repo.update_member_profile(
         db, member_id=member_id, data=sanitized

@@ -151,7 +151,7 @@ def test_seed_production_creates_admin_bootstrap_only(
         assert auth_count == 1
 
         row = await session.execute(
-            select(models.Member.roles).where(models.Member.student_id == "admin001")
+            select(models.Member.roles).where(models.Member.student_id == "s47053")
         )
         roles = row.scalar_one()
         assert "super_admin" in roles.split(",")
