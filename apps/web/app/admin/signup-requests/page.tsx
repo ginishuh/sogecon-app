@@ -187,7 +187,7 @@ function AdminSignupRequestsContent() {
       <header className="space-y-2">
         <h1 className="text-xl font-semibold text-text-primary">가입신청 심사</h1>
         <p className="text-sm text-text-secondary">
-          대기 중 신청을 승인/반려하고, 승인 시 활성화 토큰을 복사해 수동 전달합니다.
+          대기 중 신청을 승인/반려하고, 승인 시 활성화 토큰·링크·안내문구를 복사해 수동 전달합니다.
         </p>
       </header>
 

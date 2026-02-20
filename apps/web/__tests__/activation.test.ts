@@ -25,6 +25,12 @@ describe('buildActivationUrl', () => {
     const url = buildActivationUrl('token123');
     expect(url).toContain('/activate?token=token123');
   });
+
+  it('base에 trailing slash가 있어도 올바른 경로를 생성한다', () => {
+    vi.stubGlobal('window', { location: { origin: 'https://my.app/' } });
+    const url = buildActivationUrl('abc123');
+    expect(url).toBe('https://my.app/activate?token=abc123');
+  });
 });
 
 describe('buildActivationMessage', () => {

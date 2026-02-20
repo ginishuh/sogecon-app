@@ -7,7 +7,9 @@ import { siteConfig } from './site';
 export function buildActivationUrl(token: string): string {
   const base =
     typeof window !== 'undefined' ? window.location.origin : siteConfig.url;
-  return `${base}/activate?token=${encodeURIComponent(token)}`;
+  const url = new URL('/activate', base);
+  url.searchParams.set('token', token);
+  return url.toString();
 }
 
 /**
