@@ -1,11 +1,9 @@
 import { apiFetch } from '../lib/api';
+import type { Schema } from './_dto';
 
-export type TestNotificationPayload = {
-  title: string;
-  body: string;
-  url?: string;
-};
+export type TestNotificationPayload = Schema<'TestPushPayload'>;
 
+// TODO: API가 구조화된 응답 스키마(TestPushResult 등)를 정의하면 Schema alias로 전환
 export type TestNotificationResult = {
   accepted: number;
   failed: number;
@@ -18,12 +16,7 @@ export async function sendTestNotification(payload: TestNotificationPayload): Pr
   });
 }
 
-export type SubscriptionPayload = {
-  endpoint: string;
-  p256dh: string;
-  auth: string;
-  ua?: string;
-};
+export type SubscriptionPayload = Schema<'SubscriptionPayload'>;
 
 export async function saveSubscription(payload: SubscriptionPayload): Promise<void> {
   await apiFetch<void>('/notifications/subscriptions', {
@@ -39,23 +32,9 @@ export async function deleteSubscription(endpoint: string): Promise<void> {
   });
 }
 
-export type SendLog = {
-  created_at: string;
-  ok: boolean;
-  status_code: number | null;
-  endpoint_tail: string | null;
-};
+export type SendLog = Schema<'SendLogRead'>;
 
-export type NotificationStats = {
-  active_subscriptions: number;
-  recent_accepted: number;
-  recent_failed: number;
-  encryption_enabled: boolean;
-  range?: '24h'|'7d'|'30d';
-  failed_404?: number;
-  failed_410?: number;
-  failed_other?: number;
-};
+export type NotificationStats = Schema<'NotificationStats'>;
 
 export async function getSendLogs(limit = 50): Promise<SendLog[]> {
   return apiFetch<SendLog[]>(`/notifications/admin/notifications/logs?limit=${limit}`);

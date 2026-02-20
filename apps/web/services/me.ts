@@ -1,7 +1,7 @@
-import type { components } from 'schemas';
 import { API_BASE, apiFetch } from '../lib/api';
+import type { Schema } from './_dto';
 
-type MemberDto = components['schemas']['MemberRead'];
+type MemberDto = Schema<'MemberRead'>;
 
 export async function getMe(): Promise<MemberDto> {
   return apiFetch<MemberDto>('/me/');

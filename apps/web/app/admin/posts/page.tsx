@@ -180,7 +180,7 @@ function PostTableRow({
       </td>
       <td className="px-3 py-2 text-text-secondary">{post.view_count ?? 0}</td>
       <td className="px-3 py-2 text-text-secondary">{post.comment_count ?? 0}</td>
-      <td className="px-3 py-2 text-text-secondary">{formatDate(post.published_at)}</td>
+      <td className="px-3 py-2 text-text-secondary">{formatDate(post.published_at ?? null)}</td>
       <td className="px-3 py-2">
         <HeroTargetToggle
           value={heroItem}
