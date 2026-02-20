@@ -56,11 +56,11 @@ export async function getPost(id: number): Promise<Post> {
   return apiFetch<Post>(`/posts/${id}`);
 }
 
-// pinned, view_count는 서버 기본값이 있어 클라이언트에서 생략 가능
+// pinned는 서버 기본값이 있어 클라이언트에서 생략 가능
+// view_count는 클라이언트에서 설정 불가 (서버 전용)
 export type CreatePostPayload =
   Omit<Schema<'PostCreate'>, 'pinned' | 'view_count'> & {
     pinned?: boolean;
-    view_count?: number;
   };
 
 export async function createPost(payload: CreatePostPayload): Promise<Post> {
