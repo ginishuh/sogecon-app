@@ -8,6 +8,10 @@ import { useAuth } from '../../../hooks/useAuth';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
 import {
+  buildActivationMessage,
+  buildActivationUrl,
+} from '../../../lib/activation';
+import {
   approveAdminSignupRequest,
   listAdminSignupRequests,
   rejectAdminSignupRequest,
@@ -111,11 +115,10 @@ function useSignupRequestsModel() {
     onError: (error: unknown) => handleError(error, '반려 처리 중 오류가 발생했습니다.'),
   });
 
-  const copyActivationToken = async () => {
-    if (lastApprove == null) return;
+  const copyToClipboard = async (text: string, label: string) => {
     try {
-      await navigator.clipboard.writeText(lastApprove.activation_token);
-      const message = '활성화 토큰을 복사했습니다.';
+      await navigator.clipboard.writeText(text);
+      const message = `${label}을(를) 복사했습니다.`;
       setFeedback({ tone: 'success', message });
       show(message, { type: 'success' });
     } catch {
@@ -123,6 +126,25 @@ function useSignupRequestsModel() {
       setFeedback({ tone: 'error', message });
       show(message, { type: 'error' });
     }
+  };
+
+  const copyActivationToken = () => {
+    if (lastApprove == null) return;
+    void copyToClipboard(lastApprove.activation_token, '활성화 토큰');
+  };
+
+  const copyActivationLink = () => {
+    if (lastApprove == null) return;
+    const url = buildActivationUrl(lastApprove.activation_token);
+    void copyToClipboard(url, '활성화 링크');
+  };
+
+  const copyActivationMessage = () => {
+    if (lastApprove == null) return;
+    const { name, student_id } = lastApprove.activation_context;
+    const url = buildActivationUrl(lastApprove.activation_token);
+    const message = buildActivationMessage(name, student_id, url);
+    void copyToClipboard(message, '안내문구');
   };
 
   return {
@@ -142,6 +164,8 @@ function useSignupRequestsModel() {
     setRejectReason,
     lastApprove,
     copyActivationToken,
+    copyActivationLink,
+    copyActivationMessage,
     feedback,
     clearFeedback: () => setFeedback(null),
   };
@@ -169,7 +193,12 @@ function AdminSignupRequestsContent() {
 
       <FeedbackBanner feedback={model.feedback} />
 
-      <ApproveTokenCard lastApprove={model.lastApprove} onCopy={model.copyActivationToken} />
+      <ApproveTokenCard
+        lastApprove={model.lastApprove}
+        onCopyToken={model.copyActivationToken}
+        onCopyLink={model.copyActivationLink}
+        onCopyMessage={model.copyActivationMessage}
+      />
 
       <FiltersPanel
         searchInput={model.searchInput}
