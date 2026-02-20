@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from http import HTTPStatus
 
+import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
+
+from apps.api.repositories import members as members_repo
 
 
 def test_member_not_found_returns_problem_details(member_login: TestClient) -> None:
@@ -56,6 +60,35 @@ def test_member_create_phone_conflict_code(admin_login: TestClient) -> None:
     data = res2.json()
     assert data["status"] == HTTPStatus.CONFLICT
     assert data["code"] == "member_phone_already_in_use"
+
+
+def test_member_create_phone_integrity_error_maps_to_409(
+    admin_login: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _raise_integrity_error(*_: object, **__: object) -> object:
+        raise IntegrityError(
+            "INSERT INTO members ...",
+            {},
+            Exception(
+                'duplicate key value violates unique constraint "ix_members_phone"'
+            ),
+        )
+
+    monkeypatch.setattr(members_repo, "create_member", _raise_integrity_error)
+
+    res = admin_login.post(
+        "/members/",
+        json={
+            "student_id": "phone_race_001",
+            "email": "phone_race_001@example.com",
+            "name": "Race",
+            "cohort": 2025,
+            "phone": "010-4444-4444",
+        },
+    )
+    assert res.status_code == HTTPStatus.CONFLICT
+    assert res.json()["code"] == "member_phone_already_in_use"
 
 
 def test_post_not_found_returns_problem_details(client: TestClient) -> None:

@@ -6,11 +6,13 @@ from http import HTTPStatus
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api import models
 from apps.api.db import get_db
 from apps.api.main import app
+from apps.api.repositories import members as members_repo
 
 
 def _run_in_test_session(fn: Callable[[AsyncSession], Awaitable[None]]) -> None:
@@ -38,6 +40,12 @@ def test_me_update_accepts_trimmed_phone(member_login: TestClient) -> None:
     assert res.json()["phone"] == "010-1234-5678"
 
 
+def test_me_update_normalizes_blank_phone_to_null(member_login: TestClient) -> None:
+    res = member_login.put("/me/", json={"phone": "   "})
+    assert res.status_code == HTTPStatus.OK
+    assert res.json()["phone"] is None
+
+
 def test_me_update_rejects_duplicate_phone(member_login: TestClient) -> None:
     target_phone = "010-7777-7777"
 
@@ -57,6 +65,25 @@ def test_me_update_rejects_duplicate_phone(member_login: TestClient) -> None:
     _run_in_test_session(_seed)
 
     res = member_login.put("/me/", json={"phone": target_phone})
+    assert res.status_code == HTTPStatus.CONFLICT
+    assert res.json()["code"] == "member_phone_already_in_use"
+
+
+def test_me_update_phone_integrity_error_maps_to_409(
+    member_login: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def _raise_integrity_error(*_: object, **__: object) -> object:
+        raise IntegrityError(
+            "UPDATE members ...",
+            {},
+            Exception(
+                'duplicate key value violates unique constraint "ix_members_phone"'
+            ),
+        )
+
+    monkeypatch.setattr(members_repo, "update_member_profile", _raise_integrity_error)
+
+    res = member_login.put("/me/", json={"phone": "010-5555-5555"})
     assert res.status_code == HTTPStatus.CONFLICT
     assert res.json()["code"] == "member_phone_already_in_use"
 
