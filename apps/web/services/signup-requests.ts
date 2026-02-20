@@ -1,33 +1,11 @@
 import { apiFetch } from '../lib/api';
+import type { Schema } from './_dto';
 
-export type SignupRequestStatus = 'pending' | 'approved' | 'rejected' | 'activated';
-
-export type SignupRequestRead = {
-  id: number;
-  student_id: string;
-  email: string;
-  name: string;
-  cohort: number;
-  major?: string | null;
-  phone?: string | null;
-  note?: string | null;
-  status: SignupRequestStatus;
-  requested_at?: string | null;
-  decided_at?: string | null;
-  activated_at?: string | null;
-  decided_by_student_id?: string | null;
-  reject_reason?: string | null;
-};
-
-export type SignupRequestCreatePayload = {
-  student_id: string;
-  email: string;
-  name: string;
-  cohort: number;
-  major?: string | null;
-  phone?: string | null;
-  note?: string | null;
-};
+export type SignupRequestRead = Schema<'SignupRequestRead'>;
+export type SignupRequestStatus = SignupRequestRead['status'];
+export type SignupRequestCreatePayload = Schema<'SignupRequestCreate'>;
+export type SignupRequestListResponse = Schema<'SignupRequestListResponse'>;
+export type SignupApproveResponse = Schema<'SignupApproveResponse'>;
 
 export async function createSignupRequest(
   payload: SignupRequestCreatePayload
@@ -45,11 +23,6 @@ export type SignupRequestListParams = {
   status?: SignupRequestStatus;
 };
 
-export type SignupRequestListResponse = {
-  items: SignupRequestRead[];
-  total: number;
-};
-
 export async function listAdminSignupRequests(
   params: SignupRequestListParams = {}
 ): Promise<SignupRequestListResponse> {
@@ -61,18 +34,6 @@ export async function listAdminSignupRequests(
   const qs = q.toString();
   return apiFetch<SignupRequestListResponse>(`/admin/signup-requests/${qs ? `?${qs}` : ''}`);
 }
-
-export type SignupApproveResponse = {
-  request: SignupRequestRead;
-  activation_context: {
-    signup_request_id: number;
-    student_id: string;
-    email: string;
-    name: string;
-    cohort: number;
-  };
-  activation_token: string;
-};
 
 export async function approveAdminSignupRequest(
   signupRequestId: number

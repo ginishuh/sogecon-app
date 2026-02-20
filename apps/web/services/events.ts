@@ -1,26 +1,13 @@
 // 행사 도메인 서비스 계층(프런트)
 
 import { apiFetch } from '../lib/api';
+import type { Schema } from './_dto';
 
-export type Event = {
-  id: number;
-  title: string;
-  description?: string | null;
-  starts_at: string;
-  ends_at: string;
-  location: string;
-  capacity: number;
-};
-
-export type RsvpCounts = {
-  going: number;
-  waitlist: number;
-  cancel: number;
-};
-
-export type AdminEvent = Event & {
-  rsvp_counts: RsvpCounts;
-};
+export type Event = Schema<'EventRead'>;
+export type RsvpCounts = Schema<'RSVPCounts'>;
+export type AdminEvent = Schema<'EventAdminRead'>;
+export type RSVPLiteral = Schema<'RSVPRead'>['status'];
+export type UpdateEventPayload = Schema<'EventUpdate'>;
 
 export async function listEvents(params: { limit?: number; offset?: number } = {}): Promise<Event[]> {
   const q = new URLSearchParams();
@@ -30,10 +17,7 @@ export async function listEvents(params: { limit?: number; offset?: number } = {
   return apiFetch<Event[]>(`/events/${qs ? `?${qs}` : ''}`);
 }
 
-export type AdminEventListResponse = {
-  items: AdminEvent[];
-  total: number;
-};
+export type AdminEventListResponse = Schema<'AdminEventListResponse'>;
 
 export type AdminEventListParams = {
   limit?: number;
@@ -60,8 +44,6 @@ export async function getEvent(id: number): Promise<Event> {
   return apiFetch<Event>(`/events/${id}`);
 }
 
-export type RSVPLiteral = 'going' | 'waitlist' | 'cancel';
-
 export async function upsertEventRsvp(
   eventId: number,
   memberId: number,
@@ -73,25 +55,9 @@ export async function upsertEventRsvp(
   });
 }
 
-export async function createEvent(payload: {
-  title: string;
-  description?: string | null;
-  starts_at: string;
-  ends_at: string;
-  location: string;
-  capacity: number;
-}): Promise<Event> {
+export async function createEvent(payload: Schema<'EventCreate'>): Promise<Event> {
   return apiFetch<Event>(`/events/`, { method: 'POST', body: JSON.stringify(payload) });
 }
-
-export type UpdateEventPayload = {
-  title?: string;
-  description?: string | null;
-  starts_at?: string;
-  ends_at?: string;
-  location?: string;
-  capacity?: number;
-};
 
 export async function updateAdminEvent(id: number, payload: UpdateEventPayload): Promise<Event> {
   return apiFetch<Event>(`/admin/events/${id}`, {

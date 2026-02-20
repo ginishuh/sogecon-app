@@ -1,17 +1,20 @@
 import { apiFetch } from '../lib/api';
+import type { Schema } from './_dto';
 
-export type HeroTargetType = 'post' | 'event';
+export type HeroSlide = Schema<'HeroSlide'>;
+export type HeroTargetType = HeroSlide['target_type'];
+export type HeroItem = Schema<'HeroItemRead'>;
+export type AdminHeroListResponse = Schema<'AdminHeroListResponse'>;
+export type HeroTargetLookupItem = Schema<'HeroTargetLookupItem'>;
+export type HeroTargetLookupResponse = Schema<'HeroTargetLookupResponse'>;
+export type UpdateHeroItemPayload = Schema<'HeroItemUpdate'>;
 
-export type HeroSlide = {
-  id: number;
-  target_type: HeroTargetType;
-  target_id: number;
-  title: string;
-  description: string;
-  image?: string | null;
-  href: string;
-  unpublished?: boolean;
-};
+// enabled, pinned는 서버 기본값이 있어 클라이언트에서 생략 가능
+export type CreateHeroItemPayload =
+  Omit<Schema<'HeroItemCreate'>, 'enabled' | 'pinned'> & {
+    enabled?: boolean;
+    pinned?: boolean;
+  };
 
 export async function listHeroSlides(params: { limit?: number; include_unpublished?: boolean } = {}): Promise<HeroSlide[]> {
   const q = new URLSearchParams();
@@ -20,35 +23,6 @@ export async function listHeroSlides(params: { limit?: number; include_unpublish
   const qs = q.toString();
   return apiFetch<HeroSlide[]>(`/hero/${qs ? `?${qs}` : ''}`);
 }
-
-export type HeroItem = {
-  id: number;
-  target_type: HeroTargetType;
-  target_id: number;
-  enabled: boolean;
-  pinned: boolean;
-  title_override?: string | null;
-  description_override?: string | null;
-  image_override?: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-export type AdminHeroListResponse = {
-  items: HeroItem[];
-  total: number;
-};
-
-export type HeroTargetLookupItem = {
-  target_id: number;
-  hero_item_id: number;
-  enabled: boolean;
-  pinned: boolean;
-};
-
-export type HeroTargetLookupResponse = {
-  items: HeroTargetLookupItem[];
-};
 
 export async function listAdminHeroItems(params: { limit?: number; offset?: number } = {}): Promise<AdminHeroListResponse> {
   const q = new URLSearchParams();
@@ -69,21 +43,9 @@ export async function getAdminHeroItem(id: number): Promise<HeroItem> {
   return apiFetch<HeroItem>(`/admin/hero/${id}`);
 }
 
-export type CreateHeroItemPayload = {
-  target_type: HeroTargetType;
-  target_id: number;
-  enabled?: boolean;
-  pinned?: boolean;
-  title_override?: string | null;
-  description_override?: string | null;
-  image_override?: string | null;
-};
-
 export async function createAdminHeroItem(payload: CreateHeroItemPayload): Promise<HeroItem> {
   return apiFetch<HeroItem>(`/admin/hero/`, { method: 'POST', body: JSON.stringify(payload) });
 }
-
-export type UpdateHeroItemPayload = Partial<CreateHeroItemPayload>;
 
 export async function updateAdminHeroItem(id: number, payload: UpdateHeroItemPayload): Promise<HeroItem> {
   return apiFetch<HeroItem>(`/admin/hero/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });

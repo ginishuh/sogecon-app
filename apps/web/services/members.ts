@@ -1,7 +1,7 @@
-import type { components } from 'schemas';
 import { apiFetch } from '../lib/api';
+import type { Schema } from './_dto';
 
-export type Member = components['schemas']['MemberRead'];
+export type Member = Schema<'MemberRead'>;
 
 export type MemberListSort = 'recent' | 'cohort_desc' | 'cohort_asc' | 'name';
 

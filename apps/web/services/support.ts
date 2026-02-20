@@ -1,10 +1,7 @@
 import { apiFetch } from '../lib/api';
+import type { Schema } from './_dto';
 
-export type ContactPayload = {
-  subject: string;
-  body: string;
-  contact?: string;
-};
+export type ContactPayload = Schema<'ContactPayload'>;
 
 export async function submitContact(payload: ContactPayload): Promise<void> {
   await apiFetch('/support/contact', {

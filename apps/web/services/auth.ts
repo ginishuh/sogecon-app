@@ -1,5 +1,7 @@
 import { apiFetch, ApiError } from '../lib/api';
 
+// TODO: API에서 SessionRead 스키마를 정의하면 Schema<'SessionRead'>로 전환
+//       현재 스키마가 Record<string, unknown>이라 수동 유지
 export type Session = {
   kind: 'admin' | 'member';
   student_id: string;

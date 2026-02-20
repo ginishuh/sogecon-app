@@ -14,7 +14,7 @@ import {
   type NotificationStats,
 } from '../../../services/notifications';
 
-type RangeOpt = NonNullable<NotificationStats['range']>;
+type RangeOpt = '24h' | '7d' | '30d';
 
 function StatsBlock({ data, isLoading, isError, statsRange, setStatsRange, onRefresh }:{
   data?: NotificationStats;
@@ -143,7 +143,7 @@ export default function AdminNotificationsPage() {
   const [busy, setBusy] = useState(false);
   const [logLimit, setLogLimit] = useState(50);
   const [pruneDays, setPruneDays] = useState(30);
-  const [statsRange, setStatsRange] = useState<NonNullable<NotificationStats['range']>>('7d');
+  const [statsRange, setStatsRange] = useState<'24h'|'7d'|'30d'>('7d');
   const stats = useQuery({ queryKey: ['notify','stats', statsRange], queryFn: () => getNotificationStats(statsRange!), staleTime: 10_000 });
   const logs = useQuery<SendLog[]>({ queryKey: ['notify','logs', logLimit], queryFn: () => getSendLogs(logLimit), staleTime: 10_000 });
 
