@@ -252,7 +252,7 @@ function AdminProfileChangesContent() {
             <thead className="border-b border-neutral-border text-text-secondary">
               <tr>
                 <th className="px-2 py-1">ID</th>
-                <th className="px-2 py-1">회원ID</th>
+                <th className="px-2 py-1">회원</th>
                 <th className="px-2 py-1">변경 필드</th>
                 <th className="px-2 py-1">현재 → 요청</th>
                 <th className="px-2 py-1">상태</th>
@@ -264,7 +264,12 @@ function AdminProfileChangesContent() {
               {items.map((row) => (
                 <tr key={row.id} className="border-b border-neutral-border">
                   <td className="px-2 py-1">{row.id}</td>
-                  <td className="px-2 py-1">{row.member_id}</td>
+                  <td className="px-2 py-1 whitespace-nowrap">
+                    {row.member_name ?? '-'}
+                    {row.member_student_id && (
+                      <span className="ml-1 text-text-muted">({row.member_student_id})</span>
+                    )}
+                  </td>
                   <td className="px-2 py-1">{FIELD_LABELS[row.field_name] ?? row.field_name}</td>
                   <td className="px-2 py-1">
                     {row.old_value} → {row.new_value}

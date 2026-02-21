@@ -95,8 +95,26 @@ async def list_requests_with_total(
     status: str | None = None,
     member_id: int | None = None,
 ) -> tuple[Sequence[models.ProfileChangeRequest], int]:
-    """관리자용 목록 (필터, 페이지네이션)."""
+    """목록 (필터, 페이지네이션)."""
     return await pcr_repo.list_with_total(
+        db,
+        limit=limit,
+        offset=offset,
+        status=status,
+        member_id=member_id,
+    )
+
+
+async def list_requests_with_member(
+    db: AsyncSession,
+    *,
+    limit: int,
+    offset: int,
+    status: str | None = None,
+    member_id: int | None = None,
+) -> tuple[Sequence[models.ProfileChangeRequest], int]:
+    """관리자용 목록 (회원 정보 포함)."""
+    return await pcr_repo.list_with_total_and_member(
         db,
         limit=limit,
         offset=offset,

@@ -560,6 +560,9 @@ class ProfileChangeRequestRead(BaseModel):
     decided_at: datetime | None = None
     decided_by_student_id: str | None = None
     reject_reason: str | None = None
+    # 관리자 목록에서만 포함 (selectinload 시)
+    member_name: str | None = None
+    member_student_id: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -374,6 +374,18 @@ class ProfileChangeRequest(Base):
     decided_by_student_id = Column(String(20), nullable=True)
     reject_reason = Column(Text, nullable=True)
 
+    member = relationship("Member", lazy="noload", viewonly=True)
+
+    @property
+    def member_name(self) -> str | None:
+        m = self.__dict__.get("member")
+        return m.name if m is not None else None
+
+    @property
+    def member_student_id(self) -> str | None:
+        m = self.__dict__.get("member")
+        return m.student_id if m is not None else None
+
 
 class PushSubscription(Base):
     __tablename__ = "push_subscriptions"

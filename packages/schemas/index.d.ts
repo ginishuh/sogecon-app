@@ -1696,6 +1696,10 @@ export interface components {
             decided_by_student_id?: string | null;
             /** Reject Reason */
             reject_reason?: string | null;
+            /** Member Name */
+            member_name?: string | null;
+            /** Member Student Id */
+            member_student_id?: string | null;
         };
         /** ProfileChangeRequestReject */
         ProfileChangeRequestReject: {

@@ -40,7 +40,7 @@ async def list_profile_change_requests(
         require_permission("admin_profile", allow_admin_fallback=False)
     ),
 ) -> ProfileChangeRequestListResponse:
-    rows, total = await profile_change_service.list_requests_with_total(
+    rows, total = await profile_change_service.list_requests_with_member(
         db,
         limit=params.limit,
         offset=params.offset,

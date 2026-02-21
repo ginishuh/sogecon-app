@@ -78,8 +78,10 @@ async def list_my_change_requests(
     db: AsyncSession = Depends(get_db),
     m: CurrentMember = Depends(require_member),
 ) -> list[schemas.ProfileChangeRequestRead]:
-    member = await members_service.get_member_by_student_id(db, m.student_id)
-    rows = await profile_change_service.list_my_requests(
-        db, cast(int, member.id)
-    )
+    if m.id is not None:
+        member_id = m.id
+    else:
+        member = await members_service.get_member_by_student_id(db, m.student_id)
+        member_id = cast(int, member.id)
+    rows = await profile_change_service.list_my_requests(db, member_id)
     return [schemas.ProfileChangeRequestRead.model_validate(r) for r in rows]

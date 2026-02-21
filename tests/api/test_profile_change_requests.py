@@ -170,6 +170,10 @@ def test_admin_list_change_requests(
     assert "items" in data
     assert "total" in data
     assert data["total"] >= 1
+    # 관리자 목록에 회원 정보 포함 확인
+    item = data["items"][0]
+    assert item["member_name"] is not None
+    assert item["member_student_id"] is not None
 
 
 def test_admin_approve(

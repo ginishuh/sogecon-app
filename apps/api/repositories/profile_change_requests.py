@@ -6,6 +6,7 @@ from collections.abc import Sequence
 
 from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
 from .. import models
@@ -48,6 +49,18 @@ async def get_pending_by_member_and_field(
     return result.scalars().first()
 
 
+def _build_list_conditions(
+    status: str | None,
+    member_id: int | None,
+) -> list[ColumnElement[bool]]:
+    conditions: list[ColumnElement[bool]] = []
+    if status is not None:
+        conditions.append(models.ProfileChangeRequest.status == status)
+    if member_id is not None:
+        conditions.append(models.ProfileChangeRequest.member_id == member_id)
+    return conditions
+
+
 async def list_with_total(
     db: AsyncSession,
     *,
@@ -56,14 +69,43 @@ async def list_with_total(
     status: str | None = None,
     member_id: int | None = None,
 ) -> tuple[Sequence[models.ProfileChangeRequest], int]:
-    conditions: list[ColumnElement[bool]] = []
-    if status is not None:
-        conditions.append(models.ProfileChangeRequest.status == status)
-    if member_id is not None:
-        conditions.append(models.ProfileChangeRequest.member_id == member_id)
+    conditions = _build_list_conditions(status, member_id)
 
     stmt = (
         select(models.ProfileChangeRequest)
+        .order_by(
+            desc(models.ProfileChangeRequest.requested_at),
+            desc(models.ProfileChangeRequest.id),
+        )
+        .offset(offset)
+        .limit(limit)
+    )
+    if conditions:
+        stmt = stmt.where(and_(*conditions))
+    rows = (await db.execute(stmt)).scalars().all()
+
+    count_stmt = select(func.count(models.ProfileChangeRequest.id))
+    if conditions:
+        count_stmt = count_stmt.where(and_(*conditions))
+    total = int((await db.execute(count_stmt)).scalar_one())
+
+    return rows, total
+
+
+async def list_with_total_and_member(
+    db: AsyncSession,
+    *,
+    limit: int,
+    offset: int,
+    status: str | None = None,
+    member_id: int | None = None,
+) -> tuple[Sequence[models.ProfileChangeRequest], int]:
+    """list_with_total + 회원 정보 eager load (관리자용)."""
+    conditions = _build_list_conditions(status, member_id)
+
+    stmt = (
+        select(models.ProfileChangeRequest)
+        .options(selectinload(models.ProfileChangeRequest.member))
         .order_by(
             desc(models.ProfileChangeRequest.requested_at),
             desc(models.ProfileChangeRequest.id),
