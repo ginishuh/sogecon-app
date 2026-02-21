@@ -93,7 +93,7 @@ class MemberRead(MemberBase):
 
 
 class MemberUpdate(BaseModel):
-    name: str | None = None
+    email: EmailStr | None = None
     major: str | None = None
     visibility: VisibilityLiteral | None = None
     birth_date: str | None = None
@@ -106,6 +106,14 @@ class MemberUpdate(BaseModel):
     addr_personal: str | None = None
     addr_company: str | None = None
     industry: str | None = None
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def _normalize_email(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        trimmed = value.strip().lower()
+        return trimmed if trimmed else None
 
     @field_validator("phone", "company_phone")
     @classmethod
@@ -522,6 +530,42 @@ class RSVPRead(RSVPBase):
         if isinstance(v, enum.Enum):
             return v.value
         return v
+
+
+ProfileChangeFieldLiteral = Literal["name", "cohort"]
+ProfileChangeRequestStatusLiteral = Literal["pending", "approved", "rejected"]
+
+
+class ProfileChangeRequestCreate(BaseModel):
+    field_name: ProfileChangeFieldLiteral
+    new_value: str
+
+    @field_validator("new_value")
+    @classmethod
+    def _strip_and_require(cls, value: str) -> str:
+        trimmed = value.strip()
+        if not trimmed:
+            raise ValueError("변경할 값을 입력해주세요.")
+        return trimmed
+
+
+class ProfileChangeRequestRead(BaseModel):
+    id: int
+    member_id: int
+    field_name: ProfileChangeFieldLiteral
+    old_value: str
+    new_value: str
+    status: ProfileChangeRequestStatusLiteral
+    requested_at: datetime
+    decided_at: datetime | None = None
+    decided_by_student_id: str | None = None
+    reject_reason: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProfileChangeRequestReject(BaseModel):
+    reason: str = Field(min_length=1, max_length=500)
 
 
 class Pagination(BaseModel):

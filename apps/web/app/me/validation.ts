@@ -1,7 +1,7 @@
 export type ProfileVisibility = 'all' | 'cohort' | 'private';
 
 export type ProfileForm = {
-  name: string;
+  email: string;
   major: string;
   visibility: ProfileVisibility;
   birth_date: string;
@@ -21,7 +21,7 @@ export type ProfileErrors = Partial<Record<keyof ProfileForm, string>> & {
 };
 
 export type ProfilePayload = {
-  name: string;
+  email: string | null;
   major: string | null;
   visibility: ProfileVisibility;
   birth_date: string | null;
@@ -60,11 +60,14 @@ const LENGTH_RULES: Record<
 const PHONE_ERROR =
   '전화번호는 숫자, +, -, 공백으로만 7~20자 입력해주세요.';
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function validateProfileForm(form: ProfileForm): ProfileErrors {
   const errors: ProfileErrors = {};
 
-  if (!form.name.trim()) {
-    errors.name = '이름을 입력해주세요.';
+  const email = form.email.trim();
+  if (email && !EMAIL_PATTERN.test(email)) {
+    errors.email = '올바른 이메일 형식을 입력해주세요.';
   }
 
   const phone = form.phone.trim();
@@ -100,7 +103,7 @@ const optional = (value: string): string | null => {
 
 export function buildProfilePayload(form: ProfileForm): ProfilePayload {
   return {
-    name: form.name.trim(),
+    email: optional(form.email),
     major: optional(form.major),
     visibility: form.visibility,
     birth_date: optional(form.birth_date),

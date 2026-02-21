@@ -30,6 +30,7 @@ from .routers import (
     admin_events,
     admin_hero,
     admin_posts,
+    admin_profile_changes,
     admin_roles,
     admin_signup_requests,
     auth,
@@ -308,3 +309,4 @@ app.include_router(admin_events.router)
 app.include_router(admin_hero.router)
 app.include_router(admin_roles.router)
 app.include_router(admin_signup_requests.router)
+app.include_router(admin_profile_changes.router)

@@ -321,6 +321,60 @@ class SignupRequest(Base):
 
 
 # Web Push 구독 정보(민감 데이터: endpoint/key는 운영에서 암호화 저장 고려)
+class ProfileChangeRequest(Base):
+    """회원 프로필 변경 요청 (이름/기수 — 관리자 승인 필요)."""
+
+    __tablename__ = "profile_change_requests"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'approved', 'rejected')",
+            name="ck_profile_change_requests_status",
+        ),
+        CheckConstraint(
+            "field_name IN ('name', 'cohort')",
+            name="ck_profile_change_requests_field_name",
+        ),
+        Index(
+            "ix_profile_change_requests_status_requested_at",
+            "status",
+            "requested_at",
+        ),
+        Index(
+            "uq_profile_change_requests_member_field_pending",
+            "member_id",
+            "field_name",
+            unique=True,
+            postgresql_where=text("status = 'pending'"),
+        ),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    member_id = Column(
+        Integer,
+        ForeignKey("members.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    field_name = Column(String(16), nullable=False)  # 'name' | 'cohort'
+    old_value = Column(String(255), nullable=False)
+    new_value = Column(String(255), nullable=False)
+    status = Column(
+        String(16),
+        nullable=False,
+        default="pending",
+        server_default="pending",
+        index=True,
+    )
+    requested_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    decided_at = Column(DateTime(timezone=True), nullable=True)
+    decided_by_student_id = Column(String(20), nullable=True)
+    reject_reason = Column(Text, nullable=True)
+
+
 class PushSubscription(Base):
     __tablename__ = "push_subscriptions"
 

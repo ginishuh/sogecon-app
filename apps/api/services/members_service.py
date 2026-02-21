@@ -47,7 +47,7 @@ def _raise_member_conflict_from_integrity_error(exc: IntegrityError) -> Never:
         or "key (email)" in message
     ):
         raise AlreadyExistsError(
-            code="member_exists",
+            code="member_email_already_in_use",
             detail="Email already in use",
         ) from exc
     if (
@@ -227,6 +227,21 @@ async def update_member_profile(
         key: value.strip() if isinstance(value, str) else value
         for key, value in raw_payload.items()
     }
+    email_value = sanitized_data.get("email")
+    if isinstance(email_value, str):
+        normalized_email = email_value.strip().lower() or None
+        sanitized_data["email"] = normalized_email
+        if isinstance(normalized_email, str):
+            stmt = select(models.Member.id).where(
+                models.Member.email == normalized_email,
+                models.Member.id != member_id,
+            )
+            result = await db.execute(stmt)
+            if result.scalar_one_or_none() is not None:
+                raise AlreadyExistsError(
+                    code="member_email_already_in_use",
+                    detail="Email already in use",
+                )
     phone_value = sanitized_data.get("phone")
     if isinstance(phone_value, str):
         normalized_phone = phone_value.strip() or None

@@ -2171,6 +2171,70 @@
         }
       }
     },
+    "/me/change-requests": {
+      "get": {
+        "tags": [
+          "me"
+        ],
+        "summary": "List My Change Requests",
+        "operationId": "list_my_change_requests_me_change_requests_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProfileChangeRequestRead"
+                  },
+                  "type": "array",
+                  "title": "Response List My Change Requests Me Change Requests Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Create Change Request",
+        "operationId": "create_change_request_me_change_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileChangeRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileChangeRequestRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/rum/vitals": {
       "post": {
         "tags": [
@@ -3145,6 +3209,193 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SignupRequestRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/profile-change-requests/": {
+      "get": {
+        "tags": [
+          "admin-profile-changes"
+        ],
+        "summary": "List Profile Change Requests",
+        "operationId": "list_profile_change_requests_admin_profile_change_requests__get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pending",
+                    "approved",
+                    "rejected"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "member_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Member Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileChangeRequestListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/profile-change-requests/{request_id}/approve": {
+      "post": {
+        "tags": [
+          "admin-profile-changes"
+        ],
+        "summary": "Approve Profile Change Request",
+        "operationId": "approve_profile_change_request_admin_profile_change_requests__request_id__approve_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileChangeRequestRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/profile-change-requests/{request_id}/reject": {
+      "post": {
+        "tags": [
+          "admin-profile-changes"
+        ],
+        "summary": "Reject Profile Change Request",
+        "operationId": "reject_profile_change_request_admin_profile_change_requests__request_id__reject_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileChangeRequestReject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileChangeRequestRead"
                 }
               }
             }
@@ -4626,16 +4877,17 @@
       },
       "MemberUpdate": {
         "properties": {
-          "name": {
+          "email": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "format": "email"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Name"
+            "title": "Email"
           },
           "major": {
             "anyOf": [
@@ -5133,6 +5385,151 @@
         "type": "object",
         "title": "PostUpdate",
         "description": "\uac8c\uc2dc\ubb3c \uc218\uc815\uc6a9 \uc2a4\ud0a4\ub9c8 (\ubd80\ubd84 \uc5c5\ub370\uc774\ud2b8).\n\n\ud544\ub4dc\ub97c \uc694\uccad\uc5d0 \ud3ec\ud568\ud558\uc9c0 \uc54a\uc73c\uba74 \ud574\ub2f9 \ud544\ub4dc\ub294 \ubcc0\uacbd\ub418\uc9c0 \uc54a\uc74c.\n\ud3ec\ud568\ub41c \ud544\ub4dc\ub294 None \ud3ec\ud568 \uadf8\ub300\ub85c DB\uc5d0 \ubc18\uc601\ub428."
+      },
+      "ProfileChangeRequestCreate": {
+        "properties": {
+          "field_name": {
+            "type": "string",
+            "enum": [
+              "name",
+              "cohort"
+            ],
+            "title": "Field Name"
+          },
+          "new_value": {
+            "type": "string",
+            "title": "New Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field_name",
+          "new_value"
+        ],
+        "title": "ProfileChangeRequestCreate"
+      },
+      "ProfileChangeRequestListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProfileChangeRequestRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "ProfileChangeRequestListResponse"
+      },
+      "ProfileChangeRequestRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "member_id": {
+            "type": "integer",
+            "title": "Member Id"
+          },
+          "field_name": {
+            "type": "string",
+            "enum": [
+              "name",
+              "cohort"
+            ],
+            "title": "Field Name"
+          },
+          "old_value": {
+            "type": "string",
+            "title": "Old Value"
+          },
+          "new_value": {
+            "type": "string",
+            "title": "New Value"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "title": "Status"
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Requested At"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decided_by_student_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By Student Id"
+          },
+          "reject_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reject Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "member_id",
+          "field_name",
+          "old_value",
+          "new_value",
+          "status",
+          "requested_at"
+        ],
+        "title": "ProfileChangeRequestRead"
+      },
+      "ProfileChangeRequestReject": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ProfileChangeRequestReject"
       },
       "PruneLogsPayload": {
         "properties": {
