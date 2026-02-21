@@ -13,6 +13,8 @@ from .. import models, schemas
 from ..errors import ConflictError, NotFoundError
 from ..repositories import profile_change_requests as pcr_repo
 
+_COHORT_MAX = 2_147_483_647  # PostgreSQL INT4 상한
+
 
 async def create_change_request(
     db: AsyncSession,
@@ -33,15 +35,20 @@ async def create_change_request(
             detail="현재 값과 동일한 값으로는 변경할 수 없습니다.",
         )
 
-    # 기수인 경우 정수 변환 검증
+    # 기수인 경우 정수 변환 + INT4 범위 검증
     if field == "cohort":
         try:
-            int(data.new_value)
+            cohort_int = int(data.new_value)
         except ValueError as exc:
             raise ConflictError(
                 code="profile_change_invalid_cohort",
                 detail="기수는 숫자로 입력해주세요.",
             ) from exc
+        if cohort_int < 1 or cohort_int > _COHORT_MAX:
+            raise ConflictError(
+                code="profile_change_invalid_cohort",
+                detail="기수 값이 허용 범위를 초과합니다.",
+            )
 
     # 동일 필드 pending 중복 검사
     existing = await pcr_repo.get_pending_by_member_and_field(
@@ -125,6 +132,7 @@ async def approve_request(
             detail="회원을 찾을 수 없습니다.",
         )
 
+    # member 프로필 + 요청 상태를 같은 세션에서 변경 → 단일 트랜잭션으로 커밋
     field = cast(str, row.field_name)
     new_value: str | int = cast(str, row.new_value)
     if field == "cohort":

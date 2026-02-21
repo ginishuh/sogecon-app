@@ -5398,6 +5398,7 @@
           },
           "new_value": {
             "type": "string",
+            "maxLength": 255,
             "title": "New Value"
           }
         },

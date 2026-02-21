@@ -538,7 +538,7 @@ ProfileChangeRequestStatusLiteral = Literal["pending", "approved", "rejected"]
 
 class ProfileChangeRequestCreate(BaseModel):
     field_name: ProfileChangeFieldLiteral
-    new_value: str
+    new_value: str = Field(max_length=255)
 
     @field_validator("new_value")
     @classmethod

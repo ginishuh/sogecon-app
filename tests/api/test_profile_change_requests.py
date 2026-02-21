@@ -110,6 +110,25 @@ def test_same_value_change_409(member_login: TestClient) -> None:
     assert res.json()["code"] == "profile_change_same_value"
 
 
+def test_new_value_too_long_422(member_login: TestClient) -> None:
+    """new_value 256자 이상 → 422."""
+    res = member_login.post(
+        "/me/change-requests",
+        json={"field_name": "name", "new_value": "A" * 256},
+    )
+    assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+def test_cohort_out_of_range_409(member_login: TestClient) -> None:
+    """기수 INT4 범위 초과 → 409."""
+    res = member_login.post(
+        "/me/change-requests",
+        json={"field_name": "cohort", "new_value": "9" * 200},
+    )
+    assert res.status_code == HTTPStatus.CONFLICT
+    assert res.json()["code"] == "profile_change_invalid_cohort"
+
+
 def test_list_my_change_requests(member_login: TestClient) -> None:
     """본인 요청 목록 조회."""
     member_login.post(
