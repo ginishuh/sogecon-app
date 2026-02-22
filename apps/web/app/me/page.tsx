@@ -268,7 +268,7 @@ function AvatarUploader({ avatarUrl, uploading, onUpload }: AvatarUploaderProps)
         >
           {uploading ? '업로드 중…' : '이미지 선택'}
         </button>
-        <p>최대 512px · 100KB · JPG/PNG/WEBP</p>
+        <p>최대 512px · 2MB · JPG/PNG/WEBP</p>
         <input
           ref={inputRef}
           type="file"

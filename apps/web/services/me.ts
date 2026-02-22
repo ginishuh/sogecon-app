@@ -1,5 +1,6 @@
 import { API_BASE, apiFetch } from '../lib/api';
 import type { Schema } from './_dto';
+import type { ProfilePayload } from '../app/me/validation';
 
 type MemberDto = Schema<'MemberRead'>;
 type ProfileChangeRequestRead = Schema<'ProfileChangeRequestRead'>;
@@ -8,7 +9,7 @@ export async function getMe(): Promise<MemberDto> {
   return apiFetch<MemberDto>('/me/');
 }
 
-export async function updateMe(payload: Record<string, unknown>): Promise<MemberDto> {
+export async function updateMe(payload: ProfilePayload): Promise<MemberDto> {
   return apiFetch<MemberDto>('/me/', {
     method: 'PUT',
     body: JSON.stringify(payload),
