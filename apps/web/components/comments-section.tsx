@@ -4,6 +4,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { createComment, deleteComment, listComments, type Comment } from '../services/comments';
 import { formatFullDate } from '../lib/date-utils';
+import { useAuth } from '../hooks/useAuth';
+import { isAdminSession } from '../lib/rbac';
+import { ConfirmDialog } from './confirm-dialog';
+import { useToast } from './toast';
 
 interface CommentsSectionProps {
   postId: number;
@@ -11,7 +15,11 @@ interface CommentsSectionProps {
 
 export function CommentsSection({ postId }: CommentsSectionProps) {
   const [content, setContent] = useState('');
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const queryClient = useQueryClient();
+  const { data: auth } = useAuth();
+  const { show: showToast } = useToast();
+  const isAdmin = isAdminSession(auth);
 
   const { data: comments = [], isLoading } = useQuery<Comment[]>({
     queryKey: ['comments', postId],
@@ -24,8 +32,8 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
       void queryClient.invalidateQueries({ queryKey: ['comments', postId] });
       setContent('');
     },
-    onError: (error) => {
-      alert('댓글 작성에 실패했습니다: ' + error);
+    onError: () => {
+      showToast('댓글 작성에 실패했습니다.', { type: 'error' });
     },
   });
 
@@ -33,24 +41,26 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
     mutationFn: deleteComment,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['comments', postId] });
+      setDeleteTargetId(null);
     },
-    onError: (error) => {
-      alert('댓글 삭제에 실패했습니다: ' + error);
+    onError: () => {
+      showToast('댓글 삭제에 실패했습니다.', { type: 'error' });
+      setDeleteTargetId(null);
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) {
-      alert('댓글 내용을 입력해주세요.');
+      showToast('댓글 내용을 입력해주세요.', { type: 'error' });
       return;
     }
     createMutation.mutate({ post_id: postId, content: content.trim() });
   };
 
-  const handleDelete = (commentId: number) => {
-    if (confirm('댓글을 삭제하시겠습니까?')) {
-      deleteMutation.mutate(commentId);
+  const handleDeleteConfirm = () => {
+    if (deleteTargetId !== null) {
+      deleteMutation.mutate(deleteTargetId);
     }
   };
 
@@ -94,32 +104,49 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
           <p className="text-center text-sm text-text-muted">아직 댓글이 없습니다.</p>
         ) : (
           <ul className="space-y-4">
-            {comments.map((comment) => (
-              <li key={comment.id} className="border-b border-neutral-border pb-4 last:border-0">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="mb-1 flex items-center gap-2 text-xs text-text-secondary">
-                      <span className="font-semibold">{comment.author_name || `회원${comment.author_id}`}</span>
-                      <span>•</span>
-                      <span>
-                        {formatFullDate(comment.created_at)}
-                      </span>
+            {comments.map((comment) => {
+              const canDelete = auth?.id === comment.author_id || isAdmin;
+              return (
+                <li key={comment.id} className="border-b border-neutral-border pb-4 last:border-0">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="mb-1 flex items-center gap-2 text-xs text-text-secondary">
+                        <span className="font-semibold">{comment.author_name || `회원${comment.author_id}`}</span>
+                        <span>•</span>
+                        <span>
+                          {formatFullDate(comment.created_at)}
+                        </span>
+                      </div>
+                      <p className="whitespace-pre-wrap text-sm text-text-primary">{comment.content}</p>
                     </div>
-                    <p className="whitespace-pre-wrap text-sm text-text-primary">{comment.content}</p>
+                    {canDelete && (
+                      <button
+                        onClick={() => setDeleteTargetId(comment.id)}
+                        disabled={deleteMutation.isPending}
+                        className="ml-4 text-xs text-state-error hover:text-state-error-hover disabled:text-text-muted"
+                      >
+                        삭제
+                      </button>
+                    )}
                   </div>
-                  <button
-                    onClick={() => handleDelete(comment.id)}
-                    disabled={deleteMutation.isPending}
-                    className="ml-4 text-xs text-state-error hover:text-state-error-hover disabled:text-text-muted"
-                  >
-                    삭제
-                  </button>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
+
+      {/* 댓글 삭제 확인 다이얼로그 */}
+      <ConfirmDialog
+        open={deleteTargetId !== null}
+        title="댓글 삭제"
+        description="댓글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        confirmLabel="삭제"
+        variant="danger"
+        isPending={deleteMutation.isPending}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTargetId(null)}
+      />
     </div>
   );
 }
