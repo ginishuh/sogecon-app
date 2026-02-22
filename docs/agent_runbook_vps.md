@@ -24,39 +24,69 @@ sudo mkdir -p /var/lib/sogecon/uploads
 sudo chown 1000:1000 /var/lib/sogecon/uploads
 ```
 
-## 2) 배포 경로 A — 서버 로컬 빌드(권장)
+## 2) 배포 경로 A — 서버 로컬 빌드(권장, `deploy-vps` 미사용)
 체크리스트(요약)
 - [ ] 전용 네트워크 존재(`sogecon_net`)
 - [ ] `.env.api`에 `DATABASE_URL=postgresql+psycopg://…@sogecon-db:5432/…`
-- [ ] 로컬 빌드 → 마이그레이션 → 재기동 순서
+- [ ] `git pull` → 로컬 빌드 → 마이그레이션 → 재기동 순서
 - [ ] 헬스체크 200(워밍업 ≤90s 허용)
 ```bash
 cd /srv/sogecon-app
-export TAG=<커밋SHA7 또는 릴리스 태그>
+git pull --ff-only origin main
 
-bash ./scripts/deploy-vps.sh -t "$TAG" --local-build \
-  --network sogecon_net \
-  --api-health https://api.<도메인>/healthz \
-  --web-health https://<도메인>/
+export TAG=$(git rev-parse --short HEAD)
+export IMAGE_PREFIX=local/sogecon
+export API_IMAGE="${IMAGE_PREFIX}/alumni-api:${TAG}"
+export WEB_IMAGE="${IMAGE_PREFIX}/alumni-web:${TAG}"
+
+docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
+
+IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" bash ops/cloud-build.sh
+ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net bash ops/cloud-migrate.sh
+API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net \
+  bash ops/cloud-start.sh
+
+curl -fsS https://api.<도메인>/healthz
+curl -fsS https://<도메인>/
 ```
 
-## 3) 배포 경로 B — 외부 레지스트리 이미지 pull(선택)
+## 3) 배포 경로 B — 외부 레지스트리 이미지 pull(선택, `deploy-vps` 미사용)
 레지스트리를 반드시 써야 하는 경우에만 사용합니다.
 ```bash
 cd /srv/sogecon-app
+git pull --ff-only origin main
+
 export PREFIX=<registry>/<namespace>/<repo>
 export TAG=<커밋SHA7 또는 릴리스 태그>
+export API_IMAGE="${PREFIX}/alumni-api:${TAG}"
+export WEB_IMAGE="${PREFIX}/alumni-web:${TAG}"
 
-bash ./scripts/deploy-vps.sh -t "$TAG" -p "$PREFIX" --pull-images \
-  --network sogecon_net \
-  --api-health https://api.<도메인>/healthz \
-  --web-health https://<도메인>/
+docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
+docker pull "$API_IMAGE"
+docker pull "$WEB_IMAGE"
+
+ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net bash ops/cloud-migrate.sh
+API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net \
+  bash ops/cloud-start.sh
+
+curl -fsS https://api.<도메인>/healthz
+curl -fsS https://<도메인>/
 
 # 비상 롤백
 export PREV=<stable-tag>
-bash ./scripts/deploy-vps.sh -t "$PREV" -p "$PREFIX" --pull-images \
-  --network sogecon_net \
-  --skip-migrate
+export API_IMAGE="${PREFIX}/alumni-api:${PREV}"
+export WEB_IMAGE="${PREFIX}/alumni-web:${PREV}"
+
+docker pull "$API_IMAGE"
+docker pull "$WEB_IMAGE"
+API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net \
+  bash ops/cloud-start.sh
 ```
 
 ## 4) 쿠키/도메인 전환 스위치

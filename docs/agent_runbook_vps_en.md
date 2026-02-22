@@ -22,39 +22,69 @@ sudo mkdir -p /var/lib/sogecon/uploads
 sudo chown 1000:1000 /var/lib/sogecon/uploads
 ```
 
-## 2) Deploy path A — on-box local build (recommended)
+## 2) Deploy path A — on-box local build (recommended, no `deploy-vps`)
 Checklist (quick)
 - [ ] Dedicated network exists (`sogecon_net`)
 - [ ] `.env.api` uses container DNS in `DATABASE_URL` (e.g., `sogecon-db`)
-- [ ] Local build → migrate → restart order
+- [ ] `git pull` → local build → migrate → restart order
 - [ ] Health 200 (allow warm‑up ≤90s)
 ```bash
 cd /srv/sogecon-app
-TAG=<commit-sha-or-release>
+git pull --ff-only origin main
 
-bash ./scripts/deploy-vps.sh -t "$TAG" --local-build \
-  --network sogecon_net \
-  --api-health https://api.<domain>/healthz \
-  --web-health https://<domain>/
+TAG=$(git rev-parse --short HEAD)
+IMAGE_PREFIX=local/sogecon
+API_IMAGE="${IMAGE_PREFIX}/alumni-api:${TAG}"
+WEB_IMAGE="${IMAGE_PREFIX}/alumni-web:${TAG}"
+
+docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
+
+IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" bash ops/cloud-build.sh
+ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net bash ops/cloud-migrate.sh
+API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net \
+  bash ops/cloud-start.sh
+
+curl -fsS https://api.<domain>/healthz
+curl -fsS https://<domain>/
 ```
 
-## 3) Deploy path B — pull from external registry (optional)
+## 3) Deploy path B — pull from external registry (optional, no `deploy-vps`)
 Use this path only when you explicitly need a registry.
 ```bash
 cd /srv/sogecon-app
+git pull --ff-only origin main
+
 PREFIX=<registry>/<namespace>/<repo>
 TAG=<commit-sha-or-release>
+API_IMAGE="${PREFIX}/alumni-api:${TAG}"
+WEB_IMAGE="${PREFIX}/alumni-web:${TAG}"
 
-bash ./scripts/deploy-vps.sh -t "$TAG" -p "$PREFIX" --pull-images \
-  --network sogecon_net \
-  --api-health https://api.<domain>/healthz \
-  --web-health https://<domain>/
+docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
+docker pull "$API_IMAGE"
+docker pull "$WEB_IMAGE"
+
+ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net bash ops/cloud-migrate.sh
+API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net \
+  bash ops/cloud-start.sh
+
+curl -fsS https://api.<domain>/healthz
+curl -fsS https://<domain>/
 
 # Emergency rollback
 PREV=<stable-tag>
-bash ./scripts/deploy-vps.sh -t "$PREV" -p "$PREFIX" --pull-images \
-  --network sogecon_net \
-  --skip-migrate
+API_IMAGE="${PREFIX}/alumni-api:${PREV}"
+WEB_IMAGE="${PREFIX}/alumni-web:${PREV}"
+
+docker pull "$API_IMAGE"
+docker pull "$WEB_IMAGE"
+API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net \
+  bash ops/cloud-start.sh
 ```
 
 ## 4) Cookie/domain switches

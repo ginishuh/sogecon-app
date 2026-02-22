@@ -68,14 +68,14 @@
 
 ### 로컬 실행 모드(Dev vs Mirror)
  - Dev 프로필(로컬 전용): 루트 `compose.yaml`에서 `docker compose --profile dev up -d`로 기동합니다. Next dev(HMR) + uvicorn `--reload`로 코드 변경이 즉시 반영됩니다. 서버(운영)에서 dev 프로필 실행은 금지하며, `scripts/compose-dev-up.sh`에 생산 환경 가드가 포함되어 있습니다.
- - 미러 모드(운영 동일성 검증): VPS와 동일한 스크립트 흐름(불변 이미지 pull → Alembic migrate → 재기동)을 로컬에서 실행합니다. `ops/cloud-*.sh` 또는 `scripts/deploy-vps.sh` 사용, 전용 네트워크(`sogecon_net`)와 컨테이너 DNS(`sogecon-db`)를 `DATABASE_URL`에 사용하세요.
+ - 미러 모드(운영 동일성 검증): VPS와 동일한 수동 순서(`git pull` 또는 대상 리비전 체크아웃 → 이미지 빌드/풀 → `ops/cloud-migrate.sh` → `ops/cloud-start.sh`)를 로컬에서 실행합니다. 전용 네트워크(`sogecon_net`)와 컨테이너 DNS(`sogecon-db`)를 `DATABASE_URL`에 사용하세요.
  - 웹 스탠드얼론 검증(로컬): 운영과 동일 런타임 확인이 필요하면 `pnpm -C apps/web build` 후 `RELEASE_BASE=$(pwd)/.releases/web bash ops/web-deploy.sh`로 전개하고 `PORT=4300 node .releases/web/current/apps/web/server.js`로 기동합니다.
 - 모드 전환: 전환 전 반드시 현재 컨테이너를 내려주세요. dev→mirror: `docker compose --profile dev down`; mirror→dev: `docker rm -f alumni-api alumni-web` 후 dev 프로필 기동.
 
 ### 배포·운영(정책)
 - 배포 모델(권장):
   - Web(Next.js): Next "standalone" 아티팩트 + `systemd` + Nginx 기반 배포. 릴리스 디렉터리 전개 후 `current` 심볼릭 전환과 `systemctl restart`로 롤아웃/롤백합니다.
-  - API/DB: 불변(immutable) 컨테이너 이미지. 서버에서 `git pull`만으로 앱이 갱신되지 않으며, 이미지를 pull하고(필요 시) Alembic 적용 후 컨테이너 재기동으로 배포합니다.
+  - API/DB: VPS 수동 배포(`git pull` → 불변 이미지 빌드/풀 → Alembic → 컨테이너 재기동). `git pull`만으로는 실행 중 컨테이너가 갱신되지 않습니다.
 - 데이터베이스: PostgreSQL 전용(`postgresql+psycopg://` 강제). 전용 Docker 네트워크에서 컨테이너 DNS(예: `sogecon-db`)를 사용하고, `DATABASE_URL`에 고정 IP/localhost는 지양합니다.
 - 마이그레이션: DB와 동일 네트워크에서 Alembic 실행. 파괴적 변경은 PR에 다운타임/락 리스크 라벨·메모를 포함합니다.
 - 헬스/준비 상태: `/healthz` 200을 기준으로 하며, 재기동 직후 짧은 워밍업 구간(≤90초)은 허용합니다. CI/CD는 이 구간에 재시도를 수행해야 합니다.
@@ -95,7 +95,7 @@
   - 빌드 헬퍼: `ops/cloud-build.sh`(`NEXT_PUBLIC_*`는 build args로 전달).
   - 런타임 기동: `ops/cloud-start.sh`(API 127.0.0.1:3001, Web 3000). TLS는 Nginx/Caddy에서 종료.
   - DB 마이그레이션: `ops/cloud-migrate.sh`(Alembic).
-  - 이미지 레지스트리: 필수 아님. 기본은 VPS 로컬 빌드(`scripts/deploy-vps.sh --local-build`, `IMAGE_PREFIX=local/sogecon`)이며, 필요 시 `--pull-images`로 임의 레지스트리 사용 가능. 멀티아치는 `PLATFORMS=linux/amd64 USE_BUILDX=1`.
+  - 이미지 레지스트리: 필수 아님. 기본은 VPS 온박스 로컬 빌드(`ops/cloud-build.sh`, `IMAGE_PREFIX=local/sogecon`)이며, 필요 시 레지스트리에서 이미지를 pull한 뒤 `ops/cloud-migrate.sh` + `ops/cloud-start.sh`를 수동 실행합니다. 멀티아치는 `PLATFORMS=linux/amd64 USE_BUILDX=1`.
 
 ## 커밋/PR 규칙
 - 모든 커밋은 Conventional Commits 형식을 따릅니다: `type(scope): subject`(헤더 72자 제한).
@@ -188,7 +188,7 @@
   - Next의 공개변수는 빌드타임 고정입니다. 변경 시 재빌드가 필요합니다.
 - 런타임 기동: `ops/cloud-start.sh`(API 127.0.0.1:3001, Web 3000). TLS는 Nginx/Caddy에서 종료.
 - DB 마이그레이션: `ops/cloud-migrate.sh`(Alembic).
-- 이미지 레지스트리: 필수 아님. 기본은 VPS 로컬 빌드(`scripts/deploy-vps.sh --local-build`, `IMAGE_PREFIX=local/sogecon`)이며, 필요 시 `--pull-images`로 임의 레지스트리 사용 가능.
+- 이미지 레지스트리: 필수 아님. 기본은 VPS 온박스 로컬 빌드(`ops/cloud-build.sh`, `IMAGE_PREFIX=local/sogecon`)이며, 필요 시 레지스트리 이미지를 pull한 뒤 `ops/cloud-migrate.sh` + `ops/cloud-start.sh`를 수동 실행.
 - 멀티아치: ARM에서 AMD64 서버용을 빌드할 땐 `PLATFORMS=linux/amd64 USE_BUILDX=1` 사용.
 - 환경파일 규칙:
   - 로컬 개발: 루트 `.env`(API가 로컬 실행 시 자동 로드).
