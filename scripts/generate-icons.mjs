@@ -44,7 +44,6 @@ function buildSquareSvg(size, paddingRatio = 0.125) {
   const paths = pathsMatch.join('\n    ');
 
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
-  <rect width="${size}" height="${size}" fill="#ffffff"/>
   <g transform="translate(${tx.toFixed(2)},${ty.toFixed(2)}) scale(${scale.toFixed(6)})">
     ${paths}
   </g>
