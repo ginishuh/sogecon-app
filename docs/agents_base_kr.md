@@ -175,6 +175,7 @@
   - `.env`: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
   - `apps/web/.env.local`: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
   - 시크릿은 커밋하지 말고, `*.example` 파일을 최신으로 유지합니다.
+  - VAPID 키 생성 절차: `docs/pwa_push.md § VAPID 키 생성` 참조.
 - 프라이버시/운영 가드
   - 서버 로그에는 구독 endpoint의 SHA‑256 해시 + 말미 16자만 저장합니다.
   - 404/410 응답 구독은 자동 무효화합니다.

@@ -175,6 +175,7 @@ Do NOT disable linters or type checkers globally or per file.
   - `.env`: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
   - `apps/web/.env.local`: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`.
   - Never commit secrets; keep `*.example` files updated.
+  - VAPID key generation: see `docs/pwa_push.md § VAPID 키 생성`.
 - Privacy & ops for Web Push
   - Server logs store only SHA‑256 hash + last 16 chars of endpoints.
   - Subscriptions returning 404/410 are auto‑invalidated.
