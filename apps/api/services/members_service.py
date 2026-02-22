@@ -350,7 +350,7 @@ async def create_member_direct(
     result = await db.execute(stmt)
     if result.scalars().first() is not None:
         raise AlreadyExistsError(
-            code="member_exists",
+            code="member_email_already_in_use",
             detail="Email already in use",
         )
 
@@ -422,7 +422,7 @@ async def update_member_roles(
     # self-demotion 방어
     if (
         target_student_id == actor_student_id
-        and "super_admin" in previous_profile.permissions | {previous_profile.grade}
+        and previous_profile.grade == "super_admin"
         and "super_admin" not in normalized_roles
     ):
         raise ApiError(
@@ -437,6 +437,8 @@ async def update_member_roles(
         and "super_admin" not in normalized_roles
     ):
         # super_admin 수 카운트
+        # roles는 normalize/serialize를 거친 쉼표 구분 토큰 문자열이며,
+        # 현재 역할 스키마에서 "super_admin"은 독립 토큰으로만 사용된다.
         stmt = select(models.Member).where(
             models.Member.roles.contains("super_admin"),
             models.Member.status == "active",

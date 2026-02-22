@@ -11,11 +11,13 @@ from apps.api.db import get_db
 from apps.api.main import app
 
 
-def _seed_admin(client: TestClient, student_id: str, password: str) -> None:
+def _seed_admin(client: TestClient, student_id: str, password: str) -> int:
     """관리자 계정 시드 (Member + MemberAuth 기반)."""
     override = app.dependency_overrides.get(get_db)
     if override is None:
         raise RuntimeError("get_db override not found")
+
+    holder: dict[str, int] = {"member_id": 0}
 
     async def _do_seed() -> None:
         async for db in override():
@@ -38,18 +40,25 @@ def _seed_admin(client: TestClient, student_id: str, password: str) -> None:
                 )
             )
             await db.commit()
+            holder["member_id"] = int(member.id)
             break
 
     asyncio.run(_do_seed())
+    return holder["member_id"]
 
 
 def test_login_success_and_protected_routes(client: TestClient) -> None:
-    _seed_admin(client, "admin001", "adminpass")
+    admin_member_id = _seed_admin(client, "admin001", "adminpass")
 
     # Protected route: create post should require login
     res_unauth = client.post(
         "/posts/",
-        json={"author_id": 1, "title": "T", "content": "C", "published_at": None},
+        json={
+            "author_id": admin_member_id,
+            "title": "T",
+            "content": "C",
+            "published_at": None,
+        },
     )
     assert res_unauth.status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN)
 
@@ -60,12 +69,10 @@ def test_login_success_and_protected_routes(client: TestClient) -> None:
     assert res_login.status_code == HTTPStatus.OK
 
     # After login, protected route should pass.
-    # 시드된 관리자 member_id는 최초 생성 기준 1이다.
-
     res_post = client.post(
         "/posts/",
         json={
-            "author_id": 1,
+            "author_id": admin_member_id,
             "title": "Hello",
             "content": "World",
             "published_at": None,

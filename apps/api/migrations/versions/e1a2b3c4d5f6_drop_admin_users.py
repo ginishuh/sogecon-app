@@ -8,16 +8,16 @@ Revises: a3b7c9d2e1f4
 Create Date: 2026-02-22
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "e1a2b3c4d5f6"
-down_revision: Union[str, None] = "a3b7c9d2e1f4"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "a3b7c9d2e1f4"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -55,7 +55,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    # admin_users 테이블 재생성
+    # one-way 주의: downgrade는 스키마만 복원한다.
+    # member_auth로 이전된 password_hash는 admin_users로 자동 복원되지 않는다.
+    # 역이전이 필요하면 별도 운영 스크립트로 수동 처리해야 한다.
     op.create_table(
         "admin_users",
         sa.Column("id", sa.Integer(), primary_key=True),

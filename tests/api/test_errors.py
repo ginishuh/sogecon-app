@@ -82,7 +82,7 @@ def test_member_create_email_conflict_code(admin_login: TestClient) -> None:
     assert res2.status_code == HTTPStatus.CONFLICT
     data = res2.json()
     assert data["status"] == HTTPStatus.CONFLICT
-    assert data["code"] == "member_exists"
+    assert data["code"] == "member_email_already_in_use"
 
 
 def test_member_create_phone_integrity_error_maps_to_409(
