@@ -9,6 +9,7 @@ from sqlalchemy.sql.elements import ColumnElement
 
 from .. import models, schemas
 from ..errors import NotFoundError
+from . import escape_like
 
 
 def _build_member_conditions(
@@ -17,9 +18,12 @@ def _build_member_conditions(
     conds: list[ColumnElement[bool]] = []
     qv = filters.get('q')
     if qv:
-        like = f"%{qv}%"
+        like = f"%{escape_like(qv)}%"
         conds.append(
-            or_(models.Member.name.ilike(like), models.Member.email.ilike(like))
+            or_(
+                models.Member.name.ilike(like, escape="\\"),
+                models.Member.email.ilike(like, escape="\\"),
+            )
         )
 
     cohort = filters.get('cohort')
@@ -33,21 +37,23 @@ def _build_member_conditions(
     ):
         value = filters.get(key)
         if value:
-            conds.append(column.ilike(f"%{value}%"))
+            conds.append(column.ilike(f"%{escape_like(value)}%", escape="\\"))
 
     region = filters.get('region')
     if region:
-        like = f"%{region}%"
+        like = f"%{escape_like(region)}%"
         conds.append(
             or_(
-                models.Member.addr_personal.ilike(like),
-                models.Member.addr_company.ilike(like),
+                models.Member.addr_personal.ilike(like, escape="\\"),
+                models.Member.addr_company.ilike(like, escape="\\"),
             )
         )
 
     job_title = filters.get('job_title')
     if job_title:
-        conds.append(models.Member.job_title.ilike(f"%{job_title}%"))
+        conds.append(
+            models.Member.job_title.ilike(f"%{escape_like(job_title)}%", escape="\\")
+        )
 
     if filters.get('exclude_private', True):
         conds.append(models.Member.visibility != models.Visibility.PRIVATE)

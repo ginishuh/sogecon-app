@@ -8,6 +8,7 @@ RELEASE_BASE=${RELEASE_BASE:-/srv/www/sogecon}
 SERVICE_NAME=${SERVICE_NAME:-sogecon-web}
 
 info() { echo "[info] $*"; }
+warn() { echo "[warn] $*" >&2; }
 die() { echo "[error] $*" >&2; exit 1; }
 
 rel_dir="$RELEASE_BASE/releases"

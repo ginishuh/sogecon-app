@@ -54,6 +54,7 @@ jobs:
             if curl -fsS http://localhost:3000 >/dev/null; then echo "web up"; exit 0; fi; sleep 1; done
           echo "web not responding"; curl -v http://localhost:3000 || true; exit 1
       - name: Run E2E (CDP/Puppeteer)
+        # E2E 안정화 전까지 soft-fail 유지; 안정 후 제거 예정 (#143)
         continue-on-error: true
         env:
           WEB_BASE_URL: http://localhost:3000
