@@ -31,8 +31,7 @@ export interface paths {
         /** List Members */
         get: operations["list_members_members__get"];
         put?: never;
-        /** Create Member */
-        post: operations["create_member_members__post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -258,7 +257,7 @@ export interface paths {
         put?: never;
         /**
          * Login
-         * @description 통합 로그인 (관리자 우선, 실패 시 멤버 시도).
+         * @description 통합 로그인 (MemberAuth 단일 경로).
          *
          *     레이트리밋은 이 라우터에서 1회만 차감 (서비스 함수에서는 skip).
          */
@@ -842,25 +841,27 @@ export interface paths {
         patch: operations["update_admin_hero_item_admin_hero__hero_item_id__patch"];
         trace?: never;
     };
-    "/admin/admin-users/": {
+    "/admin/members/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List Admin Users */
-        get: operations["list_admin_users_admin_admin_users__get"];
+        get?: never;
         put?: never;
-        /** Create Admin User */
-        post: operations["create_admin_user_admin_admin_users__post"];
+        /**
+         * Create Member Direct
+         * @description 관리자 직접 회원 생성 + 활성화 링크 발급.
+         */
+        post: operations["create_member_direct_admin_members__post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/admin/admin-users/{student_id}/roles": {
+    "/admin/members/{member_id}/roles": {
         parameters: {
             query?: never;
             header?: never;
@@ -873,8 +874,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Patch Admin User Roles */
-        patch: operations["patch_admin_user_roles_admin_admin_users__student_id__roles_patch"];
+        /**
+         * Update Member Roles
+         * @description 회원 역할 변경 (승격/강등).
+         */
+        patch: operations["update_member_roles_admin_members__member_id__roles_patch"];
         trace?: never;
     };
     "/admin/signup-requests/": {
@@ -1007,68 +1011,6 @@ export interface components {
             /** Total */
             total: number;
         };
-        /** AdminUserCreatePayload */
-        AdminUserCreatePayload: {
-            /** Student Id */
-            student_id: string;
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-            /** Name */
-            name: string;
-            /** Cohort */
-            cohort: number;
-            /** Temporary Password */
-            temporary_password: string;
-            /** Roles */
-            roles?: string[];
-        };
-        /** AdminUserCreateResponse */
-        AdminUserCreateResponse: {
-            created: components["schemas"]["AdminUserRolesRead"];
-            /** Created By Student Id */
-            created_by_student_id: string;
-        };
-        /** AdminUserRolesListResponse */
-        AdminUserRolesListResponse: {
-            /** Items */
-            items: components["schemas"]["AdminUserRolesRead"][];
-            /** Total */
-            total: number;
-        };
-        /** AdminUserRolesRead */
-        AdminUserRolesRead: {
-            /** Student Id */
-            student_id: string;
-            /** Email */
-            email?: string | null;
-            /** Name */
-            name?: string | null;
-            /** Has Member Record */
-            has_member_record: boolean;
-            /** Roles */
-            roles: string[];
-            /**
-             * Grade
-             * @enum {string}
-             */
-            grade: "member" | "admin" | "super_admin";
-            /** Permissions */
-            permissions: string[];
-        };
-        /** AdminUserRolesUpdatePayload */
-        AdminUserRolesUpdatePayload: {
-            /** Roles */
-            roles?: string[];
-        };
-        /** AdminUserRolesUpdateResponse */
-        AdminUserRolesUpdateResponse: {
-            updated: components["schemas"]["AdminUserRolesRead"];
-            /** Decided By Student Id */
-            decided_by_student_id: string;
-        };
         /** Body_upload_avatar_me_avatar_post */
         Body_upload_avatar_me_avatar_post: {
             /**
@@ -1129,6 +1071,34 @@ export interface components {
             contact?: string | null;
             /** Hp */
             hp?: string | null;
+        };
+        /**
+         * DirectMemberCreatePayload
+         * @description 관리자 직접 회원 생성 요청.
+         */
+        DirectMemberCreatePayload: {
+            /** Student Id */
+            student_id: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Name */
+            name: string;
+            /** Cohort */
+            cohort: number;
+            /** Roles */
+            roles?: string[];
+        };
+        /**
+         * DirectMemberCreateResponse
+         * @description 관리자 직접 회원 생성 응답.
+         */
+        DirectMemberCreateResponse: {
+            member: components["schemas"]["MemberRead"];
+            /** Activation Token */
+            activation_token: string;
         };
         /**
          * EventAdminRead
@@ -1394,53 +1364,6 @@ export interface components {
             /** Count */
             count: number;
         };
-        /** MemberCreate */
-        MemberCreate: {
-            /** Student Id */
-            student_id: string;
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-            /** Name */
-            name: string;
-            /** Cohort */
-            cohort: number;
-            /** Major */
-            major?: string | null;
-            /**
-             * Roles
-             * @default member
-             */
-            roles: string;
-            /**
-             * Visibility
-             * @default all
-             * @enum {string}
-             */
-            visibility: "all" | "cohort" | "private";
-            /** Birth Date */
-            birth_date?: string | null;
-            /** Birth Lunar */
-            birth_lunar?: boolean | null;
-            /** Phone */
-            phone?: string | null;
-            /** Company */
-            company?: string | null;
-            /** Department */
-            department?: string | null;
-            /** Job Title */
-            job_title?: string | null;
-            /** Company Phone */
-            company_phone?: string | null;
-            /** Addr Personal */
-            addr_personal?: string | null;
-            /** Addr Company */
-            addr_company?: string | null;
-            /** Industry */
-            industry?: string | null;
-        };
         /** MemberLoginPayload */
         MemberLoginPayload: {
             /** Student Id */
@@ -1504,6 +1427,24 @@ export interface components {
             status: "pending" | "active" | "suspended" | "rejected";
             /** Avatar Url */
             readonly avatar_url: string | null;
+        };
+        /**
+         * MemberRolesUpdatePayload
+         * @description 역할 변경 요청.
+         */
+        MemberRolesUpdatePayload: {
+            /** Roles */
+            roles: string[];
+        };
+        /**
+         * MemberRolesUpdateResponse
+         * @description 역할 변경 응답.
+         */
+        MemberRolesUpdateResponse: {
+            /** Student Id */
+            student_id: string;
+            /** Roles */
+            roles: string[];
         };
         /** MemberUpdate */
         MemberUpdate: {
@@ -2067,39 +2008,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MemberRead"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_member_members__post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MemberCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberRead"];
                 };
             };
             /** @description Validation Error */
@@ -3843,27 +3751,7 @@ export interface operations {
             };
         };
     };
-    list_admin_users_admin_admin_users__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminUserRolesListResponse"];
-                };
-            };
-        };
-    };
-    create_admin_user_admin_admin_users__post: {
+    create_member_direct_admin_members__post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3872,7 +3760,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AdminUserCreatePayload"];
+                "application/json": components["schemas"]["DirectMemberCreatePayload"];
             };
         };
         responses: {
@@ -3882,7 +3770,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AdminUserCreateResponse"];
+                    "application/json": components["schemas"]["DirectMemberCreateResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3896,18 +3784,18 @@ export interface operations {
             };
         };
     };
-    patch_admin_user_roles_admin_admin_users__student_id__roles_patch: {
+    update_member_roles_admin_members__member_id__roles_patch: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                student_id: string;
+                member_id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AdminUserRolesUpdatePayload"];
+                "application/json": components["schemas"]["MemberRolesUpdatePayload"];
             };
         };
         responses: {
@@ -3917,7 +3805,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AdminUserRolesUpdateResponse"];
+                    "application/json": components["schemas"]["MemberRolesUpdateResponse"];
                 };
             };
             /** @description Validation Error */

@@ -266,18 +266,6 @@ class RSVP(Base):
     event = relationship("Event", back_populates="rsvps")
 
 
-class AdminUser(Base):
-    __tablename__ = "admin_users"
-
-    id = Column(Integer, primary_key=True)
-    student_id = Column(String(20), nullable=False, unique=True, index=True)
-    email = Column(String(255), nullable=True, unique=True, index=True)
-    password_hash = Column(String(255), nullable=False)
-    created_at = Column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-
-
 class SignupRequest(Base):
     __tablename__ = "signup_requests"
     __table_args__ = (

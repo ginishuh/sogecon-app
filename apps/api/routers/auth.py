@@ -8,7 +8,7 @@
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,7 +26,6 @@ from ..services.auth_service import (
     get_member_email,
     get_session_info,
     limiter_login,
-    login_admin,
     login_member,
     logout,
     require_admin,
@@ -83,7 +82,7 @@ class ChangePasswordPayload(BaseModel):
 async def login(
     payload: LoginPayload, request: Request, db: AsyncSession = Depends(get_db)
 ) -> dict[str, str]:
-    """통합 로그인 (관리자 우선, 실패 시 멤버 시도).
+    """통합 로그인 (MemberAuth 단일 경로).
 
     레이트리밋은 이 라우터에서 1회만 차감 (서비스 함수에서는 skip).
     """
@@ -91,16 +90,6 @@ async def login(
     if settings.app_env == "prod" and not _is_test_client(request):
         consume_limit(limiter_login, request, settings.rate_limit_login)
 
-    # 관리자 로그인 시도 (레이트리밋 건너뜀)
-    try:
-        return await login_admin(
-            db, request, payload.student_id, payload.password, skip_rate_limit=True
-        )
-    except HTTPException as exc:
-        # 403 등 의미 있는 예외는 재전파 (인증 실패 계열만 fallback)
-        if exc.status_code not in (401,):
-            raise
-    # 멤버 로그인 시도 (레이트리밋 건너뜀)
     return await login_member(
         db, request, payload.student_id, payload.password, skip_rate_limit=True
     )

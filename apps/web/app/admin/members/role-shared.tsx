@@ -16,40 +16,44 @@ export function normalizeRoles(roles: string[]): string[] {
   );
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  member: 'member',
+  admin: 'admin',
+  super_admin: 'super_admin',
+  admin_posts: '게시물 관리',
+  admin_events: '행사 관리',
+  admin_hero: '홈 배너 관리',
+  admin_notifications: '알림 관리',
+  admin_signup: '가입신청 심사',
+  admin_roles: '권한 관리',
+  admin_profile: '프로필 변경 심사',
+};
+
 export function roleLabel(role: string): string {
-  if (role === 'member') return 'member';
-  if (role === 'admin') return 'admin';
-  if (role === 'super_admin') return 'super_admin';
-  if (role === 'admin_posts') return '게시물 관리';
-  if (role === 'admin_events') return '행사 관리';
-  if (role === 'admin_hero') return '홈 배너 관리';
-  if (role === 'admin_notifications') return '알림 관리';
-  if (role === 'admin_signup') return '가입신청 심사';
-  if (role === 'admin_roles') return '권한 관리';
-  return role;
+  return ROLE_LABELS[role] ?? role;
 }
 
 export function RoleChecklist({
-  studentId,
+  id,
   draftRoles,
   disabled,
   onToggle,
 }: {
-  studentId: string;
+  id: string;
   draftRoles: string[];
   disabled: boolean;
-  onToggle: (studentId: string, role: string, checked: boolean) => void;
+  onToggle: (id: string, role: string, checked: boolean) => void;
 }) {
   return (
     <div className="grid grid-cols-2 gap-1">
       {KNOWN_ROLE_TOKENS.map((role) => (
-        <label key={`${studentId}:${role}`} className="text-xs text-text-primary">
+        <label key={`${id}:${role}`} className="text-xs text-text-primary">
           <input
             type="checkbox"
             className="mr-1 align-middle"
             checked={draftRoles.includes(role)}
             disabled={disabled}
-            onChange={(e) => onToggle(studentId, role, e.currentTarget.checked)}
+            onChange={(e) => onToggle(id, role, e.currentTarget.checked)}
           />
           {roleLabel(role)}
         </label>

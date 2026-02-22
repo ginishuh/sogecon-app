@@ -29,9 +29,9 @@ from .ratelimit import create_limiter
 from .routers import (
     admin_events,
     admin_hero,
+    admin_members,
     admin_posts,
     admin_profile_changes,
-    admin_roles,
     admin_signup_requests,
     auth,
     comments,
@@ -307,6 +307,6 @@ app.include_router(uploads.router)
 app.include_router(admin_posts.router)
 app.include_router(admin_events.router)
 app.include_router(admin_hero.router)
-app.include_router(admin_roles.router)
+app.include_router(admin_members.router)
 app.include_router(admin_signup_requests.router)
 app.include_router(admin_profile_changes.router)
