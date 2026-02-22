@@ -13,13 +13,26 @@
 make db-up   # root compose(dev): dev 5433 + test 5434
 ```
 
-## 2) 로컬 빌드 → 마이그레이션 → 재기동
+## 2) 로컬 빌드 → 마이그레이션 → 재기동(`deploy-vps` 미사용)
 - 로컬에서 태그를 지정해 VPS 동형 흐름으로 실행합니다. 예: `e29de67`
 ```
-make deploy-local TAG=e29de67 \
-  DOCKER_NETWORK=sogecon_net \  # 선택: 로컬 전용 네트워크 사용 시
-  API_HEALTH=http://localhost:3001/healthz \  # 선택
-  WEB_HEALTH=http://localhost:3000/           # 선택
+cd /home/<user>/sogecon-app
+export TAG=e29de67
+export IMAGE_PREFIX=local/sogecon
+export API_IMAGE="${IMAGE_PREFIX}/alumni-api:${TAG}"
+export WEB_IMAGE="${IMAGE_PREFIX}/alumni-web:${TAG}"
+
+docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
+
+IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" bash ops/cloud-build.sh
+ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net bash ops/cloud-migrate.sh
+API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net \
+  bash ops/cloud-start.sh
+
+curl -I http://localhost:3001/healthz
+curl -I http://localhost:3000/
 ```
 
 동작 내용:
@@ -40,7 +53,13 @@ make deploy-local TAG=e29de67 \
 ## 5) 요약 명령어
 ```
 make db-up
-make deploy-local TAG=<commit-sha>
+export TAG=<commit-sha>
+export IMAGE_PREFIX=local/sogecon
+export API_IMAGE="${IMAGE_PREFIX}/alumni-api:${TAG}"
+export WEB_IMAGE="${IMAGE_PREFIX}/alumni-web:${TAG}"
+IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" bash ops/cloud-build.sh
+ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net bash ops/cloud-migrate.sh
+API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web DOCKER_NETWORK=sogecon_net bash ops/cloud-start.sh
 curl -I http://localhost:3001/healthz
 ```
 

@@ -61,14 +61,14 @@ Do NOT disable linters or type checkers globally or per file.
 
 -### Local Run Modes (Dev vs Mirror)
 - Dev profile (local only): use the root `compose.yaml` with `docker compose --profile dev up -d` for hot reload (Next.js dev + uvicorn --reload). Never run the dev profile on servers; the helper script `scripts/compose-dev-up.sh` includes a production guard.
-- Mirror mode (prod parity): to validate deploy behavior locally, run the same scripts used on VPS: pull immutable images → Alembic migrate → restart via `ops/cloud-*.sh` or `scripts/deploy-vps.sh`. Use a dedicated Docker network (e.g., `sogecon_net`) and container DNS (e.g., `sogecon-db`) in `DATABASE_URL`.
+- Mirror mode (prod parity): to validate deploy behavior locally, run the same manual sequence used on VPS: `git pull` (or checkout target revision) → build/pull images → Alembic migrate via `ops/cloud-migrate.sh` → restart via `ops/cloud-start.sh`. Use a dedicated Docker network (e.g., `sogecon_net`) and container DNS (e.g., `sogecon-db`) in `DATABASE_URL`.
 - Web standalone parity (local): to mirror production web runtime, build Next.js with `output: 'standalone'` and stage a local release: `pnpm -C apps/web build` → `RELEASE_BASE=$(pwd)/.releases/web bash ops/web-deploy.sh` → run `PORT=4300 node .releases/web/current/apps/web/server.js`.
 - Switching modes: stop current containers before switching; dev→mirror: `docker compose --profile dev down`; mirror→dev: `docker rm -f alumni-api alumni-web` then start dev profile.
 
 ### Deploy & Operations (Policy)
 - Deploy model (recommended):
   - Web (Next.js): artifact‑based deploy using Next "standalone" output + `systemd` + Nginx. Rollout is a symlink switch (`current` → new release) and `systemctl restart`.
-  - API/DB: immutable container images (pull → Alembic → restart). Git pulls on servers do not update running apps.
+  - API/DB: VPS manual deploy (`git pull` → build/pull immutable image → Alembic → restart). `git pull` alone does not update running containers.
 - Database: PostgreSQL only using `postgresql+psycopg://` (enforced in code). Use container DNS names on a dedicated Docker network (e.g., `sogecon_net`, `sogecon-db`). Avoid fixed IP/localhost in `DATABASE_URL`.
 - Migrations: run Alembic from the same Docker network as the DB. Destructive changes must be labeled and noted in the PR; prefer online-safe patterns.
 - Health/readiness: `/healthz` must return 200. A brief warm‑up window (≤90s) after restart is acceptable; CI/CD should retry during this window.
@@ -188,7 +188,7 @@ Do NOT disable linters or type checkers globally or per file.
   - Avoid global stores/symlinks leaking across layers; use workspace‑scoped install in build stage.
 - Runtime start: `ops/cloud-start.sh` (127.0.0.1:3001 API, 3000 Web; Nginx/Caddy reverse-proxy terminates TLS).
 - DB migrations: `ops/cloud-migrate.sh` (Alembic).
-- Image registry: optional. Default deploy path builds images on VPS (`scripts/deploy-vps.sh --local-build`, `IMAGE_PREFIX=local/sogecon`). If needed, `--pull-images` can use any registry.
+- Image registry: optional. Default deploy path is on-box local build (`ops/cloud-build.sh`, `IMAGE_PREFIX=local/sogecon`). If needed, pull from registry and then run `ops/cloud-migrate.sh` + `ops/cloud-start.sh` manually.
 - Multi-arch: if building on ARM for an AMD64 VPS, use `PLATFORMS=linux/amd64 USE_BUILDX=1`.
 - Env files convention:
   - Local dev: root `.env` (auto-loaded by API only for local runs).
