@@ -7,7 +7,7 @@
  * 사용법: node scripts/generate-icons.mjs
  * 의존성: sharp, png-to-ico (devDependencies)
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -104,7 +104,6 @@ async function main() {
   const png16 = await sharp(svg16, { density: 300 }).resize(16, 16).png().toBuffer();
 
   const icoBuffer = await pngToIco([png16, png32]);
-  const { writeFileSync } = await import('node:fs');
   const icoPath = resolve(WEB, 'public/favicon.ico');
   writeFileSync(icoPath, icoBuffer);
   console.log(`  생성: ${icoPath} (16×16 + 32×32 멀티사이즈)`);
