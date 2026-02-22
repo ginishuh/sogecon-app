@@ -8,6 +8,7 @@
 
 import React, { useCallback, useEffect, useId, useRef } from 'react';
 
+import { formatPhone } from '../lib/phone-utils';
 import type { Member } from '../services/members';
 
 type MemberDetailModalProps = {
@@ -69,7 +70,7 @@ function ContactSection({ member }: { member: Member }) {
     <section>
       <SectionHeader>연락처</SectionHeader>
       <dl className="grid grid-cols-2 gap-3">
-        <InfoItem label="전화번호" value={member.phone} />
+        <InfoItem label="전화번호" value={formatPhone(member.phone)} />
         <InfoItem label="주소" value={member.addr_personal} />
       </dl>
     </section>
@@ -87,7 +88,7 @@ function WorkSection({ member }: { member: Member }) {
         <InfoItem label="부서" value={member.department} />
         <InfoItem label="직함" value={member.job_title} />
         <InfoItem label="업종" value={member.industry} />
-        <InfoItem label="회사 전화" value={member.company_phone} />
+        <InfoItem label="회사 전화" value={formatPhone(member.company_phone)} />
         <InfoItem label="회사 주소" value={member.addr_company} />
       </dl>
     </section>

@@ -50,10 +50,16 @@ async def create_admin_users(session: AsyncSession) -> None:
         {
             "student_id": "s47053",
             "email": "ginishuh@gmail.com",
+            "phone": "01089656747",
             "env_var": "SEED_DEV_ADMIN_VALUE",
             "name": "관리자",
             "cohort": 2017,
-            "roles": "super_admin,admin,member",
+            "roles": (
+                "super_admin,admin,member,"
+                "admin_roles,admin_posts,admin_events,"
+                "admin_hero,admin_notifications,admin_signup,"
+                "admin_profile"
+            ),
         },
     ]
 
@@ -81,6 +87,7 @@ async def create_admin_users(session: AsyncSession) -> None:
             member = Member(
                 student_id=str(user_data["student_id"]),
                 email=str(user_data["email"]),
+                phone=str(user_data["phone"]),
                 name=str(user_data["name"]),
                 cohort=int(user_data["cohort"]),
                 roles=str(user_data["roles"]),
@@ -126,7 +133,7 @@ async def async_main() -> None:
     print("✅ 시드 데이터 생성 완료")
     print("\n📋 생성된 계정 정보")
     print("🔧 관리자 bootstrap 계정: s47053 (ginishuh@gmail.com)")
-    print("  - roles: super_admin,admin,member")
+    print("  - roles: super_admin,admin,member + 전체 admin 권한")
     print("  - 인증 비밀값: 환경변수 `SEED_DEV_ADMIN_VALUE`")
 
 

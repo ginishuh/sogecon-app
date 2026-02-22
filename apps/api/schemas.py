@@ -32,6 +32,12 @@ MemberStatusLiteral = Literal["pending", "active", "suspended", "rejected"]
 SignupRequestStatusLiteral = Literal["pending", "approved", "rejected", "activated"]
 
 _PHONE_PATTERN = re.compile(r'^[0-9+\-\s]{7,20}$')
+_PHONE_DIGITS_RE = re.compile(r'[^0-9]')
+
+
+def normalize_phone_digits(value: str) -> str:
+    """전화번호에서 숫자만 추출 (저장용 정규화)."""
+    return _PHONE_DIGITS_RE.sub('', value)
 _TEXT_LIMITS: dict[str, tuple[int, int, str]] = {
     "department": (1, 80, "부서"),
     "job_title": (1, 80, "직함"),
@@ -125,7 +131,7 @@ class MemberUpdate(BaseModel):
             return None
         if not _PHONE_PATTERN.fullmatch(trimmed):
             raise ValueError("전화번호는 숫자, +, -, 공백으로만 7~20자 입력해주세요.")
-        return trimmed
+        return normalize_phone_digits(trimmed)
 
     @field_validator(
         "department",
@@ -250,7 +256,7 @@ class SignupRequestCreate(BaseModel):
         trimmed = value.strip()
         if not _PHONE_PATTERN.fullmatch(trimmed):
             raise ValueError("전화번호는 숫자, +, -, 공백으로만 7~20자 입력해주세요.")
-        return trimmed
+        return normalize_phone_digits(trimmed)
 
 
 class SignupRequestRead(SignupRequestBase):

@@ -37,7 +37,7 @@ def test_me_update_requires_auth(client: TestClient) -> None:
 def test_me_update_accepts_trimmed_phone(member_login: TestClient) -> None:
     res = member_login.put("/me/", json={"phone": " 010-1234-5678 "})
     assert res.status_code == HTTPStatus.OK
-    assert res.json()["phone"] == "010-1234-5678"
+    assert res.json()["phone"] == "01012345678"
 
 
 def test_me_update_normalizes_blank_phone_to_null(member_login: TestClient) -> None:
@@ -47,7 +47,7 @@ def test_me_update_normalizes_blank_phone_to_null(member_login: TestClient) -> N
 
 
 def test_me_update_rejects_duplicate_phone(member_login: TestClient) -> None:
-    target_phone = "010-7777-7777"
+    target_phone = "01077777777"
 
     async def _seed(session: AsyncSession) -> None:
         session.add(

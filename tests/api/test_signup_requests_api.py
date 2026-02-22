@@ -46,7 +46,7 @@ def test_member_signup_success(client: TestClient) -> None:
     body = response.json()
     assert body["student_id"] == "s116001"
     assert body["status"] == "pending"
-    assert body["phone"] == "010-1234-5678"
+    assert body["phone"] == "01012345678"
     assert body["note"] == "가입 신청합니다."
 
 
