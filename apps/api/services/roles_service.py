@@ -12,6 +12,7 @@ ADMIN_PERMISSION_TOKENS = frozenset(
         "admin_notifications",
         "admin_signup",
         "admin_roles",
+        "admin_profile",
     }
 )
 ALLOWED_ROLE_TOKENS = frozenset(

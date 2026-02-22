@@ -13,11 +13,12 @@ import {
   validateProfileForm,
 } from './validation';
 import { getMe, updateMe, updateAvatar, type MemberDto, API_BASE } from '../../services/me';
+import { ChangeRequestSection } from './change-request';
 
 const asDisplayString = (value: string | null | undefined): string => value ?? '';
 
 const toFormState = (member: MemberDto): ProfileForm => ({
-  name: member.name,
+  email: asDisplayString(member.email),
   major: asDisplayString(member.major),
   visibility: member.visibility,
   birth_date: asDisplayString(member.birth_date),
@@ -169,12 +170,8 @@ function ProfileSummary({ profile }: { profile: MemberDto }) {
   return (
     <dl className="rounded border border-neutral-border bg-surface-raised p-3 text-xs text-text-muted">
       <div className="flex justify-between">
-        <dt className="font-medium text-text-secondary">이메일</dt>
-        <dd>{profile.email}</dd>
-      </div>
-      <div className="mt-1 flex justify-between">
-        <dt className="font-medium text-text-secondary">기수</dt>
-        <dd>{profile.cohort}</dd>
+        <dt className="font-medium text-text-secondary">학번</dt>
+        <dd>{profile.student_id}</dd>
       </div>
     </dl>
   );
@@ -313,7 +310,7 @@ function ProfileFormSection({
     >
       <ProfileSummary profile={profile} />
       <FormErrorMessage message={errors.form} id={formErrorId} />
-      <TextField field="name" label="이름" draft={draft} errors={errors} onChange={onChange} />
+      <TextField field="email" label="이메일" draft={draft} errors={errors} onChange={onChange} />
       <TextField field="major" label="전공(선택)" draft={draft} errors={errors} onChange={onChange} />
       <VisibilityField
         value={draft.visibility}
@@ -549,6 +546,7 @@ export default function MePage() {
           uploading={avatarUploading}
           onUpload={onAvatarUpload}
         />
+        <ChangeRequestSection profile={profile} />
         <ProfileFormSection
           draft={draft}
           profile={profile}

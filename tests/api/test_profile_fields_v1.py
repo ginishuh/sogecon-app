@@ -34,14 +34,16 @@ def test_me_update_new_fields_roundtrip(member_login: TestClient) -> None:
         "addr_company": "Mapo-gu, Seoul, KR",
         "industry": "Manufacturing",
     }
+    # 전화번호는 숫자만 저장되므로 기대값 분리
+    expected = {**payload, "company_phone": "0212345678"}
     res = member_login.put("/me/", json=payload)
     assert res.status_code == HTTPStatus.OK
     data = res.json()
-    for k, v in payload.items():
+    for k, v in expected.items():
         assert data.get(k) == v
 
     res2 = member_login.get("/me/")
     assert res2.status_code == HTTPStatus.OK
     data2 = res2.json()
-    for k, v in payload.items():
+    for k, v in expected.items():
         assert data2.get(k) == v

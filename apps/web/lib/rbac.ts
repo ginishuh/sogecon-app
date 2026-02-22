@@ -7,6 +7,7 @@ export const ADMIN_PERMISSION_TOKENS = [
   'admin_notifications',
   'admin_signup',
   'admin_roles',
+  'admin_profile',
 ] as const;
 
 export type AdminPermissionToken = (typeof ADMIN_PERMISSION_TOKENS)[number];

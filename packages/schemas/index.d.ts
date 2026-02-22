@@ -664,6 +664,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/change-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List My Change Requests */
+        get: operations["list_my_change_requests_me_change_requests_get"];
+        put?: never;
+        /** Create Change Request */
+        post: operations["create_change_request_me_change_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rum/vitals": {
         parameters: {
             query?: never;
@@ -904,6 +922,57 @@ export interface paths {
         put?: never;
         /** Reject Signup Request */
         post: operations["reject_signup_request_admin_signup_requests__signup_request_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/profile-change-requests/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Profile Change Requests */
+        get: operations["list_profile_change_requests_admin_profile_change_requests__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/profile-change-requests/{request_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Profile Change Request */
+        post: operations["approve_profile_change_request_admin_profile_change_requests__request_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/profile-change-requests/{request_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Profile Change Request */
+        post: operations["reject_profile_change_request_admin_profile_change_requests__request_id__reject_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1438,8 +1507,8 @@ export interface components {
         };
         /** MemberUpdate */
         MemberUpdate: {
-            /** Name */
-            name?: string | null;
+            /** Email */
+            email?: string | null;
             /** Major */
             major?: string | null;
             /** Visibility */
@@ -1578,6 +1647,64 @@ export interface components {
              * @default false
              */
             unpublish: boolean;
+        };
+        /** ProfileChangeRequestCreate */
+        ProfileChangeRequestCreate: {
+            /**
+             * Field Name
+             * @enum {string}
+             */
+            field_name: "name" | "cohort";
+            /** New Value */
+            new_value: string;
+        };
+        /** ProfileChangeRequestListResponse */
+        ProfileChangeRequestListResponse: {
+            /** Items */
+            items: components["schemas"]["ProfileChangeRequestRead"][];
+            /** Total */
+            total: number;
+        };
+        /** ProfileChangeRequestRead */
+        ProfileChangeRequestRead: {
+            /** Id */
+            id: number;
+            /** Member Id */
+            member_id: number;
+            /**
+             * Field Name
+             * @enum {string}
+             */
+            field_name: "name" | "cohort";
+            /** Old Value */
+            old_value: string;
+            /** New Value */
+            new_value: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "approved" | "rejected";
+            /**
+             * Requested At
+             * Format: date-time
+             */
+            requested_at: string;
+            /** Decided At */
+            decided_at?: string | null;
+            /** Decided By Student Id */
+            decided_by_student_id?: string | null;
+            /** Reject Reason */
+            reject_reason?: string | null;
+            /** Member Name */
+            member_name?: string | null;
+            /** Member Student Id */
+            member_student_id?: string | null;
+        };
+        /** ProfileChangeRequestReject */
+        ProfileChangeRequestReject: {
+            /** Reason */
+            reason: string;
         };
         /** PruneLogsPayload */
         PruneLogsPayload: {
@@ -3263,6 +3390,59 @@ export interface operations {
             };
         };
     };
+    list_my_change_requests_me_change_requests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileChangeRequestRead"][];
+                };
+            };
+        };
+    };
+    create_change_request_me_change_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileChangeRequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileChangeRequestRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     ingest_vitals_rum_vitals_post: {
         parameters: {
             query?: never;
@@ -3838,6 +4018,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SignupRequestRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_profile_change_requests_admin_profile_change_requests__get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                status?: ("pending" | "approved" | "rejected") | null;
+                member_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileChangeRequestListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_profile_change_request_admin_profile_change_requests__request_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileChangeRequestRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_profile_change_request_admin_profile_change_requests__request_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileChangeRequestReject"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileChangeRequestRead"];
                 };
             };
             /** @description Validation Error */

@@ -4,6 +4,7 @@ import {
   buildActivationMessage,
   buildActivationUrl,
 } from '../../../lib/activation';
+import { formatPhone } from '../../../lib/phone-utils';
 import type {
   SignupApproveResponse,
   SignupRequestRead,
@@ -234,7 +235,7 @@ function SignupRequestMobileCard({
       <p className="mt-1 text-xs text-text-muted">
         기수 {row.cohort}
         {row.major ? ` · ${row.major}` : ''}
-        {row.phone ? ` · ${row.phone}` : ''}
+        {row.phone ? ` · ${formatPhone(row.phone)}` : ''}
       </p>
       <div className="mt-2 flex items-center justify-between">
         <span className={`inline-flex rounded px-2 py-0.5 text-xs ring-1 ${statusBadgeClass(row.status)}`}>
@@ -316,7 +317,7 @@ export function SignupRequestsTable({
                   <p className="mt-1 text-xs text-text-muted">
                     기수 {row.cohort}
                     {row.major ? ` · ${row.major}` : ''}
-                    {row.phone ? ` · ${row.phone}` : ''}
+                    {row.phone ? ` · ${formatPhone(row.phone)}` : ''}
                   </p>
                 </td>
                 <td className="px-3 py-2">
