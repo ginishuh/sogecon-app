@@ -8,6 +8,7 @@ from sqlalchemy.sql.elements import ColumnElement
 
 from .. import models, schemas
 from ..errors import NotFoundError
+from . import escape_like
 
 
 async def list_events(
@@ -61,8 +62,8 @@ async def list_admin_events_with_total(
 
     conditions: list[ColumnElement[bool]] = []
     if q:
-        like = f"%{q.strip().lower()}%"
-        conditions.append(func.lower(models.Event.title).like(like))
+        like = f"%{escape_like(q.strip().lower())}%"
+        conditions.append(func.lower(models.Event.title).like(like, escape="\\"))
     if date_from is not None:
         conditions.append(models.Event.starts_at >= date_from)
     if date_to is not None:

@@ -111,7 +111,7 @@ def _set_user_session(
     """통합 세션(user) 설정 + 레거시 키(admin/member) 동시 설정.
 
     주의: 레거시 제거 전까지 호환 목적으로 admin/member 키도 함께 기록한다.
-    TODO: 레거시 세션 제거 후 이 함수 단순화 필요
+    TODO(#142): 레거시 세션 제거 후 이 함수 단순화 필요
     """
     req.session["user"] = {
         "student_id": student_id,

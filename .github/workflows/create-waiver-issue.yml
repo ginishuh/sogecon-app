@@ -30,10 +30,10 @@ jobs:
       - name: Create or update waiver issue
         uses: actions/github-script@v7
         env:
-          TITLE: "Temporary pip-audit waiver: Starlette GHSA-7f5h-v6xp-fcq8 (FastAPI pin) — remove by 2025-12-31"
+          TITLE: "Temporary pip-audit waiver: Starlette GHSA-7f5h-v6xp-fcq8 (FastAPI pin) — remove by 2026-12-31"
           LABELS: "security,ci,tech-debt"
           DEFAULT_OWNER: "ginishuh"
-          DUE: "2025-12-31"
+          DUE: "2026-12-31"
         with:
           script: |
             const title = process.env.TITLE;

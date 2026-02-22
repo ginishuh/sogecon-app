@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from .. import models, schemas
 from ..errors import NotFoundError
+from . import escape_like
 
 
 class AdminPostFilters(TypedDict, total=False):
@@ -143,9 +144,10 @@ async def list_admin_posts(
         elif status == "draft":
             stmt = stmt.where(models.Post.published_at.is_(None))
         if q:
-            pattern = f"%{q}%"
+            pattern = f"%{escape_like(q)}%"
             stmt = stmt.where(
-                models.Post.title.ilike(pattern) | models.Post.content.ilike(pattern)
+                models.Post.title.ilike(pattern, escape="\\")
+                | models.Post.content.ilike(pattern, escape="\\")
             )
     stmt = (
         stmt.order_by(desc(models.Post.pinned), desc(models.Post.published_at))
@@ -174,9 +176,10 @@ async def count_posts(
         elif status == "draft":
             stmt = stmt.where(models.Post.published_at.is_(None))
         if q:
-            pattern = f"%{q}%"
+            pattern = f"%{escape_like(q)}%"
             stmt = stmt.where(
-                models.Post.title.ilike(pattern) | models.Post.content.ilike(pattern)
+                models.Post.title.ilike(pattern, escape="\\")
+                | models.Post.content.ilike(pattern, escape="\\")
             )
     result = await db.execute(stmt)
     count = result.scalar()

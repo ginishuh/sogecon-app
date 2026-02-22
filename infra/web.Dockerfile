@@ -48,8 +48,7 @@ RUN pnpm -C apps/web build \
 FROM node:${NODE_VERSION}-slim AS runtime
 
 ENV NODE_ENV=production \
-    NEXT_TELEMETRY_DISABLED=1 \
-    CI=true
+    NEXT_TELEMETRY_DISABLED=1
 
 RUN adduser --disabled-password --gecos "" webuser
 

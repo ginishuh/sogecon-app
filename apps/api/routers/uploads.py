@@ -8,7 +8,8 @@ import time
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, UploadFile
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
+from PIL.Image import DecompressionBombError
 from pydantic import BaseModel
 
 from ..config import get_settings
@@ -91,7 +92,13 @@ async def upload_image(
     try:
         img = Image.open(io.BytesIO(file_bytes))
         img.load()  # 이미지 유효성 검증
-    except Exception as exc:
+    except (
+        UnidentifiedImageError,
+        DecompressionBombError,
+        OSError,
+        SyntaxError,
+        ValueError,
+    ) as exc:
         raise ApiError(
             code="invalid_image_data",
             detail="이미지 파일을 읽을 수 없습니다.",

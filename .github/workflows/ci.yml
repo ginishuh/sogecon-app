@@ -37,6 +37,7 @@ jobs:
           # Check up to last 30 commits in this ref
           RANGE="$(git rev-list --count HEAD)"
           COUNT=$([ "$RANGE" -gt 30 ] && echo 30 || echo "$RANGE")
+          # || true: Draft PR 포함 조회 시 일부 commit 히스토리 부재로 실패할 수 있어 soft-fail 유지
           pnpm dlx @commitlint/cli@20.1.0 --config docs/commitlint.config.cjs --from=HEAD~$COUNT --to=HEAD || true
 
   python:
