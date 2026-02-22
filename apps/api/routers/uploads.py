@@ -8,7 +8,8 @@ import time
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, UploadFile
-from PIL import DecompressionBombError, Image, UnidentifiedImageError
+from PIL import Image, UnidentifiedImageError
+from PIL.Image import DecompressionBombError
 from pydantic import BaseModel
 
 from ..config import get_settings
