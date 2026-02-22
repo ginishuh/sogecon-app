@@ -23,6 +23,7 @@ def _build_member_conditions(
             or_(
                 models.Member.name.ilike(like, escape="\\"),
                 models.Member.email.ilike(like, escape="\\"),
+                models.Member.student_id.ilike(like, escape="\\"),
             )
         )
 
@@ -164,6 +165,27 @@ async def update_member_roles(
     setattr(member, "roles", roles)
     await db.commit()
     await db.refresh(member)
+    return member
+
+
+async def update_member_profile_admin(
+    db: AsyncSession, *, member_id: int, data: schemas.AdminMemberUpdate
+) -> models.Member:
+    member = await db.get(models.Member, member_id)
+    if member is None:
+        raise NotFoundError(code="member_not_found", detail="Member not found")
+
+    updates = data.model_dump(exclude_unset=True)
+    if "visibility" in updates and updates["visibility"] is not None:
+        updates["visibility"] = models.Visibility(updates["visibility"])
+    if "birth_lunar" in updates and updates["birth_lunar"] is not None:
+        updates["birth_lunar"] = bool(updates["birth_lunar"])
+
+    if updates:
+        for k, v in updates.items():
+            setattr(member, k, v)
+        await db.commit()
+        await db.refresh(member)
     return member
 
 

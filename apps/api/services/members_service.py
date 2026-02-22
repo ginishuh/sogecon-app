@@ -221,6 +221,61 @@ async def get_member_by_student_id(db: AsyncSession, student_id: str) -> models.
     return await members_repo.get_member_by_student_id(db, student_id)
 
 
+async def update_member_profile_admin(
+    db: AsyncSession, *, member_id: int, data: schemas.AdminMemberUpdate
+) -> models.Member:
+    """관리자 회원 정보 수정 (roles 제외)."""
+    raw_payload = data.model_dump(exclude_unset=True)
+    if not raw_payload:
+        return await members_repo.get_member(db, member_id)
+
+    sanitized_data: dict[str, object] = {
+        key: value.strip() if isinstance(value, str) else value
+        for key, value in raw_payload.items()
+    }
+
+    email_value = sanitized_data.get("email")
+    if isinstance(email_value, str):
+        normalized_email = email_value.strip().lower() or None
+        sanitized_data["email"] = normalized_email
+        if isinstance(normalized_email, str):
+            stmt = select(models.Member.id).where(
+                models.Member.email == normalized_email,
+                models.Member.id != member_id,
+            )
+            result = await db.execute(stmt)
+            if result.scalar_one_or_none() is not None:
+                raise AlreadyExistsError(
+                    code="member_email_already_in_use",
+                    detail="Email already in use",
+                )
+
+    phone_value = sanitized_data.get("phone")
+    if isinstance(phone_value, str):
+        normalized_phone = phone_value.strip() or None
+        sanitized_data["phone"] = normalized_phone
+        if isinstance(normalized_phone, str):
+            stmt = select(models.Member.id).where(
+                models.Member.phone == normalized_phone,
+                models.Member.id != member_id,
+            )
+            result = await db.execute(stmt)
+            if result.scalar_one_or_none() is not None:
+                raise AlreadyExistsError(
+                    code="member_phone_already_in_use",
+                    detail="Phone already in use",
+                )
+
+    sanitized = data.model_copy(update=sanitized_data)
+    try:
+        return await members_repo.update_member_profile_admin(
+            db, member_id=member_id, data=sanitized
+        )
+    except IntegrityError as exc:
+        await db.rollback()
+        _raise_member_conflict_from_integrity_error(exc)
+
+
 async def update_member_profile(
     db: AsyncSession, *, member_id: int, data: schemas.MemberUpdate
 ) -> models.Member:

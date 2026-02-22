@@ -29,6 +29,7 @@ const ADMIN_ITEMS: Array<{
   { href: '/admin/hero', label: '홈 배너 관리', permission: 'admin_hero' },
   { href: '/admin/notifications', label: '알림 관리', permission: 'admin_notifications' },
   { href: '/admin/signup-requests', label: '가입신청 심사', permission: 'admin_signup' },
+  { href: '/admin/profile-change-requests', label: '정보변경 심사', permission: 'admin_profile' },
   { href: '/admin/members', label: '회원 관리', permission: 'admin_roles' },
 ] as const;
 

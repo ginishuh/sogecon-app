@@ -157,6 +157,24 @@ class MemberUpdate(BaseModel):
         return trimmed
 
 
+class AdminMemberUpdate(MemberUpdate):
+    """관리자 회원 정보 수정 요청 (MemberUpdate 필드 + name/cohort/status)."""
+
+    name: str | None = None
+    cohort: int | None = Field(default=None, ge=1, le=9999)
+    status: MemberStatusLiteral | None = None
+
+    @field_validator("name")
+    @classmethod
+    def _strip_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        trimmed = value.strip()
+        if not trimmed:
+            raise ValueError("이름은 비어 있을 수 없습니다.")
+        return trimmed
+
+
 class MemberListFilters(TypedDict, total=False):
     q: str
     cohort: int
