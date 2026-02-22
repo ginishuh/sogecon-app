@@ -80,7 +80,22 @@ def parse_roles(raw_roles: object) -> RoleProfile:
 def normalize_assignable_roles(value: object) -> list[str]:
     roles = normalize_roles(value)
     filtered = [role for role in roles if role in ALLOWED_ROLE_TOKENS]
-    return ensure_member_role(filtered)
+
+    tokens = set(filtered)
+
+    # 계층 정합성: super_admin → admin + 모든 세부권한 자동 부여
+    if "super_admin" in tokens:
+        tokens.add("admin")
+        tokens.update(ADMIN_PERMISSION_TOKENS)
+    elif "admin" not in tokens:
+        # admin도 super_admin도 없으면 세부권한 제거
+        tokens -= ADMIN_PERMISSION_TOKENS
+
+    # 원래 순서를 유지하되 추가된 토큰은 뒤에 붙임
+    result = [r for r in filtered if r in tokens]
+    for t in tokens - set(result):
+        result.append(t)
+    return ensure_member_role(result)
 
 
 def serialize_roles(roles: list[str]) -> str:

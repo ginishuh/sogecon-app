@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import type { DirectMemberCreatePayload } from '../../../services/admin-members';
-import { RoleChecklist, normalizeRoles } from './role-shared';
+import { RoleChecklist, applyRoleHierarchy } from './role-shared';
 
 function parseCohortValue(rawValue: string): number | null {
   const parsed = Number(rawValue);
@@ -35,10 +35,7 @@ export function DirectMemberCreateForm({
   }, [resetKey]);
 
   const toggleRole = (role: string, checked: boolean) => {
-    setRoles((prev) => {
-      const without = prev.filter((token) => token !== role);
-      return checked ? normalizeRoles([...without, role]) : without;
-    });
+    setRoles((prev) => applyRoleHierarchy(prev, role, checked));
   };
 
   const hasRequiredText =

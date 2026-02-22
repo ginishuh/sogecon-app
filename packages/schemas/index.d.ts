@@ -848,7 +848,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Members Admin
+         * @description 관리자용 회원 목록 (비공개 포함).
+         */
+        get: operations["list_members_admin_admin_members__get"];
         put?: never;
         /**
          * Create Member Direct
@@ -859,6 +863,46 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/admin/members/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Count Members Admin
+         * @description 관리자용 회원 수.
+         */
+        get: operations["count_members_admin_admin_members_count_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/members/{member_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Member Admin
+         * @description 관리자 회원 정보 수정 (roles 제외).
+         */
+        patch: operations["update_member_admin_admin_members__member_id__patch"];
         trace?: never;
     };
     "/admin/members/{member_id}/roles": {
@@ -1000,6 +1044,44 @@ export interface components {
             items: components["schemas"]["HeroItemRead"][];
             /** Total */
             total: number;
+        };
+        /**
+         * AdminMemberUpdate
+         * @description 관리자 회원 정보 수정 요청 (MemberUpdate 필드 + name/cohort/status).
+         */
+        AdminMemberUpdate: {
+            /** Email */
+            email?: string | null;
+            /** Major */
+            major?: string | null;
+            /** Visibility */
+            visibility?: ("all" | "cohort" | "private") | null;
+            /** Birth Date */
+            birth_date?: string | null;
+            /** Birth Lunar */
+            birth_lunar?: boolean | null;
+            /** Phone */
+            phone?: string | null;
+            /** Company */
+            company?: string | null;
+            /** Department */
+            department?: string | null;
+            /** Job Title */
+            job_title?: string | null;
+            /** Company Phone */
+            company_phone?: string | null;
+            /** Addr Personal */
+            addr_personal?: string | null;
+            /** Addr Company */
+            addr_company?: string | null;
+            /** Industry */
+            industry?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Cohort */
+            cohort?: number | null;
+            /** Status */
+            status?: ("pending" | "active" | "suspended" | "rejected") | null;
         };
         /**
          * AdminPostListResponse
@@ -3751,6 +3833,41 @@ export interface operations {
             };
         };
     };
+    list_members_admin_admin_members__get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                cohort?: number | null;
+                sort?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_member_direct_admin_members__post: {
         parameters: {
             query?: never;
@@ -3771,6 +3888,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DirectMemberCreateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    count_members_admin_admin_members_count_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                cohort?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_member_admin_admin_members__member_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                member_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminMemberUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberRead"];
                 };
             };
             /** @description Validation Error */
