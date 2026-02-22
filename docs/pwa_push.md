@@ -24,6 +24,43 @@ PUSH_ENCRYPT_AT_REST=false
 PUSH_KEK=  # base64-encoded 16/24/32-byte key (recommend 32B)
 ```
 
+## VAPID 키 생성
+
+VAPID 키 쌍은 프로젝트마다 1회 생성하여 환경변수에 등록한다.
+
+### 방법 1 — Node.js (권장)
+```bash
+npx web-push generate-vapid-keys
+```
+
+### 방법 2 — Python (.venv에서)
+```bash
+python -c "
+import base64
+from cryptography.hazmat.primitives.asymmetric import ec
+
+priv = ec.generate_private_key(ec.SECP256R1())
+priv_raw = priv.private_numbers().private_value.to_bytes(32, 'big')
+pub = priv.public_key().public_numbers()
+pub_raw = b'\x04' + pub.x.to_bytes(32, 'big') + pub.y.to_bytes(32, 'big')
+
+print('Public :', base64.urlsafe_b64encode(pub_raw).rstrip(b'=').decode())
+print('Private:', base64.urlsafe_b64encode(priv_raw).rstrip(b'=').decode())
+"
+```
+
+### 생성 후 환경변수 매핑
+
+| 생성 값 | 파일 | 변수명 |
+|---------|------|--------|
+| Public Key | `.env` / `.env.api` | `VAPID_PUBLIC_KEY` |
+| Private Key | `.env` / `.env.api` | `VAPID_PRIVATE_KEY` |
+| Public Key (동일) | `apps/web/.env.local` | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` |
+
+`VAPID_SUBJECT`는 `mailto:` 형식의 연락처 이메일을 입력한다(기본값: `mailto:security@trr.co.kr`).
+
+at-rest 암호화용 `PUSH_KEK`가 필요한 경우: `openssl rand -base64 32`
+
 ## 데이터 모델(초안)
 - `push_subscription`
   - `id` (PK)
