@@ -1,16 +1,53 @@
 from __future__ import annotations
 
+import asyncio
 from http import HTTPStatus
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
+
+from apps.api import models
+from apps.api.db import get_db
+from apps.api.main import app
+
+
+def _create_member(client: TestClient, payload: dict[str, object]) -> None:
+    student_id = str(payload["student_id"])
+    major = str(payload["major"])
+    res = client.post(
+        "/admin/members/",
+        json={
+            "student_id": student_id,
+            "email": payload["email"],
+            "name": payload["name"],
+            "cohort": payload["cohort"],
+            "roles": ["member"],
+        },
+    )
+    assert res.status_code == HTTPStatus.CREATED
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found")
+
+    async def _set_major() -> None:
+        async for db in override():
+            stmt = select(models.Member).where(models.Member.student_id == student_id)
+            member = (await db.execute(stmt)).scalars().first()
+            if member is None:
+                raise RuntimeError("member not found")
+            setattr(member, "major", major)
+            await db.commit()
+            break
+
+    asyncio.run(_set_major())
 
 
 def test_directory_filters(admin_login: TestClient) -> None:
     client = admin_login
     # seed two members via admin create
-    r1 = client.post(
-        "/members/",
-        json={
+    _create_member(
+        client,
+        {
             "student_id": "alice001",
             "email": "alice@example.com",
             "name": "Alice",
@@ -18,9 +55,9 @@ def test_directory_filters(admin_login: TestClient) -> None:
             "major": "CS",
         },
     )
-    r2 = client.post(
-        "/members/",
-        json={
+    _create_member(
+        client,
+        {
             "student_id": "bob002",
             "email": "bob@example.com",
             "name": "Bob",
@@ -28,7 +65,6 @@ def test_directory_filters(admin_login: TestClient) -> None:
             "major": "Math",
         },
     )
-    assert r1.status_code == HTTPStatus.CREATED and r2.status_code == HTTPStatus.CREATED
 
     # filter by cohort
     q1 = client.get("/members/?cohort=1")

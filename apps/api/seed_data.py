@@ -18,7 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.db import get_db_session
-from apps.api.models import AdminUser, Member, MemberAuth, Visibility
+from apps.api.models import Member, MemberAuth, Visibility
 
 
 def hash_password(password: str) -> str:
@@ -67,20 +67,6 @@ async def create_admin_users(session: AsyncSession) -> None:
         secret = load_seed_secret(str(user_data["env_var"]))
         password_hash = hash_password(secret)
 
-        stmt = select(AdminUser).where(AdminUser.student_id == user_data["student_id"])
-        existing_admin = (await session.execute(stmt)).scalars().first()
-        if existing_admin is None:
-            session.add(
-                AdminUser(
-                    student_id=str(user_data["student_id"]),
-                    email=str(user_data["email"]),
-                    password_hash=password_hash,
-                )
-            )
-            print(f"관리자 계정 생성: {user_data['student_id']} ({user_data['email']})")
-        else:
-            print(f"관리자 계정 이미 존재: {user_data['student_id']}")
-
         stmt = select(Member).where(Member.student_id == user_data["student_id"])
         existing_member = (await session.execute(stmt)).scalars().first()
         if existing_member is None:
@@ -97,10 +83,10 @@ async def create_admin_users(session: AsyncSession) -> None:
             session.add(member)
             await session.flush()
             member_id = member.id
-            print("  → 회원 정보 생성")
+            print(f"회원 정보 생성: {user_data['student_id']} ({user_data['email']})")
         else:
             member_id = existing_member.id
-            print("  → 회원 정보 이미 존재")
+            print(f"회원 정보 이미 존재: {user_data['student_id']}")
 
         stmt = select(MemberAuth).where(
             MemberAuth.student_id == user_data["student_id"]
@@ -123,16 +109,16 @@ async def create_admin_users(session: AsyncSession) -> None:
 
 async def async_main() -> None:
     """비동기 메인 실행 함수"""
-    print("🌱 시드 데이터 생성 시작")
+    print("시드 데이터 생성 시작")
     print("=" * 50)
 
     async with get_db_session() as session:
         await create_admin_users(session)
 
     print("=" * 50)
-    print("✅ 시드 데이터 생성 완료")
-    print("\n📋 생성된 계정 정보")
-    print("🔧 관리자 bootstrap 계정: s47053 (ginishuh@gmail.com)")
+    print("시드 데이터 생성 완료")
+    print("\n생성된 계정 정보")
+    print("관리자 bootstrap 계정: s47053 (ginishuh@gmail.com)")
     print("  - roles: super_admin,admin,member + 전체 admin 권한")
     print("  - 인증 비밀값: 환경변수 `SEED_DEV_ADMIN_VALUE`")
 
@@ -145,7 +131,7 @@ def main() -> None:
     try:
         asyncio.run(async_main())
     except (RuntimeError, ValueError, OSError) as exc:
-        print(f"❌ 시드 데이터 생성 실패: {exc}")
+        print(f"시드 데이터 생성 실패: {exc}")
         sys.exit(1)
 
 

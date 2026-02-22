@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import schemas
 from ..db import get_db
 from ..services import members_service
-from .auth import CurrentAdmin, CurrentMember, require_admin, require_member
+from .auth import CurrentMember, require_member
 
 router = APIRouter(prefix="/members", tags=["members"])
 
@@ -95,11 +95,3 @@ async def get_member(
     return schemas.MemberRead.model_validate(member)
 
 
-@router.post("/", response_model=schemas.MemberRead, status_code=201)
-async def create_member(
-    payload: schemas.MemberCreate,
-    db: AsyncSession = Depends(get_db),
-    _admin: CurrentAdmin = Depends(require_admin),
-) -> schemas.MemberRead:
-    member = await members_service.create_member(db, payload)
-    return schemas.MemberRead.model_validate(member)

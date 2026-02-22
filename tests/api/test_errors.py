@@ -9,6 +9,28 @@ from sqlalchemy.exc import IntegrityError
 from apps.api.repositories import members as members_repo
 
 
+def _create_member(
+    client: TestClient,
+    *,
+    student_id: str,
+    email: str,
+    name: str,
+    cohort: int,
+) -> dict[str, object]:
+    res = client.post(
+        "/admin/members/",
+        json={
+            "student_id": student_id,
+            "email": email,
+            "name": name,
+            "cohort": cohort,
+            "roles": ["member"],
+        },
+    )
+    assert res.status_code == HTTPStatus.CREATED
+    return res.json()["member"]
+
+
 def test_member_not_found_returns_problem_details(member_login: TestClient) -> None:
     res = member_login.get("/members/999999")
     assert res.status_code == HTTPStatus.NOT_FOUND
@@ -25,41 +47,42 @@ def test_member_create_conflict_code(admin_login: TestClient) -> None:
         "email": "user@example.com",
         "name": "User",
         "cohort": 2025,
+        "roles": ["member"],
     }
-    res1 = client.post("/members/", json=payload)
+    res1 = client.post("/admin/members/", json=payload)
     assert res1.status_code == HTTPStatus.CREATED
 
-    res2 = client.post("/members/", json=payload)
+    res2 = client.post("/admin/members/", json=payload)
     assert res2.status_code == HTTPStatus.CONFLICT
     data = res2.json()
     assert data["status"] == HTTPStatus.CONFLICT
     assert data["code"] == "member_exists"
 
 
-def test_member_create_phone_conflict_code(admin_login: TestClient) -> None:
+def test_member_create_email_conflict_code(admin_login: TestClient) -> None:
     client = admin_login
     first_payload = {
         "student_id": "phone001",
         "email": "phone001@example.com",
         "name": "Phone A",
         "cohort": 2025,
-        "phone": "010-9999-0001",
+        "roles": ["member"],
     }
     second_payload = {
         "student_id": "phone002",
-        "email": "phone002@example.com",
+        "email": "phone001@example.com",
         "name": "Phone B",
         "cohort": 2025,
-        "phone": "010-9999-0001",
+        "roles": ["member"],
     }
-    res1 = client.post("/members/", json=first_payload)
+    res1 = client.post("/admin/members/", json=first_payload)
     assert res1.status_code == HTTPStatus.CREATED
 
-    res2 = client.post("/members/", json=second_payload)
+    res2 = client.post("/admin/members/", json=second_payload)
     assert res2.status_code == HTTPStatus.CONFLICT
     data = res2.json()
     assert data["status"] == HTTPStatus.CONFLICT
-    assert data["code"] == "member_phone_already_in_use"
+    assert data["code"] == "member_email_already_in_use"
 
 
 def test_member_create_phone_integrity_error_maps_to_409(
@@ -76,7 +99,8 @@ def test_member_create_phone_integrity_error_maps_to_409(
         )
 
     monkeypatch.setattr(members_repo, "create_member", _raise_integrity_error)
-
+    # /members POST가 제거되어 더 이상 members_repo.create_member를 타지 않는다.
+    # 회귀 방지 목적의 무의미한 테스트가 되지 않도록 404를 확인한다.
     res = admin_login.post(
         "/members/",
         json={
@@ -87,8 +111,7 @@ def test_member_create_phone_integrity_error_maps_to_409(
             "phone": "010-4444-4444",
         },
     )
-    assert res.status_code == HTTPStatus.CONFLICT
-    assert res.json()["code"] == "member_phone_already_in_use"
+    assert res.status_code == HTTPStatus.METHOD_NOT_ALLOWED
 
 
 def test_post_not_found_returns_problem_details(client: TestClient) -> None:
@@ -110,15 +133,13 @@ def test_event_not_found_returns_problem_details(client: TestClient) -> None:
 def test_rsvp_not_found_returns_problem_details(admin_login: TestClient) -> None:
     client = admin_login
     # 선행: 회원/이벤트 생성
-    m = client.post(
-        "/members/",
-        json={
-            "student_id": "rsvp001",
-            "email": "rsvp@example.com",
-            "name": "RSVP",
-            "cohort": 2025,
-        },
-    ).json()
+    m = _create_member(
+        client,
+        student_id="rsvp001",
+        email="rsvp@example.com",
+        name="RSVP",
+        cohort=2025,
+    )
     e = client.post(
         "/events/",
         json={
@@ -140,15 +161,13 @@ def test_rsvp_not_found_returns_problem_details(admin_login: TestClient) -> None
 def test_rsvp_create_conflict_code(admin_login: TestClient) -> None:
     client = admin_login
     # 선행: 회원/이벤트 생성
-    m = client.post(
-        "/members/",
-        json={
-            "student_id": "dup001",
-            "email": "dup@example.com",
-            "name": "Dup",
-            "cohort": 2025,
-        },
-    ).json()
+    m = _create_member(
+        client,
+        student_id="dup001",
+        email="dup@example.com",
+        name="Dup",
+        cohort=2025,
+    )
     e = client.post(
         "/events/",
         json={
@@ -174,15 +193,13 @@ def test_rsvp_create_conflict_code(admin_login: TestClient) -> None:
 def test_events_rsvp_upsert_create_and_update(admin_login: TestClient) -> None:
     client = admin_login
     # 선행: 회원/이벤트 생성
-    m = client.post(
-        "/members/",
-        json={
-            "student_id": "upsert001",
-            "email": "upsert@example.com",
-            "name": "Up Ser",
-            "cohort": 2025,
-        },
-    ).json()
+    m = _create_member(
+        client,
+        student_id="upsert001",
+        email="upsert@example.com",
+        name="Up Ser",
+        cohort=2025,
+    )
     e = client.post(
         "/events/",
         json={
@@ -212,15 +229,13 @@ def test_events_rsvp_upsert_create_and_update(admin_login: TestClient) -> None:
 def test_events_rsvp_invalid_enum_422(admin_login: TestClient) -> None:
     client = admin_login
     # 선행: 회원/이벤트 생성
-    m = client.post(
-        "/members/",
-        json={
-            "student_id": "enum001",
-            "email": "enum@example.com",
-            "name": "Enum",
-            "cohort": 2025,
-        },
-    ).json()
+    m = _create_member(
+        client,
+        student_id="enum001",
+        email="enum@example.com",
+        name="Enum",
+        cohort=2025,
+    )
     e = client.post(
         "/events/",
         json={

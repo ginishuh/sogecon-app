@@ -6,7 +6,7 @@ import time
 from collections import OrderedDict
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Never
+from typing import Never, cast
 
 from PIL import Image, UnidentifiedImageError
 from sqlalchemy import select
@@ -17,6 +17,12 @@ from .. import models, schemas
 from ..config import get_settings
 from ..errors import AlreadyExistsError, ApiError
 from ..repositories import members as members_repo
+from .activation_service import create_member_activation_token
+from .roles_service import (
+    normalize_assignable_roles,
+    parse_roles,
+    serialize_roles,
+)
 
 _ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP"}
 _INITIAL_JPEG_QUALITY = 85
@@ -317,3 +323,137 @@ async def update_member_avatar(
     _remove_previous_avatar(previous_path, media_root)
 
     return member
+
+
+async def create_member_direct(
+    db: AsyncSession,
+    payload: schemas.DirectMemberCreatePayload,
+) -> tuple[models.Member, str]:
+    """관리자 직접 회원 생성 + 활성화 토큰 발급.
+
+    Returns:
+        (생성된 Member, 활성화 토큰 문자열) 튜플
+    """
+    # 학번 중복 검사
+    stmt = select(models.Member).where(
+        models.Member.student_id == payload.student_id
+    )
+    result = await db.execute(stmt)
+    if result.scalars().first() is not None:
+        raise AlreadyExistsError(
+            code="member_exists",
+            detail="Student ID already in use",
+        )
+
+    # 이메일 중복 검사
+    stmt = select(models.Member).where(models.Member.email == payload.email)
+    result = await db.execute(stmt)
+    if result.scalars().first() is not None:
+        raise AlreadyExistsError(
+            code="member_email_already_in_use",
+            detail="Email already in use",
+        )
+
+    # 역할 정규화
+    normalized_roles = normalize_assignable_roles(payload.roles)
+    serialized_roles = serialize_roles(normalized_roles)
+
+    # Member 생성
+    member = models.Member(
+        student_id=payload.student_id,
+        email=str(payload.email),
+        name=payload.name,
+        cohort=payload.cohort,
+        roles=serialized_roles,
+        status="active",
+        visibility=models.Visibility.ALL,
+    )
+    db.add(member)
+    await db.flush()
+
+    # SignupRequest 레코드 생성 (activation_service가 signup_request_id 필요)
+    signup_request = models.SignupRequest(
+        student_id=payload.student_id,
+        email=str(payload.email),
+        name=payload.name,
+        cohort=payload.cohort,
+        status="approved",
+    )
+    db.add(signup_request)
+    await db.flush()
+
+    # 활성화 토큰 발급
+    activation_token = create_member_activation_token(
+        signup_request_id=cast(int, signup_request.id),
+        student_id=payload.student_id,
+        cohort=payload.cohort,
+        name=payload.name,
+    )
+
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        _raise_member_conflict_from_integrity_error(exc)
+
+    await db.refresh(member)
+    return member, activation_token
+
+
+async def update_member_roles(
+    db: AsyncSession,
+    *,
+    member_id: int,
+    actor_student_id: str,
+    roles: list[str],
+) -> models.Member:
+    """회원 역할 변경 (승격/강등).
+
+    보호 로직:
+    - 마지막 super_admin 제거 불가
+    - self-demotion 불가
+    """
+    member = await members_repo.get_member(db, member_id)
+    target_student_id = str(member.student_id)
+    previous_roles_raw = str(member.roles)
+    previous_profile = parse_roles(previous_roles_raw)
+    normalized_roles = normalize_assignable_roles(roles)
+
+    # self-demotion 방어
+    if (
+        target_student_id == actor_student_id
+        and previous_profile.grade == "super_admin"
+        and "super_admin" not in normalized_roles
+    ):
+        raise ApiError(
+            code="self_demotion_forbidden",
+            detail="Cannot remove super_admin from yourself",
+            status=422,
+        )
+
+    # 마지막 super_admin 제거 방어
+    if (
+        previous_profile.grade == "super_admin"
+        and "super_admin" not in normalized_roles
+    ):
+        # super_admin 수 카운트
+        # roles는 normalize/serialize를 거친 쉼표 구분 토큰 문자열이며,
+        # 현재 역할 스키마에서 "super_admin"은 독립 토큰으로만 사용된다.
+        stmt = select(models.Member).where(
+            models.Member.roles.contains("super_admin"),
+            models.Member.status == "active",
+        )
+        result = await db.execute(stmt)
+        super_admin_members = result.scalars().all()
+        if len(super_admin_members) <= 1:
+            raise ApiError(
+                code="last_super_admin_forbidden",
+                detail="Cannot remove the last super_admin",
+                status=422,
+            )
+
+    serialized = serialize_roles(normalized_roles)
+    updated = await members_repo.update_member_roles(
+        db, member=member, roles=serialized
+    )
+    return updated

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from 'react';
-import { type AdminUserCreatePayload } from '../../../services/admin-users';
+import type { DirectMemberCreatePayload } from '../../../services/admin-members';
 import { RoleChecklist, normalizeRoles } from './role-shared';
 
 function parseCohortValue(rawValue: string): number | null {
@@ -11,38 +11,27 @@ function parseCohortValue(rawValue: string): number | null {
   return parsed;
 }
 
-function hasAdminGradeRole(roles: string[]): boolean {
-  return roles.includes('admin') || roles.includes('super_admin');
-}
-
-function AdminGradeHint({ hasAdminGrade }: { hasAdminGrade: boolean }) {
-  if (hasAdminGrade) return null;
-  return <p className="text-xs text-state-warning">최소 하나의 관리자 등급(admin 또는 super_admin)이 필요합니다.</p>;
-}
-
-export function AdminUserCreateForm({
+export function DirectMemberCreateForm({
   isPending,
   resetKey,
   onSubmit,
 }: {
   isPending: boolean;
   resetKey: number;
-  onSubmit: (payload: AdminUserCreatePayload) => void;
+  onSubmit: (payload: DirectMemberCreatePayload) => void;
 }) {
   const [studentId, setStudentId] = useState('');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [cohort, setCohort] = useState('');
-  const [temporaryPassword, setTemporaryPassword] = useState('');
-  const [roles, setRoles] = useState<string[]>(['member', 'admin']);
+  const [roles, setRoles] = useState<string[]>(['member']);
 
   useEffect(() => {
     setStudentId('');
     setEmail('');
     setName('');
     setCohort('');
-    setTemporaryPassword('');
-    setRoles(['member', 'admin']);
+    setRoles(['member']);
   }, [resetKey]);
 
   const toggleRole = (role: string, checked: boolean) => {
@@ -58,13 +47,10 @@ export function AdminUserCreateForm({
     name.trim().length > 0 &&
     cohort.trim().length > 0;
   const cohortValue = parseCohortValue(cohort);
-  const hasAdminGrade = hasAdminGradeRole(roles);
   const canSubmit =
     hasRequiredText &&
-    temporaryPassword.length >= 8 &&
     cohortValue !== null &&
-    roles.length > 0 &&
-    hasAdminGrade;
+    roles.length > 0;
 
   const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -74,13 +60,11 @@ export function AdminUserCreateForm({
       email: email.trim(),
       name: name.trim(),
       cohort: cohortValue,
-      temporary_password: temporaryPassword,
       roles,
     });
   };
 
-  const handleChecklistToggle = (sid: string, role: string, checked: boolean) => {
-    void sid;
+  const handleChecklistToggle = (_id: string, role: string, checked: boolean) => {
     toggleRole(role, checked);
   };
 
@@ -89,7 +73,12 @@ export function AdminUserCreateForm({
       className="space-y-3 rounded border border-neutral-border bg-white p-4"
       onSubmit={handleFormSubmit}
     >
-      <h2 className="text-sm font-semibold text-text-primary">신규 관리자 계정 생성 (super_admin 전용)</h2>
+      <h2 className="text-sm font-semibold text-text-primary">
+        직접 회원 생성 (super_admin 전용)
+      </h2>
+      <p className="text-xs text-text-muted">
+        생성 후 활성화 링크가 발급됩니다. 회원에게 전달하면 비밀번호를 설정할 수 있습니다.
+      </p>
       <div className="grid gap-2 md:grid-cols-2">
         <label className="text-xs text-text-secondary">
           학번
@@ -97,7 +86,7 @@ export function AdminUserCreateForm({
             className="mt-1 w-full rounded border border-neutral-border px-2 py-1 text-sm text-text-primary"
             value={studentId}
             onChange={(e) => setStudentId(e.currentTarget.value)}
-            placeholder="admin003"
+            placeholder="s12345"
             disabled={isPending}
           />
         </label>
@@ -108,7 +97,7 @@ export function AdminUserCreateForm({
             className="mt-1 w-full rounded border border-neutral-border px-2 py-1 text-sm text-text-primary"
             value={email}
             onChange={(e) => setEmail(e.currentTarget.value)}
-            placeholder="admin003@sogecon.kr"
+            placeholder="user@example.com"
             disabled={isPending}
           />
         </label>
@@ -118,7 +107,7 @@ export function AdminUserCreateForm({
             className="mt-1 w-full rounded border border-neutral-border px-2 py-1 text-sm text-text-primary"
             value={name}
             onChange={(e) => setName(e.currentTarget.value)}
-            placeholder="신규 관리자"
+            placeholder="홍길동"
             disabled={isPending}
           />
         </label>
@@ -135,27 +124,14 @@ export function AdminUserCreateForm({
         </label>
       </div>
 
-      <label className="block text-xs text-text-secondary">
-        임시 비밀번호 (8자 이상)
-        <input
-          type="password"
-          className="mt-1 w-full rounded border border-neutral-border px-2 py-1 text-sm text-text-primary"
-          value={temporaryPassword}
-          onChange={(e) => setTemporaryPassword(e.currentTarget.value)}
-          placeholder="초기 비밀번호 입력"
-          disabled={isPending}
-        />
-      </label>
-
       <div className="space-y-1">
         <p className="text-xs text-text-secondary">초기 권한</p>
         <RoleChecklist
-          studentId="new-admin"
+          id="new-member"
           draftRoles={roles}
           disabled={isPending}
           onToggle={handleChecklistToggle}
         />
-        <AdminGradeHint hasAdminGrade={hasAdminGrade} />
       </div>
 
       <div className="flex justify-end">
@@ -164,7 +140,7 @@ export function AdminUserCreateForm({
           className="rounded bg-brand-700 px-3 py-1.5 text-xs text-white disabled:opacity-40"
           disabled={!canSubmit || isPending}
         >
-          관리자 생성
+          회원 생성
         </button>
       </div>
     </form>

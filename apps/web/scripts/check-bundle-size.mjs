@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { statSync, readdirSync } from 'node:fs';
+import { statSync, readdirSync, readFileSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -45,8 +45,66 @@ function shouldExclude(relPath) {
   return excludePrefixes.some((prefix) => rel.startsWith(prefix));
 }
 
+function routeStartsWithPrefix(route, routePrefix) {
+  const prefix = routePrefix.endsWith('/') ? routePrefix.slice(0, -1) : routePrefix;
+  return route === prefix || route.startsWith(routePrefix);
+}
+
+function toRoutePrefix(prefix) {
+  if (!prefix.startsWith('app/')) return null;
+  const pathPart = prefix.slice('app/'.length).replace(/\/$/, '');
+  if (!pathPart) return '/';
+  return `/${pathPart}/`;
+}
+
+function getExcludedSharedChunks() {
+  if (excludePrefixes.length === 0) return new Set();
+  const routePrefixes = excludePrefixes
+    .map(toRoutePrefix)
+    .filter((value) => typeof value === 'string');
+  if (routePrefixes.length === 0) return new Set();
+
+  const appManifestPath = join(projectDir, '.next', 'app-build-manifest.json');
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(appManifestPath, 'utf8'));
+  } catch {
+    return new Set();
+  }
+
+  const pages = (parsed && typeof parsed === 'object' && 'pages' in parsed)
+    ? parsed.pages
+    : parsed;
+
+  if (!pages || typeof pages !== 'object') return new Set();
+
+  const chunkConsumers = new Map();
+  for (const [route, assets] of Object.entries(pages)) {
+    if (typeof route !== 'string' || !Array.isArray(assets)) continue;
+    for (const asset of assets) {
+      if (typeof asset !== 'string') continue;
+      if (!asset.startsWith('static/chunks/') || !asset.endsWith('.js')) continue;
+      const relFile = normalizeRelPath(asset.slice('static/chunks/'.length));
+      const consumers = chunkConsumers.get(relFile);
+      if (consumers) consumers.add(route);
+      else chunkConsumers.set(relFile, new Set([route]));
+    }
+  }
+
+  const excludedShared = new Set();
+  for (const [relFile, consumers] of chunkConsumers.entries()) {
+    if (consumers.size === 0) continue;
+    const excludedOnly = Array.from(consumers).every((route) =>
+      routePrefixes.some((routePrefix) => routeStartsWithPrefix(route, routePrefix))
+    );
+    if (excludedOnly) excludedShared.add(relFile);
+  }
+  return excludedShared;
+}
+
 function listJsSizes(dir) {
   let total = 0;
+  const excludedSharedChunks = getExcludedSharedChunks();
   const stack = [dir];
   while (stack.length) {
     const d = stack.pop();
@@ -59,6 +117,7 @@ function listJsSizes(dir) {
       else if (name.endsWith('.js')) {
         const relFile = normalizeRelPath(relative(chunksDir, p));
         if (shouldExclude(relFile)) continue;
+        if (excludedSharedChunks.has(relFile)) continue;
         total += st.size;
       }
     }

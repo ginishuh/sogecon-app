@@ -12,6 +12,27 @@ from apps.api.db import get_db
 from apps.api.main import app
 
 
+def _create_member(
+    client: TestClient,
+    *,
+    student_id: str,
+    email: str,
+    name: str,
+    cohort: int,
+) -> None:
+    res = client.post(
+        "/admin/members/",
+        json={
+            "student_id": student_id,
+            "email": email,
+            "name": name,
+            "cohort": cohort,
+            "roles": ["member"],
+        },
+    )
+    assert res.status_code == HTTPStatus.CREATED
+
+
 def _set_updated_at(email: str, value: datetime) -> None:
     override = app.dependency_overrides.get(get_db)
     if override is None:
@@ -33,26 +54,20 @@ def _set_updated_at(email: str, value: datetime) -> None:
 
 def test_members_sort_recent(admin_login: TestClient) -> None:
     client = admin_login
-    older = client.post(
-        "/members/",
-        json={
-            "student_id": "older001",
-            "email": "older@example.com",
-            "name": "Older",
-            "cohort": 1,
-        },
+    _create_member(
+        client,
+        student_id="older001",
+        email="older@example.com",
+        name="Older",
+        cohort=1,
     )
-    newer = client.post(
-        "/members/",
-        json={
-            "student_id": "newer001",
-            "email": "newer@example.com",
-            "name": "Newer",
-            "cohort": 1,
-        },
+    _create_member(
+        client,
+        student_id="newer001",
+        email="newer@example.com",
+        name="Newer",
+        cohort=1,
     )
-    assert older.status_code == HTTPStatus.CREATED
-    assert newer.status_code == HTTPStatus.CREATED
 
     base = datetime.now(tz=UTC)
     # admin_login fixture가 생성한 admin 멤버도 존재하므로 시간 설정
@@ -96,8 +111,13 @@ def test_members_sort_cohort_desc(admin_login: TestClient) -> None:
         },
     ]
     for payload in payloads:
-        res = client.post("/members/", json=payload)
-        assert res.status_code == HTTPStatus.CREATED
+        _create_member(
+            client,
+            student_id=payload["student_id"],
+            email=payload["email"],
+            name=payload["name"],
+            cohort=payload["cohort"],
+        )
 
     response = client.get("/members/?sort=cohort_desc&limit=3")
     assert response.status_code == HTTPStatus.OK

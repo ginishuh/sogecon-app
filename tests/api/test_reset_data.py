@@ -54,13 +54,6 @@ async def _seed_reset_target_data(session: AsyncSession) -> None:
             password_hash="dummy-hash",
         )
     )
-    session.add(
-        models.AdminUser(
-            student_id="reset-admin",
-            email="reset-admin@example.com",
-            password_hash="dummy-admin-hash",
-        )
-    )
 
     event = models.Event(
         title="reset event",
@@ -174,9 +167,6 @@ async def _assert_counts_after_reset(session: AsyncSession) -> None:
     auth_count = await session.scalar(
         select(func.count()).select_from(models.MemberAuth)
     )
-    admin_count = await session.scalar(
-        select(func.count()).select_from(models.AdminUser)
-    )
     post_count = await session.scalar(select(func.count()).select_from(models.Post))
     comment_count = await session.scalar(
         select(func.count()).select_from(models.Comment)
@@ -203,7 +193,6 @@ async def _assert_counts_after_reset(session: AsyncSession) -> None:
 
     assert member_count == 0
     assert auth_count == 0
-    assert admin_count == 0
     assert post_count == 0
     assert comment_count == 0
     assert rsvp_count == 0

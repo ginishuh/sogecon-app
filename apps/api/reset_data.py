@@ -44,7 +44,6 @@ DELETE_STEPS: Final[tuple[DeleteStep, ...]] = (
     DeleteStep("posts"),
     DeleteStep("rsvps"),
     DeleteStep("member_auth"),
-    DeleteStep("admin_users"),
     DeleteStep("notification_preferences"),
     DeleteStep("push_subscriptions", member_id_not_null_only=True),
     DeleteStep("signup_requests"),

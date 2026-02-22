@@ -22,7 +22,6 @@ from .media_utils import (
     normalize_media_path,
     normalize_media_paths,
 )
-from .services.roles_service import RoleGradeLiteral
 
 VisibilityLiteral = Literal["all", "cohort", "private"]
 RSVPLiteral = Literal["going", "waitlist", "cancel"]
@@ -170,37 +169,13 @@ class MemberListFilters(TypedDict, total=False):
     sort: str
 
 
-class AdminUserRolesRead(BaseModel):
-    student_id: str
-    email: EmailStr | None = None
-    name: str | None = None
-    has_member_record: bool
-    roles: list[str]
-    grade: RoleGradeLiteral
-    permissions: list[str]
-
-
-class AdminUserRolesListResponse(BaseModel):
-    items: list[AdminUserRolesRead]
-    total: int
-
-
-class AdminUserRolesUpdatePayload(BaseModel):
-    roles: list[str] = Field(default_factory=list)
-
-
-class AdminUserRolesUpdateResponse(BaseModel):
-    updated: AdminUserRolesRead
-    decided_by_student_id: str
-
-
-class AdminUserCreatePayload(BaseModel):
+class DirectMemberCreatePayload(BaseModel):
+    """관리자 직접 회원 생성 요청."""
     student_id: str
     email: EmailStr
     name: str
     cohort: int = Field(ge=1, le=9999)
-    temporary_password: str = Field(min_length=8, max_length=72)
-    roles: list[str] = Field(default_factory=lambda: ["member", "admin"])
+    roles: list[str] = Field(default_factory=lambda: ["member"])
 
     @field_validator("student_id", "name")
     @classmethod
@@ -210,17 +185,22 @@ class AdminUserCreatePayload(BaseModel):
             raise ValueError("필수 입력값이 비어 있습니다.")
         return trimmed
 
-    @field_validator("temporary_password")
-    @classmethod
-    def _validate_temporary_password(cls, value: str) -> str:
-        if value.strip() != value:
-            raise ValueError("임시 비밀번호 앞뒤 공백은 허용되지 않습니다.")
-        return value
+
+class DirectMemberCreateResponse(BaseModel):
+    """관리자 직접 회원 생성 응답."""
+    member: MemberRead
+    activation_token: str
 
 
-class AdminUserCreateResponse(BaseModel):
-    created: AdminUserRolesRead
-    created_by_student_id: str
+class MemberRolesUpdatePayload(BaseModel):
+    """역할 변경 요청."""
+    roles: list[str]
+
+
+class MemberRolesUpdateResponse(BaseModel):
+    """역할 변경 응답."""
+    student_id: str
+    roles: list[str]
 
 
 class SignupRequestBase(BaseModel):

@@ -16,7 +16,6 @@ from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
-from ..errors import NotFoundError
 from ..ratelimit import consume_limit
 from ..repositories import auth as auth_repo
 from ..repositories import members as members_repo
@@ -57,7 +56,7 @@ class CurrentMember:
 
 @dataclass
 class CurrentUser:
-    """통합 세션 정보 (레거시 호환)."""
+    """통합 세션 정보."""
     student_id: str
     roles: list[str]
     id: int | None = None
@@ -65,23 +64,6 @@ class CurrentUser:
 
 
 # ---- 세션 파싱/정규화 ----
-
-
-def _get_admin_session(req: Request) -> CurrentAdmin | None:
-    """레거시 admin 세션 파싱."""
-    raw: Any = req.session.get("admin")
-    data = cast("dict[str, object] | None", raw)
-    if isinstance(data, dict):
-        _id = data.get("id")
-        _email = data.get("email")
-        _student_id = data.get("student_id")
-        if (
-            (isinstance(_id, (int, str)))
-            and isinstance(_email, str)
-            and isinstance(_student_id, str)
-        ):
-            return CurrentAdmin(id=int(_id), email=_email, student_id=_student_id)
-    return None
 
 
 def _get_user_session(req: Request) -> CurrentUser | None:
@@ -108,10 +90,9 @@ def _set_user_session(
     id: int | None = None,
     email: str | None = None,
 ) -> None:
-    """통합 세션(user) 설정 + 레거시 키(admin/member) 동시 설정.
+    """통합 세션(user) 설정.
 
-    주의: 레거시 제거 전까지 호환 목적으로 admin/member 키도 함께 기록한다.
-    TODO(#142): 레거시 세션 제거 후 이 함수 단순화 필요
+    모든 인증은 MemberAuth를 통하며, user 키에 통합 저장한다.
     """
     req.session["user"] = {
         "student_id": student_id,
@@ -119,20 +100,12 @@ def _set_user_session(
         "id": id,
         "email": email,
     }
-    # 레거시 호환: admin/member 동시 기록
-    if "admin" in roles:
-        req.session["admin"] = {
-            "id": id if isinstance(id, int) else 0,
-            "email": email or student_id,
-            "student_id": student_id,
-        }
-    if "member" in roles:
-        req.session["member"] = {"student_id": student_id, "id": id}
 
 
 def _clear_session(req: Request) -> None:
-    """통합 및 레거시 세션 키 모두 제거."""
+    """세션 키 제거 (레거시 키 포함)."""
     req.session.pop("user", None)
+    # 레거시 세션 키도 정리 (기존 세션 무효화용)
     req.session.pop("member", None)
     req.session.pop("admin", None)
 
@@ -143,23 +116,16 @@ def _clear_session(req: Request) -> None:
 def require_admin(req: Request) -> CurrentAdmin:
     """관리자 권한 필요 의존성.
 
-    - 통합 세션(`user`)이 있고 roles에 'admin'이 포함되면 관리자 권한으로 인정.
-    - 레거시 세션 키(`admin`)도 호환 유지.
+    통합 세션(`user`)에 roles 'admin' 또는 'super_admin'이 포함되어야 한다.
     """
-    # 통합 세션 우선
     u = _get_user_session(req)
-    if u and "admin" in u.roles:
+    if u and ("admin" in u.roles or "super_admin" in u.roles):
         email = u.email or u.student_id
         return CurrentAdmin(
             id=u.id if isinstance(u.id, int) else 0,
             email=email,
             student_id=u.student_id,
         )
-
-    # 레거시 세션 호환
-    admin = _get_admin_session(req)
-    if admin:
-        return admin
     raise HTTPException(status_code=401, detail="unauthorized")
 
 
@@ -185,18 +151,6 @@ def require_permission(
             ):
                 return user
             raise HTTPException(status_code=403, detail="admin_permission_required")
-
-        legacy_admin = _get_admin_session(req)
-        if legacy_admin is not None and allow_admin_fallback:
-            return CurrentUser(
-                student_id=legacy_admin.student_id,
-                roles=["admin"],
-                id=legacy_admin.id,
-                email=legacy_admin.email,
-            )
-
-        if legacy_admin is not None:
-            raise HTTPException(status_code=403, detail="admin_permission_required")
         raise HTTPException(status_code=401, detail="unauthorized")
 
     return _dependency
@@ -209,107 +163,35 @@ def require_super_admin(req: Request) -> CurrentUser:
         if "super_admin" in user.roles:
             return user
         raise HTTPException(status_code=403, detail="super_admin_required")
-
-    legacy_admin = _get_admin_session(req)
-    if legacy_admin is not None:
-        raise HTTPException(status_code=403, detail="super_admin_required")
-
     raise HTTPException(status_code=401, detail="unauthorized")
 
 
 def is_admin(req: Request) -> bool:
     """현재 요청이 관리자 권한인지 여부만 반환(예외 없이)."""
     u = _get_user_session(req)
-    if u and "admin" in u.roles:
-        return True
-    return _get_admin_session(req) is not None
+    return bool(u and ("admin" in u.roles or "super_admin" in u.roles))
 
 
 def require_member(req: Request) -> CurrentMember:
     """멤버 권한 필요 의존성.
 
-    - 통합 세션(`user`)이 있고 roles에 'member' 또는 'admin'이 포함되면 통과.
-    - 레거시 세션 키(`member`) 및 관리자 키(`admin`)는 하위호환으로 인정.
+    통합 세션(`user`)에 roles 'member' 또는 'admin' 또는 'super_admin'이
+    포함되면 통과.
     """
-    # 통합 세션 우선
     u = _get_user_session(req)
-    if u and ("member" in u.roles or "admin" in u.roles):
+    if u and (
+        "member" in u.roles
+        or "admin" in u.roles
+        or "super_admin" in u.roles
+    ):
         return CurrentMember(
             student_id=u.student_id,
             id=u.id if isinstance(u.id, int) else None,
         )
-
-    # 레거시: member
-    raw: Any = req.session.get("member")
-    data = cast("dict[str, object] | None", raw)
-    if isinstance(data, dict):
-        sid = data.get("student_id")
-        mid = data.get("id")
-        member_id = int(mid) if isinstance(mid, (int, str)) else None
-        if isinstance(sid, str):
-            return CurrentMember(student_id=sid, id=member_id)
-
-    # 레거시: admin도 멤버 권한으로 통과
-    admin = _get_admin_session(req)
-    if admin:
-        return CurrentMember(student_id=admin.student_id)
     raise HTTPException(status_code=401, detail="unauthorized")
 
 
 # ---- 로그인/로그아웃 서비스 ----
-
-
-async def login_admin(
-    db: AsyncSession,
-    request: Request,
-    student_id: str,
-    password: str,
-    *,
-    skip_rate_limit: bool = False,
-) -> dict[str, str]:
-    """관리자 로그인 처리.
-
-    관리자 자격을 검증하고 세션을 설정한다.
-    관리자도 Member 테이블의 id를 세션에 저장 (posts.author_id FK 호환).
-
-    Args:
-        skip_rate_limit: True면 레이트리밋 건너뜀 (상위 라우터에서 이미 차감한 경우)
-    """
-    if not skip_rate_limit:
-        settings = get_settings()
-        if settings.app_env == "prod" and not _is_test_client(request):
-            consume_limit(limiter_login, request, settings.rate_limit_login)
-
-    bcrypt = __import__("bcrypt")
-
-    admin = await auth_repo.get_admin_by_student_id(db, student_id)
-    if admin is None:
-        raise HTTPException(status_code=401, detail="login_failed")
-    if not bcrypt.checkpw(password.encode(), admin.password_hash.encode()):
-        raise HTTPException(status_code=401, detail="login_failed")
-
-    # 관리자도 Member 테이블의 id를 세션에 저장 (posts.author_id FK 호환)
-    try:
-        member = await members_repo.get_member_by_student_id(
-            db, cast(str, admin.student_id)
-        )
-    except NotFoundError:
-        raise HTTPException(
-            status_code=403,
-            detail="admin_member_record_missing",
-        ) from None
-
-    member_roles = ensure_member_role(
-        normalize_roles(cast(str, member.roles))
-    )
-    _set_user_session(
-        request,
-        student_id=cast(str, admin.student_id),
-        roles=member_roles,
-        id=cast(int, member.id),
-        email=(cast(str | None, admin.email) or cast(str, admin.student_id)),
-    )
-    return {"ok": "true"}
 
 
 async def login_member(
@@ -446,7 +328,11 @@ async def get_session_info(
     """통합 세션 조회."""
     u = _get_user_session(request)
     if u:
-        kind = "admin" if "admin" in u.roles else "member"
+        kind = (
+            "admin"
+            if ("admin" in u.roles or "super_admin" in u.roles)
+            else "member"
+        )
         member = await members_repo.get_member_by_student_id(db, u.student_id)
         email = u.email or (member.email if isinstance(member.email, str) else "")
         name = member.name if isinstance(member.name, str) else ""
@@ -459,44 +345,5 @@ async def get_session_info(
             "id": member_id,
             "roles": u.roles,
         }
-
-    # 레거시 호환: admin/member 키에서 정보 구성
-    admin = _get_admin_session(request)
-    if admin:
-        member = await members_repo.get_member_by_student_id(db, admin.student_id)
-        name = member.name if isinstance(member.name, str) else ""
-        member_id = cast(int, member.id)
-        roles = ensure_member_role(normalize_roles(cast(str, member.roles)))
-        if "admin" not in roles:
-            roles = ["admin", *roles]
-        return {
-            "kind": "admin",
-            "student_id": admin.student_id,
-            "email": admin.email,
-            "name": name,
-            "id": member_id,
-            "roles": roles,
-        }
-
-    raw: Any = request.session.get("member")
-    data = cast("dict[str, object] | None", raw)
-    if isinstance(data, dict):
-        sid_obj = data.get("student_id")
-        sid = sid_obj if isinstance(sid_obj, str) else None
-        if sid:
-            member = await members_repo.get_member_by_student_id(db, sid)
-            email = member.email if isinstance(member.email, str) else ""
-            name = member.name if isinstance(member.name, str) else ""
-            mid_obj = data.get("id")
-            _id = int(mid_obj) if isinstance(mid_obj, (int, str)) else None
-            roles = ensure_member_role(normalize_roles(cast(str, member.roles)))
-            return {
-                "kind": "member",
-                "student_id": sid,
-                "email": email,
-                "name": name,
-                "id": _id,
-                "roles": roles,
-            }
 
     raise HTTPException(status_code=401, detail="unauthorized")

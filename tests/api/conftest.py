@@ -101,26 +101,13 @@ def client(tmp_path: Path) -> Generator[TestClient, None, None]:
 
 
 async def _seed_admin(session: AsyncSession) -> None:
-    """관리자 계정 시드 (AdminUser + Member 레코드 필요)"""
+    """관리자 계정 시드 (Member + MemberAuth 기반)."""
     pwd = hashpw(b"__seed__", gensalt()).decode()
 
-    # AdminUser 생성
-    stmt = select(models.AdminUser).where(
-        models.AdminUser.student_id == "__seed__admin"
-    )
-    result = await session.execute(stmt)
-    if result.scalars().first() is None:
-        admin = models.AdminUser(
-            student_id="__seed__admin",
-            password_hash=pwd,
-            email="admin@test.example.com",
-        )
-        session.add(admin)
-
-    # 관리자도 Member 레코드 필요 (posts.author_id FK 호환)
     stmt = select(models.Member).where(models.Member.student_id == "__seed__admin")
     result = await session.execute(stmt)
-    if result.scalars().first() is None:
+    member = result.scalars().first()
+    if member is None:
         member = models.Member(
             student_id="__seed__admin",
             email="admin@test.example.com",
@@ -133,8 +120,29 @@ async def _seed_admin(session: AsyncSession) -> None:
                 "admin_hero,admin_notifications,admin_signup,"
                 "admin_profile"
             ),
+            status="active",
         )
         session.add(member)
+        await session.flush()
+    else:
+        setattr(member, "status", "active")
+
+    auth_stmt = select(models.MemberAuth).where(
+        models.MemberAuth.student_id == "__seed__admin"
+    )
+    auth_result = await session.execute(auth_stmt)
+    auth_row = auth_result.scalars().first()
+    if auth_row is None:
+        session.add(
+            models.MemberAuth(
+                member_id=member.id,
+                student_id="__seed__admin",
+                password_hash=pwd,
+            )
+        )
+    else:
+        setattr(auth_row, "member_id", member.id)
+        setattr(auth_row, "password_hash", pwd)
 
     await session.commit()
 

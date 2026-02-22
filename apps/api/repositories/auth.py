@@ -4,27 +4,10 @@
 """
 from __future__ import annotations
 
-from collections.abc import Sequence
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import AdminUser, Member, MemberAuth
-
-
-async def get_admin_by_student_id(
-    db: AsyncSession, student_id: str
-) -> AdminUser | None:
-    """학번으로 관리자 계정 조회."""
-    stmt = select(AdminUser).where(AdminUser.student_id == student_id)
-    result = await db.execute(stmt)
-    return result.scalars().first()
-
-
-async def list_admin_users(db: AsyncSession) -> Sequence[AdminUser]:
-    stmt = select(AdminUser).order_by(AdminUser.student_id.asc())
-    result = await db.execute(stmt)
-    return result.scalars().all()
+from ..models import Member, MemberAuth
 
 
 async def get_member_with_auth_by_student_id(

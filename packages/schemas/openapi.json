@@ -213,45 +213,6 @@
             }
           }
         }
-      },
-      "post": {
-        "tags": [
-          "members"
-        ],
-        "summary": "Create Member",
-        "operationId": "create_member_members__post",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MemberCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MemberRead"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/members/count": {
@@ -1231,7 +1192,7 @@
           "auth"
         ],
         "summary": "Login",
-        "description": "\ud1b5\ud569 \ub85c\uadf8\uc778 (\uad00\ub9ac\uc790 \uc6b0\uc120, \uc2e4\ud328 \uc2dc \uba64\ubc84 \uc2dc\ub3c4).\n\n\ub808\uc774\ud2b8\ub9ac\ubc0b\uc740 \uc774 \ub77c\uc6b0\ud130\uc5d0\uc11c 1\ud68c\ub9cc \ucc28\uac10 (\uc11c\ube44\uc2a4 \ud568\uc218\uc5d0\uc11c\ub294 skip).",
+        "description": "\ud1b5\ud569 \ub85c\uadf8\uc778 (MemberAuth \ub2e8\uc77c \uacbd\ub85c).\n\n\ub808\uc774\ud2b8\ub9ac\ubc0b\uc740 \uc774 \ub77c\uc6b0\ud130\uc5d0\uc11c 1\ud68c\ub9cc \ucc28\uac10 (\uc11c\ube44\uc2a4 \ud568\uc218\uc5d0\uc11c\ub294 skip).",
         "operationId": "login_auth_login_post",
         "requestBody": {
           "content": {
@@ -2924,37 +2885,19 @@
         }
       }
     },
-    "/admin/admin-users/": {
-      "get": {
-        "tags": [
-          "admin-roles"
-        ],
-        "summary": "List Admin Users",
-        "operationId": "list_admin_users_admin_admin_users__get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserRolesListResponse"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/admin/members/": {
       "post": {
         "tags": [
-          "admin-roles"
+          "admin-members"
         ],
-        "summary": "Create Admin User",
-        "operationId": "create_admin_user_admin_admin_users__post",
+        "summary": "Create Member Direct",
+        "description": "\uad00\ub9ac\uc790 \uc9c1\uc811 \ud68c\uc6d0 \uc0dd\uc131 + \ud65c\uc131\ud654 \ub9c1\ud06c \ubc1c\uae09.",
+        "operationId": "create_member_direct_admin_members__post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AdminUserCreatePayload"
+                "$ref": "#/components/schemas/DirectMemberCreatePayload"
               }
             }
           },
@@ -2966,7 +2909,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminUserCreateResponse"
+                  "$ref": "#/components/schemas/DirectMemberCreateResponse"
                 }
               }
             }
@@ -2984,21 +2927,22 @@
         }
       }
     },
-    "/admin/admin-users/{student_id}/roles": {
+    "/admin/members/{member_id}/roles": {
       "patch": {
         "tags": [
-          "admin-roles"
+          "admin-members"
         ],
-        "summary": "Patch Admin User Roles",
-        "operationId": "patch_admin_user_roles_admin_admin_users__student_id__roles_patch",
+        "summary": "Update Member Roles",
+        "description": "\ud68c\uc6d0 \uc5ed\ud560 \ubcc0\uacbd (\uc2b9\uaca9/\uac15\ub4f1).",
+        "operationId": "update_member_roles_admin_members__member_id__roles_patch",
         "parameters": [
           {
-            "name": "student_id",
+            "name": "member_id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "title": "Student Id"
+              "type": "integer",
+              "title": "Member Id"
             }
           }
         ],
@@ -3007,7 +2951,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AdminUserRolesUpdatePayload"
+                "$ref": "#/components/schemas/MemberRolesUpdatePayload"
               }
             }
           }
@@ -3018,7 +2962,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminUserRolesUpdateResponse"
+                  "$ref": "#/components/schemas/MemberRolesUpdateResponse"
                 }
               }
             }
@@ -3480,186 +3424,6 @@
         "title": "AdminPostListResponse",
         "description": "\uad00\ub9ac\uc790 \uac8c\uc2dc\ubb3c \ubaa9\ub85d \uc751\ub2f5."
       },
-      "AdminUserCreatePayload": {
-        "properties": {
-          "student_id": {
-            "type": "string",
-            "title": "Student Id"
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "title": "Email"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "cohort": {
-            "type": "integer",
-            "maximum": 9999.0,
-            "minimum": 1.0,
-            "title": "Cohort"
-          },
-          "temporary_password": {
-            "type": "string",
-            "maxLength": 72,
-            "minLength": 8,
-            "title": "Temporary Password"
-          },
-          "roles": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Roles"
-          }
-        },
-        "type": "object",
-        "required": [
-          "student_id",
-          "email",
-          "name",
-          "cohort",
-          "temporary_password"
-        ],
-        "title": "AdminUserCreatePayload"
-      },
-      "AdminUserCreateResponse": {
-        "properties": {
-          "created": {
-            "$ref": "#/components/schemas/AdminUserRolesRead"
-          },
-          "created_by_student_id": {
-            "type": "string",
-            "title": "Created By Student Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "created",
-          "created_by_student_id"
-        ],
-        "title": "AdminUserCreateResponse"
-      },
-      "AdminUserRolesListResponse": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/AdminUserRolesRead"
-            },
-            "type": "array",
-            "title": "Items"
-          },
-          "total": {
-            "type": "integer",
-            "title": "Total"
-          }
-        },
-        "type": "object",
-        "required": [
-          "items",
-          "total"
-        ],
-        "title": "AdminUserRolesListResponse"
-      },
-      "AdminUserRolesRead": {
-        "properties": {
-          "student_id": {
-            "type": "string",
-            "title": "Student Id"
-          },
-          "email": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "email"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Email"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "has_member_record": {
-            "type": "boolean",
-            "title": "Has Member Record"
-          },
-          "roles": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Roles"
-          },
-          "grade": {
-            "type": "string",
-            "enum": [
-              "member",
-              "admin",
-              "super_admin"
-            ],
-            "title": "Grade"
-          },
-          "permissions": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Permissions"
-          }
-        },
-        "type": "object",
-        "required": [
-          "student_id",
-          "has_member_record",
-          "roles",
-          "grade",
-          "permissions"
-        ],
-        "title": "AdminUserRolesRead"
-      },
-      "AdminUserRolesUpdatePayload": {
-        "properties": {
-          "roles": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Roles"
-          }
-        },
-        "type": "object",
-        "title": "AdminUserRolesUpdatePayload"
-      },
-      "AdminUserRolesUpdateResponse": {
-        "properties": {
-          "updated": {
-            "$ref": "#/components/schemas/AdminUserRolesRead"
-          },
-          "decided_by_student_id": {
-            "type": "string",
-            "title": "Decided By Student Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "updated",
-          "decided_by_student_id"
-        ],
-        "title": "AdminUserRolesUpdateResponse"
-      },
       "Body_upload_avatar_me_avatar_post": {
         "properties": {
           "avatar": {
@@ -3824,6 +3588,63 @@
           "body"
         ],
         "title": "ContactPayload"
+      },
+      "DirectMemberCreatePayload": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "title": "Student Id"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "cohort": {
+            "type": "integer",
+            "maximum": 9999.0,
+            "minimum": 1.0,
+            "title": "Cohort"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Roles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "email",
+          "name",
+          "cohort"
+        ],
+        "title": "DirectMemberCreatePayload",
+        "description": "\uad00\ub9ac\uc790 \uc9c1\uc811 \ud68c\uc6d0 \uc0dd\uc131 \uc694\uccad."
+      },
+      "DirectMemberCreateResponse": {
+        "properties": {
+          "member": {
+            "$ref": "#/components/schemas/MemberRead"
+          },
+          "activation_token": {
+            "type": "string",
+            "title": "Activation Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "member",
+          "activation_token"
+        ],
+        "title": "DirectMemberCreateResponse",
+        "description": "\uad00\ub9ac\uc790 \uc9c1\uc811 \ud68c\uc6d0 \uc0dd\uc131 \uc751\ub2f5."
       },
       "EventAdminRead": {
         "properties": {
@@ -4498,171 +4319,6 @@
         ],
         "title": "MemberCount"
       },
-      "MemberCreate": {
-        "properties": {
-          "student_id": {
-            "type": "string",
-            "title": "Student Id"
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "title": "Email"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "cohort": {
-            "type": "integer",
-            "title": "Cohort"
-          },
-          "major": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Major"
-          },
-          "roles": {
-            "type": "string",
-            "title": "Roles",
-            "default": "member"
-          },
-          "visibility": {
-            "type": "string",
-            "enum": [
-              "all",
-              "cohort",
-              "private"
-            ],
-            "title": "Visibility",
-            "default": "all"
-          },
-          "birth_date": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Birth Date"
-          },
-          "birth_lunar": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Birth Lunar"
-          },
-          "phone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone"
-          },
-          "company": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Company"
-          },
-          "department": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Department"
-          },
-          "job_title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Job Title"
-          },
-          "company_phone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Company Phone"
-          },
-          "addr_personal": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Addr Personal"
-          },
-          "addr_company": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Addr Company"
-          },
-          "industry": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Industry"
-          }
-        },
-        "type": "object",
-        "required": [
-          "student_id",
-          "email",
-          "name",
-          "cohort"
-        ],
-        "title": "MemberCreate"
-      },
       "MemberLoginPayload": {
         "properties": {
           "student_id": {
@@ -4874,6 +4530,45 @@
           "avatar_url"
         ],
         "title": "MemberRead"
+      },
+      "MemberRolesUpdatePayload": {
+        "properties": {
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Roles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roles"
+        ],
+        "title": "MemberRolesUpdatePayload",
+        "description": "\uc5ed\ud560 \ubcc0\uacbd \uc694\uccad."
+      },
+      "MemberRolesUpdateResponse": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "title": "Student Id"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Roles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "roles"
+        ],
+        "title": "MemberRolesUpdateResponse",
+        "description": "\uc5ed\ud560 \ubcc0\uacbd \uc751\ub2f5."
       },
       "MemberUpdate": {
         "properties": {

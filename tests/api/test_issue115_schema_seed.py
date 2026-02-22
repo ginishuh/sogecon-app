@@ -100,9 +100,6 @@ def test_seed_data_creates_admin_bootstrap_only(
     async def _run(session: AsyncSession) -> None:
         await create_admin_users(session)
 
-        admin_count = await session.scalar(
-            select(func.count()).select_from(models.AdminUser)
-        )
         member_count = await session.scalar(
             select(func.count()).select_from(models.Member)
         )
@@ -110,7 +107,6 @@ def test_seed_data_creates_admin_bootstrap_only(
             select(func.count()).select_from(models.MemberAuth)
         )
 
-        assert admin_count == 1
         assert member_count == 1
         assert auth_count == 1
 
@@ -136,9 +132,6 @@ def test_seed_production_creates_admin_bootstrap_only(
     async def _run(session: AsyncSession) -> None:
         await create_production_admins(session)
 
-        admin_count = await session.scalar(
-            select(func.count()).select_from(models.AdminUser)
-        )
         member_count = await session.scalar(
             select(func.count()).select_from(models.Member)
         )
@@ -146,7 +139,6 @@ def test_seed_production_creates_admin_bootstrap_only(
             select(func.count()).select_from(models.MemberAuth)
         )
 
-        assert admin_count == 1
         assert member_count == 1
         assert auth_count == 1
 

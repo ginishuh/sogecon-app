@@ -41,6 +41,21 @@ def _create_event(admin_login: TestClient, title: str = "테스트 행사") -> d
     return res.json()
 
 
+def _create_member(admin_login: TestClient, student_id: str) -> dict:
+    res = admin_login.post(
+        "/admin/members/",
+        json={
+            "student_id": student_id,
+            "email": f"{student_id}@example.com",
+            "name": student_id.upper(),
+            "cohort": 2025,
+            "roles": ["member"],
+        },
+    )
+    assert res.status_code == HTTPStatus.CREATED
+    return res.json()["member"]
+
+
 class TestAdminEventCreate:
     """행사 생성 API."""
 
@@ -136,33 +151,9 @@ class TestAdminEventList:
         event = _create_event(admin_login, "집계 테스트")
         e_id = event["id"]
 
-        m1 = admin_login.post(
-            "/members/",
-            json={
-                "student_id": "rc1",
-                "email": "rc1@example.com",
-                "name": "RC1",
-                "cohort": 2025,
-            },
-        ).json()
-        m2 = admin_login.post(
-            "/members/",
-            json={
-                "student_id": "rc2",
-                "email": "rc2@example.com",
-                "name": "RC2",
-                "cohort": 2025,
-            },
-        ).json()
-        m3 = admin_login.post(
-            "/members/",
-            json={
-                "student_id": "rc3",
-                "email": "rc3@example.com",
-                "name": "RC3",
-                "cohort": 2025,
-            },
-        ).json()
+        m1 = _create_member(admin_login, "rc1")
+        m2 = _create_member(admin_login, "rc2")
+        m3 = _create_member(admin_login, "rc3")
 
         assert (
             admin_login.post(
