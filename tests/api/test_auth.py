@@ -12,7 +12,7 @@ from apps.api.main import app
 
 
 def _seed_admin(client: TestClient, student_id: str, password: str) -> None:
-    """관리자 계정 시드 (AdminUser + Member 레코드 필요)"""
+    """관리자 계정 시드 (Member + MemberAuth 기반)."""
     override = app.dependency_overrides.get(get_db)
     if override is None:
         raise RuntimeError("get_db override not found")
@@ -20,21 +20,23 @@ def _seed_admin(client: TestClient, student_id: str, password: str) -> None:
     async def _do_seed() -> None:
         async for db in override():
             pwd = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-            admin = models.AdminUser(
-                student_id=student_id,
-                password_hash=pwd,
-                email=f"{student_id}@test.example.com",
-            )
-            db.add(admin)
-            # 관리자도 Member 레코드 필요 (posts.author_id FK 호환)
             member = models.Member(
                 student_id=student_id,
                 email=f"{student_id}@test.example.com",
                 name="Admin",
                 cohort=1,
                 roles="admin,member",
+                status="active",
             )
             db.add(member)
+            await db.flush()
+            db.add(
+                models.MemberAuth(
+                    member_id=member.id,
+                    student_id=student_id,
+                    password_hash=pwd,
+                )
+            )
             await db.commit()
             break
 
@@ -57,23 +59,13 @@ def test_login_success_and_protected_routes(client: TestClient) -> None:
     )
     assert res_login.status_code == HTTPStatus.OK
 
-    # After login, protected route should pass (author_id 존재는 별도 테스트에서 검증)
-    # 먼저 멤버 생성(보호됨)
-    res_member = client.post(
-        "/members/",
-        json={
-            "student_id": "student001",
-            "email": "m@example.com",
-            "name": "M",
-            "cohort": 2025,
-        },
-    )
-    assert res_member.status_code == HTTPStatus.CREATED
+    # After login, protected route should pass.
+    # 시드된 관리자 member_id는 최초 생성 기준 1이다.
 
     res_post = client.post(
         "/posts/",
         json={
-            "author_id": res_member.json()["id"],
+            "author_id": 1,
             "title": "Hello",
             "content": "World",
             "published_at": None,

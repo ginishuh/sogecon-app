@@ -47,6 +47,20 @@ const ROLE_FILTER_MATCHERS: Record<RoleFilter, (roles: string[]) => boolean> = {
   super_admin: (r) => r.includes('super_admin'),
 };
 
+async function listAllMembersForAdmin(): Promise<Member[]> {
+  const pageSize = 100;
+  const members: Member[] = [];
+  let offset = 0;
+  while (true) {
+    const page = await listMembers({ limit: pageSize, offset });
+    members.push(...page);
+    if (page.length < pageSize) {
+      return members;
+    }
+    offset += pageSize;
+  }
+}
+
 /* ---------- 소형 컴포넌트 ---------- */
 
 function FeedbackBanner({ feedback }: { feedback: Feedback | null }) {
@@ -348,7 +362,7 @@ function useAdminMembersModel() {
 
   const listQuery = useQuery({
     queryKey: ['members', 'admin-all'],
-    queryFn: () => listMembers({ limit: 500 }),
+    queryFn: listAllMembersForAdmin,
     staleTime: 5_000,
   });
 

@@ -4,7 +4,7 @@ admin_users의 비밀번호를 member_auth로 이전한 뒤 테이블을 DROP한
 기존 super_admin 계정은 member_auth를 통해 로그인 가능하게 된다.
 
 Revision ID: e1a2b3c4d5f6
-Revises: d8a1f3b5c7e9
+Revises: a3b7c9d2e1f4
 Create Date: 2026-02-22
 """
 
@@ -15,7 +15,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = "e1a2b3c4d5f6"
-down_revision: Union[str, None] = "d8a1f3b5c7e9"
+down_revision: Union[str, None] = "a3b7c9d2e1f4"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

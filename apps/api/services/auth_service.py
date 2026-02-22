@@ -119,7 +119,7 @@ def require_admin(req: Request) -> CurrentAdmin:
     통합 세션(`user`)에 roles 'admin' 또는 'super_admin'이 포함되어야 한다.
     """
     u = _get_user_session(req)
-    if u and "admin" in u.roles:
+    if u and ("admin" in u.roles or "super_admin" in u.roles):
         email = u.email or u.student_id
         return CurrentAdmin(
             id=u.id if isinstance(u.id, int) else 0,
@@ -169,16 +169,21 @@ def require_super_admin(req: Request) -> CurrentUser:
 def is_admin(req: Request) -> bool:
     """현재 요청이 관리자 권한인지 여부만 반환(예외 없이)."""
     u = _get_user_session(req)
-    return bool(u and "admin" in u.roles)
+    return bool(u and ("admin" in u.roles or "super_admin" in u.roles))
 
 
 def require_member(req: Request) -> CurrentMember:
     """멤버 권한 필요 의존성.
 
-    통합 세션(`user`)에 roles 'member' 또는 'admin'이 포함되면 통과.
+    통합 세션(`user`)에 roles 'member' 또는 'admin' 또는 'super_admin'이
+    포함되면 통과.
     """
     u = _get_user_session(req)
-    if u and ("member" in u.roles or "admin" in u.roles):
+    if u and (
+        "member" in u.roles
+        or "admin" in u.roles
+        or "super_admin" in u.roles
+    ):
         return CurrentMember(
             student_id=u.student_id,
             id=u.id if isinstance(u.id, int) else None,
@@ -323,7 +328,11 @@ async def get_session_info(
     """통합 세션 조회."""
     u = _get_user_session(request)
     if u:
-        kind = "admin" if "admin" in u.roles else "member"
+        kind = (
+            "admin"
+            if ("admin" in u.roles or "super_admin" in u.roles)
+            else "member"
+        )
         member = await members_repo.get_member_by_student_id(db, u.student_id)
         email = u.email or (member.email if isinstance(member.email, str) else "")
         name = member.name if isinstance(member.name, str) else ""
