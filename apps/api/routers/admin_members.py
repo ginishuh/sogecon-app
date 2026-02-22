@@ -18,6 +18,10 @@ from .auth import CurrentUser, require_permission, require_super_admin
 
 router = APIRouter(prefix="/admin/members", tags=["admin-members"])
 
+_require_admin_roles = require_permission(
+    "admin_roles", allow_admin_fallback=False
+)
+
 
 @dataclass(frozen=True)
 class _AdminListParams:
@@ -53,7 +57,7 @@ def _build_admin_filters(
 
 @router.get("/", response_model=list[schemas.MemberRead])
 async def list_members_admin(
-    _actor: Annotated[CurrentUser, Depends(require_permission("admin_roles"))],
+    _actor: Annotated[CurrentUser, Depends(_require_admin_roles)],
     params: _AdminListParams = Depends(_parse_admin_list_params),
     db: AsyncSession = Depends(get_db),
 ) -> list[schemas.MemberRead]:
@@ -67,7 +71,7 @@ async def list_members_admin(
 
 @router.get("/count")
 async def count_members_admin(
-    _actor: Annotated[CurrentUser, Depends(require_permission("admin_roles"))],
+    _actor: Annotated[CurrentUser, Depends(_require_admin_roles)],
     db: AsyncSession = Depends(get_db),
     q: str | None = Query(None),
     cohort: int | None = Query(None),

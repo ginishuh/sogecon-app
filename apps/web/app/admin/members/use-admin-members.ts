@@ -71,7 +71,9 @@ export function useAdminMembersModel() {
   const updateMutation = useMutation({
     mutationFn: (params: { memberId: number; roles: string[] }) =>
       updateMemberRoles(params.memberId, params.roles),
-    onSuccess: (response) => {
+    onSuccess: (response, variables) => {
+      // 서버 응답 기준으로 draft 재동기화
+      setDrafts((prev) => ({ ...prev, [variables.memberId]: response.roles }));
       const msg = `권한을 저장했습니다. (${response.student_id})`;
       setFeedback({ tone: 'success', message: msg });
       show(msg, { type: 'success' });

@@ -100,12 +100,14 @@ export function RoleChecklist({
     <div className="grid grid-cols-2 gap-1">
       {KNOWN_ROLE_TOKENS.map((role) => {
         const isAdminPerm = ADMIN_PERM_SET.has(role);
+        // member는 항상 체크 + 해제 불가
+        const isMemberLocked = role === 'member';
         // admin 세부권한: admin/super_admin이 없으면 비활성화
         const permDisabled = isAdminPerm && !hasAdmin;
         // super_admin이면 세부권한 강제 체크 + 개별 해제 불가
         const forcedBySuperAdmin = isAdminPerm && hasSuperAdmin;
-        const isChecked = draftRoles.includes(role) || forcedBySuperAdmin;
-        const isDisabled = disabled || permDisabled || forcedBySuperAdmin;
+        const isChecked = draftRoles.includes(role) || forcedBySuperAdmin || isMemberLocked;
+        const isDisabled = disabled || permDisabled || forcedBySuperAdmin || isMemberLocked;
 
         return (
           <label

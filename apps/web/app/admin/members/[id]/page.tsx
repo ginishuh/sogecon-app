@@ -63,6 +63,13 @@ function getMemberFieldValue(member: Member, key: string): string {
   return val != null ? String(val) : '';
 }
 
+// NOT NULL 필드: 빈 값 전송 금지
+const REQUIRED_FIELDS = new Set<string>(['name', 'cohort']);
+
+function hasRequiredFieldEmpty(form: Record<string, string>): boolean {
+  return Array.from(REQUIRED_FIELDS).some((key) => !(form[key] ?? '').trim());
+}
+
 function buildProfileDiff(
   form: Record<string, string>,
   member: Member,
@@ -72,6 +79,8 @@ function buildProfileDiff(
     const val = form[f.key] ?? '';
     const originalStr = getMemberFieldValue(member, f.key);
     if (val === originalStr) continue;
+    // 필수 필드는 빈 값이면 diff에서 제외 (null 전송 방지)
+    if (REQUIRED_FIELDS.has(f.key) && !val.trim()) continue;
     data[f.key] = f.type === 'number' && val ? Number(val) : (val || null);
   }
   return data;
@@ -158,7 +167,13 @@ function ProfileSection({
     },
   });
 
+  const requiredEmpty = hasRequiredFieldEmpty(form);
+
   const handleSave = () => {
+    if (requiredEmpty) {
+      show('이름과 기수는 필수 입력값입니다.', { type: 'error' });
+      return;
+    }
     const data = buildProfileDiff(form, member);
     if (Object.keys(data).length === 0) {
       show('변경된 항목이 없습니다.', { type: 'error' });
@@ -206,7 +221,7 @@ function ProfileSection({
           <button
             type="button"
             className="rounded bg-brand-700 px-4 py-1.5 text-xs text-white disabled:opacity-40"
-            disabled={updateMutation.isPending}
+            disabled={updateMutation.isPending || requiredEmpty}
             onClick={handleSave}
           >
             저장
@@ -242,7 +257,9 @@ function MemberDetailContent() {
 
   const rolesMutation = useMutation({
     mutationFn: (roles: string[]) => updateMemberRoles(memberId, roles),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      // 서버 응답 기준으로 draft 재동기화
+      setDraftRoles(response.roles);
       show('역할을 저장했습니다.', { type: 'success' });
       void queryClient.invalidateQueries({ queryKey: ['members', memberId] });
     },
