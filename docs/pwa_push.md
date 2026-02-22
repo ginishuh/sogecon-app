@@ -36,11 +36,16 @@ npx web-push generate-vapid-keys
 ### 방법 2 — Python (.venv에서)
 ```bash
 python -c "
-from py_vapid import Vapid
-v = Vapid()
-v.generate_keys()
-print('Public :', v.public_key)
-print('Private:', v.private_pem())
+import base64
+from cryptography.hazmat.primitives.asymmetric import ec
+
+priv = ec.generate_private_key(ec.SECP256R1())
+priv_raw = priv.private_numbers().private_value.to_bytes(32, 'big')
+pub = priv.public_key().public_numbers()
+pub_raw = b'\x04' + pub.x.to_bytes(32, 'big') + pub.y.to_bytes(32, 'big')
+
+print('Public :', base64.urlsafe_b64encode(pub_raw).rstrip(b'=').decode())
+print('Private:', base64.urlsafe_b64encode(priv_raw).rstrip(b'=').decode())
 "
 ```
 
