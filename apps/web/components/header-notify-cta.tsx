@@ -30,7 +30,9 @@ export function HeaderNotifyCTA() {
         const result = subscriptionToResult(sub);
         if (result) {
           // 서버 DB에서 구독이 유실된 경우를 대비해 로그인 시점에 자동 동기화
-          await saveSubscription({ ...result, ua: navigator.userAgent }).catch(() => {});
+          await saveSubscription({ ...result, ua: navigator.userAgent }).catch((e) => {
+            console.warn('[push-resync] failed to sync subscription (header)', e);
+          });
         }
       }
     })().catch(() => {});

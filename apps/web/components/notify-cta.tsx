@@ -32,7 +32,9 @@ export function NotifyCTA() {
         const result = subscriptionToResult(sub);
         if (result) {
           // 서버 DB 구독 상태를 로컬 브라우저 구독과 맞춘다.
-          await saveSubscription({ ...result, ua: navigator.userAgent }).catch(() => {});
+          await saveSubscription({ ...result, ua: navigator.userAgent }).catch((e) => {
+            console.warn('[push-resync] failed to sync subscription (drawer)', e);
+          });
         }
       }
     })().catch(() => {});
