@@ -2,14 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import type { Route } from 'next';
 import React, { useState } from 'react';
 import Drawer from './ui/drawer';
 import { useAuth } from '../hooks/useAuth';
 import { LazyDrawerMenu } from './lazy';
 import { logoutAll } from '../services/auth';
 import { HeaderDropdown } from './header-dropdown';
-import { hasPermissionSession, isAdminSession, type AdminPermissionToken } from '../lib/rbac';
+import { hasPermissionSession, isAdminSession } from '../lib/rbac';
+import { ADMIN_NAV_LINKS } from './admin-nav-links';
 
 const ABOUT_ITEMS = [
   { href: '/about/greeting', label: '총동문회장 인사말' },
@@ -19,31 +19,18 @@ const ABOUT_ITEMS = [
   { href: '/posts?category=notice', label: '공지사항' },
 ] as const;
 
-const ADMIN_ITEMS: Array<{
-  href: Route;
-  label: string;
-  permission: AdminPermissionToken;
-}> = [
-  { href: '/admin/posts', label: '게시물 관리', permission: 'admin_posts' },
-  { href: '/admin/events', label: '행사 관리', permission: 'admin_events' },
-  { href: '/admin/hero', label: '홈 배너 관리', permission: 'admin_hero' },
-  { href: '/admin/notifications', label: '알림 관리', permission: 'admin_notifications' },
-  { href: '/admin/signup-requests', label: '가입신청 심사', permission: 'admin_signup' },
-  { href: '/admin/profile-change-requests', label: '정보변경 심사', permission: 'admin_profile' },
-  { href: '/admin/members', label: '회원 관리', permission: 'admin_roles' },
-] as const;
-
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { status, data } = useAuth();
   const isAdmin = status === 'authorized' && isAdminSession(data);
-  const permissionAdminItems = isAdmin
-    ? ADMIN_ITEMS
-        .filter((item) => hasPermissionSession(data, item.permission))
-        .map(({ href, label }) => ({ href, label }))
-    : [];
   const adminItems = isAdmin
-    ? [...permissionAdminItems, { href: '/admin/support' as Route, label: '문의 내역' }]
+    ? ADMIN_NAV_LINKS
+        .filter((item) =>
+          item.permission == null
+            ? true
+            : hasPermissionSession(data, item.permission)
+        )
+        .map(({ href, label }) => ({ href, label }))
     : [];
 
   return (

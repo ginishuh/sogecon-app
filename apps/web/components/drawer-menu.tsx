@@ -6,10 +6,10 @@ import { RequireAdmin } from './require-admin';
 import { NotifyCTA } from './notify-cta';
 import { logoutAll } from '../services/auth';
 import { useAuth } from '../hooks/useAuth';
+import { ADMIN_NAV_LINKS } from './admin-nav-links';
 import {
   hasPermissionSession,
   isAdminSession,
-  type AdminPermissionToken,
 } from '../lib/rbac';
 
 type LinkItem = {
@@ -32,16 +32,6 @@ const SUPPORT_LINKS: LinkItem[] = [
   { href: '/privacy', label: '개인정보처리방침' }
 ];
 
-const ADMIN_LINKS: Array<LinkItem & { permission: AdminPermissionToken }> = [
-  { href: '/admin/posts', label: '게시물 관리', permission: 'admin_posts' },
-  { href: '/admin/events', label: '행사 관리', permission: 'admin_events' },
-  { href: '/admin/hero', label: '홈 배너 관리', permission: 'admin_hero' },
-  { href: '/admin/notifications', label: '알림 관리', permission: 'admin_notifications' },
-  { href: '/admin/signup-requests', label: '가입신청 심사', permission: 'admin_signup' },
-  { href: '/admin/profile-change-requests', label: '정보변경 심사', permission: 'admin_profile' },
-  { href: '/admin/members', label: '회원 관리', permission: 'admin_roles' },
-];
-
 type DrawerMenuProps = {
   status: 'loading' | 'authorized' | 'unauthorized' | 'error';
   onClose: () => void;
@@ -56,12 +46,11 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
-  const permissionAdminLinks = ADMIN_LINKS.filter((link) =>
-    hasPermissionSession(session, link.permission)
+  const adminLinks = ADMIN_NAV_LINKS.filter((link) =>
+    link.permission == null
+      ? isAdminSession(session)
+      : hasPermissionSession(session, link.permission)
   );
-  const adminLinks = isAdminSession(session)
-    ? [...permissionAdminLinks, { href: '/admin/support' as Route, label: '문의 내역' }]
-    : permissionAdminLinks;
 
   return (
     <nav id="primary-navigation" aria-label="전체 메뉴" className="flex h-full flex-col gap-4 overflow-y-auto">

@@ -123,7 +123,12 @@ function AdminSupportPageContent() {
                     <p className="line-clamp-2 break-words">{item.subject}</p>
                   </td>
                   <td className="max-w-[420px] p-2 text-text-secondary">
-                    <p className="whitespace-pre-wrap break-words">{item.body}</p>
+                    <p
+                      className="line-clamp-3 whitespace-pre-wrap break-words"
+                      title={item.body}
+                    >
+                      {item.body}
+                    </p>
                   </td>
                   <td className="p-2 text-text-secondary">{item.member_email ?? '-'}</td>
                   <td className="p-2 text-text-secondary">{item.contact ?? '-'}</td>
