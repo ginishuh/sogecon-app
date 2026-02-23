@@ -3348,6 +3348,102 @@
         }
       }
     },
+    "/admin/signup-requests/{signup_request_id}/reissue-token": {
+      "post": {
+        "tags": [
+          "admin-signup-requests"
+        ],
+        "summary": "Reissue Signup Activation Token",
+        "operationId": "reissue_signup_activation_token_admin_signup_requests__signup_request_id__reissue_token_post",
+        "parameters": [
+          {
+            "name": "signup_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Signup Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupReissueResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/signup-requests/{signup_request_id}/activation-token-logs": {
+      "get": {
+        "tags": [
+          "admin-signup-requests"
+        ],
+        "summary": "List Signup Activation Token Logs",
+        "operationId": "list_signup_activation_token_logs_admin_signup_requests__signup_request_id__activation_token_logs_get",
+        "parameters": [
+          {
+            "name": "signup_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Signup Request Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupActivationIssueLogListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/signup-requests/{signup_request_id}/reject": {
       "post": {
         "tags": [
@@ -5947,6 +6043,76 @@
         ],
         "title": "SignupActivationContextResponse"
       },
+      "SignupActivationIssueLogListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SignupActivationIssueLogRead"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "SignupActivationIssueLogListResponse"
+      },
+      "SignupActivationIssueLogRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "signup_request_id": {
+            "type": "integer",
+            "title": "Signup Request Id"
+          },
+          "issued_type": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reissue"
+            ],
+            "title": "Issued Type"
+          },
+          "issued_by_student_id": {
+            "type": "string",
+            "title": "Issued By Student Id"
+          },
+          "token_hash": {
+            "type": "string",
+            "title": "Token Hash"
+          },
+          "token_tail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Tail"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "signup_request_id",
+          "issued_type",
+          "issued_by_student_id",
+          "token_hash",
+          "issued_at"
+        ],
+        "title": "SignupActivationIssueLogRead"
+      },
       "SignupApproveResponse": {
         "properties": {
           "request": {
@@ -5958,15 +6124,44 @@
           "activation_token": {
             "type": "string",
             "title": "Activation Token"
+          },
+          "activation_issue": {
+            "$ref": "#/components/schemas/SignupActivationIssueLogRead"
           }
         },
         "type": "object",
         "required": [
           "request",
           "activation_context",
-          "activation_token"
+          "activation_token",
+          "activation_issue"
         ],
         "title": "SignupApproveResponse"
+      },
+      "SignupReissueResponse": {
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/SignupRequestRead"
+          },
+          "activation_context": {
+            "$ref": "#/components/schemas/SignupActivationContextResponse"
+          },
+          "activation_token": {
+            "type": "string",
+            "title": "Activation Token"
+          },
+          "activation_issue": {
+            "$ref": "#/components/schemas/SignupActivationIssueLogRead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request",
+          "activation_context",
+          "activation_token",
+          "activation_issue"
+        ],
+        "title": "SignupReissueResponse"
       },
       "SignupRejectPayload": {
         "properties": {

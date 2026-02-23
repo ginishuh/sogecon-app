@@ -134,6 +134,10 @@ def test_admin_signup_review_approve_and_reject(
     assert approve_body["activation_context"]["signup_request_id"] == signup_id
     assert isinstance(approve_body["activation_token"], str)
     assert approve_body["activation_token"] != ""
+    assert approve_body["activation_issue"]["issued_type"] == "approve"
+    assert approve_body["activation_issue"]["issued_by_student_id"] == "__seed__admin"
+    assert len(approve_body["activation_issue"]["token_hash"]) == 64
+    assert approve_body["activation_issue"]["token_tail"] is not None
 
     async def _assert_approved_member(session: AsyncSession) -> None:
         stmt = select(models.Member).where(models.Member.student_id == "s116004")
@@ -163,3 +167,61 @@ def test_admin_signup_review_approve_and_reject(
     reject_body = reject_res.json()
     assert reject_body["status"] == "rejected"
     assert reject_body["reject_reason"] == "학번 확인 불가"
+
+
+def test_admin_signup_reissue_token_and_logs(admin_login: TestClient) -> None:
+    create_res = admin_login.post(
+        "/auth/member/signup",
+        json={
+            "student_id": "s116007",
+            "email": "s116007@test.example.com",
+            "name": "재발급대상",
+            "cohort": 2024,
+        },
+    )
+    assert create_res.status_code == HTTPStatus.CREATED
+    signup_id = create_res.json()["id"]
+
+    approve_res = admin_login.post(f"/admin/signup-requests/{signup_id}/approve")
+    assert approve_res.status_code == HTTPStatus.OK
+
+    reissue_res = admin_login.post(f"/admin/signup-requests/{signup_id}/reissue-token")
+    assert reissue_res.status_code == HTTPStatus.OK
+    reissue_body = reissue_res.json()
+    assert reissue_body["request"]["id"] == signup_id
+    assert reissue_body["request"]["status"] == "approved"
+    assert isinstance(reissue_body["activation_token"], str)
+    assert reissue_body["activation_token"] != ""
+    assert reissue_body["activation_issue"]["issued_type"] == "reissue"
+    assert reissue_body["activation_issue"]["issued_by_student_id"] == "__seed__admin"
+    assert len(reissue_body["activation_issue"]["token_hash"]) == 64
+    assert reissue_body["activation_issue"]["token_tail"] is not None
+
+    logs_res = admin_login.get(
+        f"/admin/signup-requests/{signup_id}/activation-token-logs?limit=10"
+    )
+    assert logs_res.status_code == HTTPStatus.OK
+    logs_body = logs_res.json()
+    assert len(logs_body["items"]) >= 2
+    issued_types = {item["issued_type"] for item in logs_body["items"]}
+    assert "approve" in issued_types
+    assert "reissue" in issued_types
+
+
+def test_reissue_requires_approved_status(admin_login: TestClient) -> None:
+    create_res = admin_login.post(
+        "/auth/member/signup",
+        json={
+            "student_id": "s116006",
+            "email": "s116006@test.example.com",
+            "name": "재발급대기",
+            "cohort": 2024,
+        },
+    )
+    assert create_res.status_code == HTTPStatus.CREATED
+    signup_id = create_res.json()["id"]
+
+    res = admin_login.post(f"/admin/signup-requests/{signup_id}/reissue-token")
+    assert res.status_code == HTTPStatus.CONFLICT
+    body = res.json()
+    assert body["code"] == "signup_request_not_approved"

@@ -13,11 +13,15 @@ import {
 } from '../../../lib/activation';
 import {
   approveAdminSignupRequest,
+  listAdminSignupRequestActivationTokenLogs,
   listAdminSignupRequests,
   rejectAdminSignupRequest,
   type SignupApproveResponse,
+  type SignupActivationIssueLogRead,
+  type SignupReissueResponse,
   type SignupRequestRead,
   type SignupRequestStatus,
+  reissueAdminSignupRequestActivationToken,
 } from '../../../services/signup-requests';
 import {
   ApproveTokenCard,
@@ -60,7 +64,12 @@ function useSignupRequestsModel() {
   const [statusFilter, setStatusFilter] = useState<SignupRequestStatus | 'all'>('all');
   const [rejectTarget, setRejectTarget] = useState<SignupRequestRead | null>(null);
   const [rejectReason, setRejectReason] = useState('');
-  const [lastApprove, setLastApprove] = useState<SignupApproveResponse | null>(null);
+  const [lastApprove, setLastApprove] = useState<
+    SignupApproveResponse | SignupReissueResponse | null
+  >(null);
+  const [lastIssueLogs, setLastIssueLogs] = useState<SignupActivationIssueLogRead[]>(
+    []
+  );
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   const listParams = useMemo(
@@ -89,16 +98,45 @@ function useSignupRequestsModel() {
     show(message, { type: 'error' });
   };
 
+  const refreshActivationLogs = async (signupRequestId: number) => {
+    try {
+      const logs = await listAdminSignupRequestActivationTokenLogs(signupRequestId, 20);
+      setLastIssueLogs(logs.items);
+    } catch {
+      setLastIssueLogs([]);
+    }
+  };
+
+  const applyActivationIssue = (
+    data: SignupApproveResponse | SignupReissueResponse
+  ) => {
+    setLastApprove(data);
+    void refreshActivationLogs(data.request.id);
+  };
+
   const approveMutation = useMutation({
     mutationFn: (id: number) => approveAdminSignupRequest(id),
     onSuccess: (data) => {
       const message = '가입신청을 승인했습니다.';
-      setLastApprove(data);
+      applyActivationIssue(data);
       setFeedback({ tone: 'success', message });
       show(message, { type: 'success' });
       void queryClient.invalidateQueries({ queryKey: ['admin-signup-requests'] });
     },
     onError: (error: unknown) => handleError(error, '승인 처리 중 오류가 발생했습니다.'),
+  });
+
+  const reissueMutation = useMutation({
+    mutationFn: (id: number) => reissueAdminSignupRequestActivationToken(id),
+    onSuccess: (data) => {
+      const message = '활성화 토큰을 재발급했습니다.';
+      applyActivationIssue(data);
+      setFeedback({ tone: 'success', message });
+      show(message, { type: 'success' });
+      void queryClient.invalidateQueries({ queryKey: ['admin-signup-requests'] });
+    },
+    onError: (error: unknown) =>
+      handleError(error, '토큰 재발급 중 오류가 발생했습니다.'),
   });
 
   const rejectMutation = useMutation({
@@ -157,6 +195,7 @@ function useSignupRequestsModel() {
     setSearch,
     listQuery,
     approveMutation,
+    reissueMutation,
     rejectMutation,
     rejectTarget,
     setRejectTarget,
@@ -166,6 +205,7 @@ function useSignupRequestsModel() {
     copyActivationToken,
     copyActivationLink,
     copyActivationMessage,
+    lastIssueLogs,
     feedback,
     clearFeedback: () => setFeedback(null),
   };
@@ -195,6 +235,7 @@ function AdminSignupRequestsContent() {
 
       <ApproveTokenCard
         lastApprove={model.lastApprove}
+        activationLogs={model.lastIssueLogs}
         onCopyToken={model.copyActivationToken}
         onCopyLink={model.copyActivationLink}
         onCopyMessage={model.copyActivationMessage}
@@ -235,10 +276,15 @@ function AdminSignupRequestsContent() {
         state={listState}
         items={items}
         isApprovePending={model.approveMutation.isPending}
+        isReissuePending={model.reissueMutation.isPending}
         isRejectPending={model.rejectMutation.isPending}
         onApprove={(id) => {
           model.clearFeedback();
           model.approveMutation.mutate(id);
+        }}
+        onReissue={(id) => {
+          model.clearFeedback();
+          model.reissueMutation.mutate(id);
         }}
         onStartReject={(row) => {
           model.setRejectTarget(row);

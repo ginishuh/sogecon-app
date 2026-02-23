@@ -308,6 +308,39 @@ class SignupRequest(Base):
     reject_reason = Column(Text, nullable=True)
 
 
+class SignupActivationIssueLog(Base):
+    __tablename__ = "signup_activation_issue_logs"
+    __table_args__ = (
+        CheckConstraint(
+            "issued_type IN ('approve', 'reissue')",
+            name="ck_signup_activation_issue_logs_issued_type",
+        ),
+        Index(
+            "ix_signup_activation_issue_logs_request_issued_at",
+            "signup_request_id",
+            "issued_at",
+        ),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    signup_request_id = Column(
+        Integer,
+        ForeignKey("signup_requests.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    issued_type = Column(String(16), nullable=False, index=True)
+    issued_by_student_id = Column(String(20), nullable=False, index=True)
+    token_hash = Column(String(64), nullable=False, index=True)
+    token_tail = Column(String(16), nullable=True)
+    issued_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        index=True,
+    )
+
+
 # Web Push 구독 정보(민감 데이터: endpoint/key는 운영에서 암호화 저장 고려)
 class ProfileChangeRequest(Base):
     """회원 프로필 변경 요청 (이름/기수 — 관리자 승인 필요)."""

@@ -959,6 +959,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/signup-requests/{signup_request_id}/reissue-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reissue Signup Activation Token */
+        post: operations["reissue_signup_activation_token_admin_signup_requests__signup_request_id__reissue_token_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/signup-requests/{signup_request_id}/activation-token-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Signup Activation Token Logs */
+        get: operations["list_signup_activation_token_logs_admin_signup_requests__signup_request_id__activation_token_logs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/signup-requests/{signup_request_id}/reject": {
         parameters: {
             query?: never;
@@ -1847,12 +1881,49 @@ export interface components {
             /** Cohort */
             cohort: number;
         };
+        /** SignupActivationIssueLogListResponse */
+        SignupActivationIssueLogListResponse: {
+            /** Items */
+            items: components["schemas"]["SignupActivationIssueLogRead"][];
+        };
+        /** SignupActivationIssueLogRead */
+        SignupActivationIssueLogRead: {
+            /** Id */
+            id: number;
+            /** Signup Request Id */
+            signup_request_id: number;
+            /**
+             * Issued Type
+             * @enum {string}
+             */
+            issued_type: "approve" | "reissue";
+            /** Issued By Student Id */
+            issued_by_student_id: string;
+            /** Token Hash */
+            token_hash: string;
+            /** Token Tail */
+            token_tail?: string | null;
+            /**
+             * Issued At
+             * Format: date-time
+             */
+            issued_at: string;
+        };
         /** SignupApproveResponse */
         SignupApproveResponse: {
             request: components["schemas"]["SignupRequestRead"];
             activation_context: components["schemas"]["SignupActivationContextResponse"];
             /** Activation Token */
             activation_token: string;
+            activation_issue: components["schemas"]["SignupActivationIssueLogRead"];
+        };
+        /** SignupReissueResponse */
+        SignupReissueResponse: {
+            request: components["schemas"]["SignupRequestRead"];
+            activation_context: components["schemas"]["SignupActivationContextResponse"];
+            /** Activation Token */
+            activation_token: string;
+            activation_issue: components["schemas"]["SignupActivationIssueLogRead"];
         };
         /** SignupRejectPayload */
         SignupRejectPayload: {
@@ -4051,6 +4122,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SignupApproveResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reissue_signup_activation_token_admin_signup_requests__signup_request_id__reissue_token_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                signup_request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignupReissueResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_signup_activation_token_logs_admin_signup_requests__signup_request_id__activation_token_logs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                signup_request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignupActivationIssueLogListResponse"];
                 };
             };
             /** @description Validation Error */
