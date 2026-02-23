@@ -38,7 +38,7 @@ function LoginForm() {
       router.replace(dest);
     },
     onError: (e: unknown) => {
-      const msg = e instanceof ApiError ? apiErrorToMessage(e.code ?? e.message, e.message) : '알 수 없는 오류';
+      const msg = e instanceof ApiError ? apiErrorToMessage(e.code, e.message) : '알 수 없는 오류';
       show(msg, { type: 'error' });
     }
   });
