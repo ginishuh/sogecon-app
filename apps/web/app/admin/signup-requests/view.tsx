@@ -6,12 +6,17 @@ import {
 } from '../../../lib/activation';
 import { formatPhone } from '../../../lib/phone-utils';
 import type {
-  SignupApproveResponse,
+  SignupActivationIssueResponse,
+  SignupActivationIssueLogRead,
   SignupRequestRead,
   SignupRequestStatus,
 } from '../../../services/signup-requests';
 
 export type ListState = 'loading' | 'error' | 'empty' | 'ready';
+
+function issueTypeLabel(value: 'approve' | 'reissue'): string {
+  return value === 'approve' ? '승인 발급' : '재발급';
+}
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return '-';
@@ -51,11 +56,13 @@ function ListFallback({ state }: { state: ListState }) {
 
 export function ApproveTokenCard({
   lastApprove,
+  activationLogs,
   onCopyToken,
   onCopyLink,
   onCopyMessage,
 }: {
-  lastApprove: SignupApproveResponse | null;
+  lastApprove: SignupActivationIssueResponse | null;
+  activationLogs: SignupActivationIssueLogRead[];
   onCopyToken: () => void;
   onCopyLink: () => void;
   onCopyMessage: () => void;
@@ -65,6 +72,7 @@ export function ApproveTokenCard({
   const { name, student_id } = lastApprove.activation_context;
   const activationUrl = buildActivationUrl(lastApprove.activation_token);
   const activationMessage = buildActivationMessage(name, student_id, activationUrl);
+  const currentIssue = lastApprove.activation_issue;
 
   const copyBtnClass =
     'rounded border border-state-success-ring px-3 py-1 text-xs text-state-success hover:bg-white';
@@ -72,7 +80,11 @@ export function ApproveTokenCard({
   return (
     <div className="space-y-3 rounded border border-state-success-ring bg-state-success-subtle p-4">
       <p className="text-sm font-medium text-state-success">
-        최근 승인: {name} ({student_id})
+        최근 발급 대상: {name} ({student_id})
+      </p>
+      <p className="text-xs text-state-success">
+        최근 발급: {issueTypeLabel(currentIssue.issued_type)} · 담당 {currentIssue.issued_by_student_id} ·{' '}
+        {formatDate(currentIssue.issued_at)}
       </p>
 
       {/* 토큰 */}
@@ -112,6 +124,24 @@ export function ApproveTokenCard({
         <p className="whitespace-pre-line break-all rounded bg-white px-3 py-2 text-xs text-text-secondary">
           {activationMessage}
         </p>
+      </div>
+
+      <div className="space-y-1">
+        <span className="text-xs font-medium text-state-success">최근 발급 이력</span>
+        {activationLogs.length === 0 ? (
+          <p className="rounded bg-white px-3 py-2 text-xs text-text-muted">
+            아직 발급 이력이 없습니다.
+          </p>
+        ) : (
+          <ul className="space-y-1">
+            {activationLogs.slice(0, 5).map((log) => (
+              <li key={log.id} className="rounded bg-white px-3 py-2 text-xs text-text-secondary">
+                {formatDate(log.issued_at)} · {issueTypeLabel(log.issued_type)} · 담당{' '}
+                {log.issued_by_student_id} · 토큰 식별자 {log.token_tail ?? '-'}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
@@ -218,14 +248,18 @@ export function RejectPanel({
 function SignupRequestMobileCard({
   row,
   isApprovePending,
+  isReissuePending,
   isRejectPending,
   onApprove,
+  onReissue,
   onStartReject,
 }: {
   row: SignupRequestRead;
   isApprovePending: boolean;
+  isReissuePending: boolean;
   isRejectPending: boolean;
   onApprove: (id: number) => void;
+  onReissue: (id: number) => void;
   onStartReject: (row: SignupRequestRead) => void;
 }) {
   return (
@@ -255,6 +289,14 @@ function SignupRequestMobileCard({
         </button>
         <button
           type="button"
+          className="rounded border border-brand-500 px-3 py-1.5 text-xs text-brand-700 disabled:opacity-40"
+          disabled={row.status !== 'approved' || isReissuePending}
+          onClick={() => onReissue(row.id)}
+        >
+          재발급
+        </button>
+        <button
+          type="button"
           className="rounded border border-state-error-ring px-3 py-1.5 text-xs text-state-error disabled:opacity-40"
           disabled={row.status !== 'pending' || isRejectPending}
           onClick={() => onStartReject(row)}
@@ -270,15 +312,19 @@ export function SignupRequestsTable({
   state,
   items,
   isApprovePending,
+  isReissuePending,
   isRejectPending,
   onApprove,
+  onReissue,
   onStartReject,
 }: {
   state: ListState;
   items: SignupRequestRead[];
   isApprovePending: boolean;
+  isReissuePending: boolean;
   isRejectPending: boolean;
   onApprove: (id: number) => void;
+  onReissue: (id: number) => void;
   onStartReject: (row: SignupRequestRead) => void;
 }) {
   if (state !== 'ready') return <ListFallback state={state} />;
@@ -291,8 +337,10 @@ export function SignupRequestsTable({
             key={`mobile:${row.id}`}
             row={row}
             isApprovePending={isApprovePending}
+            isReissuePending={isReissuePending}
             isRejectPending={isRejectPending}
             onApprove={onApprove}
+            onReissue={onReissue}
             onStartReject={onStartReject}
           />
         ))}
@@ -340,6 +388,14 @@ export function SignupRequestsTable({
                       onClick={() => onApprove(row.id)}
                     >
                       승인
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded border border-brand-500 px-3 py-1.5 text-xs text-brand-700 disabled:opacity-40"
+                      disabled={row.status !== 'approved' || isReissuePending}
+                      onClick={() => onReissue(row.id)}
+                    >
+                      재발급
                     </button>
                     <button
                       type="button"

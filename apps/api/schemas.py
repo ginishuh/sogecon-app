@@ -29,6 +29,7 @@ EventStatusLiteral = Literal["upcoming", "ongoing", "ended"]
 HeroTargetTypeLiteral = Literal["post", "event"]
 MemberStatusLiteral = Literal["pending", "active", "suspended", "rejected"]
 SignupRequestStatusLiteral = Literal["pending", "approved", "rejected", "activated"]
+SignupActivationIssueTypeLiteral = Literal["approve", "reissue"]
 
 _PHONE_PATTERN = re.compile(r'^[0-9+\-\s]{7,20}$')
 _PHONE_DIGITS_RE = re.compile(r'[^0-9]')
@@ -259,6 +260,17 @@ class SignupRequestCreate(BaseModel):
 
 class SignupRequestRead(SignupRequestBase):
     id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SignupActivationIssueLogRead(BaseModel):
+    id: int
+    signup_request_id: int
+    issued_type: SignupActivationIssueTypeLiteral
+    issued_by_student_id: str
+    token_tail: str | None = None
+    issued_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

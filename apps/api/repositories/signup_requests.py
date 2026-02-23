@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Sequence
 
 from sqlalchemy import and_, desc, func, or_, select
@@ -107,3 +108,72 @@ async def save_signup_request(
     await db.commit()
     await db.refresh(row)
     return row
+
+
+def hash_activation_token(token: str) -> tuple[str, str]:
+    digest = hashlib.sha256(token.encode()).hexdigest()
+    tail = token[-16:]
+    return digest, tail
+
+
+async def create_activation_issue_log(
+    db: AsyncSession,
+    *,
+    signup_request_id: int,
+    issued_type: schemas.SignupActivationIssueTypeLiteral,
+    issued_by_student_id: str,
+    token: str,
+) -> models.SignupActivationIssueLog:
+    token_hash, token_tail = hash_activation_token(token)
+    row = models.SignupActivationIssueLog(
+        signup_request_id=signup_request_id,
+        issued_type=issued_type,
+        issued_by_student_id=issued_by_student_id,
+        token_hash=token_hash,
+        token_tail=token_tail,
+    )
+    db.add(row)
+    await db.commit()
+    await db.refresh(row)
+    return row
+
+
+async def create_activation_issue_log_without_commit(
+    db: AsyncSession,
+    *,
+    signup_request_id: int,
+    issued_type: schemas.SignupActivationIssueTypeLiteral,
+    issued_by_student_id: str,
+    token: str,
+) -> models.SignupActivationIssueLog:
+    token_hash, token_tail = hash_activation_token(token)
+    row = models.SignupActivationIssueLog(
+        signup_request_id=signup_request_id,
+        issued_type=issued_type,
+        issued_by_student_id=issued_by_student_id,
+        token_hash=token_hash,
+        token_tail=token_tail,
+    )
+    db.add(row)
+    await db.flush()
+    await db.refresh(row)
+    return row
+
+
+async def list_activation_issue_logs(
+    db: AsyncSession,
+    *,
+    signup_request_id: int,
+    limit: int = 20,
+) -> Sequence[models.SignupActivationIssueLog]:
+    stmt = (
+        select(models.SignupActivationIssueLog)
+        .where(models.SignupActivationIssueLog.signup_request_id == signup_request_id)
+        .order_by(
+            desc(models.SignupActivationIssueLog.issued_at),
+            desc(models.SignupActivationIssueLog.id),
+        )
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    return result.scalars().all()

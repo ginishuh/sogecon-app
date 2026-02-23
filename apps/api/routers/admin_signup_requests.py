@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import schemas
 from ..db import get_db
 from ..services import signup_service
-from ..services.activation_service import create_member_activation_token
 from ..services.auth_service import (
     CurrentUser,
     require_permission,
@@ -38,10 +37,15 @@ class SignupActivationContextResponse(BaseModel):
     cohort: int
 
 
-class SignupApproveResponse(BaseModel):
+class SignupActivationIssueResponse(BaseModel):
     request: schemas.SignupRequestRead
     activation_context: SignupActivationContextResponse
     activation_token: str
+    activation_issue: schemas.SignupActivationIssueLogRead
+
+
+class SignupActivationIssueLogListResponse(BaseModel):
+    items: list[schemas.SignupActivationIssueLogRead]
 
 
 class SignupRejectPayload(BaseModel):
@@ -74,34 +78,92 @@ async def list_signup_requests(
     )
 
 
-@router.post("/{signup_request_id}/approve", response_model=SignupApproveResponse)
+@router.post(
+    "/{signup_request_id}/approve",
+    response_model=SignupActivationIssueResponse,
+)
 async def approve_signup_request(
     signup_request_id: int,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(
         require_permission("admin_signup", allow_admin_fallback=False)
     ),
-) -> SignupApproveResponse:
-    row, context = await signup_service.approve_signup_request(
+) -> SignupActivationIssueResponse:
+    row, issue = await signup_service.approve_signup_request(
         db,
         signup_request_id=signup_request_id,
         decided_by_student_id=user.student_id,
     )
-    return SignupApproveResponse(
+    return SignupActivationIssueResponse(
         request=schemas.SignupRequestRead.model_validate(row),
         activation_context=SignupActivationContextResponse(
-            signup_request_id=context.signup_request_id,
-            student_id=context.student_id,
-            email=context.email,
-            name=context.name,
-            cohort=context.cohort,
+            signup_request_id=issue.context.signup_request_id,
+            student_id=issue.context.student_id,
+            email=issue.context.email,
+            name=issue.context.name,
+            cohort=issue.context.cohort,
         ),
-        activation_token=create_member_activation_token(
-            signup_request_id=context.signup_request_id,
-            student_id=context.student_id,
-            cohort=context.cohort,
-            name=context.name,
+        activation_token=issue.token,
+        activation_issue=schemas.SignupActivationIssueLogRead.model_validate(
+            issue.issue_log
         ),
+    )
+
+
+@router.post(
+    "/{signup_request_id}/reissue-token",
+    response_model=SignupActivationIssueResponse,
+)
+async def reissue_signup_activation_token(
+    signup_request_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(
+        require_permission("admin_signup", allow_admin_fallback=False)
+    ),
+) -> SignupActivationIssueResponse:
+    row, issue = await signup_service.reissue_signup_activation_token(
+        db,
+        signup_request_id=signup_request_id,
+        issued_by_student_id=user.student_id,
+    )
+    return SignupActivationIssueResponse(
+        request=schemas.SignupRequestRead.model_validate(row),
+        activation_context=SignupActivationContextResponse(
+            signup_request_id=issue.context.signup_request_id,
+            student_id=issue.context.student_id,
+            email=issue.context.email,
+            name=issue.context.name,
+            cohort=issue.context.cohort,
+        ),
+        activation_token=issue.token,
+        activation_issue=schemas.SignupActivationIssueLogRead.model_validate(
+            issue.issue_log
+        ),
+    )
+
+
+@router.get(
+    "/{signup_request_id}/activation-token-logs",
+    response_model=SignupActivationIssueLogListResponse,
+)
+async def list_signup_activation_token_logs(
+    signup_request_id: int,
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    _user: CurrentUser = Depends(
+        require_permission("admin_signup", allow_admin_fallback=False)
+    ),
+) -> SignupActivationIssueLogListResponse:
+    rows = await signup_service.list_signup_activation_issue_logs(
+        db,
+        signup_request_id=signup_request_id,
+        limit=limit,
+    )
+    return SignupActivationIssueLogListResponse(
+        items=[
+            schemas.SignupActivationIssueLogRead.model_validate(row)
+            for row in rows
+        ]
     )
 
 

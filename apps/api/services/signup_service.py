@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import models, schemas
 from ..errors import ConflictError, NotFoundError
 from ..repositories import signup_requests as signup_requests_repo
+from .activation_service import create_member_activation_token
 
 
 @dataclass(frozen=True)
@@ -21,6 +22,63 @@ class SignupActivationContext:
     email: str
     name: str
     cohort: int
+
+
+@dataclass(frozen=True)
+class SignupActivationIssueResult:
+    context: SignupActivationContext
+    token: str
+    issue_log: models.SignupActivationIssueLog
+
+
+def _build_activation_context(row: models.SignupRequest) -> SignupActivationContext:
+    return SignupActivationContext(
+        signup_request_id=cast(int, row.id),
+        student_id=cast(str, row.student_id),
+        email=cast(str, row.email),
+        name=cast(str, row.name),
+        cohort=cast(int, row.cohort),
+    )
+
+
+async def _issue_activation_token(
+    db: AsyncSession,
+    *,
+    row: models.SignupRequest,
+    issued_by_student_id: str,
+    issued_type: schemas.SignupActivationIssueTypeLiteral,
+    commit: bool = True,
+) -> SignupActivationIssueResult:
+    context = _build_activation_context(row)
+    token = create_member_activation_token(
+        signup_request_id=context.signup_request_id,
+        student_id=context.student_id,
+        cohort=context.cohort,
+        name=context.name,
+    )
+    if commit:
+        issue_log = await signup_requests_repo.create_activation_issue_log(
+            db,
+            signup_request_id=context.signup_request_id,
+            issued_type=issued_type,
+            issued_by_student_id=issued_by_student_id,
+            token=token,
+        )
+    else:
+        issue_log = (
+            await signup_requests_repo.create_activation_issue_log_without_commit(
+                db,
+                signup_request_id=context.signup_request_id,
+                issued_type=issued_type,
+                issued_by_student_id=issued_by_student_id,
+                token=token,
+            )
+        )
+    return SignupActivationIssueResult(
+        context=context,
+        token=token,
+        issue_log=issue_log,
+    )
 
 
 async def create_signup_request(
@@ -78,7 +136,7 @@ async def approve_signup_request(
     *,
     signup_request_id: int,
     decided_by_student_id: str,
-) -> tuple[models.SignupRequest, SignupActivationContext]:
+) -> tuple[models.SignupRequest, SignupActivationIssueResult]:
     row = await signup_requests_repo.get_signup_request_by_id(db, signup_request_id)
     if row is None:
         raise NotFoundError(
@@ -125,15 +183,63 @@ async def approve_signup_request(
     setattr(row, "decided_by_student_id", decided_by_student_id)
     setattr(row, "reject_reason", None)
 
-    row = await signup_requests_repo.save_signup_request(db, row)
-    context = SignupActivationContext(
-        signup_request_id=cast(int, row.id),
-        student_id=cast(str, row.student_id),
-        email=cast(str, row.email),
-        name=cast(str, row.name),
-        cohort=cast(int, row.cohort),
+    issue = await _issue_activation_token(
+        db,
+        row=row,
+        issued_by_student_id=decided_by_student_id,
+        issued_type="approve",
+        commit=False,
     )
-    return row, context
+    await db.commit()
+    await db.refresh(row)
+    return row, issue
+
+
+async def reissue_signup_activation_token(
+    db: AsyncSession,
+    *,
+    signup_request_id: int,
+    issued_by_student_id: str,
+) -> tuple[models.SignupRequest, SignupActivationIssueResult]:
+    row = await signup_requests_repo.get_signup_request_by_id(db, signup_request_id)
+    if row is None:
+        raise NotFoundError(
+            code="signup_request_not_found",
+            detail="가입신청을 찾을 수 없습니다.",
+        )
+
+    if cast(str, row.status) != "approved":
+        raise ConflictError(
+            code="signup_request_not_approved",
+            detail="승인 완료된 신청만 토큰을 재발급할 수 있습니다.",
+        )
+
+    issue = await _issue_activation_token(
+        db,
+        row=row,
+        issued_by_student_id=issued_by_student_id,
+        issued_type="reissue",
+    )
+    return row, issue
+
+
+async def list_signup_activation_issue_logs(
+    db: AsyncSession,
+    *,
+    signup_request_id: int,
+    limit: int,
+) -> Sequence[models.SignupActivationIssueLog]:
+    row = await signup_requests_repo.get_signup_request_by_id(db, signup_request_id)
+    if row is None:
+        raise NotFoundError(
+            code="signup_request_not_found",
+            detail="가입신청을 찾을 수 없습니다.",
+        )
+    return await signup_requests_repo.list_activation_issue_logs(
+        db,
+        signup_request_id=signup_request_id,
+        limit=limit,
+    )
 
 
 async def reject_signup_request(

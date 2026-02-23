@@ -18,6 +18,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   signup_already_pending: '이미 심사 대기 중인 신청이 있습니다.',
   signup_request_not_found: '가입신청을 찾을 수 없습니다.',
   signup_request_not_pending: '대기 중인 신청만 처리할 수 있습니다.',
+  signup_request_not_approved: '승인 완료된 신청만 토큰을 재발급할 수 있습니다.',
 
   // 게시글/행사 관련
   post_not_found: '게시글을 찾을 수 없습니다.',
