@@ -37,10 +37,13 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { status, data } = useAuth();
   const isAdmin = status === 'authorized' && isAdminSession(data);
-  const adminItems = isAdmin
+  const permissionAdminItems = isAdmin
     ? ADMIN_ITEMS
         .filter((item) => hasPermissionSession(data, item.permission))
         .map(({ href, label }) => ({ href, label }))
+    : [];
+  const adminItems = isAdmin
+    ? [...permissionAdminItems, { href: '/admin/support' as Route, label: '문의 내역' }]
     : [];
 
   return (

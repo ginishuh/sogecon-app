@@ -104,9 +104,11 @@ async def contact(
 
 
 class TicketRead(BaseModel):
+    id: int
     created_at: str
     member_email: str | None
     subject: str
+    body: str
     contact: str | None
     client_ip: str | None
 
@@ -122,9 +124,11 @@ async def list_tickets(
     for r in rows:
         created = getattr(r, 'created_at', None)
         out.append(TicketRead(
+            id=getattr(r, 'id', 0),
             created_at=(created.isoformat() if created else ''),
             member_email=getattr(r, 'member_email', None),
             subject=getattr(r, 'subject', ''),
+            body=getattr(r, 'body', ''),
             contact=getattr(r, 'contact', None),
             client_ip=getattr(r, 'client_ip', None),
         ))

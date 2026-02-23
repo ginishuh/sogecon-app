@@ -48,3 +48,27 @@ def test_support_contact_validation(admin_login: TestClient) -> None:
         json={"subject": "a", "body": "short"},
     )
     assert bad.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+def test_admin_can_list_support_tickets(admin_login: TestClient) -> None:
+    client = admin_login
+    submit = client.post(
+        "/support/contact",
+        json={
+            "subject": "문의 조회 테스트",
+            "body": "관리자 문의함 목록에서 본문 확인이 되어야 합니다.",
+            "contact": "010-1111-2222",
+        },
+    )
+    assert submit.status_code == HTTPStatus.ACCEPTED
+
+    res = client.get("/support/admin/tickets?limit=20")
+    assert res.status_code == HTTPStatus.OK
+    body = res.json()
+    assert isinstance(body, list)
+    assert len(body) >= 1
+
+    first = body[0]
+    assert isinstance(first["id"], int)
+    assert isinstance(first["subject"], str)
+    assert isinstance(first["body"], str)

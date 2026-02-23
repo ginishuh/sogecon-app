@@ -6,7 +6,11 @@ import { RequireAdmin } from './require-admin';
 import { NotifyCTA } from './notify-cta';
 import { logoutAll } from '../services/auth';
 import { useAuth } from '../hooks/useAuth';
-import { hasPermissionSession, type AdminPermissionToken } from '../lib/rbac';
+import {
+  hasPermissionSession,
+  isAdminSession,
+  type AdminPermissionToken,
+} from '../lib/rbac';
 
 type LinkItem = {
   href: Route;
@@ -52,9 +56,12 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
-  const adminLinks = ADMIN_LINKS.filter((link) =>
+  const permissionAdminLinks = ADMIN_LINKS.filter((link) =>
     hasPermissionSession(session, link.permission)
   );
+  const adminLinks = isAdminSession(session)
+    ? [...permissionAdminLinks, { href: '/admin/support' as Route, label: '문의 내역' }]
+    : permissionAdminLinks;
 
   return (
     <nav id="primary-navigation" aria-label="전체 메뉴" className="flex h-full flex-col gap-4 overflow-y-auto">
