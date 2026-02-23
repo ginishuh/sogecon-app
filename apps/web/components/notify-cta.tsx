@@ -1,47 +1,19 @@
 "use client";
 
 // 로그인 후 노출되는 푸시 구독 CTA
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { usePushSync } from '../hooks/usePushSync';
 import { useToast } from './toast';
 import { ApiError } from '../lib/api';
-import { ensureServiceWorker, getCurrentSubscription, subscribePush, subscriptionToResult, unsubscribePush } from '../lib/push';
-import { isServiceWorkerEnabled } from '../lib/sw';
+import { subscribePush, unsubscribePush } from '../lib/push';
 import { deleteSubscription, saveSubscription } from '../services/notifications';
 
 export function NotifyCTA() {
   const { status } = useAuth();
   const toast = useToast();
-  const [supported, setSupported] = useState(false);
-  const [subscribed, setSubscribed] = useState(false);
+  const { supported, subscribed, setSubscribed } = usePushSync(status, 'drawer');
   const [busy, setBusy] = useState(false);
-
-  // 초기 지원/구독상태 점검
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const ok = isServiceWorkerEnabled() && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
-    setSupported(ok);
-    if (!ok || status !== 'authorized') return;
-    let cancelled = false;
-    (async () => {
-      await ensureServiceWorker();
-      const sub = await getCurrentSubscription();
-      if (cancelled) return;
-      setSubscribed(!!sub);
-      if (sub) {
-        const result = subscriptionToResult(sub);
-        if (result) {
-          // 서버 DB 구독 상태를 로컬 브라우저 구독과 맞춘다.
-          await saveSubscription({ ...result, ua: navigator.userAgent }).catch((e) => {
-            console.warn('[push-resync] failed to sync subscription (drawer)', e);
-          });
-        }
-      }
-    })().catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [status]);
 
   if (status !== 'authorized') return null;
   if (!supported) return null;
