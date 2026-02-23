@@ -9,7 +9,7 @@ import {
   getNotificationStats,
   getSendLogs,
   pruneSendLogs,
-  sendTestNotification,
+  sendNotification,
   type SendLog,
   type NotificationStats,
 } from '../../../services/notifications';
@@ -137,8 +137,8 @@ function PrunePanel({ pruneDays, setPruneDays, busy, onPrune }:{
 export default function AdminNotificationsPage() {
   const { status } = useAuth();
   const toast = useToast();
-  const [title, setTitle] = useState('테스트 알림');
-  const [body, setBody] = useState('웹 푸시 경로 연결 확인');
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);
   const [logLimit, setLogLimit] = useState(50);
@@ -155,7 +155,7 @@ export default function AdminNotificationsPage() {
     setBusy(true);
     try {
       const payload = { title, body, url: url || undefined };
-      const res = await sendTestNotification(payload);
+      const res = await sendNotification(payload);
       toast.show(`발송 요청 완료: 성공 ${res.accepted}, 실패 ${res.failed}`, { type: 'success' });
     } catch {
       toast.show('발송 중 오류가 발생했습니다.', { type: 'error' });
@@ -184,19 +184,19 @@ export default function AdminNotificationsPage() {
       fallback={<div className="p-4 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>}
     >
       <div className="p-6">
-        <h2 className="mb-4 text-xl font-semibold">테스트 알림 발송(Admin)</h2>
+        <h2 className="mb-4 text-xl font-semibold">알림 발송</h2>
         <div className="mb-6 flex max-w-xl flex-col gap-3">
           <label className="text-sm">제목
-            <input className="mt-1 w-full rounded border px-3 py-2" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <input className="mt-1 w-full rounded border px-3 py-2" placeholder="알림 제목을 입력하세요" value={title} onChange={(e) => setTitle(e.target.value)} />
           </label>
           <label className="text-sm">내용
-            <textarea className="mt-1 w-full rounded border px-3 py-2" rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
+            <textarea className="mt-1 w-full rounded border px-3 py-2" rows={3} placeholder="알림 내용을 입력하세요" value={body} onChange={(e) => setBody(e.target.value)} />
           </label>
           <label className="text-sm">URL(선택)
             <input className="mt-1 w-full rounded border px-3 py-2" placeholder="https://example.com" value={url} onChange={(e) => setUrl(e.target.value)} />
           </label>
           <div>
-            <button disabled={busy} onClick={onSend} className="rounded bg-state-success px-4 py-2 text-white disabled:opacity-50">발송</button>
+            <button disabled={busy || !title.trim() || !body.trim()} onClick={onSend} className="rounded bg-state-success px-4 py-2 text-white disabled:opacity-50">발송</button>
             <button type="button" className="ml-2 rounded border px-3 py-2 text-sm" onClick={async () => { await stats.refetch(); await logs.refetch(); }}>새로고침</button>
           </div>
         </div>

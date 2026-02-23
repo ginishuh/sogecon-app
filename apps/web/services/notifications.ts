@@ -1,16 +1,16 @@
 import { apiFetch } from '../lib/api';
 import type { Schema } from './_dto';
 
-export type TestNotificationPayload = Schema<'TestPushPayload'>;
+export type SendNotificationPayload = Schema<'SendPushPayload'>;
 
-// TODO: API가 구조화된 응답 스키마(TestPushResult 등)를 정의하면 Schema alias로 전환
-export type TestNotificationResult = {
+// TODO: API가 구조화된 응답 스키마를 정의하면 Schema alias로 전환
+export type SendNotificationResult = {
   accepted: number;
   failed: number;
 };
 
-export async function sendTestNotification(payload: TestNotificationPayload): Promise<TestNotificationResult> {
-  return apiFetch<TestNotificationResult>('/notifications/admin/notifications/test', {
+export async function sendNotification(payload: SendNotificationPayload): Promise<SendNotificationResult> {
+  return apiFetch<SendNotificationResult>('/notifications/admin/notifications/send', {
     method: 'POST',
     body: JSON.stringify(payload),
   });

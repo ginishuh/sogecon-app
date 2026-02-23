@@ -97,15 +97,15 @@ async def delete_subscription(
     await notif_svc.delete_subscription(db, endpoint=str(payload.endpoint))
 
 
-class TestPushPayload(BaseModel):
-    title: str = "테스트 알림"
-    body: str = "웹 푸시 경로 연결 확인"
+class SendPushPayload(BaseModel):
+    title: str
+    body: str
     url: str | None = None
 
 
-@router.post("/admin/notifications/test", status_code=202)
-async def send_test_push(
-    _payload: TestPushPayload,
+@router.post("/admin/notifications/send", status_code=202)
+async def send_push(
+    _payload: SendPushPayload,
     _admin: Annotated[
         CurrentUser,
         Depends(require_permission("admin_notifications", allow_admin_fallback=False)),
@@ -118,10 +118,10 @@ async def send_test_push(
         consume_limit(
             limiter_notifications,
             request,
-            get_settings().rate_limit_notify_test,
+            get_settings().rate_limit_notify_send,
         )
 
-    result = await notif_svc.send_test_to_all(
+    result = await notif_svc.send_to_all(
         db, provider, title=_payload.title, body=_payload.body, url=_payload.url
     )
     return {"accepted": result.accepted, "failed": result.failed}

@@ -59,14 +59,13 @@ async def test_admin_send_rate_limit_concurrent(admin_login: TestClient) -> None
 
             async def _send() -> int:
                 r = await hc.post(
-                    "/notifications/admin/notifications/test", json=payload
+                    "/notifications/admin/notifications/send", json=payload
                 )
                 return r.status_code
 
-            # 동시 2요청 → 최소 1개는 429(보수적 조건; 둘 다 429도 가능)
-            s1, s2 = await asyncio.gather(_send(), _send())
-            statuses = [s1, s2]
-            assert statuses.count(HTTPStatus.TOO_MANY_REQUESTS) >= 1
-            assert statuses.count(HTTPStatus.ACCEPTED) <= 1
+            # 6/minute 제한: 동시 7요청 → 최소 1개는 429
+            statuses = await asyncio.gather(*[_send() for _ in range(7)])
+            assert list(statuses).count(HTTPStatus.TOO_MANY_REQUESTS) >= 1
+            assert list(statuses).count(HTTPStatus.ACCEPTED) <= 6
     finally:
         app.dependency_overrides.pop(router_mod.get_push_provider, None)

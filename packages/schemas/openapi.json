@@ -1651,18 +1651,18 @@
         }
       }
     },
-    "/notifications/admin/notifications/test": {
+    "/notifications/admin/notifications/send": {
       "post": {
         "tags": [
           "notifications"
         ],
-        "summary": "Send Test Push",
-        "operationId": "send_test_push_notifications_admin_notifications_test_post",
+        "summary": "Send Push",
+        "operationId": "send_push_notifications_admin_notifications_send_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestPushPayload"
+                "$ref": "#/components/schemas/SendPushPayload"
               }
             }
           },
@@ -1678,7 +1678,7 @@
                     "type": "integer"
                   },
                   "type": "object",
-                  "title": "Response Send Test Push Notifications Admin Notifications Test Post"
+                  "title": "Response Send Push Notifications Admin Notifications Send Post"
                 }
               }
             }
@@ -5885,6 +5885,35 @@
         ],
         "title": "SendLogRead"
       },
+      "SendPushPayload": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "body"
+        ],
+        "title": "SendPushPayload"
+      },
       "SignupActivationContextResponse": {
         "properties": {
           "signup_request_id": {
@@ -6209,33 +6238,6 @@
           "auth"
         ],
         "title": "SubscriptionPayload"
-      },
-      "TestPushPayload": {
-        "properties": {
-          "title": {
-            "type": "string",
-            "title": "Title",
-            "default": "\ud14c\uc2a4\ud2b8 \uc54c\ub9bc"
-          },
-          "body": {
-            "type": "string",
-            "title": "Body",
-            "default": "\uc6f9 \ud478\uc2dc \uacbd\ub85c \uc5f0\uacb0 \ud655\uc778"
-          },
-          "url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url"
-          }
-        },
-        "type": "object",
-        "title": "TestPushPayload"
       },
       "TicketRead": {
         "properties": {

@@ -59,7 +59,7 @@ def test_subscription_encrypted_at_rest_and_logged_plain_tail(
 
         # Call test send (admin)
         res = admin_login.post(
-            "/notifications/admin/notifications/test",
+            "/notifications/admin/notifications/send",
             json={"title": "t", "body": "b"},
         )
         assert res.status_code in (HTTPStatus.ACCEPTED, HTTPStatus.OK)

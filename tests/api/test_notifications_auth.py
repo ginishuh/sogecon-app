@@ -84,10 +84,14 @@ async def test_admin_send_rate_limit_429(admin_login: TestClient) -> None:
             assert rs.status_code == HTTPStatus.NO_CONTENT
 
             payload = {"title": "t", "body": "b"}
-            r1 = await hc.post("/notifications/admin/notifications/test", json=payload)
-            r2 = await hc.post("/notifications/admin/notifications/test", json=payload)
-            assert r1.status_code == HTTPStatus.ACCEPTED
-            assert r2.status_code == HTTPStatus.TOO_MANY_REQUESTS
+            # 6/minute 제한: 충분히 많은 요청을 보내면 429가 발생해야 함
+            url = "/notifications/admin/notifications/send"
+            statuses = []
+            for _ in range(8):
+                r = await hc.post(url, json=payload)
+                statuses.append(r.status_code)
+            assert HTTPStatus.ACCEPTED in statuses
+            assert HTTPStatus.TOO_MANY_REQUESTS in statuses
     finally:
         app.dependency_overrides.pop(router_mod.get_push_provider, None)
 
