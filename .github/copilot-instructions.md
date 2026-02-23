@@ -180,7 +180,7 @@ Do NOT disable linters or type checkers globally or per file.
 - Privacy & ops for Web Push
   - Server logs store only SHA‑256 hash + last 16 chars of endpoints.
   - Subscriptions returning 404/410 are auto‑invalidated.
-  - Admin send: `POST /admin/notifications/send` payload `{ title, body, url? }`.
+  - Admin send: `POST /notifications/admin/notifications/send` payload `{ title, body, url? }`.
   - Admin UI: `/admin/notifications` shows send form, recent logs, and summary.
 
 ### Server deploy envs and flows

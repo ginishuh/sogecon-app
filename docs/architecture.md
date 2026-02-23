@@ -103,7 +103,7 @@
 
 ### 백엔드 구성 (`apps/api`)
 - 구독 저장 엔드포인트: `POST /notifications/subscriptions` — 바디에 `endpoint`, `keys.p256dh`, `keys.auth`, `ua`, `member_id`(서버에서 식별) 저장. 테이블 예: `push_subscription(id, member_id, endpoint, p256dh, auth, ua, created_at, last_seen_at, revoked_at)`.
-- 관리자 발송 엔드포인트: `POST /admin/notifications/send` — payload: `{ title, body, url? }`로 전 구독자에 알림 발송.
+- 관리자 발송 엔드포인트: `POST /notifications/admin/notifications/send` — payload: `{ title, body, url? }`로 전 구독자에 알림 발송.
 - 발송: VAPID(pywebpush)로 전송, HTTP 404/410 응답 구독은 자동 폐기 처리.
 - 예약/대량 발송: APScheduler 혹은 별도 워커 프로세스에서 Web Push를 큐잉 처리. 재시도/TTL/배치 크기 제어.
 - 키 관리: VAPID 공개/비공개 키 쌍을 `.env`로 주입(`VAPID_PUBLIC_KEY`,`VAPID_PRIVATE_KEY`,`VAPID_SUBJECT`). 키 순환 시 롤링 기간 동안 구독 재발급 유도.

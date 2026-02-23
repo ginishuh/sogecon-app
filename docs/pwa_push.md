@@ -81,7 +81,7 @@ at-rest 암호화용 `PUSH_KEK`가 필요한 경우: `openssl rand -base64 32`
 - `DELETE /notifications/subscriptions`
   - req: `{ endpoint }`
   - res: `204 No Content`
-- `POST /admin/notifications/send` (운영자)
+- `POST /notifications/admin/notifications/send` (운영자)
   - req: `{ title, body, url? }`
   - res: `{ accepted: number, failed: number }`
 - `POST /admin/notifications/prune-logs` (운영자)
