@@ -215,6 +215,8 @@ async def login_member(
     bcrypt = __import__("bcrypt")
 
     member, creds = await auth_repo.get_member_with_auth_by_student_id(db, student_id)
+    if member is not None and cast(str, member.status) == "pending":
+        raise HTTPException(status_code=403, detail="member_pending_approval")
     if member is None or creds is None:
         raise HTTPException(status_code=401, detail="login_failed")
     if cast(str, member.status) != "active":
