@@ -118,7 +118,10 @@ export function HeroItemForm({
           <select
             className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={form.target_type}
-            onChange={(e) => setForm((prev) => ({ ...prev, target_type: e.currentTarget.value as HeroTargetType }))}
+            onChange={(e) => {
+              const value = e.currentTarget.value as HeroTargetType;
+              setForm((prev) => ({ ...prev, target_type: value }));
+            }}
             disabled={isPending}
           >
             <option value="post">게시글</option>
@@ -133,7 +136,10 @@ export function HeroItemForm({
             type="number"
             min={1}
             value={formatTargetIdValue(form.target_id)}
-            onChange={(e) => setForm((prev) => ({ ...prev, target_id: toInt(e.currentTarget.value) }))}
+            onChange={(e) => {
+              const value = toInt(e.currentTarget.value);
+              setForm((prev) => ({ ...prev, target_id: value }));
+            }}
             disabled={isPending}
             inputMode="numeric"
             placeholder="예: 123"
@@ -149,7 +155,10 @@ export function HeroItemForm({
           <input
             type="checkbox"
             checked={form.enabled}
-            onChange={(e) => setForm((prev) => ({ ...prev, enabled: e.currentTarget.checked }))}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setForm((prev) => ({ ...prev, enabled: checked }));
+            }}
             disabled={isPending}
             className="rounded border-neutral-border"
           />
@@ -160,7 +169,10 @@ export function HeroItemForm({
           <input
             type="checkbox"
             checked={form.pinned}
-            onChange={(e) => setForm((prev) => ({ ...prev, pinned: e.currentTarget.checked }))}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setForm((prev) => ({ ...prev, pinned: checked }));
+            }}
             disabled={isPending}
             className="rounded border-neutral-border"
           />
@@ -173,7 +185,10 @@ export function HeroItemForm({
         <input
           className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
           value={form.title_override}
-          onChange={(e) => setForm((prev) => ({ ...prev, title_override: e.currentTarget.value }))}
+          onChange={(e) => {
+            const value = e.currentTarget.value;
+            setForm((prev) => ({ ...prev, title_override: value }));
+          }}
           disabled={isPending}
           placeholder="비워두면 대상(행사/게시글) 제목을 사용합니다."
         />
@@ -185,7 +200,10 @@ export function HeroItemForm({
           className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
           rows={3}
           value={form.description_override}
-          onChange={(e) => setForm((prev) => ({ ...prev, description_override: e.currentTarget.value }))}
+          onChange={(e) => {
+            const value = e.currentTarget.value;
+            setForm((prev) => ({ ...prev, description_override: value }));
+          }}
           disabled={isPending}
           placeholder="비워두면 대상 설명/본문을 사용합니다."
         />
