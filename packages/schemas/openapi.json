@@ -1998,6 +1998,8 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
               "default": 50,
               "title": "Limit"
             }
@@ -6406,6 +6408,10 @@
       },
       "TicketRead": {
         "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
           "created_at": {
             "type": "string",
             "title": "Created At"
@@ -6424,6 +6430,10 @@
           "subject": {
             "type": "string",
             "title": "Subject"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
           },
           "contact": {
             "anyOf": [
@@ -6450,9 +6460,11 @@
         },
         "type": "object",
         "required": [
+          "id",
           "created_at",
           "member_email",
           "subject",
+          "body",
           "contact",
           "client_ip"
         ],

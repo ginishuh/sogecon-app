@@ -6,7 +6,7 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -104,9 +104,11 @@ async def contact(
 
 
 class TicketRead(BaseModel):
+    id: int
     created_at: str
     member_email: str | None
     subject: str
+    body: str
     contact: str | None
     client_ip: str | None
 
@@ -115,16 +117,18 @@ class TicketRead(BaseModel):
 async def list_tickets(
     _admin: CurrentAdmin = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=200),
 ) -> list[TicketRead]:
-    rows = await tickets_repo.list_recent(db, limit=min(max(limit, 1), 200))
+    rows = await tickets_repo.list_recent(db, limit=limit)
     out: list[TicketRead] = []
     for r in rows:
         created = getattr(r, 'created_at', None)
         out.append(TicketRead(
+            id=getattr(r, 'id', 0),
             created_at=(created.isoformat() if created else ''),
             member_email=getattr(r, 'member_email', None),
             subject=getattr(r, 'subject', ''),
+            body=getattr(r, 'body', ''),
             contact=getattr(r, 'contact', None),
             client_ip=getattr(r, 'client_ip', None),
         ))

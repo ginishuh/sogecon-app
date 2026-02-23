@@ -2001,12 +2001,16 @@ export interface components {
         };
         /** TicketRead */
         TicketRead: {
+            /** Id */
+            id: number;
             /** Created At */
             created_at: string;
             /** Member Email */
             member_email: string | null;
             /** Subject */
             subject: string;
+            /** Body */
+            body: string;
             /** Contact */
             contact: string | null;
             /** Client Ip */
