@@ -154,9 +154,10 @@ export default function SignupPage() {
             required
             className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={form.studentId}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, studentId: e.currentTarget.value }))
-            }
+            onChange={(e) => {
+              const value = e.currentTarget.value;
+              setForm((prev) => ({ ...prev, studentId: value }));
+            }}
           />
         </label>
 
@@ -166,9 +167,10 @@ export default function SignupPage() {
             required
             className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={form.name}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, name: e.currentTarget.value }))
-            }
+            onChange={(e) => {
+              const value = e.currentTarget.value;
+              setForm((prev) => ({ ...prev, name: value }));
+            }}
           />
         </label>
 
@@ -179,9 +181,10 @@ export default function SignupPage() {
             type="email"
             className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={form.email}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, email: e.currentTarget.value }))
-            }
+            onChange={(e) => {
+              const value = e.currentTarget.value;
+              setForm((prev) => ({ ...prev, email: value }));
+            }}
           />
         </label>
 
@@ -192,9 +195,10 @@ export default function SignupPage() {
             inputMode="numeric"
             className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={form.cohort}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, cohort: e.currentTarget.value }))
-            }
+            onChange={(e) => {
+              const value = e.currentTarget.value;
+              setForm((prev) => ({ ...prev, cohort: value }));
+            }}
           />
         </label>
 
@@ -203,9 +207,10 @@ export default function SignupPage() {
           <input
             className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={form.major}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, major: e.currentTarget.value }))
-            }
+            onChange={(e) => {
+              const value = e.currentTarget.value;
+              setForm((prev) => ({ ...prev, major: value }));
+            }}
           />
         </label>
 
@@ -214,9 +219,10 @@ export default function SignupPage() {
           <input
             className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={form.phone}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, phone: e.currentTarget.value }))
-            }
+            onChange={(e) => {
+              const value = e.currentTarget.value;
+              setForm((prev) => ({ ...prev, phone: value }));
+            }}
           />
         </label>
 
@@ -226,9 +232,10 @@ export default function SignupPage() {
             rows={4}
             className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={form.note}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, note: e.currentTarget.value }))
-            }
+            onChange={(e) => {
+              const value = e.currentTarget.value;
+              setForm((prev) => ({ ...prev, note: value }));
+            }}
           />
         </label>
 
