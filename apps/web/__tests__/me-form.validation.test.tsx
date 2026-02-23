@@ -5,7 +5,7 @@ import {
 } from '../app/me/validation';
 
 const createForm = (override: Partial<ProfileForm> = {}): ProfileForm => ({
-  name: '홍길동',
+  email: '',
   major: '',
   visibility: 'all',
   birth_date: '',
@@ -56,7 +56,7 @@ describe('buildProfilePayload', () => {
   it('trims values and converts blanks to null', () => {
     const payload = buildProfilePayload(
       createForm({
-        name: ' 홍길동 ',
+        email: '  user@example.com  ',
         major: '  경영학  ',
         phone: ' 010-1234-5678 ',
         company_phone: '  ',
@@ -66,7 +66,7 @@ describe('buildProfilePayload', () => {
       })
     );
 
-    expect(payload.name).toBe('홍길동');
+    expect(payload.email).toBe('user@example.com');
     expect(payload.major).toBe('경영학');
     expect(payload.phone).toBe('010-1234-5678');
     expect(payload.company_phone).toBeNull();

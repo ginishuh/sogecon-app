@@ -3,6 +3,8 @@
 const ERROR_MESSAGES: Record<string, string> = {
   // 인증 관련
   login_failed: '학번 또는 비밀번호가 올바르지 않습니다.',
+  member_pending_approval: '가입 승인 대기 중입니다. 관리자 승인 후 계정 활성화를 진행해 주세요.',
+  member_not_active: '비활성 상태 계정입니다. 관리자에게 문의해 주세요.',
   admin_member_record_missing: '관리자 계정에 회원 정보가 없습니다. 관리자에게 문의하세요.',
   unauthorized: '로그인이 필요합니다.',
   admin_permission_required: '해당 기능에 대한 관리자 권한이 없습니다.',

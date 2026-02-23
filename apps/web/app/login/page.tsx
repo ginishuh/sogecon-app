@@ -8,6 +8,7 @@ import { Suspense, useState } from 'react';
 import { login } from '../../services/auth';
 import { useToast } from '../../components/toast';
 import { ApiError } from '../../lib/api';
+import { apiErrorToMessage } from '../../lib/error-map';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function LoginPage() {
@@ -37,7 +38,7 @@ function LoginForm() {
       router.replace(dest);
     },
     onError: (e: unknown) => {
-      const msg = e instanceof ApiError ? '로그인 실패' : '알 수 없는 오류';
+      const msg = e instanceof ApiError ? apiErrorToMessage(e.code, e.message) : '알 수 없는 오류';
       show(msg, { type: 'error' });
     }
   });

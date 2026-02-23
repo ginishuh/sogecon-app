@@ -16,6 +16,7 @@ from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
+from ..errors import ApiError
 from ..ratelimit import consume_limit
 from ..repositories import auth as auth_repo
 from ..repositories import members as members_repo
@@ -216,11 +217,17 @@ async def login_member(
 
     member, creds = await auth_repo.get_member_with_auth_by_student_id(db, student_id)
     if member is None or creds is None:
-        raise HTTPException(status_code=401, detail="login_failed")
-    if cast(str, member.status) != "active":
-        raise HTTPException(status_code=403, detail="member_not_active")
+        raise ApiError(code="login_failed", detail="login_failed", status=401)
     if not bcrypt.checkpw(password.encode(), creds.password_hash.encode()):
-        raise HTTPException(status_code=401, detail="login_failed")
+        raise ApiError(code="login_failed", detail="login_failed", status=401)
+    if cast(str, member.status) == "pending":
+        raise ApiError(
+            code="member_pending_approval",
+            detail="member_pending_approval",
+            status=403,
+        )
+    if cast(str, member.status) != "active":
+        raise ApiError(code="member_not_active", detail="member_not_active", status=403)
 
     roles = ensure_member_role(normalize_roles(member.roles))
     sid_raw: object = cast(object, member.student_id)

@@ -99,3 +99,85 @@ def test_login_success_and_protected_routes(client: TestClient) -> None:
 def test_login_failure(client: TestClient) -> None:
     res = client.post("/auth/login", json={"student_id": "none001", "password": "x"})
     assert res.status_code == HTTPStatus.UNAUTHORIZED
+    assert res.json()["detail"] == "login_failed"
+    assert res.json()["code"] == "login_failed"
+
+
+def test_login_pending_member_returns_pending_reason(client: TestClient) -> None:
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found")
+
+    async def _seed_pending_member() -> None:
+        async for db in override():
+            pwd = bcrypt.hashpw(b"pw", bcrypt.gensalt()).decode()
+            member = models.Member(
+                student_id="pending001",
+                email="pending001@test.example.com",
+                name="Pending User",
+                cohort=1,
+                roles="member",
+                status="pending",
+            )
+            db.add(member)
+            await db.flush()
+            db.add(
+                models.MemberAuth(
+                    member_id=member.id,
+                    student_id="pending001",
+                    password_hash=pwd,
+                )
+            )
+            await db.commit()
+            break
+
+    asyncio.run(_seed_pending_member())
+
+    res = client.post(
+        "/auth/login",
+        json={"student_id": "pending001", "password": "pw"},
+    )
+    assert res.status_code == HTTPStatus.FORBIDDEN
+    assert res.json()["detail"] == "member_pending_approval"
+    assert res.json()["code"] == "member_pending_approval"
+
+
+def test_login_inactive_with_wrong_password_returns_login_failed(
+    client: TestClient,
+) -> None:
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found")
+
+    async def _seed_inactive_member() -> None:
+        async for db in override():
+            pwd = bcrypt.hashpw(b"right-password", bcrypt.gensalt()).decode()
+            member = models.Member(
+                student_id="inactive-oracle-001",
+                email="inactive-oracle-001@test.example.com",
+                name="Inactive Oracle User",
+                cohort=1,
+                roles="member",
+                status="suspended",
+            )
+            db.add(member)
+            await db.flush()
+            db.add(
+                models.MemberAuth(
+                    member_id=member.id,
+                    student_id="inactive-oracle-001",
+                    password_hash=pwd,
+                )
+            )
+            await db.commit()
+            break
+
+    asyncio.run(_seed_inactive_member())
+
+    res = client.post(
+        "/auth/login",
+        json={"student_id": "inactive-oracle-001", "password": "wrong-password"},
+    )
+    assert res.status_code == HTTPStatus.UNAUTHORIZED
+    assert res.json()["detail"] == "login_failed"
+    assert res.json()["code"] == "login_failed"
