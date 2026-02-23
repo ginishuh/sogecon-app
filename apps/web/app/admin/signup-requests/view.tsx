@@ -6,9 +6,8 @@ import {
 } from '../../../lib/activation';
 import { formatPhone } from '../../../lib/phone-utils';
 import type {
-  SignupApproveResponse,
+  SignupActivationIssueResponse,
   SignupActivationIssueLogRead,
-  SignupReissueResponse,
   SignupRequestRead,
   SignupRequestStatus,
 } from '../../../services/signup-requests';
@@ -62,7 +61,7 @@ export function ApproveTokenCard({
   onCopyLink,
   onCopyMessage,
 }: {
-  lastApprove: SignupApproveResponse | SignupReissueResponse | null;
+  lastApprove: SignupActivationIssueResponse | null;
   activationLogs: SignupActivationIssueLogRead[];
   onCopyToken: () => void;
   onCopyLink: () => void;

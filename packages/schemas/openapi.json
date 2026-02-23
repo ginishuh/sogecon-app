@@ -3330,7 +3330,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SignupApproveResponse"
+                  "$ref": "#/components/schemas/SignupActivationIssueResponse"
                 }
               }
             }
@@ -3372,7 +3372,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SignupReissueResponse"
+                  "$ref": "#/components/schemas/SignupActivationIssueResponse"
                 }
               }
             }
@@ -6081,10 +6081,6 @@
             "type": "string",
             "title": "Issued By Student Id"
           },
-          "token_hash": {
-            "type": "string",
-            "title": "Token Hash"
-          },
           "token_tail": {
             "anyOf": [
               {
@@ -6108,12 +6104,11 @@
           "signup_request_id",
           "issued_type",
           "issued_by_student_id",
-          "token_hash",
           "issued_at"
         ],
         "title": "SignupActivationIssueLogRead"
       },
-      "SignupApproveResponse": {
+      "SignupActivationIssueResponse": {
         "properties": {
           "request": {
             "$ref": "#/components/schemas/SignupRequestRead"
@@ -6136,32 +6131,7 @@
           "activation_token",
           "activation_issue"
         ],
-        "title": "SignupApproveResponse"
-      },
-      "SignupReissueResponse": {
-        "properties": {
-          "request": {
-            "$ref": "#/components/schemas/SignupRequestRead"
-          },
-          "activation_context": {
-            "$ref": "#/components/schemas/SignupActivationContextResponse"
-          },
-          "activation_token": {
-            "type": "string",
-            "title": "Activation Token"
-          },
-          "activation_issue": {
-            "$ref": "#/components/schemas/SignupActivationIssueLogRead"
-          }
-        },
-        "type": "object",
-        "required": [
-          "request",
-          "activation_context",
-          "activation_token",
-          "activation_issue"
-        ],
-        "title": "SignupReissueResponse"
+        "title": "SignupActivationIssueResponse"
       },
       "SignupRejectPayload": {
         "properties": {

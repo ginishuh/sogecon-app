@@ -44,29 +44,9 @@ def upgrade() -> None:
         ),
     )
     op.create_index(
-        "ix_signup_activation_issue_logs_signup_request_id",
-        "signup_activation_issue_logs",
-        ["signup_request_id"],
-    )
-    op.create_index(
-        "ix_signup_activation_issue_logs_issued_type",
-        "signup_activation_issue_logs",
-        ["issued_type"],
-    )
-    op.create_index(
-        "ix_signup_activation_issue_logs_issued_by_student_id",
-        "signup_activation_issue_logs",
-        ["issued_by_student_id"],
-    )
-    op.create_index(
         "ix_signup_activation_issue_logs_token_hash",
         "signup_activation_issue_logs",
         ["token_hash"],
-    )
-    op.create_index(
-        "ix_signup_activation_issue_logs_issued_at",
-        "signup_activation_issue_logs",
-        ["issued_at"],
     )
     op.create_index(
         "ix_signup_activation_issue_logs_request_issued_at",
@@ -81,23 +61,7 @@ def downgrade() -> None:
         table_name="signup_activation_issue_logs",
     )
     op.drop_index(
-        "ix_signup_activation_issue_logs_issued_at",
-        table_name="signup_activation_issue_logs",
-    )
-    op.drop_index(
         "ix_signup_activation_issue_logs_token_hash",
-        table_name="signup_activation_issue_logs",
-    )
-    op.drop_index(
-        "ix_signup_activation_issue_logs_issued_by_student_id",
-        table_name="signup_activation_issue_logs",
-    )
-    op.drop_index(
-        "ix_signup_activation_issue_logs_issued_type",
-        table_name="signup_activation_issue_logs",
-    )
-    op.drop_index(
-        "ix_signup_activation_issue_logs_signup_request_id",
         table_name="signup_activation_issue_logs",
     )
     op.drop_table("signup_activation_issue_logs")

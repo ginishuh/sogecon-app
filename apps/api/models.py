@@ -327,17 +327,15 @@ class SignupActivationIssueLog(Base):
         Integer,
         ForeignKey("signup_requests.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
-    issued_type = Column(String(16), nullable=False, index=True)
-    issued_by_student_id = Column(String(20), nullable=False, index=True)
+    issued_type = Column(String(16), nullable=False)
+    issued_by_student_id = Column(String(20), nullable=False)
     token_hash = Column(String(64), nullable=False, index=True)
     token_tail = Column(String(16), nullable=True)
     issued_at = Column(
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
-        index=True,
     )
 
 

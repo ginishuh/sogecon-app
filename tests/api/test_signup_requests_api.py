@@ -136,7 +136,7 @@ def test_admin_signup_review_approve_and_reject(
     assert approve_body["activation_token"] != ""
     assert approve_body["activation_issue"]["issued_type"] == "approve"
     assert approve_body["activation_issue"]["issued_by_student_id"] == "__seed__admin"
-    assert len(approve_body["activation_issue"]["token_hash"]) == 64
+    assert "token_hash" not in approve_body["activation_issue"]
     assert approve_body["activation_issue"]["token_tail"] is not None
 
     async def _assert_approved_member(session: AsyncSession) -> None:
@@ -194,7 +194,7 @@ def test_admin_signup_reissue_token_and_logs(admin_login: TestClient) -> None:
     assert reissue_body["activation_token"] != ""
     assert reissue_body["activation_issue"]["issued_type"] == "reissue"
     assert reissue_body["activation_issue"]["issued_by_student_id"] == "__seed__admin"
-    assert len(reissue_body["activation_issue"]["token_hash"]) == 64
+    assert "token_hash" not in reissue_body["activation_issue"]
     assert reissue_body["activation_issue"]["token_tail"] is not None
 
     logs_res = admin_login.get(

@@ -138,6 +138,28 @@ async def create_activation_issue_log(
     return row
 
 
+async def create_activation_issue_log_without_commit(
+    db: AsyncSession,
+    *,
+    signup_request_id: int,
+    issued_type: schemas.SignupActivationIssueTypeLiteral,
+    issued_by_student_id: str,
+    token: str,
+) -> models.SignupActivationIssueLog:
+    token_hash, token_tail = hash_activation_token(token)
+    row = models.SignupActivationIssueLog(
+        signup_request_id=signup_request_id,
+        issued_type=issued_type,
+        issued_by_student_id=issued_by_student_id,
+        token_hash=token_hash,
+        token_tail=token_tail,
+    )
+    db.add(row)
+    await db.flush()
+    await db.refresh(row)
+    return row
+
+
 async def list_activation_issue_logs(
     db: AsyncSession,
     *,

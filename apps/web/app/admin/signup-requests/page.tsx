@@ -16,9 +16,8 @@ import {
   listAdminSignupRequestActivationTokenLogs,
   listAdminSignupRequests,
   rejectAdminSignupRequest,
-  type SignupApproveResponse,
+  type SignupActivationIssueResponse,
   type SignupActivationIssueLogRead,
-  type SignupReissueResponse,
   type SignupRequestRead,
   type SignupRequestStatus,
   reissueAdminSignupRequestActivationToken,
@@ -64,9 +63,9 @@ function useSignupRequestsModel() {
   const [statusFilter, setStatusFilter] = useState<SignupRequestStatus | 'all'>('all');
   const [rejectTarget, setRejectTarget] = useState<SignupRequestRead | null>(null);
   const [rejectReason, setRejectReason] = useState('');
-  const [lastApprove, setLastApprove] = useState<
-    SignupApproveResponse | SignupReissueResponse | null
-  >(null);
+  const [lastApprove, setLastApprove] = useState<SignupActivationIssueResponse | null>(
+    null
+  );
   const [lastIssueLogs, setLastIssueLogs] = useState<SignupActivationIssueLogRead[]>(
     []
   );
@@ -102,14 +101,13 @@ function useSignupRequestsModel() {
     try {
       const logs = await listAdminSignupRequestActivationTokenLogs(signupRequestId, 20);
       setLastIssueLogs(logs.items);
-    } catch {
+    } catch (error) {
+      console.warn('가입신청 활성화 토큰 로그 조회 실패', error);
       setLastIssueLogs([]);
     }
   };
 
-  const applyActivationIssue = (
-    data: SignupApproveResponse | SignupReissueResponse
-  ) => {
+  const applyActivationIssue = (data: SignupActivationIssueResponse) => {
     setLastApprove(data);
     void refreshActivationLogs(data.request.id);
   };

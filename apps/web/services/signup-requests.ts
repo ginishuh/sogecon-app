@@ -5,8 +5,7 @@ export type SignupRequestRead = Schema<'SignupRequestRead'>;
 export type SignupRequestStatus = SignupRequestRead['status'];
 export type SignupRequestCreatePayload = Schema<'SignupRequestCreate'>;
 export type SignupRequestListResponse = Schema<'SignupRequestListResponse'>;
-export type SignupApproveResponse = Schema<'SignupApproveResponse'>;
-export type SignupReissueResponse = Schema<'SignupReissueResponse'>;
+export type SignupActivationIssueResponse = Schema<'SignupActivationIssueResponse'>;
 export type SignupActivationIssueLogRead = Schema<'SignupActivationIssueLogRead'>;
 export type SignupActivationIssueLogListResponse = Schema<'SignupActivationIssueLogListResponse'>;
 
@@ -40,8 +39,8 @@ export async function listAdminSignupRequests(
 
 export async function approveAdminSignupRequest(
   signupRequestId: number
-): Promise<SignupApproveResponse> {
-  return apiFetch<SignupApproveResponse>(
+): Promise<SignupActivationIssueResponse> {
+  return apiFetch<SignupActivationIssueResponse>(
     `/admin/signup-requests/${signupRequestId}/approve`,
     { method: 'POST' }
   );
@@ -49,8 +48,8 @@ export async function approveAdminSignupRequest(
 
 export async function reissueAdminSignupRequestActivationToken(
   signupRequestId: number
-): Promise<SignupReissueResponse> {
-  return apiFetch<SignupReissueResponse>(
+): Promise<SignupActivationIssueResponse> {
+  return apiFetch<SignupActivationIssueResponse>(
     `/admin/signup-requests/${signupRequestId}/reissue-token`,
     { method: 'POST' }
   );

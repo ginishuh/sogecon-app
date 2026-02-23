@@ -269,7 +269,6 @@ class SignupActivationIssueLogRead(BaseModel):
     signup_request_id: int
     issued_type: SignupActivationIssueTypeLiteral
     issued_by_student_id: str
-    token_hash: str
     token_tail: str | None = None
     issued_at: datetime
 

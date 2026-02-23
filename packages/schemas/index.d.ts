@@ -1899,8 +1899,6 @@ export interface components {
             issued_type: "approve" | "reissue";
             /** Issued By Student Id */
             issued_by_student_id: string;
-            /** Token Hash */
-            token_hash: string;
             /** Token Tail */
             token_tail?: string | null;
             /**
@@ -1909,16 +1907,8 @@ export interface components {
              */
             issued_at: string;
         };
-        /** SignupApproveResponse */
-        SignupApproveResponse: {
-            request: components["schemas"]["SignupRequestRead"];
-            activation_context: components["schemas"]["SignupActivationContextResponse"];
-            /** Activation Token */
-            activation_token: string;
-            activation_issue: components["schemas"]["SignupActivationIssueLogRead"];
-        };
-        /** SignupReissueResponse */
-        SignupReissueResponse: {
+        /** SignupActivationIssueResponse */
+        SignupActivationIssueResponse: {
             request: components["schemas"]["SignupRequestRead"];
             activation_context: components["schemas"]["SignupActivationContextResponse"];
             /** Activation Token */
@@ -4121,7 +4111,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SignupApproveResponse"];
+                    "application/json": components["schemas"]["SignupActivationIssueResponse"];
                 };
             };
             /** @description Validation Error */
@@ -4152,7 +4142,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SignupReissueResponse"];
+                    "application/json": components["schemas"]["SignupActivationIssueResponse"];
                 };
             };
             /** @description Validation Error */

@@ -47,6 +47,7 @@ async def _issue_activation_token(
     row: models.SignupRequest,
     issued_by_student_id: str,
     issued_type: schemas.SignupActivationIssueTypeLiteral,
+    commit: bool = True,
 ) -> SignupActivationIssueResult:
     context = _build_activation_context(row)
     token = create_member_activation_token(
@@ -55,13 +56,24 @@ async def _issue_activation_token(
         cohort=context.cohort,
         name=context.name,
     )
-    issue_log = await signup_requests_repo.create_activation_issue_log(
-        db,
-        signup_request_id=context.signup_request_id,
-        issued_type=issued_type,
-        issued_by_student_id=issued_by_student_id,
-        token=token,
-    )
+    if commit:
+        issue_log = await signup_requests_repo.create_activation_issue_log(
+            db,
+            signup_request_id=context.signup_request_id,
+            issued_type=issued_type,
+            issued_by_student_id=issued_by_student_id,
+            token=token,
+        )
+    else:
+        issue_log = (
+            await signup_requests_repo.create_activation_issue_log_without_commit(
+                db,
+                signup_request_id=context.signup_request_id,
+                issued_type=issued_type,
+                issued_by_student_id=issued_by_student_id,
+                token=token,
+            )
+        )
     return SignupActivationIssueResult(
         context=context,
         token=token,
@@ -171,13 +183,15 @@ async def approve_signup_request(
     setattr(row, "decided_by_student_id", decided_by_student_id)
     setattr(row, "reject_reason", None)
 
-    row = await signup_requests_repo.save_signup_request(db, row)
     issue = await _issue_activation_token(
         db,
         row=row,
         issued_by_student_id=decided_by_student_id,
         issued_type="approve",
+        commit=False,
     )
+    await db.commit()
+    await db.refresh(row)
     return row, issue
 
 

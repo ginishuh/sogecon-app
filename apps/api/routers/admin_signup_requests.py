@@ -37,14 +37,7 @@ class SignupActivationContextResponse(BaseModel):
     cohort: int
 
 
-class SignupApproveResponse(BaseModel):
-    request: schemas.SignupRequestRead
-    activation_context: SignupActivationContextResponse
-    activation_token: str
-    activation_issue: schemas.SignupActivationIssueLogRead
-
-
-class SignupReissueResponse(BaseModel):
+class SignupActivationIssueResponse(BaseModel):
     request: schemas.SignupRequestRead
     activation_context: SignupActivationContextResponse
     activation_token: str
@@ -85,20 +78,23 @@ async def list_signup_requests(
     )
 
 
-@router.post("/{signup_request_id}/approve", response_model=SignupApproveResponse)
+@router.post(
+    "/{signup_request_id}/approve",
+    response_model=SignupActivationIssueResponse,
+)
 async def approve_signup_request(
     signup_request_id: int,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(
         require_permission("admin_signup", allow_admin_fallback=False)
     ),
-) -> SignupApproveResponse:
+) -> SignupActivationIssueResponse:
     row, issue = await signup_service.approve_signup_request(
         db,
         signup_request_id=signup_request_id,
         decided_by_student_id=user.student_id,
     )
-    return SignupApproveResponse(
+    return SignupActivationIssueResponse(
         request=schemas.SignupRequestRead.model_validate(row),
         activation_context=SignupActivationContextResponse(
             signup_request_id=issue.context.signup_request_id,
@@ -116,7 +112,7 @@ async def approve_signup_request(
 
 @router.post(
     "/{signup_request_id}/reissue-token",
-    response_model=SignupReissueResponse,
+    response_model=SignupActivationIssueResponse,
 )
 async def reissue_signup_activation_token(
     signup_request_id: int,
@@ -124,13 +120,13 @@ async def reissue_signup_activation_token(
     user: CurrentUser = Depends(
         require_permission("admin_signup", allow_admin_fallback=False)
     ),
-) -> SignupReissueResponse:
+) -> SignupActivationIssueResponse:
     row, issue = await signup_service.reissue_signup_activation_token(
         db,
         signup_request_id=signup_request_id,
         issued_by_student_id=user.student_id,
     )
-    return SignupReissueResponse(
+    return SignupActivationIssueResponse(
         request=schemas.SignupRequestRead.model_validate(row),
         activation_context=SignupActivationContextResponse(
             signup_request_id=issue.context.signup_request_id,
