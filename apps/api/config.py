@@ -1,12 +1,7 @@
-import logging
-import os
 from functools import lru_cache
 
-from dotenv import dotenv_values
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-_log = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -98,34 +93,6 @@ class Settings(BaseSettings):
     session_max_age: int = Field(default=604800, alias="SESSION_MAX_AGE")
 
     # --- Validators ---
-    @model_validator(mode="before")
-    @classmethod
-    def _fallback_legacy_env(
-        cls, values: dict[str, object],
-    ) -> dict[str, object]:
-        """RATE_LIMIT_NOTIFY_TEST → RATE_LIMIT_NOTIFY_SEND 하위호환.
-
-        구 환경변수(OS env 또는 .env 파일)만 남아 있으면
-        새 키로 이관하고 deprecation 로그를 남긴다.
-        """
-        new_key = "RATE_LIMIT_NOTIFY_SEND"
-        old_key = "RATE_LIMIT_NOTIFY_TEST"
-        if new_key not in values:
-            # OS 환경변수 확인
-            old_val = os.environ.get(old_key)
-            # .env 파일 확인 (pydantic-settings extra=ignore로 누락되므로)
-            if not old_val:
-                dotenv = dotenv_values(".env")
-                old_val = dotenv.get(old_key)
-            if old_val:
-                values[new_key] = old_val
-                _log.warning(
-                    "%s는 폐기 예정입니다. %s로 변경해 주세요.",
-                    old_key,
-                    new_key,
-                )
-        return values
-
     @field_validator("cookie_same_site")
     @classmethod
     def _validate_same_site(cls, v: str) -> str:
