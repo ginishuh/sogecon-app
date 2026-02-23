@@ -156,7 +156,11 @@ export default function AdminNotificationsPage() {
     try {
       const payload = { title, body, url: url || undefined };
       const res = await sendNotification(payload);
-      toast.show(`발송 요청 완료: 성공 ${res.accepted}, 실패 ${res.failed}`, { type: 'success' });
+      if (res.accepted === 0 && res.failed === 0) {
+        toast.show('발송 대상이 없습니다. 로그인 사용자에서 알림을 다시 활성화해 주세요.', { type: 'info' });
+      } else {
+        toast.show(`발송 요청 완료: 성공 ${res.accepted}, 실패 ${res.failed}`, { type: res.failed > 0 ? 'error' : 'success' });
+      }
     } catch {
       toast.show('발송 중 오류가 발생했습니다.', { type: 'error' });
     } finally {

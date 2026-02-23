@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from './toast';
 import { ApiError } from '../lib/api';
-import { ensureServiceWorker, getCurrentSubscription, subscribePush, unsubscribePush } from '../lib/push';
+import { ensureServiceWorker, getCurrentSubscription, subscribePush, subscriptionToResult, unsubscribePush } from '../lib/push';
 import { isServiceWorkerEnabled } from '../lib/sw';
 import { deleteSubscription, saveSubscription } from '../services/notifications';
 
@@ -19,13 +19,25 @@ export function HeaderNotifyCTA() {
     if (typeof window === 'undefined') return;
     const ok = isServiceWorkerEnabled() && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
     setSupported(ok);
-    if (!ok) return;
+    if (!ok || status !== 'authorized') return;
+    let cancelled = false;
     (async () => {
       await ensureServiceWorker();
       const sub = await getCurrentSubscription();
+      if (cancelled) return;
       setSubscribed(!!sub);
+      if (sub) {
+        const result = subscriptionToResult(sub);
+        if (result) {
+          // 서버 DB에서 구독이 유실된 경우를 대비해 로그인 시점에 자동 동기화
+          await saveSubscription({ ...result, ua: navigator.userAgent }).catch(() => {});
+        }
+      }
     })().catch(() => {});
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
 
   if (status !== 'authorized') return null;
   if (!supported) return null;
