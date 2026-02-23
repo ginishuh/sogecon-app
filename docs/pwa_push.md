@@ -84,10 +84,10 @@ at-rest 암호화용 `PUSH_KEK`가 필요한 경우: `openssl rand -base64 32`
 - `POST /notifications/admin/notifications/send` (운영자)
   - req: `{ title, body, url? }`
   - res: `{ accepted: number, failed: number }`
-- `POST /admin/notifications/prune-logs` (운영자)
+- `POST /notifications/admin/notifications/prune-logs` (운영자)
   - req: `{ older_than_days?: number }` (기본 30)
   - res: `{ deleted: number, before: string, older_than_days: number }`
-- `GET /admin/notifications/stats` (운영자)
+- `GET /notifications/admin/notifications/stats` (운영자)
   - query: `?range=24h|7d|30d` (기본 7d)
   - res: `{ active_subscriptions, recent_accepted, recent_failed, encryption_enabled, range, failed_404?, failed_410?, failed_other? }`
 
