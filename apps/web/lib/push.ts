@@ -14,7 +14,7 @@ function canUsePush(): boolean {
   return ['serviceWorker' in navigator, 'PushManager' in window, 'Notification' in window].every(Boolean);
 }
 
-function toSubscribeResult(sub: PushSubscription): SubscribeResult | null {
+export function subscriptionToResult(sub: PushSubscription): SubscribeResult | null {
   const json = sub.toJSON();
   const endpoint = json.endpoint;
   if (!endpoint) return null;
@@ -73,7 +73,7 @@ export async function subscribePush(vapidPublicKey: string): Promise<SubscribeRe
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
   });
-  return toSubscribeResult(sub);
+  return subscriptionToResult(sub);
 }
 
 export async function unsubscribePush(): Promise<string | null> {
