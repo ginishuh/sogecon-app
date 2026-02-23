@@ -486,7 +486,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/notifications/admin/notifications/test": {
+    "/notifications/admin/notifications/send": {
         parameters: {
             query?: never;
             header?: never;
@@ -495,8 +495,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Send Test Push */
-        post: operations["send_test_push_notifications_admin_notifications_test_post"];
+        /** Send Push */
+        post: operations["send_push_notifications_admin_notifications_send_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1825,6 +1825,15 @@ export interface components {
             /** Endpoint Tail */
             endpoint_tail: string | null;
         };
+        /** SendPushPayload */
+        SendPushPayload: {
+            /** Title */
+            title: string;
+            /** Body */
+            body: string;
+            /** Url */
+            url?: string | null;
+        };
         /** SignupActivationContextResponse */
         SignupActivationContextResponse: {
             /** Signup Request Id */
@@ -1928,21 +1937,6 @@ export interface components {
             auth: string;
             /** Ua */
             ua?: string | null;
-        };
-        /** TestPushPayload */
-        TestPushPayload: {
-            /**
-             * Title
-             * @default 테스트 알림
-             */
-            title: string;
-            /**
-             * Body
-             * @default 웹 푸시 경로 연결 확인
-             */
-            body: string;
-            /** Url */
-            url?: string | null;
         };
         /** TicketRead */
         TicketRead: {
@@ -3030,7 +3024,7 @@ export interface operations {
             };
         };
     };
-    send_test_push_notifications_admin_notifications_test_post: {
+    send_push_notifications_admin_notifications_send_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3039,7 +3033,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TestPushPayload"];
+                "application/json": components["schemas"]["SendPushPayload"];
             };
         };
         responses: {

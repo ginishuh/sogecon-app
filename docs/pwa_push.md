@@ -81,13 +81,13 @@ at-rest 암호화용 `PUSH_KEK`가 필요한 경우: `openssl rand -base64 32`
 - `DELETE /notifications/subscriptions`
   - req: `{ endpoint }`
   - res: `204 No Content`
-- `POST /admin/notifications/test` (운영자)
-  - req: `{ to_member_ids?: string[], topic: 'notice'|'event', title, body, url?, tag? }`
+- `POST /notifications/admin/notifications/send` (운영자)
+  - req: `{ title, body, url? }`
   - res: `{ accepted: number, failed: number }`
-- `POST /admin/notifications/prune-logs` (운영자)
+- `POST /notifications/admin/notifications/prune-logs` (운영자)
   - req: `{ older_than_days?: number }` (기본 30)
   - res: `{ deleted: number, before: string, older_than_days: number }`
-- `GET /admin/notifications/stats` (운영자)
+- `GET /notifications/admin/notifications/stats` (운영자)
   - query: `?range=24h|7d|30d` (기본 7d)
   - res: `{ active_subscriptions, recent_accepted, recent_failed, encryption_enabled, range, failed_404?, failed_410?, failed_other? }`
 
@@ -98,14 +98,14 @@ at-rest 암호화용 `PUSH_KEK`가 필요한 경우: `openssl rand -base64 32`
 4. 권한이 `denied`이면 재시도 버튼/가이드(브라우저 설정 열기)를 제공.
 5. 서비스워커 `push` 이벤트에서 `showNotification(title, { body, icon, data: { url, tag } })` 처리. `notificationclick`에서 `clients.openWindow(data.url ?? '/')`.
 6. 개발환경에서는 SW를 기본 비활성(dev RSC 안정화). 필요 시 `NEXT_PUBLIC_ENABLE_SW=1`로 강제 등록.
-7. Admin UI(`/admin/notifications`): 테스트 발송·요약(기간 필터)·최근 로그·로그 정리(prune) 제공.
+7. Admin UI(`/admin/notifications`): 알림 발송·요약(기간 필터)·최근 로그·로그 정리(prune) 제공.
 
 ## 백엔드 구현 절차
 1. `pywebpush`(또는 동등 라이브러리)로 VAPID 서명 발송 구현.
 2. 구독 저장/삭제 라우터 추가(`routers/notifications.py`).
 3. 실패 응답(404/410) 시 구독 자동 폐기. 연속 실패 카운트 임계치 초과 시 비활성화.
 4. APScheduler(혹은 워커)로 예약 발송(D-3/D-1) 큐 실행. 배치 크기/재시도/백오프 설정.
-5. 운영자 테스트 발송/프리뷰 API 제공.
+5. 운영자 알림 발송 API 제공.
 6. (선택) at-rest 암호화 활성화: `PUSH_ENCRYPT_AT_REST=true`, `PUSH_KEK` 설정. 저장 시 endpoint/p256dh/auth를 AES-GCM으로 암호화하고, 해시(`endpoint_hash`)로 조회·삭제.
 
 ## 권한·UX 원칙
@@ -114,7 +114,7 @@ at-rest 암호화용 `PUSH_KEK`가 필요한 경우: `openssl rand -base64 32`
 - 접근성: 알림 설명은 간결한 한국어 카피 + 스크린리더 레이블 포함.
 
 ## 성능·안정성 가드
-- 레이트리밋: 구독 등록/삭제 5 req/min/account, 발송 API 1 req/min/operator(대량 발송은 내부 큐).
+- 레이트리밋: 구독 등록/삭제 5 req/min/account, 발송 API 6 req/min/operator(10초 간격, 대량 발송은 내부 큐).
 - 모니터링: 발송 성공률, 4xx/5xx 비율 대시보드.
 - 키 순환: 분기 1회 권장. 공개키 롤링 동안 구독 재발급 유도 배너 노출.
 - 저장 데이터 보호: at-rest 암호화 활성 시 운영 KEK 관리(시크릿 매니저), 키 회전 절차(더블 키/롤링 기간) 수립.

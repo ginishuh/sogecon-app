@@ -179,7 +179,7 @@
 - 프라이버시/운영 가드
   - 서버 로그에는 구독 endpoint의 SHA‑256 해시 + 말미 16자만 저장합니다.
   - 404/410 응답 구독은 자동 무효화합니다.
-  - 관리자 테스트 발송: `POST /admin/notifications/test` (payload `{ title, body, url? }`).
+  - 관리자 알림 발송: `POST /notifications/admin/notifications/send` (payload `{ title, body, url? }`).
   - 관리자 UI: `/admin/notifications`에서 발송/요약/최근 로그 확인.
 
 ### 서버 배포 환경변수 및 컨테이너 플로우

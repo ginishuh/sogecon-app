@@ -32,7 +32,7 @@
 | --- | --- | --- | --- |
 | 전역 기본 | `RATE_LIMIT_DEFAULT` | `120/minute` | SlowAPI 미들웨어 기본값 |
 | 로그인(회원/관리자) | `RATE_LIMIT_LOGIN` | `5/minute` | `/auth/member/login`, `/auth/member/activate`, `/auth/member/change-password`, `/auth/login` |
-| 알림 테스트 발송 | `RATE_LIMIT_NOTIFY_TEST` | `1/minute` | `POST /notifications/admin/notifications/test` |
+| 관리자 알림 발송 | `RATE_LIMIT_NOTIFY_SEND` | `6/minute` | `POST /notifications/admin/notifications/send` |
 | Web Push 구독/해지 | `RATE_LIMIT_SUBSCRIBE` | `30/minute` | `POST/DELETE /notifications/subscriptions` |
 | 문의 접수 | `RATE_LIMIT_SUPPORT` | `1/minute` | `POST /support/contact` |
 | 커뮤니티 게시글 작성(멤버) | `RATE_LIMIT_POST_CREATE` | `5/minute` | `POST /posts` (멤버 작성 한정) |
@@ -75,7 +75,7 @@
    - 동작: `push_subscriptions`의 `endpoint/p256dh/auth`를 새 KEK로 재암호화. `endpoint_hash`는 평문 기준이므로 변경 없음
    - 성공 기준: 업데이트 건수=총 행수(이미 신규 키로 암호화된 행은 건너뜀)
 4) 앱 전환: 환경변수 `PUSH_KEK`를 NEW로 교체 후 롤링 재시작
-5) 검증: Admin UI에서 테스트 발송(최근 실패/성공·분포 확인). 이상 없으면 유지보수 종료
+5) 검증: Admin UI에서 알림 발송(최근 실패/성공·분포 확인). 이상 없으면 유지보수 종료
 6) 폐기: OLD 키 파기·감사로그 기록
 
 주의/한계

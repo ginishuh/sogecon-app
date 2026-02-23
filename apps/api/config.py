@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     # Rate limiting (SlowAPI) — default per-IP limit
     rate_limit_default: str = Field(default="120/minute", alias="RATE_LIMIT_DEFAULT")
     rate_limit_login: str = Field(default="5/minute", alias="RATE_LIMIT_LOGIN")
-    rate_limit_notify_test: str = Field(
-        default="1/minute", alias="RATE_LIMIT_NOTIFY_TEST"
+    rate_limit_notify_send: str = Field(
+        default="6/minute", alias="RATE_LIMIT_NOTIFY_SEND"
     )
     rate_limit_support: str = Field(default="1/minute", alias="RATE_LIMIT_SUPPORT")
     rate_limit_subscribe: str = Field(

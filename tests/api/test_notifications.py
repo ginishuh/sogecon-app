@@ -118,7 +118,7 @@ def test_admin_send_uses_provider_and_handles_410(admin_login: TestClient) -> No
     )
 
     res = client.post(
-        "/notifications/admin/notifications/test",
+        "/notifications/admin/notifications/send",
         json={"title": "t", "body": "b", "url": "https://example.com/x"},
     )
     assert res.status_code == HTTPStatus.ACCEPTED

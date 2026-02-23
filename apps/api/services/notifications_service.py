@@ -90,7 +90,7 @@ async def delete_subscription(db: AsyncSession, *, endpoint: str) -> None:
     await repo.delete_subscription(db, endpoint=endpoint)
 
 
-async def send_test_to_all(
+async def send_to_all(
     db: AsyncSession,
     provider: PushProvider,
     *,
