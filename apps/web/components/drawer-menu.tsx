@@ -7,6 +7,7 @@ import { NotifyCTA } from './notify-cta';
 import { logoutAll } from '../services/auth';
 import { useAuth } from '../hooks/useAuth';
 import { ADMIN_NAV_LINKS } from './admin-nav-links';
+import { InstallAppButton } from './install-app-button';
 import {
   hasPermissionSession,
   isAdminSession,
@@ -269,6 +270,10 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           )}
         </div>
       </RequireAdmin>
+
+      <div className="border-t border-neutral-border pt-4">
+        <InstallAppButton variant="drawer" />
+      </div>
 
       {/* 푸시 알림 구독 CTA */}
       <NotifyCTA />

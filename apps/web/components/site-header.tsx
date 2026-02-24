@@ -10,6 +10,7 @@ import { logoutAll } from '../services/auth';
 import { HeaderDropdown } from './header-dropdown';
 import { hasPermissionSession, isAdminSession } from '../lib/rbac';
 import { ADMIN_NAV_LINKS } from './admin-nav-links';
+import { InstallAppButton } from './install-app-button';
 
 const ABOUT_ITEMS = [
   { href: '/about/greeting', label: '총동문회장 인사말' },
@@ -97,6 +98,7 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
   if (status === 'authorized') {
     return (
       <div className="hidden lg:flex items-center gap-2">
+        <InstallAppButton />
         <Link
           href="/me"
           className="flex items-center gap-1.5 px-3 py-2 text-sm text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors"
@@ -123,6 +125,7 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
 
   return (
     <div className="hidden lg:flex items-center gap-2">
+      <InstallAppButton />
       <Link
         href="/login"
         className="px-3 py-2 text-sm text-white bg-brand-700 rounded-lg no-underline hover:no-underline hover:text-white hover:bg-brand-800 transition-colors"
