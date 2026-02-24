@@ -31,20 +31,42 @@ function isIOSSafari(): boolean {
   return isIOSDevice && isSafari;
 }
 
-// useEffect 등록 전에 발생하는 beforeinstallprompt 이벤트를 모듈 스코프에서 캡처.
-// 모바일 브라우저에서 페이지 로드 직후 이벤트가 발생하면 React 마운트가 아직
-// 완료되지 않아 리스너를 놓치는 타이밍 이슈를 방지합니다.
-let _earlyPromptEvent: BeforeInstallPromptEvent | null = null;
+type PromptListener = (event: BeforeInstallPromptEvent | null) => void;
 
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    _earlyPromptEvent = e as BeforeInstallPromptEvent;
-  }, { once: true });
+let _sharedPromptEvent: BeforeInstallPromptEvent | null = null;
+const _promptListeners = new Set<PromptListener>();
+let _globalPromptHandlersBound = false;
+
+function _setSharedPromptEvent(event: BeforeInstallPromptEvent | null) {
+  _sharedPromptEvent = event;
+  _promptListeners.forEach((listener) => listener(event));
 }
 
+function _subscribePrompt(listener: PromptListener): () => void {
+  _promptListeners.add(listener);
+  return () => {
+    _promptListeners.delete(listener);
+  };
+}
+
+function _bindGlobalPromptHandlers() {
+  if (typeof window === 'undefined' || _globalPromptHandlersBound) return;
+  _globalPromptHandlersBound = true;
+
+  // 전역 1회 바인딩: 여러 Install 버튼 인스턴스가 있어도 동일 prompt 상태를 공유.
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    _setSharedPromptEvent(event as BeforeInstallPromptEvent);
+  });
+  window.addEventListener('appinstalled', () => {
+    _setSharedPromptEvent(null);
+  });
+}
+
+_bindGlobalPromptHandlers();
+
 export function usePwaInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(_sharedPromptEvent);
   const [isInstalled, setIsInstalled] = useState(false);
   const [iosSafari, setIosSafari] = useState(false);
 
@@ -54,35 +76,19 @@ export function usePwaInstallPrompt() {
     setIosSafari(isIOSSafari());
     const syncInstalled = () => setIsInstalled(isStandaloneMode());
     syncInstalled();
-
-    // useEffect 등록 전에 캡처된 이벤트가 있으면 즉시 반영
-    if (_earlyPromptEvent) {
-      setDeferredPrompt(_earlyPromptEvent);
-      _earlyPromptEvent = null;
-    }
+    setDeferredPrompt(_sharedPromptEvent);
 
     const media = window.matchMedia('(display-mode: standalone)');
     const onDisplayModeChange = () => syncInstalled();
     media.addEventListener('change', onDisplayModeChange);
-
-    const onBeforeInstallPrompt = (event: BeforeInstallPromptEvent) => {
-      event.preventDefault();
-      _earlyPromptEvent = null;
-      setDeferredPrompt(event);
-    };
-    const onAppInstalled = () => {
-      setDeferredPrompt(null);
-      _earlyPromptEvent = null;
-      setIsInstalled(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+    const onAppInstalled = () => setIsInstalled(true);
     window.addEventListener('appinstalled', onAppInstalled);
+    const unsubscribe = _subscribePrompt((event) => setDeferredPrompt(event));
 
     return () => {
       media.removeEventListener('change', onDisplayModeChange);
-      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
       window.removeEventListener('appinstalled', onAppInstalled);
+      unsubscribe();
     };
   }, []);
 
@@ -90,6 +96,7 @@ export function usePwaInstallPrompt() {
     if (!deferredPrompt) return 'unavailable';
     await deferredPrompt.prompt();
     const choice = await deferredPrompt.userChoice;
+    _setSharedPromptEvent(null);
     setDeferredPrompt(null);
     if (choice.outcome === 'accepted') {
       setIsInstalled(true);
