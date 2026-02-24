@@ -6,7 +6,7 @@
  * - API 응답: 캐싱 안함 (인증/세션 데이터 보안)
  */
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const OFFLINE_CACHE = `offline-shell-${CACHE_VERSION}`;
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const IMAGE_CACHE = `images-${CACHE_VERSION}`;
@@ -94,6 +94,10 @@ function isImage(url) {
   return /\.(png|jpg|jpeg|gif|webp|avif|svg|ico)$/.test(url.pathname) || url.pathname.startsWith('/images/');
 }
 
+function isAppIconAsset(url) {
+  return url.pathname.startsWith('/icons/') || url.pathname === '/favicon.ico' || url.pathname === '/favicon.svg';
+}
+
 /**
  * Cache First 전략 — 정적 자산용
  * 캐시 히트 시 즉시 반환, 미스 시 네트워크 요청 후 캐싱
@@ -152,6 +156,10 @@ self.addEventListener('fetch', (event) => {
 
   // 이미지 — Cache First
   if (isImage(url)) {
+    // PWA 아이콘/파비콘은 최신 반영이 중요해 SW 이미지 캐시 대상에서 제외
+    if (isAppIconAsset(url)) {
+      return;
+    }
     event.respondWith(cacheFirst(event.request, IMAGE_CACHE));
     return;
   }

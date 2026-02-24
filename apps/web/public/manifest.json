@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "서강대학교 경제대학원 총동문회",
   "short_name": "서강경제동문회",
   "start_url": "/",
@@ -8,36 +9,26 @@
   "description": "서강대학교 경제대학원 총동문회",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icons/icon-192.png?v=20260224",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/icon-512.png?v=20260224",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "/icons/icon-192-maskable.png",
+      "src": "/icons/icon-192-maskable.png?v=20260224",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-512-maskable.png",
+      "src": "/icons/icon-512-maskable.png?v=20260224",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-192.svg",
-      "sizes": "192x192",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/icons/icon-512.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml"
     }
   ]
 }
