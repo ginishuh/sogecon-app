@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { usePushSync } from '../hooks/usePushSync';
 import { useToast } from './toast';
 import { ApiError } from '../lib/api';
-import { subscribePush, unsubscribePush } from '../lib/push';
+import { subscribePushWithReason, unsubscribePush } from '../lib/push';
 import { deleteSubscription, saveSubscription } from '../services/notifications';
 
 export function HeaderNotifyCTA() {
@@ -33,12 +33,19 @@ export function HeaderNotifyCTA() {
           toast.show('VAPID 키가 설정되지 않았습니다.', { type: 'error' });
           return;
         }
-        const result = await subscribePush(vapid);
-        if (!result) {
-          toast.show('알림 권한이 거부되었습니다.', { type: 'error' });
+        const attempt = await subscribePushWithReason(vapid);
+        if (!attempt.ok) {
+          const reasonMessage: Record<string, string> = {
+            unsupported: '이 브라우저는 웹 푸시를 지원하지 않습니다.',
+            permission_denied: '브라우저 설정에서 이 사이트의 알림 권한을 허용해 주세요.',
+            permission_dismissed: '알림 권한 요청이 취소되었습니다.',
+            service_worker_unavailable: '서비스 워커 등록에 실패했습니다. 새로고침 후 다시 시도해 주세요.',
+            subscribe_failed: '구독 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+          };
+          toast.show(reasonMessage[attempt.reason] ?? '알림 활성화에 실패했습니다.', { type: 'error' });
           return;
         }
-        await saveSubscription({ ...result, ua: navigator.userAgent });
+        await saveSubscription({ ...attempt.result, ua: navigator.userAgent });
         setSubscribed(true);
         toast.show('알림을 활성화했습니다.', { type: 'success' });
       }

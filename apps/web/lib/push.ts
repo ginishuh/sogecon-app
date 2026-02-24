@@ -8,6 +8,17 @@ export type SubscribeResult = {
   auth: string;
 };
 
+export type SubscribeFailureReason =
+  | 'unsupported'
+  | 'permission_denied'
+  | 'permission_dismissed'
+  | 'service_worker_unavailable'
+  | 'subscribe_failed';
+
+export type SubscribeAttemptResult =
+  | { ok: true; result: SubscribeResult }
+  | { ok: false; reason: SubscribeFailureReason };
+
 function canUsePush(): boolean {
   if (typeof window === 'undefined') return false;
   if (!isServiceWorkerEnabled()) return false;
@@ -63,17 +74,33 @@ export async function getCurrentSubscription(): Promise<PushSubscription | null>
   return await reg.pushManager.getSubscription();
 }
 
-export async function subscribePush(vapidPublicKey: string): Promise<SubscribeResult | null> {
-  if (!canUsePush()) return null;
+export async function subscribePushWithReason(vapidPublicKey: string): Promise<SubscribeAttemptResult> {
+  if (!canUsePush()) return { ok: false, reason: 'unsupported' };
+
   const permission = await Notification.requestPermission();
-  if (permission !== 'granted') return null;
+  if (permission === 'denied') return { ok: false, reason: 'permission_denied' };
+  if (permission !== 'granted') return { ok: false, reason: 'permission_dismissed' };
+
   const reg = await ensureServiceWorker();
-  if (!reg) return null;
-  const sub = await reg.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-  });
-  return subscriptionToResult(sub);
+  if (!reg) return { ok: false, reason: 'service_worker_unavailable' };
+
+  try {
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+    });
+    const result = subscriptionToResult(sub);
+    if (!result) return { ok: false, reason: 'subscribe_failed' };
+    return { ok: true, result };
+  } catch (error) {
+    console.info('Push subscribe failed', error);
+    return { ok: false, reason: 'subscribe_failed' };
+  }
+}
+
+export async function subscribePush(vapidPublicKey: string): Promise<SubscribeResult | null> {
+  const result = await subscribePushWithReason(vapidPublicKey);
+  return result.ok ? result.result : null;
 }
 
 export async function unsubscribePush(): Promise<string | null> {
