@@ -11,6 +11,7 @@ import { HeaderDropdown } from './header-dropdown';
 import { hasPermissionSession, isAdminSession } from '../lib/rbac';
 import { ADMIN_NAV_LINKS } from './admin-nav-links';
 import { InstallAppButton } from './install-app-button';
+import { HeaderNotifyCTA } from './header-notify-cta';
 
 const ABOUT_ITEMS = [
   { href: '/about/greeting', label: '총동문회장 인사말' },
@@ -99,6 +100,7 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
     return (
       <div className="hidden lg:flex items-center gap-2">
         <InstallAppButton />
+        <HeaderNotifyCTA />
         <Link
           href="/me"
           className="flex items-center gap-1.5 px-3 py-2 text-sm text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors"

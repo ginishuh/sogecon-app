@@ -31,6 +31,18 @@ function isIOSSafari(): boolean {
   return isIOSDevice && isSafari;
 }
 
+// useEffect 등록 전에 발생하는 beforeinstallprompt 이벤트를 모듈 스코프에서 캡처.
+// 모바일 브라우저에서 페이지 로드 직후 이벤트가 발생하면 React 마운트가 아직
+// 완료되지 않아 리스너를 놓치는 타이밍 이슈를 방지합니다.
+let _earlyPromptEvent: BeforeInstallPromptEvent | null = null;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    _earlyPromptEvent = e as BeforeInstallPromptEvent;
+  }, { once: true });
+}
+
 export function usePwaInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -43,16 +55,24 @@ export function usePwaInstallPrompt() {
     const syncInstalled = () => setIsInstalled(isStandaloneMode());
     syncInstalled();
 
+    // useEffect 등록 전에 캡처된 이벤트가 있으면 즉시 반영
+    if (_earlyPromptEvent) {
+      setDeferredPrompt(_earlyPromptEvent);
+      _earlyPromptEvent = null;
+    }
+
     const media = window.matchMedia('(display-mode: standalone)');
     const onDisplayModeChange = () => syncInstalled();
     media.addEventListener('change', onDisplayModeChange);
 
     const onBeforeInstallPrompt = (event: BeforeInstallPromptEvent) => {
       event.preventDefault();
+      _earlyPromptEvent = null;
       setDeferredPrompt(event);
     };
     const onAppInstalled = () => {
       setDeferredPrompt(null);
+      _earlyPromptEvent = null;
       setIsInstalled(true);
     };
 
