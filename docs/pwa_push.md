@@ -93,6 +93,7 @@ at-rest 암호화용 `PUSH_KEK`가 필요한 경우: `openssl rand -base64 32`
 
 ## 프런트엔드 구현 절차
 1. 매니페스트에 아이콘(192/512)과 `display: 'standalone'`, `start_url` 정의.
+   - 아이콘 파일 교체 시 `apps/web/public/manifest.json`의 아이콘 URL 버전 쿼리(`?v=YYYYMMDD`)를 함께 갱신해 런처 캐시를 강제 무효화한다.
 2. `sw-register.tsx`에서 서비스워커 등록 → `Notification.requestPermission()`은 온보딩 CTA(예: "행사 알림 받기")에서만 호출.
 3. `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: VAPID_PUBLIC_KEY })` 수행 후 구독을 API로 전송.
 4. 권한이 `denied`이면 재시도 버튼/가이드(브라우저 설정 열기)를 제공.
