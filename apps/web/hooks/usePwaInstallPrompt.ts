@@ -9,6 +9,12 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 };
 
+declare global {
+  interface WindowEventMap {
+    beforeinstallprompt: BeforeInstallPromptEvent;
+  }
+}
+
 function isStandaloneMode(): boolean {
   if (typeof window === 'undefined') return false;
   const nav = navigator as Navigator & { standalone?: boolean };
@@ -20,7 +26,7 @@ function isIOSSafari(): boolean {
   const ua = navigator.userAgent.toLowerCase();
   const isIOSDevice =
     /iphone|ipad|ipod/.test(ua) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    (navigator.maxTouchPoints > 1 && /macintosh/.test(ua));
   const isSafari = /safari/.test(ua) && !/crios|fxios|edgios|optios/.test(ua);
   return isIOSDevice && isSafari;
 }
@@ -39,31 +45,23 @@ export function usePwaInstallPrompt() {
 
     const media = window.matchMedia('(display-mode: standalone)');
     const onDisplayModeChange = () => syncInstalled();
-    if (typeof media.addEventListener === 'function') {
-      media.addEventListener('change', onDisplayModeChange);
-    } else {
-      media.addListener(onDisplayModeChange);
-    }
+    media.addEventListener('change', onDisplayModeChange);
 
-    const onBeforeInstallPrompt = (event: Event) => {
+    const onBeforeInstallPrompt = (event: BeforeInstallPromptEvent) => {
       event.preventDefault();
-      setDeferredPrompt(event as BeforeInstallPromptEvent);
+      setDeferredPrompt(event);
     };
     const onAppInstalled = () => {
       setDeferredPrompt(null);
       setIsInstalled(true);
     };
 
-    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt as EventListener);
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
     window.addEventListener('appinstalled', onAppInstalled);
 
     return () => {
-      if (typeof media.removeEventListener === 'function') {
-        media.removeEventListener('change', onDisplayModeChange);
-      } else {
-        media.removeListener(onDisplayModeChange);
-      }
-      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt as EventListener);
+      media.removeEventListener('change', onDisplayModeChange);
+      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
       window.removeEventListener('appinstalled', onAppInstalled);
     };
   }, []);

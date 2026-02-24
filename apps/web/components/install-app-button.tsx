@@ -69,7 +69,7 @@ export function InstallAppButton({ variant = 'desktop' }: InstallAppButtonProps)
       type="button"
       disabled={busy}
       onClick={onClick}
-      className="px-3 py-2 text-sm text-brand-700 border border-brand-700 rounded-lg hover:bg-brand-50 transition-colors disabled:opacity-50"
+      className="px-3 py-2 text-sm text-brand-primary border border-brand-primary rounded-lg hover:bg-brand-primary/5 transition-colors disabled:opacity-50"
     >
       앱 설치
     </button>
