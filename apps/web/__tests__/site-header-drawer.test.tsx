@@ -2,8 +2,9 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import React, { type ReactNode } from 'react';
 import { vi } from 'vitest';
 
-import { SiteHeader } from '../components/site-header';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SiteHeader } from '../components/site-header';
+import { ToastProvider } from '../components/toast';
 
 // DrawerMenu dynamic import mock — 닫기 버튼은 실제 Drawer 헤더에서 제공
 vi.mock('../components/lazy', () => ({
@@ -22,14 +23,20 @@ vi.mock('../components/require-admin', () => ({
   ),
 }));
 
+function renderSiteHeaderWithProviders() {
+  const queryClient = new QueryClient();
+  render(
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <SiteHeader />
+      </ToastProvider>
+    </QueryClientProvider>
+  );
+}
+
 describe('SiteHeader drawer', () => {
   it('opens drawer and closes on button click', async () => {
-    const qc = new QueryClient();
-    render(
-      <QueryClientProvider client={qc}>
-        <SiteHeader />
-      </QueryClientProvider>
-    );
+    renderSiteHeaderWithProviders();
     const toggle = screen.getByLabelText('전체 메뉴 열기');
     toggle.focus();
     fireEvent.click(toggle);
@@ -45,12 +52,7 @@ describe('SiteHeader drawer', () => {
   });
 
   it('closes with Escape key', async () => {
-    const qc = new QueryClient();
-    render(
-      <QueryClientProvider client={qc}>
-        <SiteHeader />
-      </QueryClientProvider>
-    );
+    renderSiteHeaderWithProviders();
     const toggle = screen.getByLabelText('전체 메뉴 열기');
     toggle.focus();
     fireEvent.click(toggle);

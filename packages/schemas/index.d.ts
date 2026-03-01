@@ -1936,7 +1936,7 @@ export interface components {
             /** Major */
             major?: string | null;
             /** Phone */
-            phone?: string | null;
+            phone: string;
             /** Note */
             note?: string | null;
         };
