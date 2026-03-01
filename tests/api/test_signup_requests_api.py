@@ -245,3 +245,5 @@ def test_member_signup_phone_required_422(client: TestClient) -> None:
     )
 
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    detail = response.json()["detail"]
+    assert any("phone" in str(err.get("loc", "")) for err in detail)

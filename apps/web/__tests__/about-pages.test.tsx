@@ -5,9 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import GreetingPage from '../app/about/greeting/page';
 import OrgPage from '../app/about/org/page';
 import HistoryPage from '../app/about/history/page';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SiteHeader } from '../components/site-header';
-import { ToastProvider } from '../components/toast';
+import { renderSiteHeaderWithProviders } from './helpers/render-site-header-with-providers';
 
 // DrawerMenu dynamic import mock
 vi.mock('../components/lazy', () => ({
@@ -34,17 +32,6 @@ vi.mock('../components/require-admin', () => ({
 afterEach(() => {
   cleanup();
 });
-
-function renderSiteHeaderWithProviders() {
-  const queryClient = new QueryClient();
-  render(
-    <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <SiteHeader />
-      </ToastProvider>
-    </QueryClientProvider>
-  );
-}
 
 describe('About static pages', () => {
   it('renders greeting page hero and sections', () => {
