@@ -5,8 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import GreetingPage from '../app/about/greeting/page';
 import OrgPage from '../app/about/org/page';
 import HistoryPage from '../app/about/history/page';
-import { SiteHeader } from '../components/site-header';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderSiteHeaderWithProviders } from './helpers/render-site-header-with-providers';
 
 // DrawerMenu dynamic import mock
 vi.mock('../components/lazy', () => ({
@@ -63,12 +62,7 @@ describe('About static pages', () => {
 
 describe('SiteHeader navigation', () => {
   it('exposes about links through drawer menu', () => {
-    const qc = new QueryClient();
-    render(
-      <QueryClientProvider client={qc}>
-        <SiteHeader />
-      </QueryClientProvider>
-    );
+    renderSiteHeaderWithProviders();
     const toggleButton = screen.getByLabelText('전체 메뉴 열기');
     fireEvent.click(toggleButton);
 

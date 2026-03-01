@@ -6181,14 +6181,7 @@
             "title": "Major"
           },
           "phone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Phone"
           },
           "note": {
@@ -6208,7 +6201,8 @@
           "student_id",
           "email",
           "name",
-          "cohort"
+          "cohort",
+          "phone"
         ],
         "title": "SignupRequestCreate"
       },

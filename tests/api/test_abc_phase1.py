@@ -41,6 +41,7 @@ def _create_signup_and_approve(
             "email": f"{student_id}@example.com",
             "name": "ABC One",
             "cohort": 1,
+            "phone": "010-3000-4000",
         },
     )
     assert signup_res.status_code == HTTPStatus.CREATED
@@ -100,6 +101,7 @@ def test_member_activate_pending_blocked_401(admin_login: TestClient) -> None:
             "email": "abc-pending@example.com",
             "name": "Pending",
             "cohort": 1,
+            "phone": "010-3000-4001",
         },
     )
     assert signup_res.status_code == HTTPStatus.CREATED

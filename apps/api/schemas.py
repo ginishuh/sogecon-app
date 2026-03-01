@@ -244,15 +244,15 @@ class SignupRequestCreate(BaseModel):
     name: str
     cohort: int
     major: str | None = None
-    phone: str | None = None
+    phone: str
     note: str | None = None
 
     @field_validator("phone")
     @classmethod
-    def _validate_phone(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
+    def _validate_phone(cls, value: str) -> str:
         trimmed = value.strip()
+        if not trimmed:
+            raise ValueError("전화번호를 입력해 주세요.")
         if not _PHONE_PATTERN.fullmatch(trimmed):
             raise ValueError("전화번호는 숫자, +, -, 공백으로만 7~20자 입력해주세요.")
         return normalize_phone_digits(trimmed)

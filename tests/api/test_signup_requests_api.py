@@ -56,6 +56,7 @@ def test_member_signup_duplicate_pending_returns_409(client: TestClient) -> None
         "email": "s116002@test.example.com",
         "name": "신청자",
         "cohort": 2024,
+        "phone": "010-2000-3000",
     }
     first = client.post("/auth/member/signup", json=payload)
     assert first.status_code == HTTPStatus.CREATED
@@ -88,6 +89,7 @@ def test_member_signup_active_member_conflict_returns_409(client: TestClient) ->
             "email": "s116003@test.example.com",
             "name": "신청자",
             "cohort": 2024,
+            "phone": "010-2000-3001",
         },
     )
 
@@ -106,6 +108,7 @@ def test_admin_signup_review_approve_and_reject(
             "email": "s116004@test.example.com",
             "name": "승인대상",
             "cohort": 2024,
+            "phone": "010-2000-3002",
             "note": "승인 요청",
         },
     )
@@ -154,6 +157,7 @@ def test_admin_signup_review_approve_and_reject(
             "email": "s116005@test.example.com",
             "name": "반려대상",
             "cohort": 2024,
+            "phone": "010-2000-3003",
         },
     )
     assert reject_create.status_code == HTTPStatus.CREATED
@@ -177,6 +181,7 @@ def test_admin_signup_reissue_token_and_logs(admin_login: TestClient) -> None:
             "email": "s116007@test.example.com",
             "name": "재발급대상",
             "cohort": 2024,
+            "phone": "010-2000-3004",
         },
     )
     assert create_res.status_code == HTTPStatus.CREATED
@@ -216,6 +221,7 @@ def test_reissue_requires_approved_status(admin_login: TestClient) -> None:
             "email": "s116006@test.example.com",
             "name": "재발급대기",
             "cohort": 2024,
+            "phone": "010-2000-3005",
         },
     )
     assert create_res.status_code == HTTPStatus.CREATED
@@ -225,3 +231,19 @@ def test_reissue_requires_approved_status(admin_login: TestClient) -> None:
     assert res.status_code == HTTPStatus.CONFLICT
     body = res.json()
     assert body["code"] == "signup_request_not_approved"
+
+
+def test_member_signup_phone_required_422(client: TestClient) -> None:
+    response = client.post(
+        "/auth/member/signup",
+        json={
+            "student_id": "s116008",
+            "email": "s116008@test.example.com",
+            "name": "전화없음",
+            "cohort": 2024,
+        },
+    )
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    detail = response.json()["detail"]
+    assert any("phone" in str(err.get("loc", "")) for err in detail)

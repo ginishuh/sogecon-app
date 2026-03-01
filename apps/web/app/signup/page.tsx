@@ -73,8 +73,15 @@ export default function SignupPage() {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const cohort = parseCohort(form.cohort);
+    const phone = form.phone.trim();
     if (cohort == null) {
       const message = '기수를 숫자로 입력해 주세요.';
+      setFeedback({ tone: 'error', message });
+      show(message, { type: 'error' });
+      return;
+    }
+    if (!phone) {
+      const message = '연락처를 입력해 주세요.';
       setFeedback({ tone: 'error', message });
       show(message, { type: 'error' });
       return;
@@ -87,7 +94,7 @@ export default function SignupPage() {
       name: form.name.trim(),
       cohort,
       major: form.major.trim() || null,
-      phone: form.phone.trim() || null,
+      phone,
       note: form.note.trim() || null,
     });
   };
@@ -215,8 +222,9 @@ export default function SignupPage() {
         </label>
 
         <label className="text-sm text-text-primary">
-          연락처(선택)
+          연락처
           <input
+            required
             className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
             value={form.phone}
             onChange={(e) => {
