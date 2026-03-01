@@ -6,7 +6,13 @@ import { SiteHeader } from '../../components/site-header';
 import { ToastProvider } from '../../components/toast';
 
 export function renderSiteHeaderWithProviders(): void {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   render(
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
