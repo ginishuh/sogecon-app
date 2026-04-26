@@ -26,6 +26,18 @@ This is the canonical, English “Agents Base” for this repository. All agent-
   - `SECURITY.md` — vulnerability reporting and security contact.
 - If guidance here conflicts with a domain SSOT, the domain SSOT prevails for that scope; this guide still governs code‑quality and agent behavior.
 
+
+## VPS Operations Rules (/srv)
+- Run deployment and operations commands from the target repository path under `/srv/<repo>`.
+- Before starting, verify `pwd` and `git remote -v` so the repository and remote are explicit.
+- Do not mix deployment scripts, Compose files, or environment files across repositories.
+- Keep secrets out of git: never commit `.env`, key files, certificates, tokens, or database backups.
+- Bind public-facing services to `127.0.0.1` when possible and expose them through Nginx/reverse proxy.
+- Before risky production changes, confirm the backup/snapshot and rollback path.
+- After deployment, verify state from the same repository context with service status, health checks, and recent logs.
+- Common post-deploy helper: `/root/scripts/post_deploy_check.sh <repo-name|repo-path> [health_url ...]`.
+- For incident reports in Korean, use `현상 → 영향 → 조치 → 검증 → 재발 방지` and write absolute timestamps such as `2026-04-26 14:30 KST`.
+
 ## Quality Guardrails (Non‑negotiable)
 
 ### 1) No Lint/Type Overrides (Default: Forbidden)
