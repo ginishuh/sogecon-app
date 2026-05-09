@@ -166,9 +166,9 @@ Do NOT disable linters or type checkers globally or per file.
   - Installation (once per machine, local dev): `uvx --from git+https://github.com/oraios/serena serena --help`.
   - Project setup for this repo (local only, do NOT commit `.serena/`):
     - From the repository root: `serena project create --name sogecon-app --language python --index .`
-  - Start MCP server when using MCP-aware tools (Claude, Codex CLI, Codex CLI/VSCode integrations, etc.) with no hardcoded project:
-    - `serena start-mcp-server --transport stdio`
-  - At the beginning of a session, call `activate_project` once to set the current repository root as the active Serena project.
+  - If the MCP server is launched from this repo's local `.codex/config.toml`, bind it to this checkout with explicit `--project <repo-path>`; that is a repo-local setting, not a global Serena setting.
+  - If a shared/global Serena server is launched with `--project-from-cwd` or without a hardcoded project, call `activate_project` once at session start.
+  - Do not bake a repo-specific `--project` into global/shared MCP config.
   - For code analysis/refactors/reference tracing or symbol/call-graph work, prefer Serena tools first; for trivial single-file or few-line edits, you may skip Serena and edit directly.
   - The `.serena/` directory contains absolute paths and caches; keep it untracked and add it to `.gitignore` if missing.
 - Context7 MCP (official docs lookup):

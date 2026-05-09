@@ -166,9 +166,9 @@
   - 설치(개인 개발 환경 1회): `uvx --from git+https://github.com/oraios/serena serena --help`
   - 이 레포용 프로젝트 생성(로컬 전용, `.serena/`는 커밋 금지):
     - 레포 루트에서: `serena project create --name sogecon-app --language python --index .`
-  - MCP 지원 도구(Claude, Codex CLI, Codex/VSCode 통합 등)에서 사용할 때 MCP 서버 기동:
-    - `serena start-mcp-server --transport stdio` (커맨드에는 `--project`를 박지 않는다).
-  - 세션 시작 시 한 번은 `activate_project`를 호출해 현재 레포 루트를 Serena 프로젝트로 활성화한다.
+  - 이 리포의 local `.codex/config.toml`에서 MCP 서버를 띄우는 경우에는 명시적 `--project <repo-path>`로 이 checkout에 바인딩합니다. 이는 repo-local 설정이지 전역 Serena 설정이 아닙니다.
+  - 공유/전역 Serena 서버가 `--project-from-cwd` 또는 hardcoded project 없이 시작된 경우에는 세션 시작 시 한 번 `activate_project`를 호출합니다.
+  - 전역/공유 MCP config에는 리포 전용 `--project`를 박지 않습니다.
   - 코드 분석/리팩터링/참조 추적/심볼·호출 그래프처럼 여러 파일이 엮인 작업은 Serena MCP를 우선 사용하고, 한 파일·몇 줄 정도의 사소한 수정이라면 Serena 호출 없이 바로 수정해도 된다.
   - `.serena/` 디렉터리는 절대경로와 캐시를 포함하므로, 항상 Git 추적 대상에서 제외하고 `.gitignore`에 추가되어 있는지 확인합니다.
 - Context7 MCP(공식 문서 조회):
