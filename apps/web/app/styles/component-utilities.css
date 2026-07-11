@@ -309,20 +309,6 @@
 }
 
 /* Figma 프리뷰 전용 헤더 단순화 — 데스크톱에도 햄버거를 노출하고, 우측 내비/인증 영역은 감춤 */
-@utility is-figma-preview {
-  &body .site-header__desktop-nav {
-    display: none !important;
-  }
-  & body .site-header__desktop-menus {
-    display: none !important;
-  }
-  & body .site-header__auth {
-    display: none !important;
-  }
-  &body .site-header__hamburger {
-    display: inline-flex !important;
-  }
-}
 @utility site-header__desktop-nav {
   body.is-figma-preview & {
     display: none !important;

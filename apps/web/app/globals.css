@@ -2,8 +2,7 @@
 @import './styles/tailwind-theme.css';
 @import './styles/component-utilities.css';
 
-@layer utilities {
-  :root {
+:root {
     color-scheme: light;
     --surface-background: #ffffff; /* 화면 전체 배경: 흰색으로 통일 */
     --surface-card: #ffffff;
@@ -15,9 +14,9 @@
     --brand-primary: #8a1e2d;
     --brand-primary-dark: #6c1722;
     --brand-accent: #f4a259;
-  }
+}
 
-  body {
+body {
     min-height: 100vh;
     margin: 0;
     background: var(--surface-background);
@@ -35,9 +34,9 @@
     line-height: 1.6;
     display: flex;
     flex-direction: column;
-  }
+}
 
-  main {
+main {
     margin: 0 auto;
     width: 100%;
     max-width: 72rem;
@@ -45,49 +44,49 @@
     display: flex;
     flex-direction: column;
     gap: 0;
-  }
+}
 
-  main:focus {
+main:focus {
     outline: none;
-  }
+}
 
-  @media (min-width: 768px) {
+@media (min-width: 768px) {
     body {
       font-size: 1rem;
     } /* 16px */
     main {
       padding: 1.5rem 2rem 4rem;
     }
-  }
+}
 
   /* 링크 스타일: 전역 강제 금지(B안) — 텍스트 링크만 .text-link로 통일 */
-  .text-link {
+.text-link {
     color: var(--color-brand-700);
     transition: color 150ms ease;
     text-decoration: none;
-  }
-  .text-link:visited {
+}
+.text-link:visited {
     color: var(--color-brand-600);
-  }
-  .text-link:hover {
+}
+.text-link:hover {
     color: var(--color-brand-800);
     text-decoration: underline;
-  }
-  .text-link:active {
+}
+.text-link:active {
     color: var(--color-brand-900);
-  }
-  .text-link:focus-visible {
+}
+.text-link:focus-visible {
     outline: none;
     text-decoration: underline;
-  }
+}
 
   /* 포커스 링 — 토큰 기반 ring */
-  :where(button, [role='button'], a, input, select, textarea):focus-visible {
+:where(button, [role='button'], a, input, select, textarea):focus-visible {
     outline: none;
     @apply ring-2 ring-brand-400 ring-offset-2 ring-offset-surface;
-  }
+}
 
-  .skip-link {
+.skip-link {
     position: absolute;
     top: 1rem;
     left: 1.5rem;
@@ -98,28 +97,27 @@
     transform: translateY(-200%);
     transition: transform 150ms ease;
     z-index: 50;
-  }
+}
 
-  .skip-link:focus {
+.skip-link:focus {
     transform: translateY(0);
     outline: none;
     box-shadow: 0 0 0 4px rgba(244, 162, 89, 0.55);
-  }
+}
 
-  .site-footer {
+.site-footer {
     margin: 0 auto;
     width: 100%;
     max-width: 72rem;
     padding: 2rem 1.5rem 3rem;
     color: var(--text-muted);
     font-size: 0.75rem;
-  }
+}
 
-  @media (min-width: 768px) {
+@media (min-width: 768px) {
     .site-footer {
       padding: 2rem 2.5rem 4rem;
     }
-  }
 }
 
 @layer components {

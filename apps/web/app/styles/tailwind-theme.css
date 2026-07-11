@@ -136,4 +136,20 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentcolor);
   }
+
+  /* Tailwind CSS 3 Preflight의 입력·대화상자·클릭 affordance를 유지한다. */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+    opacity: 1;
+  }
+
+  dialog {
+    margin: auto;
+  }
 }
