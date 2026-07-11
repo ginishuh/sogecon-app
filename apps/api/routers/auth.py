@@ -8,13 +8,16 @@
 """
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel
+from pydantic import AfterValidator, BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
 from ..config import get_settings
 from ..db import get_db
+from ..passwords import validate_password_for_hash
 from ..ratelimit import consume_limit
 from ..services import signup_service
 from ..services.auth_service import (
@@ -51,6 +54,8 @@ def _is_test_client(request: Request) -> bool:
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+NewPassword = Annotated[str, AfterValidator(validate_password_for_hash)]
+
 
 # ---- 요청 페이로드 ----
 
@@ -67,12 +72,12 @@ class MemberLoginPayload(BaseModel):
 
 class MemberActivatePayload(BaseModel):
     token: str
-    password: str
+    password: NewPassword
 
 
 class ChangePasswordPayload(BaseModel):
     current_password: str
-    new_password: str
+    new_password: NewPassword
 
 
 # ---- 통합 로그인/로그아웃 ----

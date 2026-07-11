@@ -103,6 +103,52 @@ def test_login_failure(client: TestClient) -> None:
     assert res.json()["code"] == "login_failed"
 
 
+def test_login_preserves_legacy_password_truncation(client: TestClient) -> None:
+    password_prefix = "a" * 72
+    _seed_admin(client, "legacy-long-password", password_prefix)
+
+    res = client.post(
+        "/auth/login",
+        json={
+            "student_id": "legacy-long-password",
+            "password": f"{password_prefix}legacy-suffix",
+        },
+    )
+
+    assert res.status_code == HTTPStatus.OK
+
+
+def test_activate_rejects_new_password_over_72_utf8_bytes(
+    client: TestClient,
+) -> None:
+    res = client.post(
+        "/auth/member/activate",
+        json={"token": "not-used", "password": "한" * 25},
+    )
+
+    assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert "UTF-8 기준 72바이트" in str(res.json())
+
+
+def test_change_password_rejects_new_password_over_72_utf8_bytes(
+    client: TestClient,
+) -> None:
+    _seed_admin(client, "password-boundary", "current-password")
+    login = client.post(
+        "/auth/login",
+        json={"student_id": "password-boundary", "password": "current-password"},
+    )
+    assert login.status_code == HTTPStatus.OK
+
+    res = client.post(
+        "/auth/member/change-password",
+        json={"current_password": "current-password", "new_password": "a" * 73},
+    )
+
+    assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert "UTF-8 기준 72바이트" in str(res.json())
+
+
 def test_login_pending_member_returns_pending_reason(client: TestClient) -> None:
     override = app.dependency_overrides.get(get_db)
     if override is None:

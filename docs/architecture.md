@@ -57,6 +57,7 @@
 - 프런트 처리: `code`를 기준으로 UX 분기(예: `member_exists` → 필드 하이라이트, `rsvp_exists` → 안내 토스트).
 
 ## 인증/권한(요약)
+- 비밀번호: bcrypt 5를 사용하며 신규 설정은 UTF-8 기준 72바이트 이하만 허용한다. 기존 bcrypt 4 해시는 로그인 시 첫 72바이트 검증 의미를 보존해 재해시 없이 호환한다.
 - 로그인: `POST /auth/login`(email, password) → 세션 쿠키 발급(HttpOnly, SameSite=Lax; prod Secure).
 - 세션 조회: `GET /auth/me` → `{ id, email }`.
 - 로그아웃: `POST /auth/logout` → 세션 제거.

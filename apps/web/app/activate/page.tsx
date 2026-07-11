@@ -7,6 +7,7 @@ import { useToast } from '../../components/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { ApiError } from '../../lib/api';
 import { apiErrorToMessage } from '../../lib/error-map';
+import { isPasswordWithinBcryptLimit, PASSWORD_TOO_LONG_MESSAGE } from '../../lib/password';
 import { activate } from '../../services/member';
 
 type Feedback = {
@@ -48,6 +49,11 @@ function ActivateForm() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isPasswordWithinBcryptLimit(password)) {
+      setFeedback({ tone: 'error', message: PASSWORD_TOO_LONG_MESSAGE });
+      toast.show(PASSWORD_TOO_LONG_MESSAGE, { type: 'error' });
+      return;
+    }
     setBusy(true);
     setFeedback(null);
     try {

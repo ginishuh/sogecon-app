@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useToast } from '../../../components/toast';
 import { useAuth } from '../../../hooks/useAuth';
+import { isPasswordWithinBcryptLimit, PASSWORD_TOO_LONG_MESSAGE } from '../../../lib/password';
 import { changePassword } from '../../../services/member';
 
 export default function ChangePasswordPage() {
@@ -14,6 +15,10 @@ export default function ChangePasswordPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isPasswordWithinBcryptLimit(nw)) {
+      toast.show(PASSWORD_TOO_LONG_MESSAGE, { type: 'error' });
+      return;
+    }
     setBusy(true);
     try {
       await changePassword({ current_password: cur, new_password: nw });
@@ -44,4 +49,3 @@ export default function ChangePasswordPage() {
     </div>
   );
 }
-

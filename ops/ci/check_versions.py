@@ -165,7 +165,7 @@ def check_requirements() -> None:
             "pydantic-settings==2.14.2",
             "python-multipart==0.0.32",
             "slowapi==0.1.10",
-            "bcrypt==4.2.0",
+            "bcrypt==5.0.0",
             "itsdangerous==2.2.0",
             "email-validator==2.3.0",
             "pywebpush==2.3.0",
