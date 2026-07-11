@@ -40,7 +40,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   const isDisabled = disabled || loading;
   const classes = [
     'inline-flex items-center justify-center rounded-md font-medium transition-colors select-none',
-    'focus-visible:outline-none ring-offset-2 ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50',
+    'focus-visible:outline-hidden ring-offset-2 ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50',
     VARIANT[variant],
     SIZE[size],
     className ?? '',

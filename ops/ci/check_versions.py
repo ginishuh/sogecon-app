@@ -41,12 +41,12 @@ def check_package_json() -> None:
             "eslint-import-resolver-typescript": "3.10.1",
             "eslint-plugin-promise": "7.3.0",
             "typescript": "5.9.3",
-            "autoprefixer": "10.5.2",
+            "@tailwindcss/postcss": "4.3.2",
             "axe-core": "4.12.1",
             "baseline-browser-mapping": "2.10.42",
             "postcss": "8.5.16",
             "puppeteer": "24.43.1",
-            "tailwindcss": "3.4.19",
+            "tailwindcss": "4.3.2",
         },
     }
 

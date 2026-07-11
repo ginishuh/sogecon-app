@@ -47,7 +47,7 @@ export function SiteHeader() {
         </Link>
 
         {/* 데스크톱 네비게이션 */}
-        <nav className="hidden lg:flex items-center gap-0.5" aria-label="주요 메뉴">
+        <nav className="site-header__desktop-nav hidden lg:flex items-center gap-0.5" aria-label="주요 메뉴">
           <HeaderDropdown label="총동문회 소개" items={ABOUT_ITEMS} />
           <Link href="/posts" className="px-2 py-2 font-kopub text-base text-neutral-ink no-underline hover:no-underline hover:text-brand-700 transition-colors">
             소식
@@ -72,7 +72,7 @@ export function SiteHeader() {
         {/* 모바일 햄버거 버튼 */}
         <button
           type="button"
-          className="lg:hidden inline-flex items-center justify-center rounded-md border border-brand-200 px-3 py-2 text-sm text-brand-700 transition hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-700"
+          className="site-header__hamburger lg:hidden inline-flex items-center justify-center rounded-md border border-brand-200 px-3 py-2 text-sm text-brand-700 transition hover:bg-brand-50 hover:text-brand-800 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-700"
           aria-controls="primary-navigation"
           aria-expanded={open}
           aria-label={open ? '전체 메뉴 닫기' : '전체 메뉴 열기'}
@@ -98,7 +98,7 @@ export function SiteHeader() {
 function DesktopAuthButtons({ status, name }: { status: string; name?: string }) {
   if (status === 'authorized') {
     return (
-      <div className="hidden lg:flex items-center gap-2">
+      <div className="site-header__auth hidden lg:flex items-center gap-2">
         <InstallAppButton />
         <HeaderNotifyCTA />
         <Link
@@ -126,7 +126,7 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
   }
 
   return (
-    <div className="hidden lg:flex items-center gap-2">
+    <div className="site-header__auth hidden lg:flex items-center gap-2">
       <InstallAppButton />
       <Link
         href="/login"

@@ -1,99 +1,123 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import './styles/tailwind-theme.css';
+@import './styles/component-utilities.css';
 
 :root {
-  color-scheme: light;
-  --surface-background: #ffffff; /* 화면 전체 배경: 흰색으로 통일 */
-  --surface-card: #ffffff;
-  --surface-muted: #fdf8f2;
-  --text-primary: #1f242d;
-  --text-muted: #626b79;
-  --border-soft: #e3d7cf;
-  --focus-ring: #f4a259;
-  --brand-primary: #8a1e2d;
-  --brand-primary-dark: #6c1722;
-  --brand-accent: #f4a259;
+    color-scheme: light;
+    --surface-background: #ffffff; /* 화면 전체 배경: 흰색으로 통일 */
+    --surface-card: #ffffff;
+    --surface-muted: #fdf8f2;
+    --text-primary: #1f242d;
+    --text-muted: #626b79;
+    --border-soft: #e3d7cf;
+    --focus-ring: #f4a259;
+    --brand-primary: #8a1e2d;
+    --brand-primary-dark: #6c1722;
+    --brand-accent: #f4a259;
 }
 
 body {
-  min-height: 100vh;
-  margin: 0;
-  background: var(--surface-background);
-  color: var(--text-primary);
-  /* 전역 폰트: next/font 변수를 우선 사용(시스템 폰트로 안전한 폴백) */
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  /* 타이포 스케일 — 모바일 기준 body 15px → md 이상 16px */
-  font-size: 0.9375rem; /* 15px */
-  line-height: 1.6;
-  display: flex;
-  flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    background: var(--surface-background);
+    color: var(--text-primary);
+    /* 전역 폰트: next/font 변수를 우선 사용(시스템 폰트로 안전한 폴백) */
+    font-family:
+      var(--font-sans),
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      system-ui,
+      sans-serif;
+    /* 타이포 스케일 — 모바일 기준 body 15px → md 이상 16px */
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
 }
 
 main {
-  margin: 0 auto;
-  width: 100%;
-  max-width: 72rem;
-  padding: 1rem 1rem 3rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 72rem;
+    padding: 1rem 1rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
 main:focus {
-  outline: none;
+    outline: none;
 }
 
 @media (min-width: 768px) {
-  body { font-size: 1rem; } /* 16px */
-  main { padding: 1.5rem 2rem 4rem; }
+    body {
+      font-size: 1rem;
+    } /* 16px */
+    main {
+      padding: 1.5rem 2rem 4rem;
+    }
 }
 
-/* 링크 스타일: 전역 강제 금지(B안) — 텍스트 링크만 .text-link로 통일 */
-.text-link { color: theme(colors.brand.700); transition: color 150ms ease; text-decoration: none; }
-.text-link:visited { color: theme(colors.brand.600); }
-.text-link:hover { color: theme(colors.brand.800); text-decoration: underline; }
-.text-link:active { color: theme(colors.brand.900); }
-.text-link:focus-visible { outline: none; text-decoration: underline; }
+  /* 링크 스타일: 전역 강제 금지(B안) — 텍스트 링크만 .text-link로 통일 */
+.text-link {
+    color: var(--color-brand-700);
+    transition: color 150ms ease;
+    text-decoration: none;
+}
+.text-link:visited {
+    color: var(--color-brand-600);
+}
+.text-link:hover {
+    color: var(--color-brand-800);
+    text-decoration: underline;
+}
+.text-link:active {
+    color: var(--color-brand-900);
+}
+.text-link:focus-visible {
+    outline: none;
+    text-decoration: underline;
+}
 
-/* 포커스 링 — 토큰 기반 ring */
-:where(button, [role="button"], a, input, select, textarea):focus-visible {
-  outline: none;
-  @apply ring-2 ring-brand-400 ring-offset-2 ring-offset-surface;
+  /* 포커스 링 — 토큰 기반 ring */
+:where(button, [role='button'], a, input, select, textarea):focus-visible {
+    outline: none;
+    @apply ring-2 ring-brand-400 ring-offset-2 ring-offset-surface;
 }
 
 .skip-link {
-  position: absolute;
-  top: 1rem;
-  left: 1.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 9999px;
-  background: var(--brand-primary);
-  color: #ffffff;
-  transform: translateY(-200%);
-  transition: transform 150ms ease;
-  z-index: 50;
+    position: absolute;
+    top: 1rem;
+    left: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    background: var(--brand-primary);
+    color: #ffffff;
+    transform: translateY(-200%);
+    transition: transform 150ms ease;
+    z-index: 50;
 }
 
 .skip-link:focus {
-  transform: translateY(0);
-  outline: none;
-  box-shadow: 0 0 0 4px rgba(244, 162, 89, 0.55);
+    transform: translateY(0);
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(244, 162, 89, 0.55);
 }
 
 .site-footer {
-  margin: 0 auto;
-  width: 100%;
-  max-width: 72rem;
-  padding: 2rem 1.5rem 3rem;
-  color: var(--text-muted);
-  font-size: 0.75rem;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 72rem;
+    padding: 2rem 1.5rem 3rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
 }
 
 @media (min-width: 768px) {
-  .site-footer {
-    padding: 2rem 2.5rem 4rem;
-  }
+    .site-footer {
+      padding: 2rem 2.5rem 4rem;
+    }
 }
 
 @layer components {
@@ -106,285 +130,53 @@ main:focus {
     h2 { @apply text-2xl; } /* 약 24px */
     h3 { @apply text-xl; }  /* 약 20px */
   }
-  .about-page {
-    @apply flex flex-col gap-16;
-  }
-
-  .about-hero {
-    @apply grid gap-8 rounded-3xl bg-white px-6 py-10 shadow-soft md:grid-cols-[1.3fr_1fr] md:px-10;
-  }
-
-  .about-hero__text {
-    @apply flex flex-col gap-4;
-  }
-
-  .about-hero__eyebrow {
-    @apply text-xs font-semibold uppercase tracking-widest text-neutral-muted;
-  }
-
-  .about-hero__title {
-    @apply font-heading text-display-xl text-brand-primary;
-  }
-
-  .about-hero__description {
-    @apply text-lg text-neutral-muted;
-  }
-
-  .about-hero__image {
-    @apply flex items-center justify-center;
-  }
-
-  .about-section {
-    @apply grid gap-8 rounded-3xl bg-white px-6 py-10 shadow-sm md:grid-cols-[1.1fr_0.9fr] md:px-10;
-  }
-
-  .about-section--stacked {
-    @apply flex flex-col gap-10 bg-brand-surface shadow-none;
-  }
-
-  .about-section--timeline {
-    @apply bg-white;
-  }
-
-  .about-section--highlight {
-    @apply bg-white shadow-soft;
-  }
-
-  .about-section__content {
-    @apply flex flex-col gap-4 text-base leading-7 text-neutral-muted;
-  }
-
-  .about-section__heading {
-    @apply font-heading text-2xl font-semibold text-brand-primary md:text-3xl;
-  }
-
-  .about-section__figure {
-    @apply flex items-center justify-center;
-  }
-
-  .about-section__list {
-    @apply grid gap-6 md:grid-cols-3;
-  }
-
-  .about-section__card {
-    @apply flex h-full flex-col gap-3 rounded-2xl border border-neutral-border bg-white p-6 shadow-sm;
-  }
-
-  .about-section__card-title {
-    @apply font-heading text-lg font-semibold text-brand-primary;
-  }
-
-  .about-section__dl {
-    @apply mt-2 flex flex-col gap-2 text-sm;
-  }
-
-  .about-section__dl dt {
-    @apply text-xs font-medium uppercase tracking-wide text-neutral-muted;
-  }
-
-  .about-section__dl dd {
-    @apply text-neutral-ink;
-  }
-
-  .about-section__card p {
-    @apply text-sm text-neutral-muted;
-  }
-
-  .about-timeline {
-    @apply relative flex flex-col gap-10;
-  }
-
-  .about-timeline::before {
-    @apply absolute left-3 top-0 h-full w-0.5 bg-neutral-border content-[''];
-  }
-
-  .about-timeline__item {
-    @apply relative flex gap-5 pl-8;
-  }
-
-  .about-timeline__marker {
-    @apply absolute left-[-3px] top-1.5 h-4 w-4 rounded-full border-4 border-brand-primary bg-white;
-  }
-
-  .about-timeline__content {
-    @apply flex flex-col gap-1 rounded-xl bg-white p-5 shadow-sm;
-  }
-
-  .about-timeline__year {
-    @apply text-xs font-semibold uppercase tracking-wider text-brand-primary;
-  }
-
-  .about-timeline__title {
-    @apply font-heading text-lg font-semibold text-neutral-ink;
-  }
-
-  .about-contact-list {
-    @apply grid gap-4 md:grid-cols-3;
-  }
-
-  .about-contact-list__item {
-    @apply rounded-xl border border-neutral-border bg-white p-5 shadow-sm;
-  }
-
-  .about-contact-list__term {
-    @apply text-xs font-semibold uppercase tracking-widest text-neutral-muted;
-  }
-
-  .about-contact-list__description {
-    @apply mt-1 text-sm text-neutral-ink;
-  }
-
-  .home-hero {
-    /* 모바일 높이 축소: 여백·격자 간격 축소, md 이상은 기존 값 유지 */
-    @apply grid gap-6 rounded-3xl bg-white/95 px-5 py-8 shadow-soft md:grid-cols-[1.2fr_1fr] md:px-12 md:py-12 md:gap-10;
-  }
-
-  .home-hero__eyebrow {
-    @apply text-xs font-semibold uppercase tracking-widest text-neutral-muted;
-  }
-
-  .home-hero__title {
-    /* 모바일 타이틀 크기 하향: 텍스트 줄바꿈 최소화 */
-    @apply font-heading text-h1 text-brand-primary md:text-display-xl;
-  }
-
-  .home-hero__description {
-    /* 본문 크기 축소(15px 스케일) */
-    @apply text-body leading-7 text-neutral-muted;
-  }
-
-  .home-hero__actions {
-    @apply mt-6 flex flex-wrap gap-3;
-  }
-
-  .home-hero__cta {
-    @apply inline-flex items-center justify-center rounded-full bg-brand-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-primaryDark focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-accent;
-  }
-
-  .home-hero__secondary {
-    @apply inline-flex items-center justify-center rounded-full border border-neutral-border px-6 py-3 text-sm font-semibold text-neutral-ink transition hover:border-brand-primary hover:text-brand-primary focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-accent;
-  }
-
-  .home-hero__image {
-    @apply hidden self-center rounded-3xl bg-brand-surface p-4 shadow-sm md:block;
-  }
-
-  .home-card-grid {
-    @apply grid gap-6 md:grid-cols-2 lg:grid-cols-3;
-  }
-
-  .home-card {
-    @apply flex h-full flex-col justify-between rounded-2xl border border-neutral-border bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-soft focus-within:ring-4 focus-within:ring-brand-accent;
-  }
-
-  .home-card__title {
-    @apply font-heading text-xl font-semibold text-neutral-ink;
-  }
-
-  .home-card__description {
-    @apply mt-3 text-sm text-neutral-muted;
-  }
-
-  .home-card__meta {
-    @apply mt-6 flex items-center justify-between text-xs uppercase tracking-widest text-neutral-muted;
-  }
 }
 
-/* 홈: Quick Actions (2×2) */
-@layer components {
-  .home-quick-actions { @apply px-0 py-0 bg-transparent shadow-none rounded-none; }
+/* Figma 프리뷰 전용 헤더 단순화 */
+body.is-figma-preview .site-header__desktop-nav,
+body.is-figma-preview .site-header__auth {
+  display: none !important;
+}
 
-  .home-quick-actions__grid { @apply grid grid-cols-3 gap-3 md:gap-4 lg:grid-cols-6; }
+body.is-figma-preview .site-header__hamburger {
+  display: inline-flex !important;
+}
 
-  .home-quick-actions__item {
-    @apply flex flex-col items-center justify-center gap-2 rounded-2xl px-3 py-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:ring-4 focus-visible:ring-brand-accent md:px-4;
-    aspect-ratio: 1 / 1; /* 정사각형 카드 */
+@layer utilities {
+  /* Figma 프리뷰 — 모바일 레이아웃 보정(히어로 풀블리드 + 3×2 빠른 실행) */
+  @media (max-width: 767px) {
+    /* 히어로를 뷰포트 가로폭으로 확장(컨테이너 패딩 무시) */
+    body.is-figma-preview .home-hero-carousel {
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+      border-radius: 0 !important;
+    }
+    body.is-figma-preview .home-hero__figure {
+      border-radius: 0 !important;
+    }
+    body.is-figma-preview .home-hero__caption {
+      left: 12px;
+      right: 12px;
+      bottom: 10px;
+      border-radius: 8px;
+      max-width: none;
+    }
+
+    /* 빠른 실행: 좌우 여백 복원 + 3×2 간격 축소 */
+    body.is-figma-preview .home-quick-actions {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    body.is-figma-preview .home-quick-actions__grid {
+      gap: 0.5rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    body.is-figma-preview .home-quick-actions__item {
+      border-radius: 1rem;
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
   }
 
-  .home-quick-actions__icon { @apply mb-2 inline-flex h-10 w-10 items-center justify-center text-white; }
-
-  .home-quick-actions__label { @apply font-menu text-sm font-semibold tracking-tight leading-none md:text-base truncate whitespace-nowrap max-w-full; }
-
-  .home-quick-actions__desc { @apply hidden; }
-}
-
-/* 빠른 실행: 색상 변형(action.* 토큰 기반) */
-@layer components {
-  .home-quick-actions__item[class*="qa-"] { @apply border-0 text-white; }
-  .home-quick-actions__item.qa-rose { @apply bg-action-rose hover:bg-action-rose-hover; }
-  .home-quick-actions__item.qa-emerald { @apply bg-action-emerald hover:bg-action-emerald-hover; }
-  .home-quick-actions__item.qa-sky { @apply bg-action-sky hover:bg-action-sky-hover; }
-  .home-quick-actions__item.qa-amber { @apply bg-action-amber hover:bg-action-amber-hover; }
-  .home-quick-actions__item.qa-indigo { @apply bg-action-indigo hover:bg-action-indigo-hover; }
-  .home-quick-actions__item.qa-slate { @apply bg-action-slate hover:bg-action-slate-hover; }
-  .home-quick-actions__item[class*="qa-"] .home-quick-actions__label { @apply text-white; }
-  .home-quick-actions__item[class*="qa-"] .home-quick-actions__desc { @apply text-white/90; }
-}
-
-/* 홈: 히어로 이미지 — 모바일 숨김 유지, md 이상에서만 표시 */
-@layer components {
-  .home-hero__image { @apply relative hidden self-center overflow-hidden rounded-3xl bg-brand-surface p-0 shadow-sm md:block md:p-0; }
-  .home-hero__image::after { content: ''; position: absolute; inset: 0; @apply rounded-3xl; background: linear-gradient(to top, rgba(0,0,0,0.25), rgba(0,0,0,0.08)); pointer-events: none; }
-}
-
-/* 홈: 미니멀 히어로(이미지 + 좌하단 캡션 1줄) */
-@layer components {
-  .home-hero--image-only { @apply overflow-hidden rounded-3xl bg-transparent p-0 shadow-none; }
-  .home-hero__figure { @apply relative block overflow-hidden rounded-3xl; aspect-ratio: 16/9; }
-  .home-hero__media { @apply absolute inset-0 h-full w-full object-cover; }
-  /* 오버레이 제거, 텍스트 영역만 바 처리 */
-  .home-hero__figure::after { content: none; }
-  /* 하단 캡션 — 불투명도 높은 검은색 바 + 흰색 볼드 텍스트 */
-  .home-hero__caption { @apply absolute bottom-3 left-3 max-w-[88%] truncate rounded-lg bg-black/85 px-3 py-1.5 text-sm font-bold text-white md:text-base; }
-}
-
-/* Figma 프리뷰 전용 헤더 단순화 — 데스크톱에도 햄버거를 노출하고, 우측 내비/인증 영역은 감춤 */
-@layer components {
-  body.is-figma-preview .site-header__desktop-nav,
-  body.is-figma-preview .site-header__desktop-menus,
-  body.is-figma-preview .site-header__auth {
-    display: none !important;
-  }
-  body.is-figma-preview .site-header__hamburger {
-    display: inline-flex !important;
-  }
-}
-
-/* Figma 프리뷰 — 모바일 레이아웃 보정(히어로 풀블리드 + 3×2 빠른 실행) */
-@media (max-width: 767px) {
-  /* 히어로를 뷰포트 가로폭으로 확장(컨테이너 패딩 무시) */
-  body.is-figma-preview .home-hero--image-only {
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
-    border-radius: 0 !important;
-  }
-  body.is-figma-preview .home-hero__figure { border-radius: 0 !important; }
-  body.is-figma-preview .home-hero__caption {
-    left: 12px; right: 12px; bottom: 10px; border-radius: 8px;
-    max-width: none;
-  }
-
-  /* 빠른 실행: 좌우 여백 복원 + 3×2 간격 축소 */
-  body.is-figma-preview .home-quick-actions { padding-left: 1rem; padding-right: 1rem; }
-  body.is-figma-preview .home-quick-actions__grid { gap: 0.5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  body.is-figma-preview .home-quick-actions__item { border-radius: 1rem; padding-top: 0.75rem; padding-bottom: 0.75rem; }
-}
-
-/* 공용: full-bleed 컨테이너(메인 컨테이너 패딩/폭을 무시하고 뷰포트 끝까지 확장) */
-@layer components {
-  .full-bleed { margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); }
-  .full-bleed .home-hero--image-only, .full-bleed .home-hero__figure { border-radius: 0 !important; }
-}
-
-/* 홈: 히어로 캐러셀 */
-@layer components {
-  .hero-carousel { @apply relative; }
-  .hero-track { @apply flex transition-transform duration-500; }
-  .hero-slide { @apply min-w-full; }
-  .hero-arrow { @apply absolute top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white backdrop-blur hover:bg-black/60 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-accent; }
-  .hero-arrow--prev { @apply left-2 md:left-3; }
-  .hero-arrow--next { @apply right-2 md:right-3; }
-  .hero-dots { @apply mt-2 flex items-center justify-center gap-2; }
-  .hero-dot { @apply h-2.5 w-2.5 rounded-full bg-neutral-muted/60; }
-  .hero-dot.is-active { @apply bg-brand-primary; }
+  /* 공용: full-bleed 컨테이너(메인 컨테이너 패딩/폭을 무시하고 뷰포트 끝까지 확장) */
 }

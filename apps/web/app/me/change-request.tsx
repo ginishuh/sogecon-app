@@ -92,7 +92,7 @@ function InlineForm({ fieldName, currentValue, hasPending, onClose }: InlineForm
           새 {label} (현재: {currentValue})
         </span>
         <input
-          className="rounded border border-neutral-border px-2 py-1 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-400"
+          className="rounded border border-neutral-border px-2 py-1 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-1 focus:ring-brand-400"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={`새 ${label} 입력`}

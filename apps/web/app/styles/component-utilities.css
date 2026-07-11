@@ -1,0 +1,354 @@
+@utility about-page {
+  @apply flex flex-col gap-16;
+}
+
+@utility about-hero {
+  @apply grid gap-8 rounded-3xl bg-white px-6 py-10 shadow-soft md:grid-cols-[1.3fr_1fr] md:px-10;
+}
+
+@utility about-hero__text {
+  @apply flex flex-col gap-4;
+}
+
+@utility about-hero__eyebrow {
+  @apply text-xs font-semibold uppercase tracking-widest text-neutral-muted;
+}
+
+@utility about-hero__title {
+  @apply font-heading text-display-xl text-brand-primary;
+}
+
+@utility about-hero__description {
+  @apply text-lg text-neutral-muted;
+}
+
+@utility about-hero__image {
+  @apply flex items-center justify-center;
+}
+
+@utility about-section {
+  @apply grid gap-8 rounded-3xl bg-white px-6 py-10 shadow-sm md:grid-cols-[1.1fr_0.9fr] md:px-10;
+}
+
+@utility about-section--stacked {
+  @apply flex flex-col gap-10 bg-brand-surface shadow-none;
+}
+
+@utility about-section--timeline {
+  @apply bg-white;
+}
+
+@utility about-section--highlight {
+  @apply bg-white shadow-soft;
+}
+
+@utility about-section__content {
+  @apply flex flex-col gap-4 text-base leading-7 text-neutral-muted;
+}
+
+@utility about-section__heading {
+  @apply font-heading text-2xl font-semibold text-brand-primary md:text-3xl;
+}
+
+@utility about-section__figure {
+  @apply flex items-center justify-center;
+}
+
+@utility about-section__list {
+  @apply grid gap-6 md:grid-cols-3;
+}
+
+@utility about-section__card {
+  @apply flex h-full flex-col gap-3 rounded-2xl border border-neutral-border bg-white p-6 shadow-sm;
+
+  & p {
+    @apply text-sm text-neutral-muted;
+  }
+}
+
+@utility about-section__card-title {
+  @apply font-heading text-lg font-semibold text-brand-primary;
+}
+
+@utility about-section__dl {
+  @apply mt-2 flex flex-col gap-2 text-sm;
+
+  & dt {
+    @apply text-xs font-medium uppercase tracking-wide text-neutral-muted;
+  }
+
+  & dd {
+    @apply text-neutral-ink;
+  }
+}
+
+@utility about-timeline {
+  @apply relative flex flex-col gap-10;
+
+  &::before {
+    @apply absolute left-3 top-0 h-full w-0.5 bg-neutral-border content-[''];
+  }
+}
+
+@utility about-timeline__item {
+  @apply relative flex gap-5 pl-8;
+}
+
+@utility about-timeline__marker {
+  @apply absolute left-[-3px] top-1.5 h-4 w-4 rounded-full border-4 border-brand-primary bg-white;
+}
+
+@utility about-timeline__content {
+  @apply flex flex-col gap-1 rounded-xl bg-white p-5 shadow-sm;
+}
+
+@utility about-timeline__year {
+  @apply text-xs font-semibold uppercase tracking-wider text-brand-primary;
+}
+
+@utility about-timeline__title {
+  @apply font-heading text-lg font-semibold text-neutral-ink;
+}
+
+@utility about-contact-list {
+  @apply grid gap-4 md:grid-cols-3;
+}
+
+@utility about-contact-list__item {
+  @apply rounded-xl border border-neutral-border bg-white p-5 shadow-sm;
+}
+
+@utility about-contact-list__term {
+  @apply text-xs font-semibold uppercase tracking-widest text-neutral-muted;
+}
+
+@utility about-contact-list__description {
+  @apply mt-1 text-sm text-neutral-ink;
+}
+
+@utility home-hero {
+  /* 모바일 높이 축소: 여백·격자 간격 축소, md 이상은 기존 값 유지 */
+  @apply grid gap-6 rounded-3xl bg-white/95 px-5 py-8 shadow-soft md:grid-cols-[1.2fr_1fr] md:px-12 md:py-12 md:gap-10;
+}
+
+@utility home-hero__eyebrow {
+  @apply text-xs font-semibold uppercase tracking-widest text-neutral-muted;
+}
+
+@utility home-hero__title {
+  /* 모바일 타이틀 크기 하향: 텍스트 줄바꿈 최소화 */
+  @apply font-heading text-h1 text-brand-primary md:text-display-xl;
+}
+
+@utility home-hero__description {
+  /* 본문 크기 축소(15px 스케일) */
+  @apply text-body leading-7 text-neutral-muted;
+}
+
+@utility home-hero__actions {
+  @apply mt-6 flex flex-wrap gap-3;
+}
+
+@utility home-hero__cta {
+  @apply inline-flex items-center justify-center rounded-full bg-brand-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-primaryDark focus:outline-hidden focus-visible:ring-4 focus-visible:ring-brand-accent;
+}
+
+@utility home-hero__secondary {
+  @apply inline-flex items-center justify-center rounded-full border border-neutral-border px-6 py-3 text-sm font-semibold text-neutral-ink transition hover:border-brand-primary hover:text-brand-primary focus:outline-hidden focus-visible:ring-4 focus-visible:ring-brand-accent;
+}
+
+@utility home-hero__image {
+  @apply hidden self-center rounded-3xl bg-brand-surface p-4 shadow-sm md:block;
+  @apply relative hidden self-center overflow-hidden rounded-3xl bg-brand-surface p-0 shadow-sm md:block md:p-0;
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    @apply rounded-3xl;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.25),
+      rgba(0, 0, 0, 0.08)
+    );
+    pointer-events: none;
+  }
+}
+
+@utility home-card-grid {
+  @apply grid gap-6 md:grid-cols-2 lg:grid-cols-3;
+}
+
+@utility home-card {
+  @apply flex h-full flex-col justify-between rounded-2xl border border-neutral-border bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-soft focus-within:ring-4 focus-within:ring-brand-accent;
+}
+
+@utility home-card__title {
+  @apply font-heading text-xl font-semibold text-neutral-ink;
+}
+
+@utility home-card__description {
+  @apply mt-3 text-sm text-neutral-muted;
+}
+
+@utility home-card__meta {
+  @apply mt-6 flex items-center justify-between text-xs uppercase tracking-widest text-neutral-muted;
+}
+
+/* 홈: Quick Actions (2×2) */
+@utility home-quick-actions {
+  @apply px-0 py-0 bg-transparent shadow-none rounded-none;
+}
+@utility home-quick-actions__grid {
+  @apply grid grid-cols-3 gap-3 md:gap-4 lg:grid-cols-6;
+}
+@utility home-quick-actions__item {
+  @apply flex flex-col items-center justify-center gap-2 rounded-2xl px-3 py-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:ring-4 focus-visible:ring-brand-accent md:px-4;
+  aspect-ratio: 1 / 1; /* 정사각형 카드 */
+  &[class*='qa-'] {
+    @apply border-0 text-white;
+  }
+  &.qa-rose {
+    @apply bg-action-rose hover:bg-action-rose-hover;
+  }
+  &.qa-emerald {
+    @apply bg-action-emerald hover:bg-action-emerald-hover;
+  }
+  &.qa-sky {
+    @apply bg-action-sky hover:bg-action-sky-hover;
+  }
+  &.qa-amber {
+    @apply bg-action-amber hover:bg-action-amber-hover;
+  }
+  &.qa-indigo {
+    @apply bg-action-indigo hover:bg-action-indigo-hover;
+  }
+  &.qa-slate {
+    @apply bg-action-slate hover:bg-action-slate-hover;
+  }
+  &[class*='qa-'] .home-quick-actions__label {
+    @apply text-white;
+  }
+  &[class*='qa-'] .home-quick-actions__desc {
+    @apply text-white/90;
+  }
+}
+@utility home-quick-actions__icon {
+  @apply mb-2 inline-flex h-10 w-10 items-center justify-center text-white;
+}
+@utility home-quick-actions__label {
+  @apply font-menu text-sm font-semibold tracking-tight leading-none md:text-base truncate whitespace-nowrap max-w-full;
+  .home-quick-actions__item[class*='qa-'] & {
+    @apply text-white;
+  }
+}
+@utility home-quick-actions__desc {
+  @apply hidden;
+  .home-quick-actions__item[class*='qa-'] & {
+    @apply text-white/90;
+  }
+}
+
+/* 빠른 실행: 색상 변형(action.* 토큰 기반) */
+@utility qa-rose {
+  &.home-quick-actions__item {
+    @apply bg-action-rose hover:bg-action-rose-hover;
+  }
+}
+@utility qa-emerald {
+  &.home-quick-actions__item {
+    @apply bg-action-emerald hover:bg-action-emerald-hover;
+  }
+}
+@utility qa-sky {
+  &.home-quick-actions__item {
+    @apply bg-action-sky hover:bg-action-sky-hover;
+  }
+}
+@utility qa-amber {
+  &.home-quick-actions__item {
+    @apply bg-action-amber hover:bg-action-amber-hover;
+  }
+}
+@utility qa-indigo {
+  &.home-quick-actions__item {
+    @apply bg-action-indigo hover:bg-action-indigo-hover;
+  }
+}
+@utility qa-slate {
+  &.home-quick-actions__item {
+    @apply bg-action-slate hover:bg-action-slate-hover;
+  }
+}
+
+/* 홈: 히어로 이미지 — 모바일 숨김 유지, md 이상에서만 표시 */
+
+/* 홈: 미니멀 히어로(이미지 + 좌하단 캡션 1줄) */
+@utility home-hero--image-only {
+  @apply overflow-hidden rounded-3xl bg-transparent p-0 shadow-none;
+  .full-bleed & {
+    border-radius: 0 !important;
+  }
+}
+@utility home-hero__figure {
+  @apply relative block overflow-hidden rounded-3xl;
+  aspect-ratio: 16/9;
+  /* 오버레이 제거, 텍스트 영역만 바 처리 */
+  &::after {
+    content: none;
+  }
+  .full-bleed & {
+    border-radius: 0 !important;
+  }
+}
+@utility home-hero__media {
+  @apply absolute inset-0 h-full w-full object-cover;
+}
+@utility home-hero__caption {
+  /* 하단 캡션 — 불투명도 높은 검은색 바 + 흰색 볼드 텍스트 */
+  @apply absolute bottom-3 left-3 max-w-[88%] truncate rounded-lg bg-black/85 px-3 py-1.5 text-sm font-bold text-white md:text-base;
+}
+
+@utility full-bleed {
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  & .home-hero--image-only {
+    border-radius: 0 !important;
+  }
+  & .home-hero__figure {
+    border-radius: 0 !important;
+  }
+}
+
+/* 홈: 히어로 캐러셀 */
+@utility hero-carousel {
+  @apply relative;
+}
+@utility hero-track {
+  @apply flex transition-transform duration-500;
+}
+@utility hero-slide {
+  @apply min-w-full;
+}
+@utility hero-arrow {
+  @apply absolute top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white backdrop-blur-sm hover:bg-black/60 focus:outline-hidden focus-visible:ring-4 focus-visible:ring-brand-accent;
+}
+@utility hero-arrow--prev {
+  @apply left-2 md:left-3;
+}
+@utility hero-arrow--next {
+  @apply right-2 md:right-3;
+}
+@utility hero-dots {
+  @apply mt-2 flex items-center justify-center gap-2;
+}
+@utility hero-dot {
+  @apply h-2.5 w-2.5 rounded-full bg-neutral-muted/60;
+  &.is-active {
+    @apply bg-brand-primary;
+  }
+}
+@utility is-active {
+  &.hero-dot {
+    @apply bg-brand-primary;
+  }
+}

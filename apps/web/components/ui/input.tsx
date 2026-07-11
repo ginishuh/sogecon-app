@@ -24,7 +24,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const classes = [
     'block w-full rounded-md border bg-white px-3 py-2',
     'text-text-primary placeholder:text-text-muted',
-    'border-neutral-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
+    'border-neutral-border focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
     invalid ? 'border-state-error' : '',
     className ?? '',
   ]

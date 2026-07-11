@@ -120,11 +120,11 @@ function AdminSupportPageContent() {
                     {formatDate(item.created_at)}
                   </td>
                   <td className="max-w-[220px] p-2 font-medium text-text-primary">
-                    <p className="line-clamp-2 break-words">{item.subject}</p>
+                    <p className="line-clamp-2 wrap-break-word">{item.subject}</p>
                   </td>
                   <td className="max-w-[420px] p-2 text-text-secondary">
                     <p
-                      className="line-clamp-3 whitespace-pre-wrap break-words"
+                      className="line-clamp-3 whitespace-pre-wrap wrap-break-word"
                       title={item.body}
                     >
                       {item.body}

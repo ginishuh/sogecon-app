@@ -25,7 +25,7 @@ export function SwUpdateBanner() {
         <button
           type="button"
           onClick={applyUpdate}
-          className="rounded bg-state-success px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-state-success-hover focus:outline-none focus:ring-2 focus:ring-state-success-ring focus:ring-offset-2 focus:ring-offset-brand-700"
+          className="rounded bg-state-success px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-state-success-hover focus:outline-hidden focus:ring-2 focus:ring-state-success-ring focus:ring-offset-2 focus:ring-offset-brand-700"
         >
           새로고침
         </button>
@@ -33,7 +33,7 @@ export function SwUpdateBanner() {
           type="button"
           onClick={dismissBanner}
           aria-label="닫기"
-          className="rounded p-1 text-text-muted transition-colors hover:bg-brand-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-neutral-border"
+          className="rounded p-1 text-text-muted transition-colors hover:bg-brand-600 hover:text-white focus:outline-hidden focus:ring-2 focus:ring-neutral-border"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

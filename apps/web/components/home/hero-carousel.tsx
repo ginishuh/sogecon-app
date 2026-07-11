@@ -155,7 +155,7 @@ export default function HomeHeroCarousel() {
 
   return (
     <section
-      className="relative h-[218px] md:h-[320px] lg:h-[420px] overflow-hidden rounded-2xl shadow-xl"
+      className="home-hero-carousel relative h-[218px] md:h-[320px] lg:h-[420px] overflow-hidden rounded-2xl shadow-xl"
       aria-label="홈 배너"
       role="region"
       aria-roledescription="carousel"
@@ -199,7 +199,7 @@ export default function HomeHeroCarousel() {
               </div>
 
               {/* 그라디언트 오버레이 */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
 
               {/* 텍스트 컨텐츠 — 반응형 정렬: 모바일(중앙), 데스크톱(하단 좌측) */}
               <div className="absolute inset-0 flex items-end justify-start px-6 pb-6">
@@ -216,7 +216,7 @@ export default function HomeHeroCarousel() {
                   <div className="mt-3">
                     <Link
                       href={{ pathname: s.href }}
-                      className="inline-flex items-center gap-1 rounded-full bg-brand-primary px-3 py-1.5 text-sm text-white shadow-sm transition-colors hover:bg-brand-primaryDark hover:text-white hover:no-underline focus:outline-none focus-visible:text-white focus-visible:no-underline focus-visible:ring-2 focus-visible:ring-white/70 active:bg-brand-primaryDark active:text-white"
+                      className="inline-flex items-center gap-1 rounded-full bg-brand-primary px-3 py-1.5 text-sm text-white shadow-sm transition-colors hover:bg-brand-primaryDark hover:text-white hover:no-underline focus:outline-hidden focus-visible:text-white focus-visible:no-underline focus-visible:ring-2 focus-visible:ring-white/70 active:bg-brand-primaryDark active:text-white"
                       aria-label={`${s.title} 자세히 보기`}
                     >
                       자세히 보기
@@ -236,7 +236,7 @@ export default function HomeHeroCarousel() {
           <>
             <button
               aria-label="이전 배너"
-              className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-white/30 backdrop-blur-sm hover:bg-white/40 transition-colors"
+              className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-white/30 backdrop-blur-xs hover:bg-white/40 transition-colors"
               onClick={prev}
             >
               <svg aria-hidden="true" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -245,7 +245,7 @@ export default function HomeHeroCarousel() {
             </button>
             <button
               aria-label="다음 배너"
-              className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-white/30 backdrop-blur-sm hover:bg-white/40 transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-white/30 backdrop-blur-xs hover:bg-white/40 transition-colors"
               onClick={next}
             >
               <svg aria-hidden="true" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">

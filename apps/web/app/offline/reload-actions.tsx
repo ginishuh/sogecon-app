@@ -12,13 +12,13 @@ export function OfflineActionButtons() {
       <button
         type="button"
         onClick={() => window.location.reload()}
-        className="w-full rounded-md bg-brand-primary px-4 py-2 text-base font-medium text-white shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-brand-primary/60 sm:w-auto"
+        className="w-full rounded-md bg-brand-primary px-4 py-2 text-base font-medium text-white shadow-sm focus:outline-hidden focus-visible:ring-3 focus-visible:ring-brand-primary/60 sm:w-auto"
       >
         다시 시도
       </button>
       <Link
         href="/"
-        className="w-full rounded-md border border-brand-primary px-4 py-2 text-center text-base font-medium text-brand-primary focus:outline-none focus-visible:ring focus-visible:ring-brand-primary/60 sm:w-auto"
+        className="w-full rounded-md border border-brand-primary px-4 py-2 text-center text-base font-medium text-brand-primary focus:outline-hidden focus-visible:ring-3 focus-visible:ring-brand-primary/60 sm:w-auto"
       >
         홈으로 이동
       </Link>

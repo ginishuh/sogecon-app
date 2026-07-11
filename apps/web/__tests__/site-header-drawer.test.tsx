@@ -22,6 +22,13 @@ vi.mock('../components/require-admin', () => ({
 }));
 
 describe('SiteHeader drawer', () => {
+  it('Figma 프리뷰용 헤더 selector hook을 유지한다', () => {
+    renderSiteHeaderWithProviders();
+
+    expect(screen.getByRole('navigation', { name: '주요 메뉴' })).toHaveClass('site-header__desktop-nav');
+    expect(screen.getByLabelText('전체 메뉴 열기')).toHaveClass('site-header__hamburger');
+  });
+
   it('opens drawer and closes on button click', async () => {
     renderSiteHeaderWithProviders();
     const toggle = screen.getByLabelText('전체 메뉴 열기');

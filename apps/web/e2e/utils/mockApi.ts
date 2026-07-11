@@ -21,6 +21,38 @@ async function respondCorsPreflight(request: HTTPRequest, url: URL): Promise<boo
   return true;
 }
 
+async function respondHeroApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  if (request.method() !== 'GET' || url.pathname !== '/hero/') return false;
+  await request.respond({
+    status: 200,
+    contentType: 'application/json',
+    headers: corsHeaders,
+    body: JSON.stringify([
+      {
+        id: 1,
+        target_type: 'post',
+        target_id: 1,
+        title: 'E2E 첫 번째 배너',
+        description: 'Tailwind 시각 회귀 검증용 첫 번째 배너',
+        image: '/images/home/hero-launch.svg',
+        href: '/posts',
+        unpublished: false,
+      },
+      {
+        id: 2,
+        target_type: 'event',
+        target_id: 1,
+        title: 'E2E 두 번째 배너',
+        description: 'Tailwind 시각 회귀 검증용 두 번째 배너',
+        image: '/images/home/hero.svg',
+        href: '/events',
+        unpublished: false,
+      },
+    ]),
+  });
+  return true;
+}
+
 async function respondDirectoryApi(request: HTTPRequest, url: URL): Promise<boolean> {
   const method = request.method();
   const path = url.pathname;
@@ -84,6 +116,7 @@ export async function setupDirectoryMocks(page: Page): Promise<void> {
   const handler = async (request: HTTPRequest): Promise<void> => {
     try {
       const url = new URL(request.url());
+      if (await respondHeroApi(request, url)) return;
       if (await respondDirectoryApi(request, url)) return;
       await request.continue();
     } catch {

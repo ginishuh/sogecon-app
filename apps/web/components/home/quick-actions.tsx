@@ -93,16 +93,16 @@ const ACTIONS: QuickAction[] = [
 
 export function HomeQuickActions() {
   return (
-    <section aria-labelledby="home-quick-actions" className="mt-8 lg:hidden">
+    <section aria-labelledby="home-quick-actions" className="home-quick-actions mt-8 lg:hidden">
       <h2 id="home-quick-actions" className="sr-only">빠른 실행</h2>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="home-quick-actions__grid grid grid-cols-3 gap-3">
         {ACTIONS.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             aria-label={item.ariaLabel ?? item.label}
             className={cn(
-              'relative flex flex-col items-center justify-center h-[107px] rounded-2xl shadow-md transition-transform hover:scale-105',
+              'home-quick-actions__item relative flex flex-col items-center justify-center h-[107px] rounded-2xl shadow-md transition-transform hover:scale-105',
               item.bgColor
             )}
           >
