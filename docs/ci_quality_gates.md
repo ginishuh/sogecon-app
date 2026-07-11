@@ -64,7 +64,7 @@ git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 | gitleaks | 비밀 | ✅ | — | — | 전체 히스토리 fetch |
 | Semgrep | 정적 패턴 | ✅ | — | — | `p/ci` |
 | Bandit | Python API | ✅ | — | — | pre-push에서도 Python 변경 시 |
-| pip-audit | Python deps | ✅ | — | — | strict; Starlette waiver 추적 |
+| pip-audit | Python deps | ✅ | — | — | strict (`--strict`) |
 | pnpm audit | Web prod deps | ✅ | — | — | `--audit-level=high` |
 | CodeQL | JS/TS, Python | ✅ | ✅ | **매주 월요일 07:00 UTC** (`cron: 0 7 * * 1`) | GitHub Security 탭 |
 
