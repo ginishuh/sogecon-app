@@ -12,7 +12,7 @@ export default [
   // 빌드 산출물, 설정 파일, 스크립트, 자동 생성 파일 무시
   { ignores: ['**/.next/**', '**/*.mjs', '**/*.cjs', 'next-env.d.ts'] },
 
-  // Load equivalent of our .eslintrc.json
+  // 기존 ESLint 9 규칙은 #186의 flat config 전환 전까지 유지한다.
   ...compat.config({
     extends: ['next/core-web-vitals', 'plugin:@typescript-eslint/recommended'],
     parser: '@typescript-eslint/parser',

@@ -22,12 +22,13 @@ def check_package_json() -> None:
     expected_deps = {
         "dependencies": {
             "@tanstack/react-query": "5.101.2",
-            "next": "15.5.20",
+            "next": "16.2.10",
             "react": "19.2.7",
             "react-dom": "19.2.7",
         },
         "devDependencies": {
             "@eslint/eslintrc": "3.3.6",
+            "@next/bundle-analyzer": "16.2.10",
             "@testing-library/jest-dom": "6.9.1",
             "@testing-library/react": "16.3.2",
             "@types/node": "24.13.3",

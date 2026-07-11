@@ -6,9 +6,9 @@ vi.mock('../lib/csp', () => ({
 }));
 
 import { buildCspDirective } from '../lib/csp';
-import { middleware } from '../middleware';
+import { proxy } from '../proxy';
 
-describe('middleware', () => {
+describe('proxy', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -26,7 +26,7 @@ describe('middleware', () => {
 
     const req = new NextRequest('https://example.com/', { headers: new Headers() });
 
-    const response = middleware(req);
+    const response = proxy(req);
 
     expect(spy).toHaveBeenCalled();
     expect(forwardedHeaders?.get('x-nonce')).toBeTruthy();

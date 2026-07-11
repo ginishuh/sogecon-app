@@ -81,7 +81,7 @@ function formatDirectives(directives: Map<string, Set<string>>) {
  *
  * @remarks
  * - 프로덕션에서는 `script-src`에 nonce를 부여하고, Next.js가 서버 사이드에서 삽입하는
- *   스타일 태그 호환을 위해 `style-src 'unsafe-inline'`을 유지한다. (Next 15 App Router는
+ *   스타일 태그 호환을 위해 `style-src 'unsafe-inline'`을 유지한다. (Next App Router는
  *   크리티컬 CSS와 폰트 FOUT 억제를 위해 인라인 스타일을 삽입함)
  * - relax 모드에서는 개발 편의를 위해 HMR/DevTools 관련 지시어를 추가한다.
  */

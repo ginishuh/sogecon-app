@@ -28,22 +28,17 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 async function fillFieldByLabel(page: Page, labelText: string, value: string) {
-  await page.evaluate(
-    ({ labelText: text, value: nextValue }) => {
-      const labels = Array.from(document.querySelectorAll('label'));
-      const matched = labels.find((label) => label.textContent?.includes(text));
-      if (!matched) throw new Error(`label not found: ${text}`);
-      const el = matched.querySelector('input, textarea');
-      if (!(el instanceof HTMLInputElement) && !(el instanceof HTMLTextAreaElement)) {
-        throw new Error(`input/textarea not found: ${text}`);
-      }
-      el.focus();
-      el.value = nextValue;
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    },
-    { labelText, value }
-  );
+  const labels = await page.$$('label');
+  for (const label of labels) {
+    const text = await label.evaluate((node) => node.textContent ?? '');
+    if (!text.includes(labelText)) continue;
+    const input = await label.$('input, textarea');
+    if (!input) throw new Error(`input/textarea not found: ${labelText}`);
+    await input.click({ clickCount: 3 });
+    await input.type(value);
+    return;
+  }
+  throw new Error(`label not found: ${labelText}`);
 }
 
 async function setupOnboardingMocks(page: Page) {
@@ -114,8 +109,29 @@ function createOnboardingRouteResponders(state: MockState) {
           cohort: 60,
         },
         activation_token: ACTIVATE_TOKEN,
+        activation_issue: {
+          id: 1,
+          signup_request_id: 1,
+          issued_type: 'approve',
+          issued_by_student_id: '__seed__admin',
+          token_tail: 'ion-token',
+          issued_at: '2026-02-18T08:05:00Z',
+        },
       });
     },
+    'GET /admin/signup-requests/1/activation-token-logs': () =>
+      jsonResponse({
+        items: [
+          {
+            id: 1,
+            signup_request_id: 1,
+            issued_type: 'approve',
+            issued_by_student_id: '__seed__admin',
+            token_tail: 'ion-token',
+            issued_at: '2026-02-18T08:05:00Z',
+          },
+        ],
+      }),
     'POST /auth/member/activate': () => jsonResponse({ ok: 'true' }),
   } as Record<string, () => ReturnType<typeof jsonResponse>>;
 }
@@ -175,7 +191,7 @@ describe('Onboarding happy path (CDP E2E)', () => {
 
     await setupOnboardingMocks(page);
 
-    await page.goto(`${WEB_BASE_URL}/signup`, { waitUntil: 'networkidle0' });
+    await page.goto(`${WEB_BASE_URL}/signup`, { waitUntil: 'domcontentloaded' });
     await fillFieldByLabel(page, '학번', '20251234');
     await fillFieldByLabel(page, '이름', '신규회원');
     await fillFieldByLabel(page, '이메일', 'new-member@example.com');
@@ -187,7 +203,7 @@ describe('Onboarding happy path (CDP E2E)', () => {
     await page.click('button[type="submit"]');
     await page.waitForFunction(() => document.body.textContent?.includes('가입신청 완료'));
 
-    await page.goto(`${WEB_BASE_URL}/admin/signup-requests`, { waitUntil: 'networkidle0' });
+    await page.goto(`${WEB_BASE_URL}/admin/signup-requests`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.body.textContent?.includes('가입신청 심사'));
 
     const clickedApprove = await page.$$eval('button', (buttons) => {
@@ -198,11 +214,18 @@ describe('Onboarding happy path (CDP E2E)', () => {
     });
     expect(clickedApprove).toBe(true);
 
-    await page.waitForFunction(() => document.body.textContent?.includes('활성화 토큰 복사'));
+    await page.waitForFunction(() => document.body.textContent?.includes('최근 발급 대상'));
+    await page.waitForFunction(() => document.body.textContent?.includes('토큰 복사'));
 
-    await page.goto(`${WEB_BASE_URL}/activate?token=${ACTIVATE_TOKEN}`, { waitUntil: 'networkidle0' });
+    await page.goto(`${WEB_BASE_URL}/activate?token=${ACTIVATE_TOKEN}`, { waitUntil: 'domcontentloaded' });
     await fillFieldByLabel(page, '비밀번호', 'new-password-1234');
-    await page.click('button[type="submit"]');
+    const clickedActivate = await page.$$eval('button', (buttons) => {
+      const target = buttons.find((button) => (button.textContent || '').trim() === '활성화');
+      if (!target) return false;
+      (target as HTMLElement).click();
+      return true;
+    });
+    expect(clickedActivate).toBe(true);
 
     await page.waitForFunction(() => document.body.textContent?.includes('로그인 상태입니다.'));
     expect(page.url()).toContain('/activate');

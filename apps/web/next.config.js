@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const path = require('node:path');
 
-// Bundle analyzer: ANALYZE=true pnpm -C apps/web build
+// Bundle analyzer: pnpm -C apps/web analyze (Webpack 전용)
 // 런타임에서는 devDependency가 없으므로 조건부 로드
 const withBundleAnalyzer =
   process.env.ANALYZE === 'true'
@@ -31,6 +31,16 @@ const imageRemotePatterns = [
   ...remoteDomainsEnv.map((hostname) => ({ protocol: 'https', hostname })),
 ];
 
+const apiHostname = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_WEB_API_BASE || '').hostname;
+  } catch {
+    return '';
+  }
+})();
+
+const allowLocalImageOptimization = apiHostname === 'localhost' || apiHostname === '127.0.0.1';
+
 const nextConfig = {
   poweredByHeader: false,
   // 환경변수를 빌드타임에 명시적으로 주입 (monorepo 환경에서 .env.local 로드 문제 방지)
@@ -51,16 +61,23 @@ const nextConfig = {
       },
     ];
   },
-  // Next 15+: typedRoutes at top-level
+  // typedRoutes는 Next 16에서도 top-level 안정 옵션을 사용한다.
   typedRoutes: true,
   images: {
     remotePatterns: imageRemotePatterns,
+    // 로컬 API를 명시한 개발·미러 환경에서만 사설 IP 이미지 최적화를 허용한다.
+    dangerouslyAllowLocalIP: allowLocalImageOptimization,
     // 최신 이미지 포맷 우선 (브라우저 지원 시 AVIF → WebP → 원본)
     formats: ['image/avif', 'image/webp'],
     // 디바이스 크기 (기본값 유지하되 명시적 선언)
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    // 품질은 <Image quality={85}> prop으로 개별 지정
+    // Next 16은 quality prop으로 사용할 값을 명시적으로 허용해야 한다.
+    qualities: [75, 90],
+    // 자체 호스팅 이미지 최적화 캐시를 4시간 유지한다.
+    minimumCacheTTL: 14400,
+    // 정적 로컬 이미지는 /images 아래에서만 최적화한다.
+    localPatterns: [{ pathname: '/images/**' }],
   },
 };
 

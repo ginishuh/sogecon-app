@@ -40,11 +40,12 @@ describe('Directory URL sync (CDP E2E)', () => {
   it('updates query string when typing filters and changing sort', async () => {
     if (!page) throw new Error('Puppeteer page not initialized');
     await setupDirectoryMocks(page);
-    await page.goto(`${WEB_BASE_URL}/directory`, { waitUntil: 'networkidle0' });
+    await page.goto(`${WEB_BASE_URL}/directory`, { waitUntil: 'domcontentloaded' });
 
-    // 필터 UI가 보이는지 확인(아코디언 내부)
-    await page.waitForSelector('summary');
-    await page.waitForSelector('fieldset[aria-label="동문 수첩 검색 필터"]');
+    // 인증 후 현재 필터 UI가 보이는지 확인한다.
+    await page.waitForSelector('fieldset[aria-label="기본 검색 필터"]');
+    await page.click('button[aria-expanded="false"]');
+    await page.waitForSelector('fieldset[aria-label="상세 검색 필터"]');
 
     // 검색어 입력 → URL q 파라미터 동기화
     const qInput = await page.$('input[aria-label="검색어"]');
