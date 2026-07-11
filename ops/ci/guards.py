@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Repo guards: enforce agent base policies in CI and hooks.
+Repo guards: enforce repository policies in CI and hooks.
 
 Checks:
 - Ban suppression comments (eslint-disable, ts-nocheck/ignore,
   pyright: ignore, type: ignore, noqa). Allowed exception: E402 only in
   apps/api/migrations/env.py.
 - Enforce max 600 lines per source file.
+- Keep the agent harness on a single root SSOT with thin client adapters.
 
 Exit non-zero on violations; print a concise report.
 """
@@ -49,6 +50,19 @@ PY_BROAD_EXCEPT = [
 ]
 
 MAX_LINES = 600
+MAX_AGENT_LINES = 140
+MAX_ADAPTER_LINES = 12
+
+AGENT_SSOT = ROOT / "AGENTS.md"
+AGENT_ADAPTERS = (
+    ROOT / "CLAUDE.md",
+    ROOT / "GEMINI.md",
+    ROOT / ".github/copilot-instructions.md",
+)
+REMOVED_AGENT_FILES = (
+    ROOT / "docs/agents_base.md",
+    ROOT / "scripts/sync_agents_from_base.sh",
+)
 
 ALLOWED_NOQA_FILES = {
     ROOT / "apps/api/migrations/env.py": {"E402"},
@@ -155,8 +169,40 @@ def check_ts_any(path: Path) -> list[str]:
     return violations
 
 
+def check_agent_harness() -> list[str]:
+    """루트 실행 SSOT와 얇은 클라이언트 어댑터 구조를 검증한다."""
+    violations: list[str] = []
+    if not AGENT_SSOT.is_file():
+        return [f"{AGENT_SSOT}: root agent SSOT is missing"]
+
+    agent_lines = AGENT_SSOT.read_text(encoding="utf-8").splitlines()
+    if len(agent_lines) > MAX_AGENT_LINES:
+        violations.append(
+            f"{AGENT_SSOT}: exceeds {MAX_AGENT_LINES} lines ({len(agent_lines)})"
+        )
+
+    for adapter in AGENT_ADAPTERS:
+        if not adapter.is_file():
+            violations.append(f"{adapter}: agent adapter is missing")
+            continue
+        text = adapter.read_text(encoding="utf-8")
+        if "AGENTS.md" not in text:
+            violations.append(f"{adapter}: must reference root AGENTS.md")
+        if len(text.splitlines()) > MAX_ADAPTER_LINES:
+            violations.append(
+                f"{adapter}: adapter must stay within {MAX_ADAPTER_LINES} lines"
+            )
+
+    for removed_path in REMOVED_AGENT_FILES:
+        if removed_path.exists():
+            violations.append(
+                f"{removed_path}: legacy replicated harness must be removed"
+            )
+    return violations
+
+
 def main() -> int:
-    all_violations: list[str] = []
+    all_violations = check_agent_harness()
     for path in iter_code_files():
         all_violations.extend(check_banned_comments(path))
         all_violations.extend(check_max_lines(path))

@@ -166,4 +166,5 @@ sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart
 - 배포 절차(상세): `ops/deploy_api.md`, `ops/deploy_web.md`
 - Nginx 예시: `ops/nginx-examples/`
 - CI 워크플로: `.github/workflows/ci.yml`, `.github/workflows/dto-verify.yml`, `.github/workflows/codeql.yml`
-- SSOT(운영/품질 규칙): `docs/agents_base.md`, `docs/agents_base_kr.md`
+- 에이전트 실행 SSOT: `AGENTS.md`
+- 운영 절차: 이 문서와 `docs/security_hardening.md`

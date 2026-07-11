@@ -12,7 +12,7 @@
 | PR CI | 수 분 | 전체 회귀 — API/Web lint·test·build·계약·보안 |
 | main/주기 | — | 머지 후 DTO 검증, CodeQL 스케줄 |
 
-도구가 없으면 **조용히 skip하지 않고 실패**한다. 설치 안내는 각 훅 메시지와 아래 절을 따른다.
+도구가 없으면 **조용히 skip하지 않고 실패**한다. 설치 안내는 각 훅 메시지와 아래 절을 따른다. 에이전트 하네스는 `AGENTS.md` 단일 실행 SSOT와 12줄 이내 클라이언트 어댑터 구조를 `ops/ci/guards.py`가 검증한다.
 
 ## 로컬 재현 명령
 
@@ -24,16 +24,16 @@ pnpm install
 pnpm -C apps/web install
 
 # PR CI와 동일한 검증(요약)
-python ops/ci/guards.py
-python ops/ci/check_versions.py
+.venv/bin/python ops/ci/guards.py
+.venv/bin/python ops/ci/check_versions.py
 pnpm exec commitlint --from origin/main --to HEAD --config docs/commitlint.config.cjs
-ruff check apps/api
+.venv/bin/ruff check apps/api
 .venv/bin/python -m pyright --project pyrightconfig.json
-pytest -q
+.venv/bin/pytest -q
 pnpm -C apps/web lint
 pnpm -C apps/web test
 pnpm -C apps/web build
-python scripts/export_openapi.py && pnpm -C packages/schemas run gen-dts
+.venv/bin/python scripts/export_openapi.py && pnpm -C packages/schemas run gen-dts
 git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 ```
 
