@@ -37,6 +37,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run repository guards
         run: python ops/ci/guards.py
+      - name: Git hooks integration tests
+        run: bash ops/ci/test_githooks.sh
       - name: Enforce standardized versions
         run: python ops/ci/check_versions.py
       - name: Lint commit messages (PR commits)

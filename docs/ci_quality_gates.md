@@ -48,14 +48,14 @@ git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 | `secrets-scan` | gitleaks |
 | `semgrep` | Semgrep `p/ci` |
 | `e2e` (별도 workflow) | Puppeteer E2E — 현재 `continue-on-error` (#143) |
-| `analyze` (CodeQL) | JS/TS + Python — PR + main + weekly |
+| `analyze` (CodeQL) | JS/TS + Python — PR + main + **매주 월요일 07:00 UTC** |
 
 ## main 브랜치 추가 검사
 
 | Workflow | 트리거 | 목적 |
 |----------|--------|--------|
 | `dto-verify` | `push` main | 머지 후 OpenAPI/DTO 드리프트 방지 |
-| `CodeQL` | push main, schedule | 심층 SAST |
+| `CodeQL` | push main, schedule (`0 7 * * 1`) | 심층 SAST (매주 월요일) |
 
 ## 보안 스캔 책임표
 
@@ -66,7 +66,7 @@ git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 | Bandit | Python API | ✅ | — | — | pre-push에서도 Python 변경 시 |
 | pip-audit | Python deps | ✅ | — | — | strict; Starlette waiver 추적 |
 | pnpm audit | Web prod deps | ✅ | — | — | `--audit-level=high` |
-| CodeQL | JS/TS, Python | ✅ | ✅ | 월 1회 | GitHub Security 탭 |
+| CodeQL | JS/TS, Python | ✅ | ✅ | **매주 월요일 07:00 UTC** (`cron: 0 7 * * 1`) | GitHub Security 탭 |
 
 중복을 줄이기 위해 **동일 검사를 로컬 훅과 CI에서 모두 전체 실행하지 않는다**. 예: pytest는 CI, pre-push는 Pyright+Bandit 중심.
 
@@ -80,8 +80,28 @@ git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 
 Draft PR은 job이 skip되므로 Ready 전환 후 CI가 녹색인지 확인한다.
 
-## 훅 스모크 테스트
+## 훅 통합 테스트
 
 ```bash
 bash ops/ci/test_githooks.sh
+# 또는
+make test-hooks
 ```
+
+PR CI `repo-guards` job에서도 동일 스크립트를 실행한다.
+
+## 검증 기록 (#174, 2026-07-11)
+
+로컬 측정(대표 환경, WSL2):
+
+| 항목 | 측정 | 목표 | 비고 |
+|------|------|------|------|
+| pre-commit docs-only | ~50–200ms | ≤15s | 통합 테스트 내 자동 기록 |
+| pre-commit python+spaces | ~1–3s | ≤15s | ruff 1파일 |
+| commit-msg (pnpm+commitlint) | ~1–2s | ≤2s | |
+| pre-push (py 변경, pyright+bandit) | ~15–45s | ≤90s | 변경 범위 의존 |
+
+변경 전(2026-07-11 이전): CI commitlint `|| true`, Web lint/전체 test 미실행, 훅 도구 누락 시 skip.  
+변경 후: hard gate + 명시적 Web lint/test + 훅 실패 고정.
+
+CI 시간은 Draft→Ready 전환 후 Actions run URL로 PR에 기록한다.
