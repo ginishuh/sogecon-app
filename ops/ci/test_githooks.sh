@@ -173,6 +173,8 @@ wt="$(mktemp -d)"
 if git worktree add -b "$orphan_branch" "$wt" --orphan >/dev/null 2>&1; then
   (
     cd "$wt"
+    git config user.email "ci-hook-test@example.com"
+    git config user.name "CI Hook Test"
     git config core.hooksPath .githooks
     mkdir -p docs
     cp "$ROOT/docs/dev_log_TEMPLATE.md" docs/dev_log_260711.md
@@ -197,6 +199,8 @@ code_wt="$(mktemp -d)"
 if git worktree add -b "$code_branch" "$code_wt" --orphan >/dev/null 2>&1; then
   (
     cd "$code_wt"
+    git config user.email "ci-hook-test@example.com"
+    git config user.name "CI Hook Test"
     git config core.hooksPath .githooks
     mkdir -p ops/ci/fixtures/hooks
     cp "$ROOT/ops/ci/fixtures/hooks/sample.py" ops/ci/fixtures/hooks/sample.py
