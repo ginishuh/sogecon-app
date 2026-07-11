@@ -3,7 +3,6 @@
   "private": true,
   "pnpm": {
     "overrides": {
-      "vite": "6.4.3",
       "js-yaml": "4.2.0",
       "postcss": "8.5.16"
     }
@@ -11,7 +10,8 @@
   "devDependencies": {
     "@commitlint/cli": "20.1.0",
     "png-to-ico": "3.0.2",
-    "sharp": "0.35.3"
+    "sharp": "0.35.3",
+    "vite": "8.1.4"
   },
   "scripts": {
     "commitlint": "commitlint"

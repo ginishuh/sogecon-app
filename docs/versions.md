@@ -63,15 +63,16 @@
 - axe-core: 4.12.1
 - baseline-browser-mapping: 2.10.42
 - puppeteer: 24.43.1
+- vitest: 4.1.10
+- jsdom: 29.1.1
 
 ## 워크스페이스 및 스키마
 - openapi-typescript: 7.13.0
 - sharp: 0.35.3
 - png-to-ico: 3.0.2
+- vite: 8.1.4
+  - #183에서 Vitest 3용 임시 보안 override를 제거하고 workspace devDependency로 직접 고정합니다.
 - pnpm overrides:
-  - vite: 6.4.3
-    - 근거: Vitest 3.2.4의 허용 범위가 취약한 Vite 5.4.21도 선택하므로 GHSA-4w7w-66w2-5vf9와 GHSA-v6wh-96g9-6wx3의 수정 버전으로 강제합니다.
-    - 제거 조건: Vitest가 Vite 6.4.3 이상만 해소하도록 의존 범위를 올리거나 #183의 Vitest 메이저 마이그레이션이 완료될 때 제거합니다.
   - js-yaml: 4.2.0
     - 근거: commitlint·ESLint 계열의 전이 범위가 GHSA-h67p-54hq-rp68에 취약한 4.1.1도 선택하므로 수정 버전으로 강제합니다.
     - 제거 조건: 모든 상위 패키지가 js-yaml 4.2.0 이상만 선택하는 범위로 갱신되면 제거합니다.
