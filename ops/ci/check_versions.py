@@ -107,19 +107,22 @@ def check_requirements() -> None:
 
     expected_req = {
         "apps/api/requirements.txt": [
-            "fastapi==0.123.5",
+            "fastapi==0.139.0",
             "uvicorn[standard]==0.37.0",
             "sqlalchemy==2.0.43",
             "psycopg[binary]==3.2.10",
             "alembic==1.16.5",
             "pydantic-settings==2.11.0",
-            "python-multipart==0.0.22",
+            "python-multipart==0.0.32",
             "slowapi==0.1.9",
+            "cryptography==48.0.1",
+            "Pillow==12.3.0",
         ],
         "apps/api/requirements-dev.txt": [
             "ruff==0.13.2",
             "pyright==1.1.404",
-            "pytest==8.4.2",
+            "pytest==9.0.3",
+            "pytest-asyncio==1.4.0",
         ],
     }
 
