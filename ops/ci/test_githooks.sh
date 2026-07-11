@@ -13,6 +13,7 @@ FIXTURE_PY="$FIXTURE_DIR/sample.py"
 FIXTURE_WEB="apps/web/__tests__/nonce.test.ts"
 MSG_DIR=""
 EMPTY_BIN=""
+PY_SHIM=""
 HIDDEN_RUFF=""
 WORKTREES=()
 WORKTREE_BRANCHES=()
@@ -63,6 +64,9 @@ restore_git_state() {
   if [ -n "$EMPTY_BIN" ] && [ -d "$EMPTY_BIN" ]; then
     rm -rf "$EMPTY_BIN"
   fi
+  if [ -n "$PY_SHIM" ] && [ -d "$PY_SHIM" ]; then
+    rm -rf "$PY_SHIM"
+  fi
   if [ "$STASHED" -eq 1 ]; then
     git stash pop -q >/dev/null 2>&1 || git stash drop -q >/dev/null 2>&1 || true
   fi
@@ -82,10 +86,16 @@ prepare_repo() {
   ln -sf "$(command -v git)" "$EMPTY_BIN/git"
 }
 
-# 기대 실패: 127(명령 미발견)은 통과로 인정하지 않음. 훅([hooks])이 실제 실행된 non-zero만 OK.
+# 기대 실패: 127 거부 + [hooks] 필수. --contains <문구>면 실패 원인까지 고정.
+# 사용: expect_fail "label" [--contains "needle"] cmd...
 expect_fail() {
   local label="$1"
   shift
+  local needle=""
+  if [ "${1:-}" = "--contains" ]; then
+    needle="$2"
+    shift 2
+  fi
   local out ec
   set +e
   out="$("$@" 2>&1)"
@@ -99,6 +109,9 @@ expect_fail() {
   fi
   if ! printf '%s\n' "$out" | grep -q '\[hooks\]'; then
     fail "$label failed without [hooks] marker (ec=$ec). output: $out"
+  fi
+  if [ -n "$needle" ] && ! printf '%s\n' "$out" | grep -Fq "$needle"; then
+    fail "$label missing expected error '$needle' (ec=$ec). output: $out"
   fi
   pass "$label fails as expected (ec=$ec)"
 }
@@ -176,12 +189,11 @@ add_orphan_worktree() {
   fi
   WORKTREES+=("$wt")
   WORKTREE_BRANCHES+=("$branch")
-  (
-    cd "$wt"
-    git config user.email "ci-hook-test@example.com"
-    git config user.name "CI Hook Test"
-    git config core.hooksPath .githooks
-  )
+}
+
+# orphan worktree 커밋 — 공유 .git/config의 user.* 오염 방지
+wt_commit() {
+  git -c user.email="ci-hook-test@example.com" -c user.name="CI Hook Test" commit "$@"
 }
 
 require_pnpm_commitlint() {
@@ -209,7 +221,7 @@ require_pnpm_commitlint
 # --- commit-msg: pnpm 누락 (제한 PATH로 훅 직접 실행) ---
 msg_no_pnpm="$MSG_DIR/no-pnpm.txt"
 echo "feat(api): subject" >"$msg_no_pnpm"
-expect_fail "commit-msg without pnpm" \
+expect_fail "commit-msg without pnpm" --contains "pnpm not found" \
   env PATH="/usr/bin:/bin" HOME="$HOME" "$BASH_BIN" "$HOOKS/commit-msg" "$msg_no_pnpm"
 
 # --- commit-msg: Log 줄 누락 (코드 실제 수정 후 스테이징) ---
@@ -218,7 +230,7 @@ msg_no_log="$MSG_DIR/no-log.txt"
 cat >"$msg_no_log" <<'EOF'
 feat(api): subject without log
 EOF
-expect_fail "commit-msg missing Log line" \
+expect_fail "commit-msg missing Log line" --contains "commit log line" \
   env PATH="$PATH" HOME="$HOME" "$BASH_BIN" "$HOOKS/commit-msg" "$msg_no_log"
 git checkout -- "$FIXTURE_PY" 2>/dev/null || true
 git reset HEAD -- "$FIXTURE_PY" >/dev/null
@@ -236,7 +248,7 @@ rm -f "docs/_hook_test_doc.md"
 
 # --- pre-commit: python3 누락 (빈 PATH — /usr/bin/python3 회피) ---
 stage_write_py "$FIXTURE_PY"
-expect_fail "pre-commit without python3" \
+expect_fail "pre-commit without python3" --contains "python3 not found" \
   env -u VIRTUAL_ENV PATH="$EMPTY_BIN" HOME="$HOME" "$BASH_BIN" "$HOOKS/pre-commit"
 git checkout -- "$FIXTURE_PY" 2>/dev/null || true
 git reset HEAD -- "$FIXTURE_PY" >/dev/null
@@ -244,7 +256,7 @@ git reset HEAD -- "$FIXTURE_PY" >/dev/null
 # --- pre-commit: ruff 누락 (python3는 유지, .venv ruff 숨김) ---
 stage_write_py "$FIXTURE_PY"
 hide_venv_ruff
-expect_fail "pre-commit without ruff" \
+expect_fail "pre-commit without ruff" --contains "ruff not found" \
   env -u VIRTUAL_ENV PATH="/usr/bin:/bin" HOME="$HOME" "$BASH_BIN" "$HOOKS/pre-commit"
 restore_hidden_ruff
 git checkout -- "$FIXTURE_PY" 2>/dev/null || true
@@ -252,7 +264,7 @@ git reset HEAD -- "$FIXTURE_PY" >/dev/null
 
 # --- pre-commit: pnpm 누락 (web 파일 실제 수정) ---
 stage_modify "$FIXTURE_WEB" "web-hook-test-$$"
-expect_fail "pre-commit without pnpm (web staged)" \
+expect_fail "pre-commit without pnpm (web staged)" --contains "pnpm not found" \
   env -u VIRTUAL_ENV PATH="/usr/bin:/bin" HOME="$HOME" "$BASH_BIN" "$HOOKS/pre-commit"
 git checkout -- "$FIXTURE_WEB" 2>/dev/null || true
 git reset HEAD -- "$FIXTURE_WEB" >/dev/null
@@ -322,7 +334,7 @@ add_orphan_worktree "$orphan_branch" "$wt"
   cp "$ROOT/docs/dev_log_TEMPLATE.md" docs/dev_log_260711.md
   printf '\n- Notes: orphan hook fixture %s\n' "$$" >>docs/dev_log_260711.md
   git add docs/dev_log_260711.md
-  git commit -m "$(cat <<'EOF'
+  wt_commit -m "$(cat <<'EOF'
 docs(docs): orphan worktree for hook test
 
 Log: 2026-07-11 17:55 | test | docs | orphan hook fixture | docs/dev_log_260711.md
@@ -345,17 +357,24 @@ def hook_fixture() -> str:
     return "ok"
 PY
   git add ops/ci/fixtures/hooks/sample.py
-  git commit -m "$(cat <<'EOF'
+  wt_commit -m "$(cat <<'EOF'
 feat(api): code only without dev log file
 
 Log: 2026-07-11 17:55 | test | feat | hook negative case | ops/ci/fixtures/hooks/sample.py
 EOF
 )" -q
-  expect_fail "pre-push without dev_log for code change" \
+  expect_fail "pre-push without dev_log for code change" --contains "dev_log_" \
     env PATH="$PATH" HOME="$HOME" "$BASH_BIN" "$HOOKS/pre-push"
 )
 
-# --- pre-push: pyright 누락 (orphan worktree, 시스템 python만) ---
+# --- pre-push: pyright 누락 (python은 있고 pyright만 없음) ---
+# resolve_python_bin은 `python`만 찾음(python3 아님). shim으로 python→python3를 제공해
+# "python runtime not found" 조기 실패를 막고 pyright 분기까지 도달시킨다.
+PY_SHIM="$(mktemp -d)"
+if [ ! -x /usr/bin/python3 ]; then
+  fail "/usr/bin/python3 required for pyright-missing isolation"
+fi
+ln -sf /usr/bin/python3 "$PY_SHIM/python"
 py_branch="hook-pyright-$$"
 py_wt="$(mktemp -d)"
 add_orphan_worktree "$py_branch" "$py_wt"
@@ -369,15 +388,15 @@ PY
   cp "$ROOT/docs/dev_log_TEMPLATE.md" docs/dev_log_260711.md
   printf '\n- Notes: pyright-missing fixture\n' >>docs/dev_log_260711.md
   git add ops/ci/fixtures/hooks/sample.py docs/dev_log_260711.md
-  git commit -m "$(cat <<'EOF'
+  wt_commit -m "$(cat <<'EOF'
 feat(api): pyright missing negative case
 
 Log: 2026-07-11 17:55 | test | feat | pyright missing | ops/ci/fixtures/hooks/sample.py,docs/dev_log_260711.md
 EOF
 )" -q
-  # worktree에 .venv 없음 + PATH를 시스템만 → resolve_python_bin은 /usr/bin/python3, pyright 모듈 없음
-  expect_fail "pre-push without pyright" \
-    env -u VIRTUAL_ENV PATH="/usr/bin:/bin" HOME="$HOME" "$BASH_BIN" "$HOOKS/pre-push"
+  # worktree에 .venv 없음 + shim python(무 pyright) → "pyright not available" 고정
+  expect_fail "pre-push without pyright" --contains "pyright not available" \
+    env -u VIRTUAL_ENV PATH="$PY_SHIM:/usr/bin:/bin" HOME="$HOME" "$BASH_BIN" "$HOOKS/pre-push"
 )
 
 cleanup_worktrees

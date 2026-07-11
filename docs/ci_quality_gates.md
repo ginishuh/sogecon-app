@@ -112,6 +112,7 @@ PR CI `repo-guards` job에서도 동일 스크립트를 실행한다.
 
 - 제한 PATH 케이스는 `.githooks/{commit-msg,pre-commit,pre-push}`를 `$BASH_BIN`으로 직접 실행
 - `expect_fail`은 exit **127**(명령 미발견)과 `[hooks]` 마커 없는 실패를 거부
+- negative case는 `--contains`로 고유 오류 문구까지 고정(예: `pyright not available`)
 - fixture는 생성·수정·삭제·rename으로 staged diff를 보장(변경 없는 `git add` 금지)
 - setup/worktree/도구 준비 실패는 skip이 아니라 테스트 실패
 
