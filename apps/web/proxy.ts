@@ -10,7 +10,7 @@ const analyticsId = process.env.NEXT_PUBLIC_ANALYTICS_ID;
 const apiBase = process.env.NEXT_PUBLIC_WEB_API_BASE;
 
 // 개발 시 RSC Flight 요청을 로그에서 구분하기 위한 헤더를 유지한다.
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const requestHeaders = new Headers(req.headers);
   const nonce = generateNonce();
   requestHeaders.set('x-nonce', nonce);

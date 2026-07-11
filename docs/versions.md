@@ -36,7 +36,7 @@
 - bandit==1.9.4
 
 ## Frontend (apps/web)
-- next: 15.5.20
+- next: 16.2.10
 - react: 19.2.7
 - react-dom: 19.2.7
 - @tanstack/react-query: 5.101.2
@@ -45,6 +45,8 @@
 - typescript: 5.9.3
 - eslint: 9.39.5
 - eslint-config-next: 15.5.20
+  - Next 16 native flat config와 ESLint 10 전환은 #186에서 함께 처리합니다. 현재는 기존 ESLint 9 품질 게이트를 유지합니다.
+- @next/bundle-analyzer: 16.2.10
 - @eslint/eslintrc: 3.3.6
 - @typescript-eslint/eslint-plugin: 8.63.0
 - @typescript-eslint/parser: 8.63.0
@@ -74,7 +76,7 @@
     - 근거: commitlint·ESLint 계열의 전이 범위가 GHSA-h67p-54hq-rp68에 취약한 4.1.1도 선택하므로 수정 버전으로 강제합니다.
     - 제거 조건: 모든 상위 패키지가 js-yaml 4.2.0 이상만 선택하는 범위로 갱신되면 제거합니다.
   - postcss: 8.5.16
-    - 근거: Next.js 15.5.20의 내부 범위가 GHSA-qx2v-qp2m-jg93에 취약한 버전도 선택하므로 수정 버전으로 강제합니다.
+    - 근거: Next.js 16.2.10이 PostCSS 8.4.31을 직접 고정하므로 GHSA-qx2v-qp2m-jg93의 수정 버전으로 강제합니다.
     - 제거 조건: Next.js가 postcss 8.5.10 이상만 선택하는 범위로 갱신되면 제거합니다.
 
 그 밖의 전이 의존성은 상위 패키지의 호환 범위와 lockfile로 관리합니다. 임시 override가 다시 필요하면 취약점 또는 호환성 근거, 영향받는 상위 패키지, 제거 조건을 이 문서와 PR에 기록해야 합니다.

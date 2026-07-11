@@ -51,7 +51,7 @@ const nextConfig = {
       },
     ];
   },
-  // Next 15+: typedRoutes at top-level
+  // typedRoutes는 Next 16에서도 top-level 안정 옵션을 사용한다.
   typedRoutes: true,
   images: {
     remotePatterns: imageRemotePatterns,
@@ -60,7 +60,12 @@ const nextConfig = {
     // 디바이스 크기 (기본값 유지하되 명시적 선언)
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    // 품질은 <Image quality={85}> prop으로 개별 지정
+    // Next 16은 quality prop으로 사용할 값을 명시적으로 허용해야 한다.
+    qualities: [75, 90],
+    // 자체 호스팅 이미지 최적화 캐시를 4시간 유지한다.
+    minimumCacheTTL: 14400,
+    // 정적 로컬 이미지는 /images 아래에서만 최적화한다.
+    localPatterns: [{ pathname: '/images/**' }],
   },
 };
 
