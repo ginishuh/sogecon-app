@@ -181,7 +181,10 @@ describe('CommentsSection — 삭제 다이얼로그 흐름', () => {
     fireEvent.click(screen.getByRole('button', { name: '확인' }));
 
     await waitFor(() => {
-      expect(deleteCommentMock).toHaveBeenCalledWith(10);
+      expect(deleteCommentMock).toHaveBeenCalledWith(
+        10,
+        expect.objectContaining({ client: expect.anything() }),
+      );
     });
   });
 });
@@ -229,6 +232,7 @@ describe('CommentsSection — 댓글 작성 UX', () => {
     await waitFor(() => {
       expect(createCommentMock).toHaveBeenCalledWith(
         expect.objectContaining({ post_id: 1, content: '새 댓글' }),
+        expect.objectContaining({ client: expect.anything() }),
       );
     });
     await waitFor(() => {

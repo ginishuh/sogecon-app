@@ -40,12 +40,12 @@ export function subscriptionToResult(sub: PushSubscription): SubscribeResult | n
   return { endpoint, p256dh, auth };
 }
 
-// urlBase64 → Uint8Array (VAPID public key 변환)
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
+// urlBase64 → ArrayBuffer 기반 Uint8Array (VAPID public key 변환)
+function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
   const rawData = typeof window !== 'undefined' ? window.atob(base64) : Buffer.from(base64, 'base64').toString('binary');
-  const outputArray = new Uint8Array(rawData.length);
+  const outputArray = new Uint8Array(new ArrayBuffer(rawData.length));
   for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
   return outputArray;
 }

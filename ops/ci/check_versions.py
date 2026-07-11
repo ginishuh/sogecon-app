@@ -21,22 +21,31 @@ def check_package_json() -> None:
 
     expected_deps = {
         "dependencies": {
+            "@tanstack/react-query": "5.101.2",
             "next": "15.5.20",
             "react": "19.2.7",
             "react-dom": "19.2.7",
         },
         "devDependencies": {
-            "eslint": "9.36.0",
+            "@eslint/eslintrc": "3.3.6",
+            "@testing-library/jest-dom": "6.9.1",
+            "@testing-library/react": "16.3.2",
+            "@types/node": "24.13.3",
+            "@types/react": "19.2.17",
+            "eslint": "9.39.5",
             "eslint-config-next": "15.5.20",
-            "@typescript-eslint/eslint-plugin": "8.44.1",
-            "@typescript-eslint/parser": "8.44.1",
+            "@typescript-eslint/eslint-plugin": "8.63.0",
+            "@typescript-eslint/parser": "8.63.0",
             "eslint-plugin-import": "2.32.0",
             "eslint-import-resolver-typescript": "3.10.1",
-            "eslint-plugin-promise": "7.2.1",
-            "typescript": "5.8.3",
-            "autoprefixer": "10.4.21",
+            "eslint-plugin-promise": "7.3.0",
+            "typescript": "5.9.3",
+            "autoprefixer": "10.5.2",
+            "axe-core": "4.12.1",
+            "baseline-browser-mapping": "2.10.42",
             "postcss": "8.5.16",
-            "tailwindcss": "3.4.13",
+            "puppeteer": "24.43.1",
+            "tailwindcss": "3.4.19",
         },
     }
 
