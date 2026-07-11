@@ -1,6 +1,6 @@
-ruff==0.13.2
-pyright==1.1.404
+ruff==0.15.21
+pyright==1.1.411
 pytest==9.1.1
 pytest-asyncio==1.4.0
 httpx==0.27.2
-bandit==1.9.3
+bandit==1.9.4

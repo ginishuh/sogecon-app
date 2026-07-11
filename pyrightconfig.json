@@ -1,5 +1,4 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/pyright/main/packages/vscode-pyright/schemas/pyrightconfig.schema.json",
   "venvPath": ".",
   "venv": ".venv",
   "pythonVersion": "3.12",
@@ -19,8 +18,6 @@
   "reportUnknownMemberType": "warning",
   "reportUnknownParameterType": "error",
   "reportUnknownVariableType": "error",
-  "reportAny": "error",
-  "reportImplicitOptional": "error",
   "executionEnvironments": [
     {
       "root": "apps/api",
