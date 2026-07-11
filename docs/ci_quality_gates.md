@@ -118,4 +118,4 @@ PR CI `repo-guards` job에서도 동일 스크립트를 실행한다.
 변경 전(2026-07-11 이전): CI commitlint `|| true`, Web lint/전체 test 미실행, 훅 도구 누락 시 skip.  
 변경 후: hard gate + 명시적 Web lint/test + 훅 실패 고정 + 통합 테스트가 실제 훅 실행을 검증.
 
-CI(`repo-guards`) 근거: Ready 전환 후 Actions run URL을 이 절·PR에 기록한다.
+CI(`repo-guards`) 근거: https://github.com/ginishuh/sogecon-app/actions/runs/29147120109 (`repo-guards` success, 2026-07-11).
