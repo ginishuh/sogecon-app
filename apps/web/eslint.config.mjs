@@ -63,7 +63,7 @@ export default [
   },
   // test 전용: 타입 인식 린트(별도 프로젝트)
   {
-    files: ['__tests__/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}'],
+    files: ['__tests__/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}', 'vitest.config.mts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -82,7 +82,12 @@ export default [
 
   // e2e 전용: 타입 인식 린트(별도 프로젝트) — #29 e2e 엄격 린트 복구
   {
-    files: ['e2e/**/*.{ts,tsx}', '**/*.e2e.{ts,tsx}', 'vitest.config.e2e.ts'],
+    files: [
+      'e2e/**/*.{ts,tsx}',
+      '**/*.e2e.{ts,tsx}',
+      'vitest.config.e2e.ts',
+      'vitest.config.e2e.mts',
+    ],
     languageOptions: {
       // compat 블록들과의 병합 순서와 무관하게 의도를 명확히 하기 위해 parser 명시
       parser: tsParser,

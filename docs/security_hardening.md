@@ -3,12 +3,13 @@
 본 문서는 현재 레포에 적용된 보안 가드와 운영 권장 설정을 요약합니다.
 
 ## CI / 자동화 가드
+- 품질 게이트 SSOT: `docs/ci_quality_gates.md` (훅·PR CI·보안 스캔 책임 분리)
 - Repo Guards(`ops/ci/guards.py`):
   - 금지된 우회 주석 감지(`eslint-disable`, `@ts-ignore`, `# type: ignore`, `# noqa` 등; Alembic env.py의 `E402`만 예외)
   - 파일 600줄 초과 차단
-- Python: `ruff`(복잡도/버그베어/pyupgrade), `pyright` strict
+- Python: `ruff`(복잡도/버그베어/pyupgrade), `pyright` strict, `pytest`(PR CI)
 - 취약점 스캔: `bandit -r apps/api`, `pip-audit`(두 requirements 모두)
-- Web: `pnpm -C apps/web build` + `pnpm -C apps/web audit --audit-level=high`
+- Web: `pnpm -C apps/web lint`, `pnpm -C apps/web test`, `pnpm -C apps/web build`, `pnpm -C apps/web audit --audit-level=high`
 - SAST: Semgrep 기본 규칙(`p/ci`)
 - 비밀 탐지: Gitleaks
 

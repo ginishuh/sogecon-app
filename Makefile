@@ -1,4 +1,4 @@
-.PHONY: venv api-install db-up db-down db-test-up api-dev web-dev schema-gen test-api info-venv \
+.PHONY: venv api-install db-up db-down db-test-up api-dev web-dev schema-gen test-api test-hooks info-venv \
         api-start api-stop api-restart api-status \
         web-start web-stop web-restart web-status \
         dev-up dev-down dev-status \
@@ -150,6 +150,9 @@ test-api:
 		exit 1; \
 	fi
 	"$(VENV_BIN)/pytest" -q
+
+test-hooks:
+	bash ops/ci/test_githooks.sh
 
 info-venv:
 	@echo "Detected VENV_DIR=$(VENV_DIR)" && echo "Using BIN=$(VENV_BIN)"

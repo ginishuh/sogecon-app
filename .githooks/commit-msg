@@ -3,12 +3,19 @@ set -euo pipefail
 
 MSG_FILE="$1"
 
-# Use pinned CLI via pnpm dlx to avoid global dependence
-if command -v pnpm >/dev/null 2>&1; then
-  pnpm dlx @commitlint/cli@20.1.0 --config docs/commitlint.config.cjs --edit "$MSG_FILE"
-else
-  echo "[hooks] pnpm not found; skipping commit message lint."
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "[hooks] Error: pnpm not found."
+  echo "[hooks] Install Node $(node -p "require('./apps/web/package.json').engines.node" 2>/dev/null || echo '24.12.0') and pnpm, then run: pnpm install"
+  exit 1
 fi
+
+if [ ! -f node_modules/.bin/commitlint ]; then
+  echo "[hooks] Error: @commitlint/cli is not installed."
+  echo "[hooks] Run: pnpm install"
+  exit 1
+fi
+
+pnpm exec commitlint --config docs/commitlint.config.cjs --edit "$MSG_FILE"
 
 if [ ! -f "$MSG_FILE" ]; then
   echo "[hooks] commit message file missing; skipping commitlog guard."

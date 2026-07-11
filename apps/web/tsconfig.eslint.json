@@ -9,6 +9,8 @@
     "tests/**/*",
     "e2e/**/*",
     "vitest.config.e2e.ts",
+    "vitest.config.e2e.mts",
+    "vitest.config.mts",
     ".next/types/**/*.ts",
     "**/*.d.ts"
   ],
