@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { statSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, statSync, readdirSync, readFileSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -102,8 +102,84 @@ function getExcludedSharedChunks() {
   return excludedShared;
 }
 
+function listClientReferenceManifests(dir) {
+  const manifests = [];
+  const stack = [dir];
+  while (stack.length) {
+    const current = stack.pop();
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const path = join(current, entry.name);
+      if (entry.isDirectory()) stack.push(path);
+      else if (entry.name.endsWith('_client-reference-manifest.js')) {
+        manifests.push(path);
+      }
+    }
+  }
+  return manifests;
+}
+
+function routeFromClientManifest(manifestPath, appServerDir) {
+  const rel = normalizeRelPath(relative(appServerDir, manifestPath));
+  const withoutSuffix = rel
+    .replace(/(^|\/)page_client-reference-manifest\.js$/, '')
+    .replace(/(^|\/)route_client-reference-manifest\.js$/, '');
+  return withoutSuffix ? `/${withoutSuffix}` : '/';
+}
+
+function readEntryJsFiles(manifestPath) {
+  const source = readFileSync(manifestPath, 'utf8');
+  const match = source.match(/"entryJSFiles":(\{.*\})};\s*$/);
+  if (!match) return [];
+  const entries = JSON.parse(match[1]);
+  return Object.values(entries).flatMap((files) =>
+    Array.isArray(files) ? files : []
+  );
+}
+
+function addStaticChunks(target, assets) {
+  for (const asset of assets) {
+    if (typeof asset !== 'string') continue;
+    if (!asset.startsWith('static/chunks/') || !asset.endsWith('.js')) continue;
+    target.add(normalizeRelPath(asset.slice('static/chunks/'.length)));
+  }
+}
+
+function getNext16IncludedChunks() {
+  const appServerDir = join(projectDir, '.next', 'server', 'app');
+  if (!existsSync(appServerDir)) return null;
+  const manifests = listClientReferenceManifests(appServerDir);
+  if (manifests.length === 0) return null;
+
+  const included = new Set();
+  const rootManifest = JSON.parse(
+    readFileSync(join(projectDir, '.next', 'build-manifest.json'), 'utf8')
+  );
+  addStaticChunks(included, rootManifest.polyfillFiles ?? []);
+  addStaticChunks(included, rootManifest.rootMainFiles ?? []);
+
+  const excludedRoutes = excludePrefixes
+    .map(toRoutePrefix)
+    .filter((value) => typeof value === 'string');
+  for (const manifest of manifests) {
+    const route = routeFromClientManifest(manifest, appServerDir);
+    if (excludedRoutes.some((prefix) => routeStartsWithPrefix(route, prefix))) {
+      continue;
+    }
+    addStaticChunks(included, readEntryJsFiles(manifest));
+  }
+  return included;
+}
+
 function listJsSizes(dir) {
   let total = 0;
+  const next16IncludedChunks = getNext16IncludedChunks();
+  if (next16IncludedChunks) {
+    for (const relFile of next16IncludedChunks) {
+      total += statSync(join(dir, relFile)).size;
+    }
+    return total;
+  }
+
   const excludedSharedChunks = getExcludedSharedChunks();
   const stack = [dir];
   while (stack.length) {
