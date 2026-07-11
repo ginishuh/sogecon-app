@@ -48,7 +48,10 @@
 - postcss: 8.5.16
 - @testing-library/jest-dom: 6.9.1
 - @testing-library/react: 16.3.2
+- @types/node: 24.13.3
+- @types/react: 19.2.17
 - axe-core: 4.12.1
+- baseline-browser-mapping: 2.10.42
 - puppeteer: 24.43.1
 
  변경 시에는 본 문서와 실제 파일(`apps/api/requirements*.txt`, `apps/web/package.json`)을 동시 업데이트하고, PR에서 `ops/ci/check_versions.py`가 통과하는지 확인하세요. FastAPI가 Starlette 버전을 관리하므로 Starlette는 별도 핀 고정하지 않습니다.
