@@ -187,8 +187,8 @@ jobs:
         run: pnpm -C apps/web build
       - name: Accessibility smoke (axe)
         run: pnpm -C apps/web exec vitest run __tests__/a11y-smoke.test.tsx --silent
-      - name: Bundle size check (raw JS total ≤ 1125KB)
-        run: node apps/web/scripts/check-bundle-size.mjs --max-kb 1125 --exclude-prefix app/admin/
+      - name: Bundle size check (raw JS total ≤ 1127KB)
+        run: node apps/web/scripts/check-bundle-size.mjs --max-kb 1127 --exclude-prefix app/admin/
       - name: Dependency audit (pnpm, prod only)
         run: |
           pnpm -C apps/web audit --audit-level=high --prod

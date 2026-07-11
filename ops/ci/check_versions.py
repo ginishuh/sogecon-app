@@ -21,13 +21,13 @@ def check_package_json() -> None:
 
     expected_deps = {
         "dependencies": {
-            "next": "15.5.10",
-            "react": "19.2.3",
-            "react-dom": "19.2.3",
+            "next": "15.5.20",
+            "react": "19.2.7",
+            "react-dom": "19.2.7",
         },
         "devDependencies": {
             "eslint": "9.36.0",
-            "eslint-config-next": "15.5.2",
+            "eslint-config-next": "15.5.20",
             "@typescript-eslint/eslint-plugin": "8.44.1",
             "@typescript-eslint/parser": "8.44.1",
             "eslint-plugin-import": "2.32.0",
@@ -35,7 +35,7 @@ def check_package_json() -> None:
             "eslint-plugin-promise": "7.2.1",
             "typescript": "5.8.3",
             "autoprefixer": "10.4.21",
-            "postcss": "8.5.6",
+            "postcss": "8.5.16",
             "tailwindcss": "3.4.13",
         },
     }
@@ -107,19 +107,22 @@ def check_requirements() -> None:
 
     expected_req = {
         "apps/api/requirements.txt": [
-            "fastapi==0.123.5",
+            "fastapi==0.139.0",
             "uvicorn[standard]==0.37.0",
             "sqlalchemy==2.0.43",
             "psycopg[binary]==3.2.10",
             "alembic==1.16.5",
             "pydantic-settings==2.11.0",
-            "python-multipart==0.0.22",
+            "python-multipart==0.0.32",
             "slowapi==0.1.9",
+            "cryptography==48.0.1",
+            "Pillow==12.3.0",
         ],
         "apps/api/requirements-dev.txt": [
             "ruff==0.13.2",
             "pyright==1.1.404",
-            "pytest==8.4.2",
+            "pytest==9.0.3",
+            "pytest-asyncio==1.4.0",
         ],
     }
 

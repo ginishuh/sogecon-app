@@ -64,7 +64,7 @@ git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 | gitleaks | 비밀 | ✅ | — | — | 전체 히스토리 fetch |
 | Semgrep | 정적 패턴 | ✅ | — | — | `p/ci` |
 | Bandit | Python API | ✅ | — | — | pre-push에서도 Python 변경 시 |
-| pip-audit | Python deps | ✅ | — | — | strict; Starlette waiver 추적 |
+| pip-audit | Python deps | ✅ | — | — | strict (`--strict`) |
 | pnpm audit | Web prod deps | ✅ | — | — | `--audit-level=high` |
 | CodeQL | JS/TS, Python | ✅ | ✅ | **매주 월요일 07:00 UTC** (`cron: 0 7 * * 1`) | GitHub Security 탭 |
 
@@ -77,6 +77,13 @@ git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 - `repo-guards` / `python` / `contract` / `web` / `secrets-scan` / `semgrep`
 - (권장) CodeQL `analyze` matrix jobs
 - (권장) `dto-verify` on main push
+
+또는 `ops/ci/apply_main_branch_protection.sh`로 upsert한다(기존 `main-quality-gates` ruleset이 있으면 PUT, 없으면 POST).
+
+```bash
+bash ops/ci/apply_main_branch_protection.sh              # 기본: ginishuh/sogecon-app
+bash ops/ci/apply_main_branch_protection.sh OWNER/REPO   # 다른 포크
+```
 
 Draft PR은 job이 skip되므로 Ready 전환 후 CI가 녹색인지 확인한다.
 

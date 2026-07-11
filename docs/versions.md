@@ -10,29 +10,32 @@
   - CI/빌드: `scripts/resolve_pnpm_version.sh`가 engines.pnpm 기준 메이저의 `latest-<major>` dist-tag를 사용합니다.
 
 ## Backend (apps/api)
-- fastapi==0.123.5
+- fastapi==0.139.0
 - uvicorn[standard]==0.37.0
 - sqlalchemy==2.0.43
 - psycopg[binary]==3.2.10
 - alembic==1.16.5
 - pydantic-settings==2.11.0
-- python-multipart==0.0.22
+- python-multipart==0.0.32
 - slowapi==0.1.9
+- cryptography==48.0.1
+- Pillow==12.3.0
 
 ### Dev tools
 - ruff==0.13.2
 - pyright==1.1.404
-- pytest==8.4.2
+- pytest==9.0.3
+- pytest-asyncio==1.4.0
 
 ## Frontend (apps/web)
-- next: 15.5.10
-- react: 19.2.3
-- react-dom: 19.2.3
+- next: 15.5.20
+- react: 19.2.7
+- react-dom: 19.2.7
 
 ### Dev tools
 - typescript: 5.8.3
 - eslint: 9.36.0
-- eslint-config-next: 15.5.2
+- eslint-config-next: 15.5.20
 - @typescript-eslint/eslint-plugin: 8.44.1
 - @typescript-eslint/parser: 8.44.1
 - eslint-plugin-import: 2.32.0
@@ -40,6 +43,6 @@
 - eslint-plugin-promise: 7.2.1
 - tailwindcss: 3.4.13
 - autoprefixer: 10.4.21
-- postcss: 8.5.6
+- postcss: 8.5.16
 
  변경 시에는 본 문서와 실제 파일(`apps/api/requirements*.txt`, `apps/web/package.json`)을 동시 업데이트하고, PR에서 `ops/ci/check_versions.py`가 통과하는지 확인하세요. FastAPI가 Starlette 버전을 관리하므로 Starlette는 별도 핀 고정하지 않습니다.
