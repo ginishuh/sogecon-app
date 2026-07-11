@@ -1129,18 +1129,12 @@ export interface components {
         };
         /** Body_upload_avatar_me_avatar_post */
         Body_upload_avatar_me_avatar_post: {
-            /**
-             * Avatar
-             * Format: binary
-             */
+            /** Avatar */
             avatar: string;
         };
         /** Body_upload_image_uploads_images_post */
         Body_upload_image_uploads_images_post: {
-            /**
-             * File
-             * Format: binary
-             */
+            /** File */
             file: string;
         };
         /** ChangePasswordPayload */
@@ -2037,6 +2031,10 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
         /** WebVitalEvent */
         WebVitalEvent: {
