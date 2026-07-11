@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -14,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12.3'
@@ -28,17 +33,18 @@ jobs:
           corepack enable
           corepack prepare pnpm@${{ steps.pnpm-version.outputs.version }} --activate
           pnpm -v
+      - name: Install workspace tooling (commitlint)
+        run: pnpm install --frozen-lockfile
       - name: Run repository guards
         run: python ops/ci/guards.py
       - name: Enforce standardized versions
         run: python ops/ci/check_versions.py
-      - name: Lint commit messages (recent commits)
+      - name: Lint commit messages (PR commits)
         run: |
-          # Check up to last 30 commits in this ref
-          RANGE="$(git rev-list --count HEAD)"
-          COUNT=$([ "$RANGE" -gt 30 ] && echo 30 || echo "$RANGE")
-          # || true: Draft PR 포함 조회 시 일부 commit 히스토리 부재로 실패할 수 있어 soft-fail 유지
-          pnpm dlx @commitlint/cli@20.1.0 --config docs/commitlint.config.cjs --from=HEAD~$COUNT --to=HEAD || true
+          pnpm exec commitlint \
+            --config docs/commitlint.config.cjs \
+            --from "${{ github.event.pull_request.base.sha }}" \
+            --to "${{ github.event.pull_request.head.sha }}"
 
   python:
     needs: repo-guards
@@ -100,6 +106,40 @@ jobs:
       - name: Compile bytecode
         run: python -m compileall apps/api
 
+  contract:
+    needs: repo-guards
+    if: ${{ github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: apps/api/requirements*.txt
+      - name: Install API dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
+      - name: Resolve PNPM version
+        id: pnpm-version
+        run: echo "version=$(scripts/resolve_pnpm_version.sh)" >> $GITHUB_OUTPUT
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ steps.pnpm-version.outputs.version }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.12.0'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install schema tool dependencies
+        run: pnpm -C packages/schemas install --frozen-lockfile
+      - name: Verify OpenAPI/DTO sync
+        run: |
+          python scripts/export_openapi.py
+          pnpm -C packages/schemas run gen-dts
+          git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
+
   web:
     needs: repo-guards
     if: ${{ github.event.pull_request.draft == false }}
@@ -128,6 +168,10 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - name: Install dependencies
         run: pnpm -C apps/web install --frozen-lockfile
+      - name: Lint
+        run: pnpm -C apps/web lint
+      - name: Unit tests
+        run: pnpm -C apps/web test
       - name: Cache Next.js build
         uses: actions/cache@v4
         with:

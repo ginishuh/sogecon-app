@@ -133,11 +133,13 @@ make schema-gen
   - 샘플/전체 목록: `.env.example`, `.env.api.example`, `.env.web.example` 참고.
 
 ## 테스트 · 품질 · CI
-- 훅 활성화: `git config core.hooksPath .githooks`.
-- Python: `ruff`(복잡도/스타일) · `pyright`(strict) · `pytest -q`.
-- Web: `eslint`(`next/core-web-vitals`) · `tsc --noEmit` · `pnpm -C apps/web build`.
+- 품질 게이트 SSOT: `docs/ci_quality_gates.md`
+- 훅 활성화: `git config core.hooksPath .githooks` + `pnpm install`(루트, commitlint) + `make venv && make api-install`
+- Python: `ruff` · `pyright` · `pytest -q`(PR CI)
+- Web: `pnpm -C apps/web lint` · `pnpm -C apps/web test` · `pnpm -C apps/web build`
+- 훅 스모크: `bash ops/ci/test_githooks.sh`
 - 단축키: `make test-api`, `make schema-gen` 등은 `Makefile` 참고.
-- CI: `.github/workflows/ci.yml`가 버전 고정/정적검사/빌드/보안 스캔을 수행합니다. Lighthouse, E2E, DTO 검증 워크플로도 제공됩니다.
+- CI: `.github/workflows/ci.yml` — commitlint(hard), API/Web 전체 검증, 보안 스캔. E2E·DTO·CodeQL은 별도 workflow.
 
 ## 커밋/PR 규칙
 - Conventional Commits 필수: `type(scope): subject`(72자 이내). 타입/스코프는 `docs/commit_message_convention.md` 참고.

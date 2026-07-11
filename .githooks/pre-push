@@ -118,13 +118,14 @@ if [ "$python_changed" = true ]; then
     echo "[hooks] Running pyright type check"
     "$PY_BIN" -m pyright --project pyrightconfig.json
   else
-    echo "[hooks] Warning: pyright not available; skipping type check"
+    echo "[hooks] Error: pyright not available."
+    echo "[hooks] Run: make venv && make api-install"
+    exit 1
   fi
 
-  # If requirements changed, install to local venv before running tests
   if [ "$req_changed" = true ]; then
-    echo "[hooks] Installing updated Python dependencies (requirements changed)"
-    "$PY_BIN" -m pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
+    echo "[hooks] requirements changed — ensure the active venv is up to date before push:"
+    echo "[hooks]   $PY_BIN -m pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt"
   fi
 
   # Note: pytest is now handled by CI to speed up local pushes

@@ -13,7 +13,7 @@
 - `chore(web): Next 15/React 19로 업그레이드 및 engines 고정`
 
 검사 도구
-- 훅: `.githooks/commit-msg`가 `commitlint`로 즉시 검증합니다.
+- 훅: `.githooks/commit-msg`가 루트 `pnpm exec commitlint`로 즉시 검증합니다.
 - CI: PR에서도 최근 커밋 메시지를 검사합니다.
 
 구성 파일

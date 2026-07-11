@@ -22,13 +22,14 @@ if [ "$doc_only" = true ]; then
   exit 0
 fi
 
-# Repo guards on staged files (policy: no suppression comments, max lines, etc.)
-if command -v python3 >/dev/null 2>&1; then
-  echo "[hooks] Running repo guards"
-  python3 ops/ci/guards.py || { echo "[hooks] Repo guards failed"; exit 1; }
-else
-  echo "[hooks] Warning: python3 not found; skipping repo guards"
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "[hooks] Error: python3 not found."
+  echo "[hooks] Install Python 3.12 and retry."
+  exit 1
 fi
+
+echo "[hooks] Running repo guards"
+python3 ops/ci/guards.py || { echo "[hooks] Repo guards failed"; exit 1; }
 
 python_targets=()
 for file in "${FILES[@]}"; do
@@ -39,7 +40,7 @@ done
 
 web_targets=()
 for file in "${FILES[@]}"; do
-  if [[ "$file" == apps/web/* ]] && [[ "$file" =~ \.(ts|tsx|js|jsx)$ ]]; then
+  if [[ "$file" == apps/web/* ]] && [[ "$file" =~ \.(ts|tsx|js|jsx|mts)$ ]]; then
     web_targets+=("${file#apps/web/}")
   fi
 done
@@ -53,25 +54,23 @@ if [ ${#python_targets[@]} -gt 0 ]; then
   elif command -v ruff >/dev/null 2>&1; then
     RUFF_BIN="ruff"
   fi
-  if [ -n "$RUFF_BIN" ]; then
-    echo "[hooks] Running ruff on changed Python files ($RUFF_BIN)"
-    "$RUFF_BIN" check --force-exclude "${python_targets[@]}"
-  else
-    echo "[hooks] Warning: ruff not found; skipping Python lint"
+  if [ -z "$RUFF_BIN" ]; then
+    echo "[hooks] Error: ruff not found."
+    echo "[hooks] Run: make venv && make api-install"
+    exit 1
   fi
+  echo "[hooks] Running ruff on changed Python files ($RUFF_BIN)"
+  "$RUFF_BIN" check --force-exclude "${python_targets[@]}"
 fi
 
-# 웹 변경 파일 수집(스테이징) — e2e 포함, 타입 인식 린트 적용 (#29)
-if command -v pnpm >/dev/null 2>&1; then
-  if [ ${#web_targets[@]} -gt 0 ]; then
-    echo "[hooks] web: lint staged files (e2e 포함, 타입 인식) — see #29"
-    # apps/web 기준 상대경로 배열을 null-delimited로 안전 전달
-    # next.config.js 등 JS 파일도 포함되므로 타입정보 의존 룰로 인한 false positive를 피하기 위해
-    # 스테이징된 파일만 대상으로 실행하되, --no-warn-ignored로 무시 경고를 억제
-    printf '%s\0' "${web_targets[@]}" | xargs -0 -r pnpm -C apps/web exec eslint --no-warn-ignored --max-warnings=0 --
+if [ ${#web_targets[@]} -gt 0 ]; then
+  if ! command -v pnpm >/dev/null 2>&1; then
+    echo "[hooks] Error: pnpm not found."
+    echo "[hooks] Install Node 24.12.0 and pnpm, then run: pnpm -C apps/web install"
+    exit 1
   fi
-else
-  echo "[hooks] Warning: pnpm not found; skipping web lint/type-check"
+  echo "[hooks] web: lint staged files (e2e 포함, 타입 인식) — see #29"
+  printf '%s\0' "${web_targets[@]}" | xargs -0 -r pnpm -C apps/web exec eslint --no-warn-ignored --max-warnings=0 --
 fi
 
 exit 0

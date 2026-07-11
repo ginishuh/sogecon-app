@@ -8,23 +8,13 @@ on:
         required: false
         default: 'ginishuh'
         type: string
-  push:
-    branches:
-      - main
 
 permissions:
   contents: read
   issues: write
 
 jobs:
-  noop:
-    if: github.event_name != 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Skip run
-        run: echo "create-waiver-issue workflow executes only via workflow_dispatch; event=${GITHUB_EVENT_NAME}"
   create-issue:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Create or update waiver issue
