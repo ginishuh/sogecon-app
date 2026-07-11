@@ -100,6 +100,44 @@ def check_workspace_package_manager() -> None:
             "(pnpm version is managed via engines range)"
         )
 
+    expected_dev_dependencies = {
+        "@commitlint/cli": "20.1.0",
+        "png-to-ico": "3.0.2",
+        "sharp": "0.35.3",
+    }
+    actual_dev_dependencies: dict[str, str] = data.get("devDependencies", {})
+    for name, version in expected_dev_dependencies.items():
+        if actual_dev_dependencies.get(name) != version:
+            fail(
+                f"package.json devDependencies.{name} should be "
+                f"{version!r} but is {actual_dev_dependencies.get(name)!r}"
+            )
+
+    expected_overrides = {
+        "vite": "6.4.3",
+        "js-yaml": "4.2.0",
+        "postcss": "8.5.16",
+    }
+    overrides = data.get("pnpm", {}).get("overrides", {})
+    if overrides != expected_overrides:
+        fail(
+            "package.json pnpm.overrides should contain only the documented "
+            f"security pins {expected_overrides!r}, but is {overrides!r}"
+        )
+
+
+def check_schemas_package() -> None:
+    pkg_path = ROOT / "packages/schemas/package.json"
+    data = json.loads(pkg_path.read_text(encoding="utf-8"))
+    expected = "7.13.0"
+    actual = data.get("devDependencies", {}).get("openapi-typescript")
+    if actual != expected:
+        fail(
+            "packages/schemas/package.json "
+            f"devDependencies.openapi-typescript should be {expected!r} "
+            f"but is {actual!r}"
+        )
+
 
 def normalize_req_line(line: str) -> str:
     return line.strip()
@@ -173,6 +211,7 @@ def check_requirements() -> None:
 
 def main() -> int:
     check_workspace_package_manager()
+    check_schemas_package()
     check_package_json()
     check_requirements()
     print("[version-lock] OK")
