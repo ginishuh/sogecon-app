@@ -7,6 +7,6 @@
     "gen-dts": "npx openapi-typescript openapi.json -o index.d.ts"
   },
   "devDependencies": {
-    "openapi-typescript": "7.4.3"
+    "openapi-typescript": "7.13.0"
   }
 }
