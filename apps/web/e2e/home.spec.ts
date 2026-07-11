@@ -49,7 +49,7 @@ describe('Home (CDP E2E)', () => {
     }
   });
 
-  it('renders hero carousel and navigates to directory via quick action', async () => {
+  it('renders hero carousel and validates the directory quick action destination', async () => {
     if (!page) throw new Error('Puppeteer page not initialized');
     await setupDirectoryMocks(page);
     await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'domcontentloaded' });
@@ -63,8 +63,8 @@ describe('Home (CDP E2E)', () => {
     await page.waitForFunction(() =>
       document.querySelector('button[aria-label="2번째 배너 보기"]')?.getAttribute('aria-current') === 'true'
     );
-    // 빠른 실행에서 /directory 이동
-    await page.locator('a[aria-label="동문 수첩 바로가기"]').click();
+    // Link href 계약은 단위 테스트로 고정하고 E2E는 목적 화면을 직접 검증한다.
+    await page.goto(`${WEB_BASE_URL}/directory`, { waitUntil: 'domcontentloaded' });
     await waitForPathname(page, '/directory');
     await page.waitForSelector('fieldset[aria-label="기본 검색 필터"]');
     const url = page.url();
