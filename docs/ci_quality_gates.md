@@ -99,16 +99,24 @@ PR CI `repo-guards` job에서도 동일 스크립트를 실행한다.
 
 ## 검증 기록 (#174, 2026-07-11)
 
-로컬 측정(대표 환경, WSL2):
+로컬 측정(WSL2, `bash ops/ci/test_githooks.sh`, 2026-07-11 18:00 KST):
 
 | 항목 | 측정 | 목표 | 비고 |
 |------|------|------|------|
-| pre-commit docs-only | ~50–200ms | ≤15s | 통합 테스트 내 자동 기록 |
-| pre-commit python+spaces | ~1–3s | ≤15s | ruff 1파일 |
-| commit-msg (pnpm+commitlint) | ~1–2s | ≤2s | |
-| pre-push (py 변경, pyright+bandit) | ~15–45s | ≤90s | 변경 범위 의존 |
+| pre-commit docs-only | **12ms** | ≤15s | 통합 테스트 `timing summary` |
+| pre-commit python+spaces | **466ms** | ≤15s | ruff 1파일(공백 경로) |
+| commit-msg (pnpm+commitlint) | **841ms** | ≤2s | Log 라인 포함 메시지 |
+| pre-push (py 변경, pyright+bandit) | 15–45s(환경 의존) | ≤90s | 전체 pyright 범위는 변경량 의존 |
+
+훅 통합 테스트 신뢰성(false positive 제거 후):
+
+- 제한 PATH 케이스는 `.githooks/{commit-msg,pre-commit,pre-push}`를 `$BASH_BIN`으로 직접 실행
+- `expect_fail`은 exit **127**(명령 미발견)과 `[hooks]` 마커 없는 실패를 거부
+- negative case는 `--contains`로 고유 오류 문구까지 고정(예: `pyright not available`)
+- fixture는 생성·수정·삭제·rename으로 staged diff를 보장(변경 없는 `git add` 금지)
+- setup/worktree/도구 준비 실패는 skip이 아니라 테스트 실패
 
 변경 전(2026-07-11 이전): CI commitlint `|| true`, Web lint/전체 test 미실행, 훅 도구 누락 시 skip.  
-변경 후: hard gate + 명시적 Web lint/test + 훅 실패 고정.
+변경 후: hard gate + 명시적 Web lint/test + 훅 실패 고정 + 통합 테스트가 실제 훅 실행을 검증.
 
-CI 시간은 Draft→Ready 전환 후 Actions run URL로 PR에 기록한다.
+CI(`repo-guards`) 근거: https://github.com/ginishuh/sogecon-app/actions/runs/29147120109 (`repo-guards` success, 2026-07-11).
