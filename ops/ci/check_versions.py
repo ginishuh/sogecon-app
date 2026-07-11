@@ -115,13 +115,13 @@ def check_requirements() -> None:
             "pydantic-settings==2.11.0",
             "python-multipart==0.0.32",
             "slowapi==0.1.9",
-            "cryptography==48.0.1",
+            "cryptography==49.0.0",
             "Pillow==12.3.0",
         ],
         "apps/api/requirements-dev.txt": [
             "ruff==0.13.2",
             "pyright==1.1.404",
-            "pytest==9.0.3",
+            "pytest==9.1.1",
             "pytest-asyncio==1.4.0",
         ],
     }
