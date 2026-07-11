@@ -1,9 +1,18 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { WEB_BASE_URL } from './utils/env';
+import { setupDirectoryMocks } from './utils/mockApi';
 
 let browser: Browser | null = null;
 let page: Page | null = null;
+
+async function waitForPathname(page: Page, pathname: string): Promise<void> {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    if (new URL(page.url()).pathname === pathname) return;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error(`경로 이동 시간 초과: ${pathname} (현재 ${page.url()})`);
+}
 
 describe('Home (CDP E2E)', () => {
   beforeAll(async () => {
@@ -23,14 +32,16 @@ describe('Home (CDP E2E)', () => {
 
   it('renders hero carousel and navigates to directory via quick action', async () => {
     if (!page) throw new Error('Puppeteer page not initialized');
-    await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'networkidle0' });
+    await setupDirectoryMocks(page);
+    await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'domcontentloaded' });
 
-    await page.waitForSelector('.hero-dots', { timeout: 60000 });
+    await page.waitForFunction(
+      () => document.querySelector('section[aria-label="홈 배너"]') !== null,
+      { timeout: 30000 }
+    );
     // 빠른 실행에서 /directory 이동
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle0' }),
-      page.click('a.home-quick-actions__item[href="/directory"]'),
-    ]);
+    await page.click('a[aria-label="동문 수첩 바로가기"]');
+    await waitForPathname(page, '/directory');
     const url = page.url();
     expect(url).toContain('/directory');
   });
