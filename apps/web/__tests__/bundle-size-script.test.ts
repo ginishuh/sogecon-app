@@ -70,4 +70,20 @@ describe('Next 16 번들 크기 스크립트', () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('Next 16 clientModules가 없습니다');
   });
+
+  it('매니페스트에 기록된 물리 청크가 없으면 실패한다', () => {
+    const payload = {
+      clientModules: {
+        route: { chunks: ['static/chunks/missing.js'] },
+      },
+    };
+    const fixture = createFixture(
+      `globalThis.__RSC_MANIFEST["/posts/[id]/page"]=${JSON.stringify(payload)};`,
+    );
+
+    const result = runBundleCheck(fixture);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('missing.js');
+  });
 });

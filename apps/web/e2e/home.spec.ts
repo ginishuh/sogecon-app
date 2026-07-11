@@ -59,11 +59,10 @@ describe('Home (CDP E2E)', () => {
       { timeout: 30000 }
     );
     const movedToNextBanner = await moveToNextBanner(page);
-    if (movedToNextBanner) {
-      await page.waitForFunction(() =>
-        document.querySelector('button[aria-label="2번째 배너 보기"]')?.getAttribute('aria-current') === 'true'
-      );
-    }
+    expect(movedToNextBanner).toBe(true);
+    await page.waitForFunction(() =>
+      document.querySelector('button[aria-label="2번째 배너 보기"]')?.getAttribute('aria-current') === 'true'
+    );
     // 빠른 실행에서 /directory 이동
     await page.locator('a[aria-label="동문 수첩 바로가기"]').click();
     await waitForPathname(page, '/directory');

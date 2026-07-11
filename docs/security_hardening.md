@@ -15,7 +15,7 @@
 
 ## 애플리케이션 가드
 - Next.js 보안 헤더(`apps/web/proxy.ts`, `apps/web/next.config.js`)
-  - CSP는 미들웨어에서 요청별 nonce를 생성해 주입한다. 프로덕션 기본값: `script-src 'self' 'nonce-<...>' https://www.googletagmanager.com`, `connect-src 'self' https: https://www.google-analytics.com` 등. 인라인 스크립트는 nonce 없이는 실행되지 않는다.
+  - CSP는 `proxy.ts` 요청 경계에서 nonce를 생성해 주입한다. 프로덕션 기본값: `script-src 'self' 'nonce-<...>' https://www.googletagmanager.com`, `connect-src 'self' https: https://www.google-analytics.com` 등. 인라인 스크립트는 nonce 없이는 실행되지 않는다.
   - `NODE_ENV !== 'production'` 또는 `NEXT_PUBLIC_RELAX_CSP=1` 시에는 HMR/DevTools를 위해 `unsafe-inline`, `unsafe-eval`, `ws:` 및 localhost 오리진을 추가 허용한다.
   - `next.config.js`는 나머지 보조 헤더(HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy 등)를 유지하며 CSP는 덮어쓰지 않는다. Next.js App Router는 FOUC 방지를 위해 인라인 `<style>` 태그를 삽입하므로 `style-src 'self' 'unsafe-inline'`을 예외적으로 허용한다.
 - FastAPI 보안 헤더 미들웨어(`apps/api/main.py`)
