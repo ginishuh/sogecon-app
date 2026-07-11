@@ -18,6 +18,8 @@
 - pydantic-settings==2.14.2
 - python-multipart==0.0.32
 - slowapi==0.1.10
+- bcrypt==4.2.0
+- itsdangerous==2.2.0
 - email-validator==2.3.0
 - pywebpush==2.3.0
 - cryptography==49.0.0
@@ -30,6 +32,7 @@
 - pyright==1.1.411
 - pytest==9.1.1
 - pytest-asyncio==1.4.0
+- httpx==0.27.2
 - bandit==1.9.4
 
 ## Frontend (apps/web)
