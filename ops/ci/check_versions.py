@@ -47,6 +47,8 @@ def check_package_json() -> None:
             "postcss": "8.5.16",
             "puppeteer": "24.43.1",
             "tailwindcss": "4.3.2",
+            "vitest": "4.1.10",
+            "jsdom": "29.1.1",
         },
     }
 
@@ -105,6 +107,7 @@ def check_workspace_package_manager() -> None:
         "@commitlint/cli": "20.1.0",
         "png-to-ico": "3.0.2",
         "sharp": "0.35.3",
+        "vite": "8.1.4",
     }
     actual_dev_dependencies: dict[str, str] = data.get("devDependencies", {})
     for name, version in expected_dev_dependencies.items():
@@ -115,7 +118,6 @@ def check_workspace_package_manager() -> None:
             )
 
     expected_overrides = {
-        "vite": "6.4.3",
         "js-yaml": "4.2.0",
         "postcss": "8.5.16",
     }
