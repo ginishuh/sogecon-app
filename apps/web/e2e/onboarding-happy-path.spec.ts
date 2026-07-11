@@ -215,6 +215,7 @@ describe('Onboarding happy path (CDP E2E)', () => {
     expect(clickedApprove).toBe(true);
 
     await page.waitForFunction(() => document.body.textContent?.includes('최근 발급 대상'));
+    await page.waitForFunction(() => document.body.textContent?.includes('토큰 복사'));
 
     await page.goto(`${WEB_BASE_URL}/activate?token=${ACTIVATE_TOKEN}`, { waitUntil: 'domcontentloaded' });
     await fillFieldByLabel(page, '비밀번호', 'new-password-1234');

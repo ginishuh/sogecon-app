@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const path = require('node:path');
 
-// Bundle analyzer: ANALYZE=true pnpm -C apps/web build
+// Bundle analyzer: pnpm -C apps/web analyze (Webpack 전용)
 // 런타임에서는 devDependency가 없으므로 조건부 로드
 const withBundleAnalyzer =
   process.env.ANALYZE === 'true'
@@ -31,6 +31,16 @@ const imageRemotePatterns = [
   ...remoteDomainsEnv.map((hostname) => ({ protocol: 'https', hostname })),
 ];
 
+const apiHostname = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_WEB_API_BASE || '').hostname;
+  } catch {
+    return '';
+  }
+})();
+
+const allowLocalImageOptimization = apiHostname === 'localhost' || apiHostname === '127.0.0.1';
+
 const nextConfig = {
   poweredByHeader: false,
   // 환경변수를 빌드타임에 명시적으로 주입 (monorepo 환경에서 .env.local 로드 문제 방지)
@@ -55,6 +65,8 @@ const nextConfig = {
   typedRoutes: true,
   images: {
     remotePatterns: imageRemotePatterns,
+    // 로컬 API를 명시한 개발·미러 환경에서만 사설 IP 이미지 최적화를 허용한다.
+    dangerouslyAllowLocalIP: allowLocalImageOptimization,
     // 최신 이미지 포맷 우선 (브라우저 지원 시 AVIF → WebP → 원본)
     formats: ['image/avif', 'image/webp'],
     // 디바이스 크기 (기본값 유지하되 명시적 선언)

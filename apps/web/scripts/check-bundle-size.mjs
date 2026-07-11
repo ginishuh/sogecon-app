@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { existsSync, statSync, readdirSync, readFileSync } from 'node:fs';
-import { join, dirname, relative } from 'node:path';
+import { join, dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 function getArg(name, fallback) {
@@ -23,7 +23,7 @@ const maxKb = Number(getArg('--max-kb', '1000'));
 // Resolve project root relative to this script (apps/web)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const projectDir = join(__dirname, '..');
+const projectDir = resolve(getArg('--project-dir', join(__dirname, '..')));
 const chunksDir = join(projectDir, '.next', 'static', 'chunks');
 const rawExcludePrefixes = getArgs('--exclude-prefix');
 
@@ -126,21 +126,37 @@ function routeFromClientManifest(manifestPath, appServerDir) {
   return withoutSuffix ? `/${withoutSuffix}` : '/';
 }
 
-function readEntryJsFiles(manifestPath) {
+function readClientChunks(manifestPath) {
   const source = readFileSync(manifestPath, 'utf8');
-  const match = source.match(/"entryJSFiles":(\{.*\})};\s*$/);
-  if (!match) return [];
-  const entries = JSON.parse(match[1]);
-  return Object.values(entries).flatMap((files) =>
-    Array.isArray(files) ? files : []
-  );
+  const manifestAssignment = source.lastIndexOf('globalThis.__RSC_MANIFEST[');
+  const assignmentIndex = source.indexOf('=', manifestAssignment);
+  const jsonEnd = source.lastIndexOf(';');
+  if (
+    manifestAssignment === -1
+    || assignmentIndex === -1
+    || jsonEnd <= assignmentIndex + 1
+  ) {
+    throw new Error(`Next 16 client manifest 형식을 해석할 수 없습니다: ${manifestPath}`);
+  }
+
+  const parsed = JSON.parse(source.slice(assignmentIndex + 1, jsonEnd).trim());
+  if (!parsed || typeof parsed !== 'object' || !parsed.clientModules || typeof parsed.clientModules !== 'object') {
+    throw new Error(`Next 16 clientModules가 없습니다: ${manifestPath}`);
+  }
+  return Object.values(parsed.clientModules).flatMap((clientModule) => {
+    if (!clientModule || typeof clientModule !== 'object') return [];
+    return Array.isArray(clientModule.chunks) ? clientModule.chunks : [];
+  });
 }
 
 function addStaticChunks(target, assets) {
   for (const asset of assets) {
     if (typeof asset !== 'string') continue;
-    if (!asset.startsWith('static/chunks/') || !asset.endsWith('.js')) continue;
-    target.add(normalizeRelPath(asset.slice('static/chunks/'.length)));
+    const chunkMarker = 'static/chunks/';
+    const markerIndex = asset.indexOf(chunkMarker);
+    if (markerIndex === -1 || !asset.endsWith('.js')) continue;
+    const chunkPath = decodeURIComponent(asset.slice(markerIndex + chunkMarker.length));
+    target.add(normalizeRelPath(chunkPath));
   }
 }
 
@@ -156,28 +172,47 @@ function getNext16IncludedChunks() {
   );
   addStaticChunks(included, rootManifest.polyfillFiles ?? []);
   addStaticChunks(included, rootManifest.rootMainFiles ?? []);
+  const rootChunkCount = included.size;
 
   const excludedRoutes = excludePrefixes
     .map(toRoutePrefix)
     .filter((value) => typeof value === 'string');
+  let includedManifestCount = 0;
   for (const manifest of manifests) {
     const route = routeFromClientManifest(manifest, appServerDir);
     if (excludedRoutes.some((prefix) => routeStartsWithPrefix(route, prefix))) {
       continue;
     }
-    addStaticChunks(included, readEntryJsFiles(manifest));
+    includedManifestCount += 1;
+    addStaticChunks(included, readClientChunks(manifest));
   }
-  return included;
+  if (includedManifestCount === 0) {
+    throw new Error('Next 16 공개 라우트 매니페스트가 0건입니다. 제외 조건을 확인하세요.');
+  }
+  if (included.size <= rootChunkCount) {
+    throw new Error('Next 16 라우트 청크가 계측되지 않았습니다. 매니페스트 형식을 확인하세요.');
+  }
+  return {
+    chunks: included,
+    includedManifestCount,
+    manifestCount: manifests.length,
+  };
 }
 
 function listJsSizes(dir) {
   let total = 0;
-  const next16IncludedChunks = getNext16IncludedChunks();
-  if (next16IncludedChunks) {
-    for (const relFile of next16IncludedChunks) {
+  let chunkCount = 0;
+  const next16Measurement = getNext16IncludedChunks();
+  if (next16Measurement) {
+    for (const relFile of next16Measurement.chunks) {
       total += statSync(join(dir, relFile)).size;
     }
-    return total;
+    return {
+      total,
+      chunkCount: next16Measurement.chunks.size,
+      mode: 'next16-client-reference-manifest',
+      manifestSummary: `${next16Measurement.includedManifestCount}/${next16Measurement.manifestCount}`,
+    };
   }
 
   const excludedSharedChunks = getExcludedSharedChunks();
@@ -195,15 +230,21 @@ function listJsSizes(dir) {
         if (shouldExclude(relFile)) continue;
         if (excludedSharedChunks.has(relFile)) continue;
         total += st.size;
+        chunkCount += 1;
       }
     }
   }
-  return total;
+  return { total, chunkCount, mode: 'legacy-directory-walk', manifestSummary: null };
 }
 
 try {
-  const totalBytes = listJsSizes(chunksDir);
-  const totalKb = Math.round(totalBytes / 1024);
+  const measurement = listJsSizes(chunksDir);
+  const totalKb = Math.round(measurement.total / 1024);
+  console.log(`Measurement mode: ${measurement.mode}`);
+  if (measurement.manifestSummary) {
+    console.log(`Included route manifests: ${measurement.manifestSummary}`);
+  }
+  console.log(`Measured JS chunks: ${measurement.chunkCount}`);
   console.log(`Total JS in .next/static/chunks: ${totalKb} KB (limit ${maxKb} KB)`);
   if (excludePrefixes.length > 0) {
     console.log(`Excluded prefixes: ${excludePrefixes.join(', ')}`);
