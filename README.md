@@ -146,7 +146,7 @@ make schema-gen
 - 코드/스크립트 변경 커밋은 커밋 메시지 본문에 `Log: YYYY-MM-DD HH:MM | 작성자 | 타입 | 요약 | 파일1,파일2` 형식의 커밋로그 1줄을 포함합니다.
 - 비-문서 변경 푸시는 당일 `docs/dev_log_YYMMDD.md`를 반드시 포함합니다.
 - PR 템플릿 사용: `.github/pull_request_template.md`. Draft에서는 상단만, Ready 전 체크리스트 완비.
-- 에이전트/코드 품질 규칙: `AGENTS.md`, `docs/agents_base*.md` 우선.
+- 에이전트 실행 규칙: 루트 `AGENTS.md`. 코드 품질 세부 규칙은 설정, `ops/ci/guards.py`, CI를 따른다.
 
 ## 보안 · 개인정보
 - 보안 이슈: `SECURITY.md`를 따르고, `security@trr.co.kr`로 먼저 보고.
@@ -284,7 +284,7 @@ REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
 ### VPS 에이전트를 위한 바로가기
 - VPS Agent Runbook (EN): `docs/agent_runbook_vps_en.md`
 - VPS 에이전트 런북 (KR): `docs/agent_runbook_vps.md`
-- SSOT(품질/운영 규칙): `docs/agents_base.md`, `docs/agents_base_kr.md` (규칙 변경은 SSOT 먼저 수정)
+- 에이전트 실행 SSOT: `AGENTS.md` (`docs/agents_base_kr.md`는 대표님 검토용 한국어 참고자료)
 - 상세 배포 문서: `ops/deploy_api.md`, `ops/deploy_web.md`
 
 ---

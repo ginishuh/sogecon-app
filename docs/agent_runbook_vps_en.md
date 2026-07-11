@@ -164,4 +164,5 @@ Notes
 - Detailed deploy docs: `ops/deploy_api.md`, `ops/deploy_web.md`
 - Nginx examples: `ops/nginx-examples/`
 - CI workflows: `.github/workflows/ci.yml`, `.github/workflows/dto-verify.yml`, `.github/workflows/codeql.yml`
-- SSOT (quality/ops rules): `docs/agents_base.md`, `docs/agents_base_kr.md`
+- Agent execution SSOT: `AGENTS.md`
+- Operations procedures: this runbook and `docs/security_hardening.md`
