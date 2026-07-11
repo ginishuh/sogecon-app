@@ -34,6 +34,7 @@ STAGED_BACKUP=""
 restore_git_state() {
   if [ -n "$STAGED_BACKUP" ]; then
     git reset HEAD -- . >/dev/null 2>&1 || true
+    git checkout -- . >/dev/null 2>&1 || true
   fi
   if [ -n "$MSG_DIR" ] && [ -d "$MSG_DIR" ]; then
     rm -rf "$MSG_DIR"
@@ -96,7 +97,11 @@ expect_fail "commit-msg without pnpm" \
   env PATH="/usr/bin:/bin" HOME="$HOME" run_commit_msg "$msg_no_pnpm"
 
 # --- commit-msg: Log 줄 누락 (코드 스테이징) ---
+printf '\n' >>"$FIXTURE_PY"
 git add "$FIXTURE_PY"
+if [ -z "$(git diff --cached --name-only -- "$FIXTURE_PY")" ]; then
+  fail "fixture must be staged for commit-msg Log test"
+fi
 msg_no_log="$MSG_DIR/no-log.txt"
 cat >"$msg_no_log" <<'EOF'
 feat(api): subject without log
@@ -106,6 +111,7 @@ if command -v pnpm >/dev/null 2>&1 && [ -f "$ROOT/node_modules/.bin/commitlint" 
 else
   note "skip commit-msg missing Log (pnpm/commitlint unavailable in runner)"
 fi
+git checkout -- "$FIXTURE_PY"
 git reset HEAD -- "$FIXTURE_PY" >/dev/null
 
 # --- commit-msg: 문서 전용은 Log 없이 통과 ---
@@ -194,6 +200,7 @@ if git worktree add -b "$code_branch" "$code_wt" --orphan >/dev/null 2>&1; then
     git config core.hooksPath .githooks
     mkdir -p ops/ci/fixtures/hooks
     cp "$ROOT/ops/ci/fixtures/hooks/sample.py" ops/ci/fixtures/hooks/sample.py
+    printf '\n' >>ops/ci/fixtures/hooks/sample.py
     git add ops/ci/fixtures/hooks/sample.py
     git commit -m "$(cat <<'EOF'
 feat(api): code only without dev log file
