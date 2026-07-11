@@ -35,6 +35,8 @@ jobs:
           pnpm -v
       - name: Install workspace tooling (commitlint)
         run: pnpm install --frozen-lockfile
+      - name: Install ruff for hook integration tests
+        run: python -m pip install --user ruff
       - name: Run repository guards
         run: python ops/ci/guards.py
       - name: Git hooks integration tests
