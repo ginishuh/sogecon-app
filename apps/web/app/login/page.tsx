@@ -48,12 +48,12 @@ function LoginForm() {
       <p className="text-xs text-text-muted">로그인 후 권한에 따라 접근 가능한 메뉴가 달라집니다.</p>
       <label className="block text-sm text-text-primary">
         학번
-        <input className="mt-1 w-full rounded border border-neutral-border bg-surface px-2 py-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-400" value={studentId} onChange={(e) => setStudentId(e.currentTarget.value)} />
+        <input className="mt-1 w-full rounded border border-neutral-border bg-surface px-2 py-1 text-text-primary focus:outline-hidden focus:ring-2 focus:ring-brand-400" value={studentId} onChange={(e) => setStudentId(e.currentTarget.value)} />
       </label>
       <label className="block text-sm text-text-primary">
         비밀번호
         <input
-          className="mt-1 w-full rounded border border-neutral-border bg-surface px-2 py-1 text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-400"
+          className="mt-1 w-full rounded border border-neutral-border bg-surface px-2 py-1 text-text-primary focus:outline-hidden focus:ring-2 focus:ring-brand-400"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.currentTarget.value)}

@@ -186,7 +186,7 @@ function NewsSkeletonGrid() {
       {Array.from({ length: 4 }, (_, i) => (
         <div
           key={`news-skeleton-${i}`}
-          className={`aspect-[4/3] rounded-2xl bg-neutral-subtle ${i === 3 ? 'hidden xl:block' : ''}`}
+          className={`aspect-4/3 rounded-2xl bg-neutral-subtle ${i === 3 ? 'hidden xl:block' : ''}`}
         />
       ))}
     </div>
@@ -221,7 +221,7 @@ function NewsSection({
                 idx === 3 ? 'hidden xl:block' : ''
               }`}
             >
-              <div className="relative aspect-[4/3] bg-surface">
+              <div className="relative aspect-4/3 bg-surface">
                 <Image
                   src={requirePostImage(post)}
                   alt=""
@@ -229,7 +229,7 @@ function NewsSection({
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                   sizes="(max-width: 1280px) 33vw, 25vw"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-3">
                   <div className="line-clamp-2 text-sm font-semibold text-white">{post.title}</div>
                   <div className="mt-1 text-xs text-white/80">{formatDate(post.published_at)}</div>

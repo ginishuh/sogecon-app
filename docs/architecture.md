@@ -98,7 +98,7 @@
 - 구독 등록 UI: `apps/web/app/sw-register.tsx` — 권한 요청(`Notification.requestPermission`), 서비스워커 등록, `PushManager.subscribe`로 엔드포인트·키 수집 후 API로 전송.
 - 권한 UX: 최초 진입에서 즉시 요청하지 않고, 대시보드 온보딩 단계에서 맥락(행사 알림 등)을 설명 후 요청.
 - 소개 라우트: `/about/greeting`, `/about/org`, `/about/history` 정적 페이지를 추가했다. 공통 히어로 컴포넌트 + 카드형 섹션(`about-hero`, `about-section`)으로 구성하고, 더미 카피/플레이스홀더 이미지는 OG 자산 확정 전까지 임시 제공한다.
-- 홈 개편: `/` 히어로·지표·카드 그리드에 브랜드 색상/간격/타이포 토큰을 적용(`tailwind.config.ts` 확장 + `globals.css` 컴포넌트 레이어). CTA 버튼은 와이드 포커스 링, 모바일 햄버거 내비는 `aria-expanded`/`aria-controls`를 제공한다.
+- 홈 개편: `/` 히어로·지표·카드 그리드에 브랜드 색상/간격/타이포 토큰을 적용(`globals.css`의 Tailwind CSS 4 `@theme`·`@utility`). CTA 버튼은 와이드 포커스 링, 모바일 햄버거 내비는 `aria-expanded`/`aria-controls`를 제공한다.
 - SEO/Analytics: `app/layout.tsx` 전역 `metadata` 템플릿과 `Analytics` 스니펫(환경변수 `NEXT_PUBLIC_ANALYTICS_ID` 플래그), `app/sitemap.ts`, `app/robots.ts`를 추가했다. 기본 도메인은 `NEXT_PUBLIC_SITE_URL`로 오버라이드할 수 있다.
 
 ### 백엔드 구성 (`apps/api`)

@@ -52,7 +52,7 @@ export function NavDropdown({ label, items }: Props) {
         onKeyDown={(e) => {
           if (e.key === 'Escape') setOpen(false);
         }}
-        className="rounded px-2 py-1 text-sm text-neutral-muted hover:text-brand-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+        className="rounded px-2 py-1 text-sm text-neutral-muted hover:text-brand-primary focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-accent"
       >
         {label}
       </button>

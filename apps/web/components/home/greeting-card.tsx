@@ -48,7 +48,7 @@ export function HomeGreetingCard() {
             key={card.title}
             href={card.href}
             aria-label={card.title}
-            className="block overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+            className="block overflow-hidden rounded-xl focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
           >
             <Image
               src={card.imageSrc}

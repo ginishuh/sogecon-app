@@ -79,7 +79,7 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+            className="w-full rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden"
             rows={3}
             placeholder="댓글을 입력하세요..."
             disabled={createMutation.isPending}

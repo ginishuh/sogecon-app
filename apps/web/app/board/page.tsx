@@ -85,7 +85,7 @@ function BoardPageInner() {
               <div className="space-y-3 pt-3">
                 <div className="flex items-center gap-2">
                   <input
-                    className="flex-1 rounded-full border border-neutral-border bg-surface-raised px-4 py-2 text-sm focus:border-brand-400 focus:bg-white focus:outline-none"
+                    className="flex-1 rounded-full border border-neutral-border bg-surface-raised px-4 py-2 text-sm focus:border-brand-400 focus:bg-white focus:outline-hidden"
                     value={search}
                     onChange={(e) => {
                       setSearch(e.currentTarget.value);

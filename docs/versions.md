@@ -53,8 +53,8 @@
 - eslint-plugin-import: 2.32.0
 - eslint-import-resolver-typescript: 3.10.1
 - eslint-plugin-promise: 7.3.0
-- tailwindcss: 3.4.19
-- autoprefixer: 10.5.2
+- tailwindcss: 4.3.2
+- @tailwindcss/postcss: 4.3.2
 - postcss: 8.5.16
 - @testing-library/jest-dom: 6.9.1
 - @testing-library/react: 16.3.2

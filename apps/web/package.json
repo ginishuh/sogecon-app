@@ -27,6 +27,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "3.3.6",
     "@next/bundle-analyzer": "16.2.10",
+    "@tailwindcss/postcss": "4.3.2",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
     "@types/node": "24.13.3",
@@ -34,7 +35,6 @@
     "@types/react-dom": "19.2.3",
     "@typescript-eslint/eslint-plugin": "8.63.0",
     "@typescript-eslint/parser": "8.63.0",
-    "autoprefixer": "10.5.2",
     "axe-core": "4.12.1",
     "baseline-browser-mapping": "2.10.42",
     "eslint": "9.39.5",
@@ -47,7 +47,7 @@
     "postcss": "8.5.16",
     "puppeteer": "24.43.1",
     "schemas": "workspace:*",
-    "tailwindcss": "3.4.19",
+    "tailwindcss": "4.3.2",
     "typescript": "5.9.3",
     "vitest": "3.2.4"
   }

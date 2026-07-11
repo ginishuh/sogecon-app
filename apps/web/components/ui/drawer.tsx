@@ -115,7 +115,7 @@ export default function Drawer({ open, onClose, title, side = 'left', className,
         aria-label={labelledBy ? undefined : '메뉴'}
         tabIndex={-1}
         className={cn(
-          'absolute top-0 h-full bg-white shadow-xl outline-none z-10 flex flex-col',
+          'absolute top-0 h-full bg-white shadow-xl outline-hidden z-10 flex flex-col',
           side === 'left' ? 'left-0' : 'right-0',
           className
         )}

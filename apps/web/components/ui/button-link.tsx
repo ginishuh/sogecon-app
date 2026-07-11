@@ -38,7 +38,7 @@ export function ButtonLink({
 }: ButtonLinkProps) {
   const classes = [
     'inline-flex items-center justify-center rounded-md font-medium transition-colors select-none',
-    'focus-visible:outline-none ring-offset-2 ring-offset-surface',
+    'focus-visible:outline-hidden ring-offset-2 ring-offset-surface',
     'no-underline hover:no-underline focus-visible:no-underline',
     VARIANT[variant],
     SIZE[size],

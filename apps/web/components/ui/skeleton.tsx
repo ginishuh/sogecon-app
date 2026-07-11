@@ -25,7 +25,7 @@ export function HeroSkeleton() {
     >
       {/* 배경 스크린 Skeleton - 페이드 애니메이션으로 자연스러운 로딩 표현 */}
       <div className="absolute inset-0 bg-neutral-surface animate-pulse">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
       </div>
       
       {/* 텍스트 스크린 - 실제 콘텐츠와 유사한 레이아웃 */}
