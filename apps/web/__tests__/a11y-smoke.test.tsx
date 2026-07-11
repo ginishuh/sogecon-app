@@ -20,6 +20,10 @@ const axeOptions: axe.RunOptions = {
 describe('a11y: home smoke', () => {
   it('has no critical a11y violations in Home quick surface', async () => {
     const { container } = render(<HomeQuickActions />);
+    expect(container.querySelector('.home-quick-actions')).toBeInTheDocument();
+    expect(container.querySelector('.home-quick-actions__grid')).toBeInTheDocument();
+    expect(container.querySelectorAll('.home-quick-actions__item')).toHaveLength(6);
+
     const result = await axe.run(container, axeOptions);
     const violations = result.violations.map((v) => ({ id: v.id, impact: v.impact }));
     expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);

@@ -308,27 +308,6 @@
   @apply absolute bottom-3 left-3 max-w-[88%] truncate rounded-lg bg-black/85 px-3 py-1.5 text-sm font-bold text-white md:text-base;
 }
 
-/* Figma 프리뷰 전용 헤더 단순화 — 데스크톱에도 햄버거를 노출하고, 우측 내비/인증 영역은 감춤 */
-@utility site-header__desktop-nav {
-  body.is-figma-preview & {
-    display: none !important;
-  }
-}
-@utility site-header__desktop-menus {
-  body.is-figma-preview & {
-    display: none !important;
-  }
-}
-@utility site-header__auth {
-  body.is-figma-preview & {
-    display: none !important;
-  }
-}
-@utility site-header__hamburger {
-  body.is-figma-preview & {
-    display: inline-flex !important;
-  }
-}
 @utility full-bleed {
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);

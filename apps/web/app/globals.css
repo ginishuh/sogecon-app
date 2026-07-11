@@ -132,11 +132,21 @@ main:focus {
   }
 }
 
+/* Figma 프리뷰 전용 헤더 단순화 */
+body.is-figma-preview .site-header__desktop-nav,
+body.is-figma-preview .site-header__auth {
+  display: none !important;
+}
+
+body.is-figma-preview .site-header__hamburger {
+  display: inline-flex !important;
+}
+
 @layer utilities {
   /* Figma 프리뷰 — 모바일 레이아웃 보정(히어로 풀블리드 + 3×2 빠른 실행) */
   @media (max-width: 767px) {
     /* 히어로를 뷰포트 가로폭으로 확장(컨테이너 패딩 무시) */
-    body.is-figma-preview .home-hero--image-only {
+    body.is-figma-preview .home-hero-carousel {
       margin-left: calc(50% - 50vw);
       margin-right: calc(50% - 50vw);
       border-radius: 0 !important;

@@ -155,7 +155,7 @@ export default function HomeHeroCarousel() {
 
   return (
     <section
-      className="relative h-[218px] md:h-[320px] lg:h-[420px] overflow-hidden rounded-2xl shadow-xl"
+      className="home-hero-carousel relative h-[218px] md:h-[320px] lg:h-[420px] overflow-hidden rounded-2xl shadow-xl"
       aria-label="홈 배너"
       role="region"
       aria-roledescription="carousel"
