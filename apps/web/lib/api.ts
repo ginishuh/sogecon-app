@@ -32,7 +32,7 @@ export type ProblemDetails = {
   type?: string;
   title?: string;
   status: number;
-  detail?: string;
+  detail?: unknown;
   code?: string;
 };
 
@@ -46,13 +46,30 @@ export class ApiError extends Error {
 async function parseError(res: Response): Promise<never> {
   try {
     const problem = (await res.json()) as ProblemDetails;
-    const msg = problem.detail || problem.title || `HTTP ${res.status}`;
+    const msg = detailToMessage(problem.detail) ?? problem.title ?? `HTTP ${res.status}`;
     throw new ApiError(problem.status ?? res.status, msg, problem.code);
   } catch (e) {
     if (e instanceof ApiError) throw e;
     const text = await res.text().catch(() => '');
     throw new ApiError(res.status, text || `HTTP ${res.status}`);
   }
+}
+
+function detailToMessage(detail: unknown): string | undefined {
+  if (typeof detail === 'string' && detail) return detail;
+  if (!Array.isArray(detail)) return undefined;
+
+  for (const item of detail) {
+    if (!isRecord(item)) continue;
+    const message = item['msg'];
+    if (typeof message !== 'string' || !message) continue;
+    return message.replace(/^Value error,\s*/, '');
+  }
+  return undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value != null;
 }
 
 async function parseOk<T>(res: Response): Promise<T | void> {
