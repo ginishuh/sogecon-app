@@ -12,11 +12,12 @@ import { ApiError } from '../../../../lib/api';
 import { apiErrorToMessage } from '../../../../lib/error-map';
 import { isSuperAdminSession } from '../../../../lib/rbac';
 import {
+  getMemberForAdmin,
   updateMemberForAdmin,
   updateMemberRoles,
   type AdminMemberUpdate,
+  type MemberRead as Member,
 } from '../../../../services/admin-members';
-import { getMember, type Member } from '../../../../services/members';
 
 type InfoField = {
   key: keyof AdminMemberUpdate;
@@ -245,7 +246,7 @@ function MemberDetailContent() {
 
   const memberQuery = useQuery({
     queryKey: ['members', memberId],
-    queryFn: () => getMember(memberId),
+    queryFn: () => getMemberForAdmin(memberId),
     enabled: !isNaN(memberId),
   });
 

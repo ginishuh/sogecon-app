@@ -195,7 +195,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MemberRead"
+                    "$ref": "#/components/schemas/DirectoryMemberRead"
                   },
                   "title": "Response List Members Members  Get"
                 }
@@ -423,7 +423,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MemberRead"
+                  "$ref": "#/components/schemas/DirectoryMemberRead"
                 }
               }
             }
@@ -3107,6 +3107,47 @@
       }
     },
     "/admin/members/{member_id}": {
+      "get": {
+        "tags": [
+          "admin-members"
+        ],
+        "summary": "Get Member Admin",
+        "description": "\uad00\ub9ac\uc790\uc6a9 \ud68c\uc6d0 \uc0c1\uc138 \uc870\ud68c. \uacf5\uac1c \ubc94\uc704\uc640 \uad00\uacc4\uc5c6\uc774 \uad00\ub9ac \ud544\ub4dc\ub97c \ubc18\ud658\ud55c\ub2e4.",
+        "operationId": "get_member_admin_admin_members__member_id__get",
+        "parameters": [
+          {
+            "name": "member_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Member Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "patch": {
         "tags": [
           "admin-members"
@@ -4170,6 +4211,164 @@
         ],
         "title": "DirectMemberCreateResponse",
         "description": "\uad00\ub9ac\uc790 \uc9c1\uc811 \ud68c\uc6d0 \uc0dd\uc131 \uc751\ub2f5."
+      },
+      "DirectoryMemberRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "cohort": {
+            "type": "integer",
+            "title": "Cohort"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "all",
+              "cohort",
+              "private"
+            ],
+            "title": "Visibility"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "major": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Major"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "department": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "company_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Phone"
+          },
+          "addr_personal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Addr Personal"
+          },
+          "addr_company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Addr Company"
+          },
+          "industry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Industry"
+          },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "cohort",
+          "visibility",
+          "avatar_url"
+        ],
+        "title": "DirectoryMemberRead",
+        "description": "\ub3d9\ubb38 \uc218\ucca9\uc6a9 \ucd5c\uc18c \uc751\ub2f5. \uc778\uc99d\u00b7\uc5ed\ud560\u00b7\ud559\ubc88\uc740 \ub178\ucd9c\ud558\uc9c0 \uc54a\ub294\ub2e4."
       },
       "EventAdminRead": {
         "properties": {

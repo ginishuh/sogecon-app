@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Member } from '../services/members';
+import { hasPublicDirectoryDetails, VISIBILITY_INFO } from '../lib/member-experience';
 
 type Props = {
   member: Member;
@@ -7,6 +8,7 @@ type Props = {
 };
 
 export default function DirectoryCard({ member, onClick }: Props) {
+  const hasDetails = hasPublicDirectoryDetails(member);
   return (
     <article
       className="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm cursor-pointer hover:border-neutral-ink/20 transition-colors"
@@ -28,16 +30,17 @@ export default function DirectoryCard({ member, onClick }: Props) {
             <span className="ml-2 align-middle text-xs font-medium text-neutral-muted">{member.cohort}기</span>
           </h3>
           <p className="truncate text-xs text-neutral-muted">
-            {member.email}
+            {member.email || '이메일 비공개'}
           </p>
           <p className="mt-1 text-sm text-neutral-ink">
-            {member.company ?? '-'}
+            {member.company || '소속 정보 비공개'}
           </p>
         </div>
         <span className="text-xs text-neutral-muted">
-          {member.major ?? ''}
+          {member.major || ''}
         </span>
       </header>
+      <p className="mt-3 text-xs text-neutral-muted">{hasDetails ? VISIBILITY_INFO[member.visibility].label : '공개된 상세 정보가 아직 없어요.'}</p>
     </article>
   );
 }

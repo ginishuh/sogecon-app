@@ -4,7 +4,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { KNOWN_ROLE_SET, RoleChecklist, normalizeRoles } from './role-shared';
 import { UnknownRoleHint, SaveRoleButton } from './member-parts';
-import type { Member } from '../../../services/members';
+import type { MemberRead as Member } from '../../../services/admin-members';
 
 export function memberRoles(m: Member): string[] {
   const raw = (m as Record<string, unknown>)['roles'];

@@ -49,6 +49,11 @@ export async function countMembersForAdmin(params: {
   return res.count;
 }
 
+/** 관리자용 회원 상세 (학번, 상태, 역할 포함) */
+export async function getMemberForAdmin(memberId: number): Promise<MemberRead> {
+  return apiFetch<MemberRead>(`/admin/members/${memberId}`);
+}
+
 /** 관리자 회원 정보 수정 (roles 제외) */
 export async function updateMemberForAdmin(
   memberId: number,

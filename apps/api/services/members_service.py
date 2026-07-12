@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models, schemas
 from ..config import get_settings
-from ..errors import AlreadyExistsError, ApiError
+from ..errors import AlreadyExistsError, ApiError, NotFoundError
 from ..repositories import members as members_repo
 from .activation_service import create_member_activation_token
 from .roles_service import (
@@ -142,15 +142,25 @@ async def list_members(
     limit: int,
     offset: int,
     filters: schemas.MemberListFilters | None = None,
+    viewer: tuple[int, int] | None = None,
 ) -> Sequence[models.Member]:
     return await members_repo.list_members(
-        db, limit=limit, offset=offset, filters=filters
+        db, limit=limit, offset=offset, filters=filters,
+        viewer=viewer,
     )
 
 
 async def count_members(
-    db: AsyncSession, *, filters: schemas.MemberListFilters | None = None
+    db: AsyncSession, *, filters: schemas.MemberListFilters | None = None,
+    viewer: tuple[int, int] | None = None,
 ) -> int:
+    # 조회자별 공개 범위는 즉시 반영되어야 하므로 짧은 캐시도 사용하지 않는다.
+    # 관리자용 집계만 기존 필터 캐시를 유지한다.
+    if viewer is not None:
+        return await members_repo.count_members(
+            db, filters=filters, viewer=viewer
+        )
+
     def _normalize_value(value: object) -> str:
         if isinstance(value, bool):
             return "1" if value else "0"
@@ -167,7 +177,6 @@ async def count_members(
         ]
         items.sort()
         key = tuple(items)
-
     now = time.time()
     cached = _member_count_cache.get(key)
     if cached and (now - cached[0]) < _MEMBER_COUNT_CACHE_TTL:
@@ -184,6 +193,27 @@ async def count_members(
 
 async def get_member(db: AsyncSession, member_id: int) -> models.Member:
     return await members_repo.get_member(db, member_id)
+
+
+def can_view_directory_member(viewer: models.Member, target: models.Member) -> bool:
+    if cast(int, viewer.id) == cast(int, target.id):
+        return True
+    visibility = cast(models.Visibility, target.visibility)
+    if visibility == models.Visibility.ALL:
+        return True
+    return (
+        visibility == models.Visibility.COHORT
+        and cast(int, viewer.cohort) == cast(int, target.cohort)
+    )
+
+
+def to_directory_member_read(
+    viewer: models.Member, target: models.Member
+) -> schemas.DirectoryMemberRead:
+    if not can_view_directory_member(viewer, target):
+        # 미존재 회원과 같은 응답을 사용해 숨김 회원의 존재를 추론하지 못하게 한다.
+        raise NotFoundError(code="member_not_found", detail="Member not found")
+    return schemas.DirectoryMemberRead.model_validate(target)
 
 
 async def create_member(
