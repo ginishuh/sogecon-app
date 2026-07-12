@@ -140,6 +140,7 @@ make schema-gen
 - 훅 스모크: `bash ops/ci/test_githooks.sh`
 - 단축키: `make test-api`, `make schema-gen` 등은 `Makefile` 참고.
 - CI: `.github/workflows/ci.yml` — commitlint(hard), API/Web 전체 검증, 보안 스캔. E2E·DTO·CodeQL은 별도 workflow.
+- 의존성 자동화: `.github/dependabot.yml`이 npm/pip/GitHub Actions를 월간 점검하며, 보안 업데이트·SLA·waiver 절차는 `docs/dependency_updates.md`를 따른다. 자동 병합은 사용하지 않는다.
 
 ## 커밋/PR 규칙
 - Conventional Commits 필수: `type(scope): subject`(72자 이내). 타입/스코프는 `docs/commit_message_convention.md` 참고.

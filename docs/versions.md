@@ -34,6 +34,7 @@
 - pytest-asyncio==1.4.0
 - httpx==0.27.2
 - bandit==1.9.4
+- PyYAML==6.0.3 (`ops/ci/check_dependabot.py` 설정 검증)
 
 ## Frontend (apps/web)
 - next: 16.2.10

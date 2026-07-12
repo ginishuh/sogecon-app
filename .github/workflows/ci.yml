@@ -35,14 +35,16 @@ jobs:
           pnpm -v
       - name: Install workspace tooling (commitlint)
         run: pnpm install --frozen-lockfile
-      - name: Install ruff for hook integration tests
-        run: python -m pip install --user ruff
+      - name: Install repository guard dependencies
+        run: python -m pip install --user ruff PyYAML==6.0.3
       - name: Run repository guards
         run: python ops/ci/guards.py
       - name: Git hooks integration tests
         run: bash ops/ci/test_githooks.sh
       - name: Enforce standardized versions
         run: python ops/ci/check_versions.py
+      - name: Validate Dependabot policy
+        run: python ops/ci/check_dependabot.py
       - name: Lint commit messages (PR commits)
         run: |
           pnpm exec commitlint \
