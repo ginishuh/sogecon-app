@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { WEB_BASE_URL } from './utils/env';
 import { setupDirectoryMocks } from './utils/mockApi';
+import { configureMockServer } from './utils/mockServer';
 
 let browser: Browser | null = null;
 let page: Page | null = null;
@@ -43,6 +44,7 @@ describe('Home (CDP E2E)', () => {
 
   it('shows the same activity hierarchy and member action contract on mobile', async () => {
     if (!page) throw new Error('Puppeteer page not initialized');
+    await configureMockServer('member');
     await setupDirectoryMocks(page);
     await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'domcontentloaded' });
 

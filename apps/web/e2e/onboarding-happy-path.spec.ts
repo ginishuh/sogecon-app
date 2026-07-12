@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import puppeteer, { Browser, Page, HTTPRequest } from 'puppeteer';
 import { WEB_BASE_URL } from './utils/env';
+import { configureMockServer } from './utils/mockServer';
 
 let browser: Browser | null = null;
 let page: Page | null = null;
@@ -205,6 +206,7 @@ describe('Onboarding happy path (CDP E2E)', () => {
   it('signup -> admin approve -> activate 흐름이 동작한다', async () => {
     if (!page) throw new Error('Puppeteer page not initialized');
 
+    await configureMockServer('admin');
     await setupOnboardingMocks(page);
 
     await page.goto(`${WEB_BASE_URL}/signup`, { waitUntil: 'domcontentloaded' });

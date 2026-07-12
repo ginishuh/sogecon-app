@@ -44,21 +44,31 @@ jobs:
           chrome-version: stable
       - name: Build web
         run: pnpm -C apps/web build
+      - name: Start deterministic mock API
+        run: |
+          node apps/web/e2e/mock-api-server.mjs > mock-api.log 2>&1 &
+          echo $! > mock-api.pid
       - name: Start web (background)
         run: |
           pnpm -C apps/web start &
           echo $! > web.pid
       - name: Wait for web
         run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3001/healthz >/dev/null; then echo "mock API up"; break; fi; sleep 1;
+          done
+          curl -fsS http://localhost:3001/healthz >/dev/null || { cat mock-api.log; exit 1; }
           for i in {1..60}; do
             if curl -fsS http://localhost:3000 >/dev/null; then echo "web up"; exit 0; fi; sleep 1; done
           echo "web not responding"; curl -v http://localhost:3000 || true; exit 1
       - name: Run E2E (CDP/Puppeteer)
         env:
           WEB_BASE_URL: http://localhost:3000
+          E2E_MOCK_API_CONTROL_URL: http://localhost:3001
           PUPPETEER_EXECUTABLE_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: pnpm -C apps/web e2e
       - name: Stop web
         if: always()
         run: |
           if [ -f web.pid ]; then kill $(cat web.pid) || true; fi
+          if [ -f mock-api.pid ]; then kill $(cat mock-api.pid) || true; fi
