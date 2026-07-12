@@ -165,7 +165,7 @@ jobs:
         shell: bash
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
         id: pnpm-cache
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         name: Cache pnpm store
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
@@ -179,7 +179,7 @@ jobs:
       - name: Unit tests
         run: pnpm -C apps/web test
       - name: Cache Next.js build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: apps/web/.next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml', 'apps/web/next.config.js', 'apps/web/package.json') }}
