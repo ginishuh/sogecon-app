@@ -48,7 +48,7 @@ vi.mock('../components/confirm-dialog', () => ({
 const authDataRef: { current: ReturnType<typeof makeSession> | null } = { current: null };
 
 vi.mock('../hooks/useAuth', () => ({
-  useAuth: () => ({ data: authDataRef.current }),
+  useAuth: () => ({ data: authDataRef.current, status: authDataRef.current ? 'authorized' : 'unauthorized' }),
 }));
 
 function makeSession(overrides: { id?: number; roles?: string[] } = {}) {
@@ -220,12 +220,22 @@ describe('CommentsSection — 댓글 작성 UX', () => {
     expect(createCommentMock).not.toHaveBeenCalled();
   });
 
+  it('비회원에게 댓글 입력 대신 로그인 행동을 제공한다', async () => {
+    authDataRef.current = null;
+    renderComments();
+
+    await waitFor(() => expect(listCommentsMock).toHaveBeenCalled());
+    expect(screen.getByText('로그인하면 댓글로 이야기에 참여할 수 있습니다.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '동문 로그인' })).toHaveAttribute('href', '/login');
+    expect(screen.queryByRole('textbox', { name: '댓글로 대화에 참여하기' })).not.toBeInTheDocument();
+  });
+
   it('작성 성공 시 textarea가 초기화됨', async () => {
     renderComments();
 
     await waitFor(() => expect(listCommentsMock).toHaveBeenCalled());
 
-    const textarea = screen.getByPlaceholderText('댓글을 입력하세요...');
+    const textarea = screen.getByRole('textbox', { name: '댓글로 대화에 참여하기' });
     fireEvent.change(textarea, { target: { value: '새 댓글' } });
     fireEvent.click(screen.getByRole('button', { name: '댓글 작성' }));
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useState } from 'react';
 import { createComment, deleteComment, listComments, type Comment } from '../services/comments';
 import { formatFullDate } from '../lib/date-utils';
@@ -8,16 +9,41 @@ import { useAuth } from '../hooks/useAuth';
 import { isAdminSession } from '../lib/rbac';
 import { ConfirmDialog } from './confirm-dialog';
 import { useToast } from './toast';
+import { getAuthorName } from '../lib/community';
 
 interface CommentsSectionProps {
   postId: number;
+}
+
+type CommentComposerProps = {
+  postId: number;
+  status: 'loading' | 'authorized' | 'unauthorized' | 'error';
+  hasAuth: boolean;
+  content: string;
+  isPending: boolean;
+  onContentChange: (value: string) => void;
+  onSubmit: (event: React.FormEvent) => void;
+};
+
+function CommentComposer(props: CommentComposerProps) {
+  if (props.status === 'loading') return <p className="text-sm text-text-secondary">댓글 작성 권한을 확인하고 있습니다…</p>;
+  if (props.status === 'error') return <div role="alert" className="flex flex-wrap items-center justify-between gap-3 text-sm text-state-error"><p>로그인 정보를 확인하지 못했습니다.</p><button type="button" className="min-h-11 rounded-lg border border-state-error px-4 font-medium" onClick={() => window.location.reload()}>다시 시도하기</button></div>;
+  if (props.status === 'unauthorized') return <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-text-secondary">로그인하면 댓글로 이야기에 참여할 수 있습니다.</p><Link href="/login" className="inline-flex min-h-11 items-center rounded-lg border border-neutral-border bg-white px-4 text-sm font-semibold text-text-secondary">동문 로그인</Link></div>;
+  if (!props.hasAuth) return null;
+  return (
+    <form onSubmit={props.onSubmit}>
+      <label htmlFor={`comment-${props.postId}`} className="mb-2 block text-sm font-medium text-text-secondary">댓글로 대화에 참여하기</label>
+      <textarea id={`comment-${props.postId}`} value={props.content} onChange={(event) => props.onContentChange(event.target.value)} className="w-full rounded border border-neutral-border px-3 py-3 text-sm focus:border-brand-500 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500" rows={3} placeholder="서로를 배려하는 마음으로 댓글을 남겨 주세요." disabled={props.isPending} />
+      <div className="mt-2 flex justify-end"><button type="submit" disabled={props.isPending || !props.content.trim()} className="min-h-11 rounded bg-brand-600 px-4 text-sm text-white hover:bg-brand-700 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:bg-neutral-subtle">{props.isPending ? '작성 중...' : '댓글 작성'}</button></div>
+    </form>
+  );
 }
 
 export function CommentsSection({ postId }: CommentsSectionProps) {
   const [content, setContent] = useState('');
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const queryClient = useQueryClient();
-  const { data: auth } = useAuth();
+  const { data: auth, status } = useAuth();
   const { show: showToast } = useToast();
   const isAdmin = isAdminSession(auth);
 
@@ -33,7 +59,7 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
       setContent('');
     },
     onError: () => {
-      showToast('댓글 작성에 실패했습니다.', { type: 'error' });
+      showToast('댓글을 등록하지 못했습니다. 잠시 후 다시 시도해 주세요.', { type: 'error' });
     },
   });
 
@@ -44,7 +70,7 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
       setDeleteTargetId(null);
     },
     onError: () => {
-      showToast('댓글 삭제에 실패했습니다.', { type: 'error' });
+      showToast('댓글을 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.', { type: 'error' });
       setDeleteTargetId(null);
     },
   });
@@ -75,25 +101,7 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
 
       {/* 댓글 작성 폼 */}
       <div className="border-b border-neutral-border bg-surface-raised px-6 py-4">
-        <form onSubmit={handleSubmit}>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden"
-            rows={3}
-            placeholder="댓글을 입력하세요..."
-            disabled={createMutation.isPending}
-          />
-          <div className="mt-2 flex justify-end">
-            <button
-              type="submit"
-              disabled={createMutation.isPending || !content.trim()}
-              className="rounded bg-brand-600 px-4 py-1.5 text-sm text-white hover:bg-brand-700 disabled:bg-neutral-subtle"
-            >
-              {createMutation.isPending ? '작성 중...' : '댓글 작성'}
-            </button>
-          </div>
-        </form>
+        <CommentComposer postId={postId} status={status} hasAuth={Boolean(auth)} content={content} isPending={createMutation.isPending} onContentChange={setContent} onSubmit={handleSubmit} />
       </div>
 
       {/* 댓글 목록 */}
@@ -111,7 +119,7 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="mb-1 flex items-center gap-2 text-xs text-text-secondary">
-                        <span className="font-semibold">{comment.author_name || `회원${comment.author_id}`}</span>
+                        <span className="font-semibold">{getAuthorName(comment.author_name)}</span>
                         <span>•</span>
                         <span>
                           {formatFullDate(comment.created_at)}
@@ -123,7 +131,7 @@ export function CommentsSection({ postId }: CommentsSectionProps) {
                       <button
                         onClick={() => setDeleteTargetId(comment.id)}
                         disabled={deleteMutation.isPending}
-                        className="ml-4 text-xs text-state-error hover:text-state-error-hover disabled:text-text-muted"
+                        className="ml-4 min-h-11 min-w-11 rounded-lg px-2 text-sm text-state-error hover:bg-state-error-subtle hover:text-state-error-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-state-error disabled:text-text-muted"
                       >
                         삭제
                       </button>
