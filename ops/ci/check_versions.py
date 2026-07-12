@@ -182,6 +182,7 @@ def check_requirements() -> None:
             "pytest-asyncio==1.4.0",
             "httpx==0.27.2",
             "bandit==1.9.4",
+            "PyYAML==6.0.3",
         ],
     }
 

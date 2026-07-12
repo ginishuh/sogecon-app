@@ -3,6 +3,7 @@
 본 문서는 현재 레포에 적용된 보안 가드와 운영 권장 설정을 요약합니다.
 
 ## CI / 자동화 가드
+- 의존성 업데이트: `.github/dependabot.yml`이 npm/pip/GitHub Actions 월간 점검과 advisory 기반 security PR을 관리한다. major는 독립 PR, 자동 병합은 비활성화하며 상세 SLA·waiver 요건은 `docs/dependency_updates.md`를 따른다.
 - 품질 게이트 SSOT: `docs/ci_quality_gates.md` (훅·PR CI·보안 스캔 책임 분리)
 - Repo Guards(`ops/ci/guards.py`):
   - 금지된 우회 주석 감지(`eslint-disable`, `@ts-ignore`, `# type: ignore`, `# noqa` 등; Alembic env.py의 `E402`만 예외)

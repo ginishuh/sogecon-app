@@ -1,0 +1,62 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: {interval: monthly, time: "02:00", timezone: Asia/Seoul}
+    open-pull-requests-limit: 5
+    assignees: [ginishuh]
+    labels: [dependencies, web]
+    groups:
+      web-production-minor-patch:
+        applies-to: version-updates
+        dependency-type: production
+        patterns: ["*"]
+        update-types: [minor, patch]
+      web-development-minor-patch:
+        applies-to: version-updates
+        dependency-type: development
+        patterns: ["*"]
+        update-types: [minor, patch]
+      web-security-minor-patch:
+        applies-to: security-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: pip
+    directory: /apps/api
+    schedule: {interval: monthly, time: "02:20", timezone: Asia/Seoul}
+    open-pull-requests-limit: 5
+    assignees: [ginishuh]
+    labels: [dependencies, api]
+    groups:
+      api-runtime-minor-patch:
+        applies-to: version-updates
+        dependency-type: production
+        patterns: ["*"]
+        update-types: [minor, patch]
+      api-development-minor-patch:
+        applies-to: version-updates
+        dependency-type: development
+        patterns: ["*"]
+        update-types: [minor, patch]
+      api-security-minor-patch:
+        applies-to: security-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: {interval: monthly, time: "02:40", timezone: Asia/Seoul}
+    open-pull-requests-limit: 5
+    assignees: [ginishuh]
+    labels: [dependencies, ci]
+    groups:
+      actions-minor-patch:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+      actions-security-minor-patch:
+        applies-to: security-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
