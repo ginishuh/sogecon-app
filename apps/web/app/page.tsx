@@ -6,12 +6,12 @@ import { HomeGreetingCard } from '../components/home/greeting-card';
 
 export default function HomePage() {
   return (
-    <div className="flex min-w-0 flex-col">
+    <div className="home-page flex min-w-0 flex-col">
       {/* 접근성/SEO용 H1 */}
       <h1 className="sr-only">서강대 경제대학원 총동문회</h1>
 
       {/* 히어로 캐러셀 */}
-      <div className="mb-4 min-w-0 overflow-clip">
+      <div className="min-w-0 overflow-clip">
         <HomeHeroCarousel />
       </div>
 

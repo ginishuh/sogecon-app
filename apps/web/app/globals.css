@@ -50,6 +50,21 @@ main:focus {
     outline: none;
 }
 
+/* 홈은 브랜드 소개와 동문 활동을 함께 보여 주므로 일반 업무 화면보다 넓게 사용한다. */
+.home-page,
+.brand-wide-page {
+    width: min(84rem, calc(100vw - 2rem));
+    margin-left: 50%;
+    transform: translateX(-50%);
+}
+
+@media (min-width: 768px) {
+    .home-page,
+    .brand-wide-page {
+      width: min(84rem, calc(100vw - 3rem));
+    }
+}
+
 @media (min-width: 768px) {
     body {
       font-size: 1rem;

@@ -18,6 +18,7 @@
     "e2e:dev": "WEB_BASE_URL=http://localhost:3000 vitest -c vitest.config.e2e.mts run"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@tanstack/react-query": "5.101.2",
     "next": "16.2.10",
     "react": "19.2.7",

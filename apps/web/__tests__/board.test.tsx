@@ -108,6 +108,51 @@ describe('BoardPage', () => {
     });
     expect(listPostsMock).toHaveBeenLastCalledWith(expect.objectContaining({ category: 'question' }));
   });
+
+  it('이미지가 있는 고정 글 한 건을 주요 이야기와 목록에 함께 유지한다', async () => {
+    listPostsMock.mockResolvedValueOnce([
+      {
+        id: 30,
+        title: '동문 주요 이야기',
+        content: '동문들의 새로운 도전을 소개합니다.',
+        published_at: '2026-07-13T00:00:00+09:00',
+        author_id: 1,
+        author_name: '서강 동문',
+        category: 'discussion',
+        pinned: true,
+        cover_image: '/media/images/featured.png',
+      },
+    ]);
+
+    renderWithClient(<BoardPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: '주요 이야기: 동문 주요 이야기' })).toBeInTheDocument();
+    });
+    expect(screen.getAllByText('동문 주요 이야기')).toHaveLength(2);
+    expect(screen.queryByText('아직 등록된 게시글이 없습니다.')).not.toBeInTheDocument();
+  });
+
+  it('고정 글이어도 이미지가 없으면 주요 이야기로 승격하지 않는다', async () => {
+    listPostsMock.mockResolvedValueOnce([
+      {
+        id: 31,
+        title: '이미지 없는 고정 글',
+        content: '목록에서만 보여야 합니다.',
+        published_at: null,
+        author_id: 1,
+        category: 'discussion',
+        pinned: true,
+      },
+    ]);
+
+    renderWithClient(<BoardPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('이미지 없는 고정 글')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('link', { name: /주요 이야기:/ })).not.toBeInTheDocument();
+  });
 });
 
 describe('BoardNewPage', () => {
