@@ -142,10 +142,10 @@ export default function Drawer({ open, onClose, title, side = 'left', className,
           <button
             type="button"
             onClick={onClose}
-            className="ml-auto rounded opacity-70 hover:opacity-100 text-neutral-ink size-4 flex items-center justify-center"
+            className="ml-auto flex min-h-11 min-w-11 items-center justify-center rounded-md text-neutral-ink opacity-70 hover:bg-surface-raised hover:opacity-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400"
             aria-label="닫기"
           >
-            <svg className="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="size-5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 4L4 12M4 4l8 8" strokeLinecap="round" />
             </svg>
           </button>

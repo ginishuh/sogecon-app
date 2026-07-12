@@ -3,15 +3,9 @@ import React from 'react';
 import { Button } from '../../components/ui/button';
 
 describe('Button', () => {
-  it('renders primary/md (default) and matches snapshot', () => {
+  it('renders the default control with a 44px minimum target and focus contract', () => {
     const { container } = render(<Button>확인</Button>);
-    expect(container.firstElementChild).toMatchInlineSnapshot(`
-      <button
-        class="inline-flex items-center justify-center rounded-md font-medium transition-colors select-none focus-visible:outline-hidden ring-offset-2 ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50 bg-brand-700 text-text-inverse hover:bg-brand-800 active:bg-brand-900 focus-visible:ring-brand-400 h-10 px-4 text-sm"
-      >
-        확인
-      </button>
-    `);
+    expect(container.firstElementChild).toHaveClass('min-h-11', 'min-w-11', 'focus-visible:ring-2');
   });
 
   it('renders variants and sizes', () => {
@@ -31,5 +25,6 @@ describe('Button', () => {
     expect(getByText('Ghost')).toBeInTheDocument();
     expect(getByText('Danger')).toBeInTheDocument();
     expect(getByText('Small')).toBeDisabled();
+    expect(getByText('Small')).toHaveClass('min-h-11', 'min-w-11');
   });
 });

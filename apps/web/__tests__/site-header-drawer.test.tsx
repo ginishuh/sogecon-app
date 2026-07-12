@@ -39,7 +39,9 @@ describe('SiteHeader drawer', () => {
     expect(dialog).toBeInTheDocument();
 
     // 실제 Drawer 헤더의 닫기 버튼 클릭
-    fireEvent.click(screen.getByRole('button', { name: '닫기' }));
+    const closeButton = screen.getByRole('button', { name: '닫기' });
+    expect(closeButton).toHaveClass('min-h-11', 'min-w-11');
+    fireEvent.click(closeButton);
 
     // Drawer 닫힘 확인
     await screen.findByLabelText('전체 메뉴 열기');

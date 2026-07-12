@@ -1,32 +1,15 @@
 import Link from 'next/link';
 import React from 'react';
-
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-type ButtonSize = 'sm' | 'md' | 'lg';
+import { CONTROL_BASE, CONTROL_SIZE, CONTROL_VARIANT, type ControlSize, type ControlVariant } from './styles';
 
 type LinkBaseProps = React.ComponentProps<typeof Link>;
 
 export type ButtonLinkProps = Omit<LinkBaseProps, 'className'> & {
   /** 시맨틱 변형(토큰 기반 색상) */
-  variant?: ButtonVariant;
+  variant?: ControlVariant;
   /** 사이즈 변형 */
-  size?: ButtonSize;
+  size?: ControlSize;
   className?: string;
-};
-
-const VARIANT: Record<ButtonVariant, string> = {
-  primary:
-    'bg-brand-700 text-text-inverse hover:bg-brand-800 active:bg-brand-900 focus-visible:ring-brand-400',
-  secondary:
-    'bg-surface-raised text-text-primary border border-neutral-border hover:bg-surface-sunken',
-  ghost: 'bg-transparent text-brand-700 hover:bg-surface-raised',
-  danger: 'bg-state-error text-text-inverse hover:bg-state-error-hover',
-};
-
-const SIZE: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-sm',
-  md: 'h-10 px-4 text-sm',
-  lg: 'h-12 px-5 text-base',
 };
 
 export function ButtonLink({
@@ -37,11 +20,10 @@ export function ButtonLink({
   ...rest
 }: ButtonLinkProps) {
   const classes = [
-    'inline-flex items-center justify-center rounded-md font-medium transition-colors select-none',
-    'focus-visible:outline-hidden ring-offset-2 ring-offset-surface',
+    CONTROL_BASE,
     'no-underline hover:no-underline focus-visible:no-underline',
-    VARIANT[variant],
-    SIZE[size],
+    CONTROL_VARIANT[variant],
+    CONTROL_SIZE[size],
     className ?? '',
   ]
     .filter(Boolean)
@@ -55,4 +37,3 @@ export function ButtonLink({
 }
 
 export default ButtonLink;
-

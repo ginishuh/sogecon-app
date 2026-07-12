@@ -33,6 +33,13 @@ describe('Form controls a11y', () => {
     expect(screen.getByLabelText('역할')).toHaveAttribute('aria-describedby', 'role-error');
     expect(screen.getByLabelText('소개')).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByLabelText('소개')).toHaveAttribute('aria-describedby', 'bio-error');
+    expect(screen.getAllByRole('alert')).toHaveLength(2);
+  });
+
+  it('keeps helper and error text connected when both are present', () => {
+    render(<Input id="phone" label="연락처" helperText="숫자와 하이픈을 입력해 주세요" errorText="연락처를 확인해 주세요" />);
+    expect(screen.getByLabelText('연락처')).toHaveAttribute('aria-describedby', 'phone-error phone-help');
+    expect(screen.getByText('숫자와 하이픈을 입력해 주세요')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('연락처를 확인해 주세요');
   });
 });
-

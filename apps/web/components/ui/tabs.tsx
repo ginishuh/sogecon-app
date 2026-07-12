@@ -83,7 +83,7 @@ export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: 
 
   return (
     <div className={className} {...rest}>
-      <div role="tablist" aria-label={rest['aria-label']} className="flex gap-2 border-b border-neutral-border" onKeyDown={onKeyDown}>
+      <div role="tablist" aria-label={rest['aria-label']} className="flex max-w-full gap-2 overflow-x-auto border-b border-neutral-border" onKeyDown={onKeyDown}>
         {items.map((t, i) => {
           const selected = i === index;
           const { tabId, panelId } = ids[i]!;
@@ -100,7 +100,7 @@ export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: 
               tabIndex={selected ? 0 : -1}
               disabled={t.disabled}
               className={[
-                'rounded-t-md px-3 py-2 text-sm font-medium min-h-11', // 터치 타겟 44px 이상
+                'min-h-11 shrink-0 rounded-t-md px-3 py-2 text-sm font-medium',
                 selected
                   ? 'bg-surface text-text-primary border-x border-t border-neutral-border -mb-px'
                   : 'text-text-muted hover:text-text-primary',
