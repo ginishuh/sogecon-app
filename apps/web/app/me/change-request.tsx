@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useToast } from '../../components/toast';
 import { ApiError } from '../../lib/api';
-import { apiErrorToMessage } from '../../lib/error-map';
+import { memberApiErrorToMessage } from '../../lib/error-map';
 import {
   createChangeRequest,
   listMyChangeRequests,
@@ -69,8 +69,8 @@ function InlineForm({ fieldName, currentValue, hasPending, onClose }: InlineForm
     onError: (error: unknown) => {
       const message =
         error instanceof ApiError
-          ? apiErrorToMessage(error.code, error.message)
-          : '요청 처리 중 오류가 발생했습니다.';
+          ? memberApiErrorToMessage(error.code, error.message)
+          : '변경 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.';
       toast.show(message, { type: 'error' });
     },
   });
@@ -145,7 +145,7 @@ export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
     <section className="flex flex-col gap-3">
       <h3 className="text-sm font-semibold text-text-primary">이름 / 기수</h3>
       <p className="text-xs text-text-muted">
-        이름과 기수는 관리자 승인을 거쳐 변경됩니다.
+        이름과 기수는 동문회 사무국 확인을 거쳐 변경됩니다.
       </p>
       <div className="rounded border border-neutral-border bg-surface-raised p-3">
         {fieldRows.map(({ key, label, value }) => (

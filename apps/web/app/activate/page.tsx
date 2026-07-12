@@ -6,7 +6,8 @@ import { Suspense, useState } from 'react';
 import { useToast } from '../../components/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { ApiError } from '../../lib/api';
-import { apiErrorToMessage } from '../../lib/error-map';
+import { memberApiErrorToMessage } from '../../lib/error-map';
+import { MEMBER_LANGUAGE } from '../../lib/member-language';
 import { isPasswordWithinBcryptLimit, PASSWORD_TOO_LONG_MESSAGE } from '../../lib/password';
 import { activate } from '../../services/member';
 
@@ -32,7 +33,7 @@ function FeedbackBanner({ feedback }: { feedback: Feedback | null }) {
 
 export default function ActivatePage() {
   return (
-    <Suspense fallback={<div className="max-w-xl p-6 text-sm text-text-secondary">활성화 화면을 준비 중입니다…</div>}>
+    <Suspense fallback={<div className="max-w-xl p-6 text-sm text-text-secondary">첫 로그인 설정 화면을 준비 중입니다…</div>}>
       <ActivateForm />
     </Suspense>
   );
@@ -59,14 +60,14 @@ function ActivateForm() {
     try {
       await activate({ token, password });
       await invalidate();
-      const message = '활성화 및 로그인 완료';
+      const message = '첫 로그인 설정을 마치고 로그인했습니다.';
       setFeedback({ tone: 'success', message });
       toast.show(message, { type: 'success' });
     } catch (error: unknown) {
       const message =
         error instanceof ApiError
-          ? apiErrorToMessage(error.code, error.message)
-          : '활성화에 실패했습니다. 토큰/비밀번호를 확인하세요.';
+          ? memberApiErrorToMessage(error.code, error.message)
+          : '첫 로그인 설정을 완료하지 못했습니다. 안내받은 코드와 비밀번호를 확인해 주세요.';
       setFeedback({ tone: 'error', message });
       toast.show(message, { type: 'error' });
     } finally {
@@ -76,19 +77,19 @@ function ActivateForm() {
 
   return (
     <div className="max-w-xl p-6">
-      <h2 className="mb-2 text-xl font-semibold">멤버 활성화</h2>
+      <h2 className="mb-2 text-xl font-semibold">{MEMBER_LANGUAGE.activation}</h2>
       <p className="mb-4 text-sm text-text-secondary">
-        관리자 승인 후 전달받은 활성화 토큰으로 비밀번호를 설정해 로그인 상태를 생성합니다.
+        가입 승인 안내와 함께 받은 코드를 입력하고 앞으로 사용할 비밀번호를 설정해 주세요.
       </p>
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
         <FeedbackBanner feedback={feedback} />
         <label className="text-sm">
-          토큰
+          {MEMBER_LANGUAGE.activationCode}
           <input
             className="mt-1 w-full rounded border px-3 py-2"
             value={token}
             onChange={(e) => setToken(e.target.value)}
-            placeholder="서명된 활성화 토큰"
+            placeholder="안내받은 코드를 입력해 주세요"
           />
         </label>
         <label className="text-sm">
@@ -104,7 +105,7 @@ function ActivateForm() {
           disabled={busy}
           className="rounded bg-state-success px-4 py-2 text-white disabled:opacity-50"
         >
-          {busy ? '활성화 중...' : '활성화'}
+          {busy ? '설정 중...' : '첫 로그인 설정 완료'}
         </button>
       </form>
       {status === 'authorized' ? (

@@ -49,7 +49,7 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(showMock).toHaveBeenCalledWith(
-        '가입 승인 대기 중입니다. 관리자 승인 후 계정 활성화를 진행해 주세요.',
+        '동문회 사무국에서 가입 신청을 확인 중입니다. 승인 안내를 받은 뒤 첫 로그인 설정을 진행해 주세요.',
         { type: 'error' }
       );
     });
@@ -65,7 +65,10 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '로그인' }));
 
     await waitFor(() => {
-      expect(showMock).toHaveBeenCalledWith('비활성 상태 계정입니다. 관리자에게 문의해 주세요.', { type: 'error' });
+      expect(showMock).toHaveBeenCalledWith(
+        '아직 이용할 수 없는 계정입니다. 동문회 사무국에 문의해 주세요.',
+        { type: 'error' }
+      );
     });
   });
 

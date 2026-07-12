@@ -22,6 +22,6 @@ export function buildActivationMessage(
 ): string {
   return (
     `[${siteConfig.name}] ${name}(${studentId})님, 가입이 승인되었습니다.\n` +
-    `아래 링크에서 비밀번호를 설정해 계정을 활성화해 주세요.\n${activationUrl}`
+    `아래 링크에서 첫 로그인에 사용할 비밀번호를 설정해 주세요.\n${activationUrl}`
   );
 }

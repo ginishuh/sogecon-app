@@ -8,7 +8,7 @@ import { PostForm, type PostFormData } from '../../../../components/post-form';
 import { useToast } from '../../../../components/toast';
 import { useAuth } from '../../../../hooks/useAuth';
 import { ApiError } from '../../../../lib/api';
-import { apiErrorToMessage } from '../../../../lib/error-map';
+import { memberApiErrorToMessage } from '../../../../lib/error-map';
 import { isAdminSession } from '../../../../lib/rbac';
 import { getPost, updatePost, type Post } from '../../../../services/posts';
 
@@ -24,7 +24,7 @@ function createErrorHandler(
 ) {
   return (e: unknown) => {
     if (e instanceof ApiError) {
-      show(apiErrorToMessage(e.code, e.message), { type: 'error' });
+      show(memberApiErrorToMessage(e.code, e.message), { type: 'error' });
     } else {
       show('수정 중 오류가 발생했습니다.', { type: 'error' });
     }

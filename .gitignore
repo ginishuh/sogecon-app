@@ -26,6 +26,7 @@ apps/api/migrations/__pycache__/
 # Runtime/dev artifacts
 .api-dev.pid
 .web-dev.pid
+.web-e2e-*.pid
 logs/
 *.log
 pnpm-debug.log*

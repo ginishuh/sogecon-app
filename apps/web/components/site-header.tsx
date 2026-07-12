@@ -12,6 +12,7 @@ import { hasPermissionSession, isAdminSession } from '../lib/rbac';
 import { ADMIN_NAV_LINKS } from './admin-nav-links';
 import { InstallAppButton } from './install-app-button';
 import { HeaderNotifyCTA } from './header-notify-cta';
+import { MEMBER_LANGUAGE } from '../lib/member-language';
 
 const ABOUT_ITEMS = [
   { href: '/about/greeting', label: '총동문회장 인사말' },
@@ -138,10 +139,10 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
         href="/signup"
         className="px-3 py-2 text-sm text-brand-700 border border-brand-700 rounded-lg no-underline hover:no-underline hover:bg-brand-50 transition-colors"
       >
-        신규 가입신청
+        {MEMBER_LANGUAGE.signup}
       </Link>
       <Link href="/activate" className="px-2 text-xs text-text-secondary underline">
-        계정 활성화
+        {MEMBER_LANGUAGE.activation}
       </Link>
     </div>
   );

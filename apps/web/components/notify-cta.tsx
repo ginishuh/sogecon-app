@@ -8,6 +8,7 @@ import { useToast } from './toast';
 import { ApiError } from '../lib/api';
 import { subscribePushWithReason, unsubscribePush } from '../lib/push';
 import { deleteSubscription, saveSubscription } from '../services/notifications';
+import { MEMBER_LANGUAGE } from '../lib/member-language';
 
 export function NotifyCTA() {
   const { status } = useAuth();
@@ -23,28 +24,28 @@ export function NotifyCTA() {
     try {
       const vapid = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
       if (!vapid) {
-        toast.show('VAPID 키가 설정되지 않았습니다(.env 확인).', { type: 'error' });
+        toast.show(MEMBER_LANGUAGE.notificationUnavailable, { type: 'error' });
         return;
       }
       const attempt = await subscribePushWithReason(vapid);
       if (!attempt.ok) {
         const reasonMessage: Record<string, string> = {
-          unsupported: '이 브라우저는 웹 푸시를 지원하지 않습니다.',
+          unsupported: MEMBER_LANGUAGE.notificationUnsupported,
           permission_denied: '브라우저 설정에서 이 사이트의 알림 권한을 허용해 주세요.',
           permission_dismissed: '알림 권한 요청이 취소되었습니다.',
-          service_worker_unavailable: '서비스 워커 등록에 실패했습니다. 새로고침 후 다시 시도해 주세요.',
-          subscribe_failed: '구독 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+          service_worker_unavailable: '알림을 준비하지 못했습니다. 새로고침 후 다시 시도해 주세요.',
+          subscribe_failed: '알림을 켜지 못했습니다. 잠시 후 다시 시도해 주세요.',
         };
-        toast.show(reasonMessage[attempt.reason] ?? '구독에 실패했습니다.', { type: 'error' });
+        toast.show(reasonMessage[attempt.reason] ?? MEMBER_LANGUAGE.notificationUnavailable, { type: 'error' });
         return;
       }
       await saveSubscription({ ...attempt.result, ua: navigator.userAgent });
       setSubscribed(true);
-      toast.show('알림 구독이 활성화되었습니다.', { type: 'success' });
+      toast.show(MEMBER_LANGUAGE.notificationOnSuccess, { type: 'success' });
     } catch (e) {
       const msg = e instanceof ApiError && e.status === 401
         ? '로그인 후 다시 시도하세요.'
-        : '구독 중 오류가 발생했습니다.';
+        : MEMBER_LANGUAGE.notificationUnavailable;
       toast.show(msg, { type: 'error' });
     } finally {
       setBusy(false);
@@ -59,11 +60,11 @@ export function NotifyCTA() {
         await deleteSubscription(endpoint);
       }
       setSubscribed(false);
-      toast.show('알림 구독을 해지했습니다.', { type: 'success' });
+      toast.show(MEMBER_LANGUAGE.notificationOffSuccess, { type: 'success' });
     } catch (e) {
       const msg = e instanceof ApiError && e.status === 401
         ? '로그인 후 다시 시도하세요.'
-        : '해지 중 오류가 발생했습니다.';
+        : '알림을 끄지 못했습니다. 잠시 후 다시 시도해 주세요.';
       toast.show(msg, { type: 'error' });
     } finally {
       setBusy(false);
@@ -78,18 +79,20 @@ export function NotifyCTA() {
       {subscribed ? (
         <button
           disabled={busy}
+          aria-busy={busy}
           onClick={onUnsubscribe}
           className="flex-1 rounded-[10px] border border-neutral-border px-3 py-2.5 text-sm text-neutral-ink hover:bg-neutral-subtle disabled:opacity-50 transition-colors"
         >
-          알림 끄기
+          {busy ? '새 소식 알림을 끄는 중…' : MEMBER_LANGUAGE.notificationOff}
         </button>
       ) : (
         <button
           disabled={busy}
+          aria-busy={busy}
           onClick={onSubscribe}
           className="flex-1 rounded-[10px] bg-brand-primary px-3 py-2.5 text-sm text-white hover:bg-brand-800 disabled:opacity-50 transition-colors"
         >
-          알림 켜기
+          {busy ? '새 소식 알림을 켜는 중…' : MEMBER_LANGUAGE.notificationOn}
         </button>
       )}
     </div>
