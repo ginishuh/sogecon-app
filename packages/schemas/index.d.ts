@@ -2040,9 +2040,10 @@ export interface components {
         WebVitalEvent: {
             /**
              * Name
-             * @description Metric name: LCP/INP/CLS/FCP/TTFB
+             * @description Metric name
+             * @enum {string}
              */
-            name: string;
+            name: "LCP" | "INP" | "CLS" | "FCP" | "TTFB";
             /**
              * Id
              * @description Unique ID per metric instance
@@ -2060,9 +2061,9 @@ export interface components {
             delta?: number | null;
             /**
              * Rating
-             * @description good|needs-improvement|poor
+             * @description Metric rating
              */
-            rating?: string | null;
+            rating?: ("good" | "needs-improvement" | "poor") | null;
             /**
              * Path
              * @description Page path
@@ -2072,7 +2073,7 @@ export interface components {
              * Navtype
              * @description Navigation type
              */
-            navType?: string | null;
+            navType?: ("navigate" | "reload" | "back-forward" | "back-forward-cache" | "prerender" | "restore") | null;
             /**
              * Device
              * @description mobile|desktop (heuristic)

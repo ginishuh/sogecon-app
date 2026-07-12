@@ -39,6 +39,7 @@
 - next: 16.2.10
 - react: 19.2.7
 - react-dom: 19.2.7
+- web-vitals: 5.3.0
 - @tanstack/react-query: 5.101.2
 
 ### Dev tools
