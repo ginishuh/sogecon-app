@@ -63,11 +63,13 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
             >
               학번(ID)과 초기 비밀번호 체계는 유지되지만, 최초 로그인 시 본인 확인 후 반드시 새로운 비밀번호를 설정해야 합니다.
               <br />
-              비활성 상태인 회원은 
-              <strong>
-                회원활성화
+              아직 첫 로그인을 설정하지 않은 회원은
+              <strong
+                class="mx-1"
+              >
+                첫 로그인 설정
               </strong>
-               메뉴에서 본인 인증(생년월일 또는 등록 이메일) 절차를 진행해 주세요.
+              메뉴에서 안내받은 코드와 새 비밀번호를 입력해 주세요.
             </dd>
           </div>
           <div
@@ -81,7 +83,7 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
             <dd
               class="mt-2 text-sm leading-6 text-neutral-muted"
             >
-              아니요. 동문 수첩과 회원 프로필은 활성화된 총동문회 회원만 열람할 수 있습니다. 로그인하지 않은 사용자는 기본 안내 페이지만 볼 수 있으며, 본문 접근 시 로그인 화면으로 리다이렉트됩니다.
+              아니요. 동문 수첩과 회원 프로필은 가입 승인을 받고 로그인한 총동문회 회원만 열람할 수 있습니다. 로그인하지 않은 사용자는 기본 안내 페이지만 볼 수 있으며, 동문 전용 화면에 접근하면 로그인 화면으로 이동합니다.
             </dd>
           </div>
           <div
@@ -159,7 +161,7 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
             <dd
               class="mt-2 text-sm leading-6 text-neutral-muted"
             >
-              이름·이메일 키워드 검색과 함께 기수, 업종, 지역, 회사, 전공 필터를 지원합니다. 필터를 변경하면 350ms 디바운스를 거친 후 자동으로 URL이 업데이트돼, 공유 링크에 현재 검색 조건이 반영됩니다.
+              이름·이메일 검색과 함께 기수, 업종, 지역, 회사, 전공 조건을 선택할 수 있습니다. 검색 조건을 바꾸면 결과와 주소가 자동으로 갱신되어, 현재 검색 조건을 그대로 공유할 수 있습니다.
             </dd>
           </div>
           <div
@@ -180,7 +182,7 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
               >
                 행사 페이지
               </a>
-              에서 최신 일정을 확인할 수 있습니다. 운영진은 관리자 콘솔에 로그인해 공지/행사 등록, 푸시 발송, 통계 확인을 진행합니다.
+              에서 최신 일정을 확인할 수 있습니다. 동문회 운영진은 운영 메뉴에서 공지와 행사를 등록하고 새 소식 알림과 이용 현황을 관리합니다.
             </dd>
           </div>
         </dl>
@@ -219,9 +221,9 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
             <dd
               class="mt-2 text-sm leading-6 text-neutral-muted"
             >
-              회원 정보는 암호화된 데이터베이스에 저장되며, 관리자 접근은 역할 기반 권한(RBAC)으로 제한됩니다. 열람 기록은 1년간 감사 로그에 보관되고, 404/410 응답을 반환하는 푸시 구독 정보는 즉시 폐기됩니다. 자세한 내용은 
+              회원 정보는 암호화해 저장하며, 담당 업무에 필요한 사람만 접근할 수 있습니다. 열람 기록은 1년간 보관하고, 더 이상 사용할 수 없는 알림 연결 정보는 즉시 삭제합니다. 자세한 내용은
               <a
-                class="text-link"
+                class="ml-1 text-link"
                 href="/privacy"
               >
                 개인정보 처리방침
@@ -378,7 +380,7 @@ exports[`FAQ & Policy static pages > renders privacy policy with sections and co
                · 전공, 직장명, 직함, 업종, 주소(개인/직장), 프로필 이미지
             </li>
             <li>
-              서비스 이용 기록(로그인 일시, 접속 IP, 기기 정보), 문의 및 상담 기록, 푸시 구독 토큰
+              서비스 이용 기록(로그인 일시, 접속 IP, 기기 정보), 문의 및 상담 기록, 새 소식 알림 연결 정보
             </li>
           </ul>
         </div>
@@ -409,7 +411,7 @@ exports[`FAQ & Policy static pages > renders privacy policy with sections and co
             class="list-decimal space-y-2 pl-5"
           >
             <li>
-              회원 식별 및 로그인, 계정 활성화·재설정 등 서비스 기본 기능 제공
+              회원 식별 및 로그인, 첫 로그인 설정·비밀번호 재설정 등 서비스 기본 기능 제공
             </li>
             <li>
               행사/공지/수첩 운영을 위한 회원 정보 검증과 연락
@@ -575,7 +577,7 @@ exports[`FAQ & Policy static pages > renders privacy policy with sections and co
               비밀번호·연락처 등 주요 정보는 암호화 저장하며, TLS로 전송 구간을 보호합니다.
             </li>
             <li>
-              관리자 계정은 다중 인증(MFA)을 필수로 적용하고, 역할 기반 권한(RBAC)을 운영합니다.
+              운영자 계정은 추가 본인 확인을 적용하고, 담당 업무별로 접근 권한을 제한합니다.
             </li>
             <li>
               접근 로그는 1년간 보관하며, 월 1회 이상 이상 징후를 점검합니다.

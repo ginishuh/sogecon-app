@@ -19,7 +19,7 @@ export default function SupportContactPage() {
       toast.show('문의가 접수되었습니다.', { type: 'success' });
       setSubject(''); setBody(''); setContact('');
     } catch {
-      toast.show('문의 접수 중 오류가 발생했습니다.', { type: 'error' });
+      toast.show('문의를 접수하지 못했습니다. 잠시 후 다시 시도해 주세요.', { type: 'error' });
     } finally {
       setBusy(false);
     }
@@ -27,7 +27,8 @@ export default function SupportContactPage() {
 
   return (
     <div className="p-6 max-w-xl">
-      <h2 className="mb-4 text-xl font-semibold">관리자 문의</h2>
+      <h2 className="mb-1 text-xl font-semibold">동문회 사무국 문의</h2>
+      <p className="mb-4 text-sm text-text-secondary">홈페이지 이용이나 동문회 활동에 관해 궁금한 점을 남겨 주세요.</p>
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
         <label className="text-sm">제목
           <input className="mt-1 w-full rounded border px-3 py-2" value={subject} onChange={(e) => setSubject(e.target.value)} />
@@ -43,4 +44,3 @@ export default function SupportContactPage() {
     </div>
   );
 }
-

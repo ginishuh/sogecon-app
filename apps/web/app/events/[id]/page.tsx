@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { getEvent, type Event, upsertEventRsvp, type RSVPLiteral } from '../../../services/events';
 import { getRsvp, type RSVP } from '../../../services/rsvps';
 import { ApiError } from '../../../lib/api';
-import { apiErrorToMessage } from '../../../lib/error-map';
+import { memberApiErrorToMessage } from '../../../lib/error-map';
 import { useToast } from '../../../components/toast';
 import { useAuth } from '../../../hooks/useAuth';
 
@@ -85,9 +85,9 @@ function makeRsvpMutationFn(memberId: number | null, eventId: number) {
 
 function errorToMessage(e: unknown): string {
   if (e instanceof ApiError) {
-    return apiErrorToMessage(e.code, e.message);
+    return memberApiErrorToMessage(e.code, e.message);
   }
-  return '알 수 없는 오류';
+  return '행사 신청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.';
 }
 
 function getCurrentStatusText(query: { isSuccess: boolean; isLoading: boolean; data?: RSVP }): string {

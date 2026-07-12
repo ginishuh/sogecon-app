@@ -8,8 +8,9 @@ import { Suspense, useState } from 'react';
 import { login } from '../../services/auth';
 import { useToast } from '../../components/toast';
 import { ApiError } from '../../lib/api';
-import { apiErrorToMessage } from '../../lib/error-map';
+import { memberApiErrorToMessage } from '../../lib/error-map';
 import { useAuth } from '../../hooks/useAuth';
+import { MEMBER_LANGUAGE } from '../../lib/member-language';
 
 export default function LoginPage() {
   return (
@@ -38,14 +39,16 @@ function LoginForm() {
       router.replace(dest);
     },
     onError: (e: unknown) => {
-      const msg = e instanceof ApiError ? apiErrorToMessage(e.code, e.message) : '알 수 없는 오류';
+      const msg = e instanceof ApiError
+        ? memberApiErrorToMessage(e.code, e.message)
+        : '로그인하지 못했습니다. 잠시 후 다시 시도해 주세요.';
       show(msg, { type: 'error' });
     }
   });
 
   return (
     <section className="mx-auto max-w-sm space-y-4">
-      <p className="text-xs text-text-muted">로그인 후 권한에 따라 접근 가능한 메뉴가 달라집니다.</p>
+      <p className="text-xs text-text-muted">동문 전용 메뉴는 로그인 후 이용할 수 있습니다.</p>
       <label className="block text-sm text-text-primary">
         학번
         <input className="mt-1 w-full rounded border border-neutral-border bg-surface px-2 py-1 text-text-primary focus:outline-hidden focus:ring-2 focus:ring-brand-400" value={studentId} onChange={(e) => setStudentId(e.currentTarget.value)} />
@@ -66,10 +69,10 @@ function LoginForm() {
       >로그인</button>
       <div className="flex flex-wrap gap-3 text-xs">
         <Link href="/signup" className="text-brand-700 underline">
-          신규 가입신청
+          {MEMBER_LANGUAGE.signup}
         </Link>
         <Link href="/activate" className="text-text-secondary underline">
-          승인 후 계정 활성화
+          승인받은 뒤 {MEMBER_LANGUAGE.activation}
         </Link>
       </div>
     </section>

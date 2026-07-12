@@ -12,6 +12,7 @@ import {
   hasPermissionSession,
   isAdminSession,
 } from '../lib/rbac';
+import { MEMBER_LANGUAGE } from '../lib/member-language';
 
 type LinkItem = {
   href: Route;
@@ -74,7 +75,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
               onClick={onClose}
               className="flex-1 flex items-center justify-center rounded-[10px] border border-brand-primary px-3 py-2.5 text-brand-primary text-sm hover:bg-brand-primary/5 transition-colors whitespace-nowrap"
             >
-              신규 가입신청
+              {MEMBER_LANGUAGE.signup}
             </Link>
           </div>
           <Link
@@ -82,7 +83,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
             onClick={onClose}
             className="mt-2 block text-center text-xs text-text-secondary underline"
           >
-            승인 후 계정 활성화
+            승인받은 뒤 {MEMBER_LANGUAGE.activation}
           </Link>
         </div>
       ) : (
@@ -209,7 +210,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
               <circle cx="10" cy="10" r="7" />
               <path d="M10 14v.01M10 11a2 2 0 0 1 2-2" />
             </svg>
-            지원 정보
+            이용 안내
           </div>
           <svg className={`size-4 text-neutral-muted transition-transform ${supportOpen ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />

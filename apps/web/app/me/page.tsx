@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { ApiError } from '../../lib/api';
+import { memberApiErrorToMessage } from '../../lib/error-map';
 import { useToast } from '../../components/toast';
 import {
   buildProfilePayload,
@@ -462,8 +463,9 @@ export default function MePage() {
       setErrors({});
       toast.show('저장되었습니다.', { type: 'success' });
     } catch (error) {
-      const messageForToast =
-        error instanceof ApiError ? error.message : '요청 처리 중 오류가 발생했습니다.';
+      const messageForToast = error instanceof ApiError
+        ? memberApiErrorToMessage(error.code, error.message)
+        : '내 정보를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.';
       if (error instanceof ApiError) {
         if (error.status === 401) {
           setErrors((prev) => ({
@@ -511,8 +513,9 @@ export default function MePage() {
       });
       toast.show('프로필 사진이 업데이트되었습니다.', { type: 'success' });
     } catch (error) {
-      const message =
-        error instanceof ApiError ? error.message : '이미지 업로드 중 오류가 발생했습니다.';
+      const message = error instanceof ApiError
+        ? memberApiErrorToMessage(error.code, error.message)
+        : '프로필 사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요.';
       toast.show(message, { type: 'error' });
     } finally {
       setAvatarUploading(false);

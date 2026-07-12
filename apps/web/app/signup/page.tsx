@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useToast } from '../../components/toast';
 import { ApiError } from '../../lib/api';
-import { apiErrorToMessage } from '../../lib/error-map';
+import { memberApiErrorToMessage } from '../../lib/error-map';
+import { MEMBER_LANGUAGE } from '../../lib/member-language';
 import {
   createSignupRequest,
   type SignupRequestCreatePayload,
@@ -63,8 +64,8 @@ export default function SignupPage() {
     onError: (error: unknown) => {
       const message =
         error instanceof ApiError
-          ? apiErrorToMessage(error.code, error.message)
-          : '가입신청 처리 중 오류가 발생했습니다.';
+          ? memberApiErrorToMessage(error.code, error.message)
+          : '가입 신청을 접수하지 못했습니다. 잠시 후 다시 시도해 주세요.';
       setFeedback({ tone: 'error', message });
       show(message, { type: 'error' });
     },
@@ -102,10 +103,10 @@ export default function SignupPage() {
   if (submitted != null) {
     return (
       <section className="mx-auto max-w-2xl space-y-5 rounded-xl border border-neutral-border bg-white p-6">
-        <h1 className="text-2xl font-semibold text-text-primary">가입신청 완료</h1>
+        <h1 className="text-2xl font-semibold text-text-primary">가입 신청 완료</h1>
         <p className="text-sm text-text-secondary">
           심사 상태가 <b className="text-text-primary">대기 중</b>으로 접수되었습니다.
-          승인 후 전달받은 활성화 토큰으로 비밀번호 설정을 진행해 주세요.
+          승인 안내를 받으면 {MEMBER_LANGUAGE.activation}에서 비밀번호를 설정해 주세요.
         </p>
         <FeedbackBanner feedback={feedback} />
         <dl className="grid gap-2 rounded border border-neutral-border bg-surface-raised p-4 text-sm">
@@ -133,7 +134,7 @@ export default function SignupPage() {
             href="/activate"
             className="rounded border border-brand-700 px-4 py-2 text-sm text-brand-700 hover:bg-brand-50"
           >
-            계정 활성화
+            {MEMBER_LANGUAGE.activation}
           </Link>
         </div>
       </section>
@@ -143,9 +144,9 @@ export default function SignupPage() {
   return (
     <section className="mx-auto max-w-2xl space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-text-primary">신규 가입신청</h1>
+        <h1 className="text-2xl font-semibold text-text-primary">{MEMBER_LANGUAGE.signup}</h1>
         <p className="text-sm text-text-secondary">
-          기본 정보를 제출하면 관리자 심사 후 계정 활성화 토큰을 안내드립니다.
+          기본 정보를 보내주시면 {MEMBER_LANGUAGE.officeName}에서 확인한 뒤 첫 로그인 방법을 안내해 드립니다.
         </p>
       </header>
 

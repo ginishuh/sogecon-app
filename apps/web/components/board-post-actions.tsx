@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../lib/api';
-import { apiErrorToMessage } from '../lib/error-map';
+import { memberApiErrorToMessage } from '../lib/error-map';
 import { isAdminSession } from '../lib/rbac';
 import { deletePost } from '../services/posts';
 import { ConfirmDialog } from './confirm-dialog';
@@ -36,7 +36,7 @@ export function BoardPostActions({ postId, postTitle, authorId }: BoardPostActio
     },
     onError: (e: unknown) => {
       if (e instanceof ApiError) {
-        show(apiErrorToMessage(e.code, e.message), { type: 'error' });
+        show(memberApiErrorToMessage(e.code, e.message), { type: 'error' });
       } else {
         show('삭제 중 오류가 발생했습니다.', { type: 'error' });
       }
