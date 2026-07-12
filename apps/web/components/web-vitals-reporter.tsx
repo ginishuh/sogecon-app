@@ -8,50 +8,50 @@ import { API_BASE } from '../lib/api';
 
 const vitalsUrl = `${API_BASE.replace(/\/$/, '')}/rum/vitals`;
 
-function getNavType(): string | undefined {
-  if (typeof performance === 'undefined') return undefined;
-  const entry = performance.getEntriesByType?.('navigation')?.[0] as
-    | PerformanceNavigationTiming
-    | undefined;
-  return entry?.type;
-}
-
 function getDevice(): string {
   if (typeof window === 'undefined') return 'server';
   return window.innerWidth <= 768 ? 'mobile' : 'desktop';
 }
 
-function post(body: string) {
+export function postWebVital(body: string) {
   if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
-    // sendBeacon은 Blob으로 Content-Type 지정 필요
-    const blob = new Blob([body], { type: 'application/json' });
-    navigator.sendBeacon(vitalsUrl, blob);
-  } else {
-    void fetch(vitalsUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-      keepalive: true,
-    });
+    try {
+      // sendBeacon은 Blob으로 Content-Type 지정 필요
+      const blob = new Blob([body], { type: 'application/json' });
+      if (navigator.sendBeacon(vitalsUrl, blob)) return;
+    } catch {
+      // beacon을 사용할 수 없으면 keepalive fetch로 한 번만 대체합니다.
+    }
   }
+  void fetch(vitalsUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+    keepalive: true,
+  }).catch(() => undefined);
+}
+
+export function buildWebVitalPayload(metric: Metric) {
+  return {
+    name: metric.name,
+    id: metric.id,
+    value: Math.round(metric.value * 100) / 100,
+    delta: Math.round((metric.delta ?? 0) * 100) / 100,
+    rating: metric.rating,
+    path: typeof window !== 'undefined' ? window.location.pathname : '',
+    navType: metric.navigationType,
+    device: getDevice(),
+    commit: process.env.NEXT_PUBLIC_COMMIT_SHA || '',
+    ts: Date.now(),
+  };
 }
 
 function send(metric: Metric) {
   try {
-    const body = JSON.stringify({
-      name: metric.name,
-      id: metric.id,
-      value: Math.round(metric.value * 100) / 100,
-      delta: Math.round((metric.delta ?? 0) * 100) / 100,
-      path: typeof window !== 'undefined' ? window.location.pathname : '',
-      navType: getNavType(),
-      device: getDevice(),
-      commit: process.env.NEXT_PUBLIC_COMMIT_SHA || '',
-      ts: Date.now(),
-    });
-    post(body);
+    const body = JSON.stringify(buildWebVitalPayload(metric));
+    postWebVital(body);
   } catch {
-    /* ignore */
+    // RUM 수집 실패는 사용자 화면과 앱 동작에 영향을 주지 않습니다.
   }
 }
 

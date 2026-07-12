@@ -25,6 +25,7 @@ def check_package_json() -> None:
             "next": "16.2.10",
             "react": "19.2.7",
             "react-dom": "19.2.7",
+            "web-vitals": "5.3.0",
         },
         "devDependencies": {
             "@eslint/eslintrc": "3.3.6",

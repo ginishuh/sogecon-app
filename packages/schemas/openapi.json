@@ -6541,8 +6541,15 @@
         "properties": {
           "name": {
             "type": "string",
+            "enum": [
+              "LCP",
+              "INP",
+              "CLS",
+              "FCP",
+              "TTFB"
+            ],
             "title": "Name",
-            "description": "Metric name: LCP/INP/CLS/FCP/TTFB"
+            "description": "Metric name"
           },
           "id": {
             "type": "string",
@@ -6569,14 +6576,19 @@
           "rating": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "good",
+                  "needs-improvement",
+                  "poor"
+                ]
               },
               {
                 "type": "null"
               }
             ],
             "title": "Rating",
-            "description": "good|needs-improvement|poor"
+            "description": "Metric rating"
           },
           "path": {
             "anyOf": [
@@ -6593,7 +6605,15 @@
           "navType": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "navigate",
+                  "reload",
+                  "back-forward",
+                  "back-forward-cache",
+                  "prerender",
+                  "restore"
+                ]
               },
               {
                 "type": "null"

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import logging
+from typing import Literal
 
 from fastapi import APIRouter, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from ..logging_utils import log_json
 
@@ -11,16 +12,35 @@ router = APIRouter(prefix="/rum", tags=["rum"])
 
 
 class WebVitalEvent(BaseModel):
-    name: str = Field(description="Metric name: LCP/INP/CLS/FCP/TTFB")
+    name: Literal["LCP", "INP", "CLS", "FCP", "TTFB"] = Field(
+        description="Metric name"
+    )
     id: str = Field(description="Unique ID per metric instance")
     value: float = Field(description="Metric value")
     delta: float | None = Field(default=None, description="Change since last report")
-    rating: str | None = Field(default=None, description="good|needs-improvement|poor")
+    rating: Literal["good", "needs-improvement", "poor"] | None = Field(
+        default=None, description="Metric rating"
+    )
     path: str | None = Field(default=None, description="Page path")
-    navType: str | None = Field(default=None, description="Navigation type")
+    navType: Literal[
+        "navigate",
+        "reload",
+        "back-forward",
+        "back-forward-cache",
+        "prerender",
+        "restore",
+    ] | None = Field(default=None, description="Navigation type")
     device: str | None = Field(default=None, description="mobile|desktop (heuristic)")
     commit: str | None = Field(default=None, description="Client commit sha")
     ts: int | None = Field(default=None, description="Client timestamp (ms)")
+
+    @field_validator("navType", mode="before")
+    @classmethod
+    def normalize_legacy_nav_type(cls, value: str | None) -> str | None:
+        """v4 Navigation Timing 표기를 v5 계약으로 정규화합니다."""
+        if value == "back_forward":
+            return "back-forward"
+        return value
 
 
 @router.post("/vitals")
