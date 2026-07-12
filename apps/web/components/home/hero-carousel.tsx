@@ -1,274 +1,266 @@
 "use client";
 
+import { ArrowRight, CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { listHeroSlides, type HeroSlide } from '../../services/hero';
+
 import { useAuth } from '../../hooks/useAuth';
-import { HeroSkeleton } from '../ui/skeleton';
 import { isAdminSession } from '../../lib/rbac';
+import { listHeroSlides, type HeroSlide } from '../../services/hero';
+import { HeroSkeleton } from '../ui/skeleton';
 
-type Slide = { id: string; image: string; title: string; description: string; href: string; unpublished?: boolean };
+type Slide = {
+  id: string;
+  image: string;
+  title: string;
+  description: string;
+  href: string;
+  unpublished?: boolean;
+};
 
-// 단어 경계를 고려한 텍스트 자르기 (최대 maxLength 이내에서 마지막 완전한 단어까지)
+const FALLBACK_HERO_IMAGE = '/images/home/alumni-networking-hero.webp';
+
 function truncateAtWordBoundary(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
-
   const truncated = text.substring(0, maxLength);
   const lastSpace = truncated.lastIndexOf(' ');
-
-  // 공백이 없으면 그냥 자르기 (단일 긴 단어)
-  if (lastSpace === -1) return truncated;
-
-  return truncated.substring(0, lastSpace);
+  return lastSpace === -1 ? truncated : truncated.substring(0, lastSpace);
 }
 
 function buildSlides(data: HeroSlide[], opts: { max: number }): Slide[] {
-  const slides = data.slice(0, opts.max).map((s) => ({
-    id: `hero-${s.id}`,
-    image: s.image || '/images/home/hero-launch.svg',
-    title: s.title || '공지 · 행사 · 동문 수첩을 한 곳에서',
-    description: s.description ? truncateAtWordBoundary(s.description, 100) : '우수 교수의 지속적 학술과 연구방향의 강화, 충실한 교육',
-    href: s.href,
-    unpublished: !!s.unpublished,
+  const slides = data.slice(0, opts.max).map((slide) => ({
+    id: `hero-${slide.id}`,
+    image: slide.image || FALLBACK_HERO_IMAGE,
+    title: slide.title || '함께 성장하는 동문 네트워크',
+    description: slide.description
+      ? truncateAtWordBoundary(slide.description, 100)
+      : '전문성과 경험을 나누는 따뜻한 커뮤니티',
+    href: slide.href,
+    unpublished: !!slide.unpublished,
   }));
 
   if (slides.length > 0) return slides;
-  // 폴백 3장(Figma 디자인 기반)
   return [
     {
       id: 'fallback-1',
-      image: '/images/home/hero-launch.svg',
+      image: FALLBACK_HERO_IMAGE,
       title: '함께 성장하는 동문 네트워크',
       description: '전문성과 경험을 나누는 따뜻한 커뮤니티',
-      href: '/about/greeting'
+      href: '/about/greeting',
     },
     {
       id: 'fallback-2',
-      image: '/images/home/hero.svg',
+      image: FALLBACK_HERO_IMAGE,
       title: '미래를 창조하는 서강경제',
-      description: '우수 교수의 지속적 학술과 연구방향의 강화, 충실한 교육',
-      href: '/posts'
+      description: '배움과 경험을 이어 새로운 가능성을 만듭니다.',
+      href: '/posts',
     },
     {
       id: 'fallback-3',
-      image: '/images/home/hero-launch.svg',
-      title: '2025년 정기 총회 안내',
-      description: '동문 여러분을 초대합니다',
-      href: '/events'
-    }
+      image: FALLBACK_HERO_IMAGE,
+      title: '동문과 함께하는 새로운 만남',
+      description: '다가오는 행사와 동문회의 소식을 확인해 보세요.',
+      href: '/events',
+    },
   ].slice(0, opts.max);
+}
+
+function HeroTitle({ title }: { title: string }) {
+  const words = title.trim().split(/\s+/);
+  const splitAt = words.length >= 4 ? Math.ceil(words.length / 2) : words.length - 1;
+  const first = words.slice(0, Math.max(splitAt, 1)).join(' ');
+  const second = words.slice(Math.max(splitAt, 1)).join(' ');
+
+  return (
+    <h2 className="max-w-[12ch] text-[2rem] font-semibold leading-[1.16] tracking-[-0.04em] text-text-primary md:text-[2.75rem] lg:text-[3.25rem]">
+      <span className="block">{first}</span>
+      {second ? <span className="mt-1 block text-brand-700">{second}</span> : null}
+    </h2>
+  );
 }
 
 export default function HomeHeroCarousel() {
   const auth = useAuth();
   const isAdmin = auth.status === 'authorized' && isAdminSession(auth.data);
-  const q = useQuery<HeroSlide[]>({
+  const query = useQuery<HeroSlide[]>({
     queryKey: ['hero', 'slides', 8, isAdmin],
     queryFn: () => listHeroSlides({ limit: 8, include_unpublished: !!isAdmin }),
     retry: false,
   });
-  const slides = useMemo(() => buildSlides(q.data ?? [], { max: 5 }), [q.data]);
-  const isLoading = q.isLoading;
-
+  const slides = useMemo(() => buildSlides(query.data ?? [], { max: 5 }), [query.data]);
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
-  const touchDeltaX = useRef<number>(0);
+  const touchDeltaX = useRef(0);
   const [isPaused, setIsPaused] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
-  const go = useCallback((to: number) => {
-    const n = slides.length;
-    if (n === 0) return;
-    setIndex(((to % n) + n) % n);
-  }, [slides.length]);
+  const go = useCallback(
+    (to: number) => {
+      if (slides.length === 0) return;
+      setIndex(((to % slides.length) + slides.length) % slides.length);
+    },
+    [slides.length]
+  );
   const next = useCallback(() => go(index + 1), [go, index]);
   const prev = useCallback(() => go(index - 1), [go, index]);
 
-  // 키보드 좌우 화살표
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [next, prev]);
-
-  // prefers-reduced-motion
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const m = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const apply = () => setReducedMotion(m.matches);
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply = () => setReducedMotion(media.matches);
     apply();
-    m.addEventListener('change', apply);
-    return () => m.removeEventListener('change', apply);
+    media.addEventListener('change', apply);
+    return () => media.removeEventListener('change', apply);
   }, []);
 
-  // document hidden 시 일시정지
   useEffect(() => {
-    const onVis = () => setIsPaused(document.hidden);
-    document.addEventListener('visibilitychange', onVis);
-    return () => document.removeEventListener('visibilitychange', onVis);
+    const onVisibility = () => setIsPaused(document.hidden);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
 
-  // autoplay
   useEffect(() => {
     if (reducedMotion || isPaused || slides.length <= 1) return;
-    const id = window.setInterval(() => {
-      setIndex((prev) => ((prev + 1) % slides.length));
-    }, 5000);
-    return () => window.clearInterval(id);
+    const timer = window.setInterval(() => {
+      setIndex((current) => (current + 1) % slides.length);
+    }, 6000);
+    return () => window.clearInterval(timer);
   }, [reducedMotion, isPaused, slides.length]);
 
-  // slides 변경 시 index 보정
   useEffect(() => {
     if (index >= slides.length) setIndex(0);
-  }, [slides.length, index]);
+  }, [index, slides.length]);
 
-  // 초기 렌더링 시 Skeleton 표시, 데이터가 있으면 실제 콘텐츠 표시
-  if (isLoading || slides.length === 0) {
-    return <HeroSkeleton />;
-  }
-
-  // 터치 스와이프
-  const onTouchStart = (e: React.TouchEvent) => {
-    const t = e.touches.item(0);
-    if (!t) return;
-    touchStartX.current = t.clientX;
-    touchDeltaX.current = 0;
-  };
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX.current == null) return;
-    const t = e.touches.item(0);
-    if (!t) return;
-    touchDeltaX.current = t.clientX - touchStartX.current;
-  };
-  const onTouchEnd = () => {
-    const dx = touchDeltaX.current;
-    touchStartX.current = null; touchDeltaX.current = 0;
-    const threshold = 48; // px
-    if (dx <= -threshold) next();
-    else if (dx >= threshold) prev();
-  };
+  if (query.isLoading || slides.length === 0) return <HeroSkeleton />;
 
   return (
     <section
-      className="home-hero-carousel relative h-[218px] min-w-0 w-full overflow-hidden overflow-clip rounded-2xl shadow-xl [contain:layout_paint] md:h-[320px] lg:h-[420px]"
+      className="home-hero-carousel relative min-w-0 overflow-hidden rounded-[1.75rem] border border-brand-100 bg-[#fcf8f4] shadow-soft [contain:layout_paint]"
       aria-label="홈 배너"
       role="region"
       aria-roledescription="carousel"
       aria-live="off"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={() => setIsPaused(false)}
+      onKeyDown={(event) => {
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          next();
+        } else if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          prev();
+        }
+      }}
+      onTouchStart={(event) => {
+        const touch = event.touches.item(0);
+        if (!touch) return;
+        touchStartX.current = touch.clientX;
+        touchDeltaX.current = 0;
+      }}
+      onTouchMove={(event) => {
+        if (touchStartX.current == null) return;
+        const touch = event.touches.item(0);
+        if (touch) touchDeltaX.current = touch.clientX - touchStartX.current;
+      }}
+      onTouchEnd={() => {
+        const delta = touchDeltaX.current;
+        touchStartX.current = null;
+        touchDeltaX.current = 0;
+        if (delta <= -48) next();
+        else if (delta >= 48) prev();
+      }}
     >
       <div
-        className="relative h-full"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onFocus={() => setIsPaused(true)}
-        onBlur={() => setIsPaused(false)}
+        className="flex min-w-0 transition-transform duration-500 ease-out motion-reduce:transition-none"
+        style={{ transform: `translateX(-${index * 100}%)` }}
       >
-        {/* 슬라이드 트랙 */}
-        <div
-          className="flex h-full w-full min-w-0 transition-transform duration-500 ease-in-out"
-          style={{ transform: `translateX(-${index * 100}%)` }}
-        >
-          {slides.map((s, i) => (
-            <div
-              key={s.id}
-              className="relative min-w-full h-full"
-              aria-roledescription="slide"
-              aria-label={`${i + 1} / ${slides.length}`}
-            >
-              {/* 배경 이미지 */}
-              <div className="absolute inset-0">
-                <Image
-                  src={s.image}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) calc(100vw - 2rem), (max-width: 1152px) calc(100vw - 4rem), 68rem"
-                  priority={i === 0 || i === 1} // 첫 2개 이미지 우선 로드
-                  placeholder="blur"
-                  quality={90}
-                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-                />
-              </div>
-
-              {/* 그라디언트 오버레이 */}
-              <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-
-              {/* 텍스트 컨텐츠 — 반응형 정렬: 모바일(중앙), 데스크톱(하단 좌측) */}
-              <div className="absolute inset-0 flex items-end justify-start px-6 pb-6">
-                <div className="text-left max-w-full">
-                  <h2 className="text-[28px] md:text-[30px] lg:text-[32px] font-medium leading-tight tracking-tight text-white mb-2">
-                    {s.title}
-                    {s.unpublished && isAdmin ? (
-                      <span className="ml-2 rounded bg-state-warning px-1.5 py-0.5 text-caption font-semibold text-black align-middle">
-                        관리자 미리보기
-                      </span>
-                    ) : null}
-                  </h2>
-                  <p className="text-body leading-6 text-white/90 line-clamp-2">{s.description}</p>
-                  <div className="mt-3">
-                    <Link
-                      href={{ pathname: s.href }}
-                      className="inline-flex items-center gap-1 rounded-full bg-brand-primary px-3 py-1.5 text-sm text-white shadow-sm transition-colors hover:bg-brand-primaryDark hover:text-white hover:no-underline focus:outline-hidden focus-visible:text-white focus-visible:no-underline focus-visible:ring-2 focus-visible:ring-white/70 active:bg-brand-primaryDark active:text-white"
-                      aria-label={`${s.title} 자세히 보기`}
-                    >
-                      자세히 보기
-                      <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M7 5l6 5-6 5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </Link>
-                  </div>
-                </div>
-              </div>
+        {slides.map((slide, slideIndex) => (
+          <article
+            key={slide.id}
+            className="grid min-w-full lg:grid-cols-[0.82fr_1.18fr]"
+            aria-roledescription="slide"
+            aria-label={`${slideIndex + 1} / ${slides.length}`}
+            aria-hidden={slideIndex !== index}
+          >
+            <div className="flex min-h-[310px] flex-col justify-center px-6 py-10 sm:px-10 lg:min-h-[440px] lg:px-14">
+              <p className="mb-5 text-[0.7rem] font-semibold tracking-[0.16em] text-brand-700">
+                SOGANG ECONOMICS ALUMNI
+              </p>
+              <HeroTitle title={slide.title} />
+              {slide.unpublished && isAdmin ? (
+                <span className="mt-3 w-fit rounded-md bg-state-warning px-2 py-1 text-caption font-semibold text-black">
+                  관리자 미리보기
+                </span>
+              ) : null}
+              <p className="mt-5 max-w-md text-[0.95rem] leading-7 text-text-secondary md:text-base">
+                {slide.description}
+              </p>
+              <Link
+                href={{ pathname: slide.href }}
+                className="mt-7 inline-flex min-h-12 w-fit items-center gap-3 rounded-full bg-brand-700 px-6 py-3 text-sm font-semibold text-white no-underline transition hover:bg-brand-800 hover:text-white hover:no-underline focus-visible:text-white focus-visible:no-underline focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                aria-label={`${slide.title} 자세히 보기`}
+              >
+                동문으로 이어가기
+                <ArrowRight aria-hidden="true" size={19} weight="bold" />
+              </Link>
             </div>
-          ))}
-        </div>
 
-        {/* 좌우 화살표 버튼 */}
-        {slides.length > 1 ? (
-          <>
-            <button
-              aria-label="이전 배너"
-              className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-white/30 backdrop-blur-xs hover:bg-white/40 transition-colors"
-              onClick={prev}
-            >
-              <svg aria-hidden="true" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                <path d="M15 6l-6 6 6 6"/>
-              </svg>
-            </button>
-            <button
-              aria-label="다음 배너"
-              className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-white/30 backdrop-blur-xs hover:bg-white/40 transition-colors"
-              onClick={next}
-            >
-              <svg aria-hidden="true" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                <path d="M9 6l6 6-6 6"/>
-              </svg>
-            </button>
-          </>
-        ) : null}
+            <div className="relative min-h-[250px] overflow-hidden lg:min-h-[440px] lg:rounded-l-[10rem]">
+              <Image
+                src={slide.image}
+                alt=""
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 1023px) 100vw, 60vw"
+                priority={slideIndex === 0}
+                quality={90}
+              />
+              {slides.length > 1 ? (
+                <div className="absolute bottom-5 right-5 flex gap-2">
+                  <button
+                    type="button"
+                    aria-label="이전 배너"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/90 text-brand-800 shadow-sm transition hover:bg-white focus-visible:ring-2 focus-visible:ring-white"
+                    onClick={prev}
+                  >
+                    <CaretLeft aria-hidden="true" size={21} weight="bold" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="다음 배너"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition hover:bg-brand-800 focus-visible:ring-2 focus-visible:ring-white"
+                    onClick={next}
+                  >
+                    <CaretRight aria-hidden="true" size={21} weight="bold" />
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </article>
+        ))}
       </div>
 
-      {/* 인디케이터 */}
       {slides.length > 1 ? (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10" aria-label="배너 선택">
-          {slides.map((_, i) => (
+        <div className="absolute bottom-5 left-5 flex gap-2 lg:left-14" aria-label="배너 선택">
+          {slides.map((_, slideIndex) => (
             <button
-              key={`dot-${i}`}
-              aria-label={`${i + 1}번째 배너 보기`}
-              aria-current={i === index ? 'true' : undefined}
-              className={`h-2 rounded-full transition-all ${
-                i === index ? 'bg-white w-6' : 'bg-white/50 w-2'
-              }`}
-              onClick={() => go(i)}
-            />
+              key={`hero-dot-${slideIndex}`}
+              type="button"
+              aria-label={`${slideIndex + 1}번째 배너 보기`}
+              aria-current={slideIndex === index ? 'true' : undefined}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-full focus-visible:ring-2 focus-visible:ring-white lg:focus-visible:ring-brand-500"
+              onClick={() => go(slideIndex)}
+            >
+              <span
+                aria-hidden="true"
+                className={`h-2.5 rounded-full transition-all ${
+                  slideIndex === index ? 'w-7 bg-white lg:bg-brand-700' : 'w-2.5 bg-white/55 lg:bg-brand-200'
+                }`}
+              />
+            </button>
           ))}
         </div>
       ) : null}

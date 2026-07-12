@@ -11,10 +11,11 @@ export interface TabsProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'o
   items: TabItem[];
   defaultIndex?: number;
   onChange?: (index: number) => void;
+  variant?: 'default' | 'editorial';
 }
 
 /** 접근성 탭 — 키보드 좌/우/홈/엔드, aria-selected/controls 연결 */
-export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: TabsProps) {
+export function Tabs({ items, defaultIndex = 0, onChange, className, variant = 'default', ...rest }: TabsProps) {
   const [index, setIndex] = useState(() => {
     const firstEnabled = items.findIndex((t) => !t.disabled);
     const isValidDefault =
@@ -83,7 +84,14 @@ export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: 
 
   return (
     <div className={['min-w-0', className].filter(Boolean).join(' ')} {...rest}>
-      <div role="tablist" aria-label={rest['aria-label']} className="flex max-w-full gap-2 overflow-x-auto border-b border-neutral-border" onKeyDown={onKeyDown}>
+      <div
+        role="tablist"
+        aria-label={rest['aria-label']}
+        className={variant === 'editorial'
+          ? 'flex max-w-full gap-5 overflow-x-auto border-b border-neutral-border px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-8'
+          : 'flex max-w-full gap-2 overflow-x-auto border-b border-neutral-border'}
+        onKeyDown={onKeyDown}
+      >
         {items.map((t, i) => {
           const selected = i === index;
           const { tabId, panelId } = ids[i]!;
@@ -99,12 +107,19 @@ export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: 
               aria-controls={panelId}
               tabIndex={selected ? 0 : -1}
               disabled={t.disabled}
-              className={[
-                'min-h-11 min-w-11 shrink-0 rounded-t-md px-3 py-2 text-sm font-medium',
-                selected
-                  ? 'bg-surface text-text-primary border-x border-t border-neutral-border -mb-px'
-                  : 'text-text-muted hover:text-text-primary',
-              ].join(' ')}
+              className={variant === 'editorial'
+                ? [
+                    'min-h-12 min-w-11 shrink-0 border-b-2 px-2 py-3 text-sm font-medium transition-colors',
+                    selected
+                      ? 'border-brand-700 text-brand-700'
+                      : 'border-transparent text-text-muted hover:text-text-primary',
+                  ].join(' ')
+                : [
+                    'min-h-11 min-w-11 shrink-0 rounded-t-md px-3 py-2 text-sm font-medium',
+                    selected
+                      ? 'bg-surface text-text-primary border-x border-t border-neutral-border -mb-px'
+                      : 'text-text-muted hover:text-text-primary',
+                  ].join(' ')}
               onClick={() => {
                 if (t.disabled) return;
                 setIndex(i);
@@ -126,7 +141,7 @@ export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: 
             role="tabpanel"
             aria-labelledby={tabId}
             hidden={!selected}
-            className="rounded-b-md border border-neutral-border p-4"
+            className={variant === 'editorial' ? 'pt-5' : 'rounded-b-md border border-neutral-border p-4'}
           >
             {selected ? t.content : null}
           </div>
