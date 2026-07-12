@@ -13,18 +13,12 @@ import secrets
 import sys
 from pathlib import Path
 
-import bcrypt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.db import get_db_session
 from apps.api.models import Member, MemberAuth, Visibility
-
-
-def hash_password(password: str) -> str:
-    """비밀번호 해시화"""
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-
+from apps.api.passwords import hash_password
 
 _seed_secret_cache: dict[str, str] = {}
 

@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
 from ..errors import ApiError
+from ..passwords import hash_password, verify_password
 from ..ratelimit import consume_limit
 from ..repositories import auth as auth_repo
 from ..repositories import members as members_repo
@@ -213,12 +214,10 @@ async def login_member(
         if settings.app_env == "prod" and not _is_test_client(request):
             consume_limit(limiter_login, request, settings.rate_limit_login)
 
-    bcrypt = __import__("bcrypt")
-
     member, creds = await auth_repo.get_member_with_auth_by_student_id(db, student_id)
     if member is None or creds is None:
         raise ApiError(code="login_failed", detail="login_failed", status=401)
-    if not bcrypt.checkpw(password.encode(), creds.password_hash.encode()):
+    if not verify_password(password, cast(str, creds.password_hash)):
         raise ApiError(code="login_failed", detail="login_failed", status=401)
     if cast(str, member.status) == "pending":
         raise ApiError(
@@ -265,8 +264,7 @@ async def activate_member(
     member = await resolve_activation_member(db, payload.student_id)
 
     # 비밀번호 해시 생성 및 저장
-    bcrypt = __import__("bcrypt")
-    pwd_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    pwd_hash = hash_password(password)
     await auth_repo.create_or_update_member_auth(
         db,
         member_id=cast(int, member.id),
@@ -300,15 +298,14 @@ async def change_member_password(
     if settings.app_env == "prod" and not _is_test_client(request):
         consume_limit(limiter_login, request, settings.rate_limit_login)
 
-    bcrypt = __import__("bcrypt")
     auth_row = await auth_repo.get_member_auth_by_student_id(db, member.student_id)
 
     if auth_row is None:
         raise HTTPException(status_code=401, detail="unauthorized")
-    if not bcrypt.checkpw(current_password.encode(), auth_row.password_hash.encode()):
+    if not verify_password(current_password, cast(str, auth_row.password_hash)):
         raise HTTPException(status_code=401, detail="login_failed")
 
-    new_hash = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
+    new_hash = hash_password(new_password)
     await auth_repo.update_member_auth_password(db, auth_row, new_hash)
     return {"ok": "true"}
 
