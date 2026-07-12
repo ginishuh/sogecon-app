@@ -5,6 +5,7 @@ from typing import Any
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql.elements import ColumnElement
 
 from .. import models, schemas
@@ -15,7 +16,7 @@ from . import escape_like
 def _build_member_conditions(
     filters: schemas.MemberListFilters,
     *,
-    viewer: tuple[int, int] | None = None,
+    viewer_student_id: str | None = None,
 ) -> list[ColumnElement[bool]]:
     conds: list[ColumnElement[bool]] = []
     qv = filters.get('q')
@@ -58,15 +59,23 @@ def _build_member_conditions(
             models.Member.job_title.ilike(f"%{escape_like(job_title)}%", escape="\\")
         )
 
-    if viewer is not None:
-        viewer_id, viewer_cohort = viewer
+    if viewer_student_id is not None:
+        viewer = aliased(models.Member)
+        viewer_cohort = (
+            select(viewer.cohort)
+            .where(viewer.student_id == viewer_student_id)
+            .scalar_subquery()
+        )
         conds.append(
-            or_(
-                models.Member.id == viewer_id,
-                models.Member.visibility == models.Visibility.ALL,
-                and_(
-                    models.Member.visibility == models.Visibility.COHORT,
-                    models.Member.cohort == viewer_cohort,
+            and_(
+                viewer_cohort.is_not(None),
+                or_(
+                    models.Member.student_id == viewer_student_id,
+                    models.Member.visibility == models.Visibility.ALL,
+                    and_(
+                        models.Member.visibility == models.Visibility.COHORT,
+                        models.Member.cohort == viewer_cohort,
+                    ),
                 ),
             )
         )
@@ -94,7 +103,7 @@ async def list_members(
     limit: int,
     offset: int,
     filters: schemas.MemberListFilters | None = None,
-    viewer: tuple[int, int] | None = None,
+    viewer_student_id: str | None = None,
 ) -> Sequence[models.Member]:
     """회원 목록 조회(기본 필터 지원).
 
@@ -105,7 +114,7 @@ async def list_members(
     """
     stmt = select(models.Member)
     f = filters or {}
-    conds = _build_member_conditions(f, viewer=viewer)
+    conds = _build_member_conditions(f, viewer_student_id=viewer_student_id)
     if conds:
         stmt = stmt.where(and_(*conds))
     stmt = stmt.order_by(*_order_columns(f.get('sort')))
@@ -116,11 +125,11 @@ async def list_members(
 
 async def count_members(
     db: AsyncSession, *, filters: schemas.MemberListFilters | None = None,
-    viewer: tuple[int, int] | None = None,
+    viewer_student_id: str | None = None,
 ) -> int:
     stmt = select(func.count()).select_from(models.Member)
     f = filters or {}
-    conds = _build_member_conditions(f, viewer=viewer)
+    conds = _build_member_conditions(f, viewer_student_id=viewer_student_id)
     if conds:
         stmt = stmt.where(and_(*conds))
     result = await db.execute(stmt)
@@ -129,6 +138,26 @@ async def count_members(
 
 async def get_member(db: AsyncSession, member_id: int) -> models.Member:
     member = await db.get(models.Member, member_id)
+    if member is None:
+        raise NotFoundError(code="member_not_found", detail="Member not found")
+    return member
+
+
+async def get_directory_member(
+    db: AsyncSession,
+    *,
+    member_id: int,
+    viewer_student_id: str,
+) -> models.Member:
+    conditions = _build_member_conditions(
+        {}, viewer_student_id=viewer_student_id
+    )
+    stmt = select(models.Member).where(
+        models.Member.id == member_id,
+        *conditions,
+    )
+    result = await db.execute(stmt)
+    member = result.scalars().first()
     if member is None:
         raise NotFoundError(code="member_not_found", detail="Member not found")
     return member

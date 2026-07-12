@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, cast
+from typing import Literal
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
@@ -50,20 +50,13 @@ async def list_members(
         filters['job_title'] = params.job_title
     if params.sort:
         filters['sort'] = params.sort
-    viewer = await members_service.get_member_by_student_id(
-        db, current_member.student_id
-    )
-    members = await members_service.list_members(
+    return await members_service.list_directory_members(
         db,
         limit=params.limit,
         offset=params.offset,
         filters=filters,
-        viewer=(cast(int, viewer.id), cast(int, viewer.cohort)),
+        viewer_student_id=current_member.student_id,
     )
-    return [
-        members_service.to_directory_member_read(viewer, member)
-        for member in members
-    ]
 
 
 class MemberCount(BaseModel):
@@ -91,13 +84,10 @@ async def count_members(
         filters['region'] = params.region
     if params.job_title:
         filters['job_title'] = params.job_title
-    viewer = await members_service.get_member_by_student_id(
-        db, current_member.student_id
-    )
-    c = await members_service.count_members(
+    c = await members_service.count_directory_members(
         db,
         filters=filters,
-        viewer=(cast(int, viewer.id), cast(int, viewer.cohort)),
+        viewer_student_id=current_member.student_id,
     )
     return MemberCount(count=c)
 
@@ -108,8 +98,8 @@ async def get_member(
     db: AsyncSession = Depends(get_db),
     current_member: CurrentMember = Depends(require_member),
 ) -> schemas.DirectoryMemberRead:
-    viewer = await members_service.get_member_by_student_id(
-        db, current_member.student_id
+    return await members_service.get_directory_member(
+        db,
+        member_id=member_id,
+        viewer_student_id=current_member.student_id,
     )
-    member = await members_service.get_member(db, member_id)
-    return members_service.to_directory_member_read(viewer, member)

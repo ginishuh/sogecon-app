@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from http import HTTPStatus
+from typing import Any, cast
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
+from sqlalchemy.engine import Result
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api import models
 from apps.api.db import get_db
 from apps.api.main import app
+from apps.api.services import members_service
 
 
 def _create_member(client: TestClient, payload: dict[str, object]) -> None:
@@ -54,6 +60,25 @@ def _set_visibility(student_id: str, visibility: models.Visibility) -> int:
             if member is None:
                 raise RuntimeError("member not found")
             member.visibility = visibility
+            await db.commit()
+            return int(member.id)
+        raise RuntimeError("database session not available")
+
+    return asyncio.run(_update())
+
+
+def _set_cohort(student_id: str, cohort: int) -> int:
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found")
+
+    async def _update() -> int:
+        async for db in override():
+            stmt = select(models.Member).where(models.Member.student_id == student_id)
+            member = (await db.execute(stmt)).scalars().first()
+            if member is None:
+                raise RuntimeError("member not found")
+            member.cohort = cohort
             await db.commit()
             return int(member.id)
         raise RuntimeError("database session not available")
@@ -189,3 +214,82 @@ def test_directory_enforces_visibility_on_server(admin_login: TestClient) -> Non
     own_search = client.get("/members/?q=__seed__admin")
     assert own_search.status_code == HTTPStatus.OK
     assert [row["id"] for row in own_search.json()] == [viewer_id]
+
+
+def test_directory_routes_do_not_preread_viewer(
+    admin_login: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    viewer_id = _set_visibility("__seed__admin", models.Visibility.PRIVATE)
+
+    async def _fail_preread(*_args: object, **_kwargs: object) -> models.Member:
+        raise AssertionError("directory route performed a separate viewer lookup")
+
+    monkeypatch.setattr(
+        members_service,
+        "get_member_by_student_id",
+        _fail_preread,
+    )
+    original_execute = cast(
+        Callable[..., Awaitable[Result[Any]]],
+        AsyncSession.execute,
+    )
+    query_count = 0
+
+    async def _counting_execute(
+        session: AsyncSession,
+        *args: object,
+        **kwargs: object,
+    ) -> Result[Any]:
+        nonlocal query_count
+        query_count += 1
+        return await original_execute(session, *args, **kwargs)
+
+    monkeypatch.setattr(AsyncSession, "execute", _counting_execute)
+
+    before = query_count
+    listing = admin_login.get("/members/?q=__seed__admin")
+    assert listing.status_code == HTTPStatus.OK
+    assert [row["id"] for row in listing.json()] == [viewer_id]
+    assert query_count - before == 1
+
+    before = query_count
+    count = admin_login.get("/members/count?q=__seed__admin")
+    assert count.status_code == HTTPStatus.OK
+    assert count.json() == {"count": 1}
+    assert query_count - before == 1
+
+    before = query_count
+    detail = admin_login.get(f"/members/{viewer_id}")
+    assert detail.status_code == HTTPStatus.OK
+    assert detail.json()["id"] == viewer_id
+    assert query_count - before == 1
+
+
+def test_directory_scope_uses_latest_viewer_cohort(
+    admin_login: TestClient,
+) -> None:
+    _create_member(
+        admin_login,
+        {
+            "student_id": "cohort-live-225",
+            "email": "cohort-live-225@example.com",
+            "name": "최신 기수 확인",
+            "cohort": 2,
+            "major": "경제학",
+        },
+    )
+    target_id = _set_visibility("cohort-live-225", models.Visibility.COHORT)
+
+    hidden = admin_login.get(f"/members/{target_id}")
+    assert hidden.status_code == HTTPStatus.NOT_FOUND
+    assert hidden.json()["code"] == "member_not_found"
+
+    _set_cohort("__seed__admin", 2)
+
+    visible = admin_login.get(f"/members/{target_id}")
+    assert visible.status_code == HTTPStatus.OK
+    assert visible.json()["id"] == target_id
+    count = admin_login.get("/members/count?q=cohort-live-225")
+    assert count.status_code == HTTPStatus.OK
+    assert count.json() == {"count": 1}
