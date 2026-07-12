@@ -3,7 +3,7 @@
 - 형식: `type(scope): subject`
 - 길이: 제목(헤더) 72자 이내
 - 타입(type): `feat|fix|refactor|perf|test|chore|build|ci|docs`
-- 스코프(scope): `api|web|schemas|infra|docs|ops|ci|build`
+- 스코프(scope): `api|web|schemas|infra|docs|ops|ci|build|deps|deps-dev`
 - 문체: 명령형, 현재 시제. 한국어 권장.
 - 본문(선택): 배경/의도 → 핵심 변경점 → 영향(마이그레이션, 호환성)
 - 푸터(선택): 관련 이슈/문서, BREAKING CHANGE
@@ -11,6 +11,11 @@
 예시
 - `feat(api): SlowAPI 기반 레이트리밋 추가(기본 120/min)`
 - `chore(web): Next 15/React 19로 업그레이드 및 engines 고정`
+- `build(deps): actions/cache를 6으로 업데이트`
+- `build(deps-dev): httpx 개발 의존성을 업데이트`
+
+`deps`와 `deps-dev` 스코프는 Dependabot을 포함한 운영·개발 의존성 자동화 커밋에
+사용합니다. 자동화 커밋도 일반 커밋과 동일하게 commitlint 검사를 통과해야 합니다.
 
 검사 도구
 - 훅: `.githooks/commit-msg`가 루트 `pnpm exec commitlint`로 즉시 검증합니다.
@@ -18,4 +23,3 @@
 
 구성 파일
 - `docs/commitlint.config.cjs`
-

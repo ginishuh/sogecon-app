@@ -130,6 +130,24 @@ expect_ok() {
   pass "$label passes"
 }
 
+expect_rejected() {
+  local label="$1"
+  local needle="$2"
+  shift 2
+  local out ec
+  set +e
+  out="$("$@" 2>&1)"
+  ec=$?
+  set -e
+  if [ "$ec" -eq 0 ] || [ "$ec" -eq 127 ]; then
+    fail "$label should reject with a real validation error (ec=$ec). output: $out"
+  fi
+  if ! printf '%s\n' "$out" | grep -Fq "$needle"; then
+    fail "$label missing expected validation '$needle' (ec=$ec). output: $out"
+  fi
+  pass "$label rejects as expected (ec=$ec)"
+}
+
 assert_staged_names() {
   local label="$1"
   shift
@@ -243,6 +261,31 @@ docs: template only
 EOF
 expect_ok "commit-msg doc-only without Log" \
   env PATH="$PATH" HOME="$HOME" "$BASH_BIN" "$HOOKS/commit-msg" "$msg_doc"
+git reset HEAD -- "docs/_hook_test_doc.md" >/dev/null
+rm -f "docs/_hook_test_doc.md"
+
+# --- commit-msg: Dependabot 표준 build(deps) 스코프 통과 ---
+stage_modify "docs/_hook_test_doc.md" "dependabot-scope-$$"
+msg_dependabot="$MSG_DIR/dependabot-scope.txt"
+cat >"$msg_dependabot" <<'EOF'
+build(deps): actions/cache를 6으로 업데이트
+EOF
+expect_ok "commit-msg accepts build(deps)" \
+  env PATH="$PATH" HOME="$HOME" "$BASH_BIN" "$HOOKS/commit-msg" "$msg_dependabot"
+
+msg_dependabot_dev="$MSG_DIR/dependabot-dev-scope.txt"
+cat >"$msg_dependabot_dev" <<'EOF'
+build(deps-dev): httpx 개발 의존성을 업데이트
+EOF
+expect_ok "commit-msg accepts build(deps-dev)" \
+  env PATH="$PATH" HOME="$HOME" "$BASH_BIN" "$HOOKS/commit-msg" "$msg_dependabot_dev"
+
+msg_unknown_scope="$MSG_DIR/unknown-scope.txt"
+cat >"$msg_unknown_scope" <<'EOF'
+build(unknown): 잘못된 범위를 사용
+EOF
+expect_rejected "commit-msg rejects unknown scope" "scope-enum" \
+  env PATH="$PATH" HOME="$HOME" "$BASH_BIN" "$HOOKS/commit-msg" "$msg_unknown_scope"
 git reset HEAD -- "docs/_hook_test_doc.md" >/dev/null
 rm -f "docs/_hook_test_doc.md"
 
