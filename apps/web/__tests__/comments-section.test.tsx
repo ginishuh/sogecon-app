@@ -102,7 +102,7 @@ describe('CommentsSection — 삭제 버튼 권한', () => {
     await waitFor(() => {
       expect(screen.getByText('첫 번째 댓글')).toBeInTheDocument();
     });
-    expect(screen.queryByRole('button', { name: '삭제' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /댓글 삭제/ })).not.toBeInTheDocument();
   });
 
   it('작성자: 본인 댓글(author_id=1)에만 삭제 버튼 노출', async () => {
@@ -112,7 +112,7 @@ describe('CommentsSection — 삭제 버튼 권한', () => {
     await waitFor(() => {
       expect(screen.getByText('첫 번째 댓글')).toBeInTheDocument();
     });
-    expect(screen.getAllByRole('button', { name: '삭제' })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: /댓글 삭제/ })).toHaveLength(1);
   });
 
   it('타인(id=2): 본인 댓글 없으면 삭제 버튼 없음', async () => {
@@ -122,7 +122,7 @@ describe('CommentsSection — 삭제 버튼 권한', () => {
     await waitFor(() => {
       expect(screen.getByText('첫 번째 댓글')).toBeInTheDocument();
     });
-    expect(screen.queryByRole('button', { name: '삭제' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /댓글 삭제/ })).not.toBeInTheDocument();
   });
 
   it('관리자: 모든 댓글에 삭제 버튼 노출', async () => {
@@ -132,7 +132,7 @@ describe('CommentsSection — 삭제 버튼 권한', () => {
     await waitFor(() => {
       expect(screen.getByText('첫 번째 댓글')).toBeInTheDocument();
     });
-    expect(screen.getAllByRole('button', { name: '삭제' })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: /댓글 삭제/ })).toHaveLength(2);
   });
 });
 
@@ -151,7 +151,7 @@ describe('CommentsSection — 삭제 다이얼로그 흐름', () => {
       expect(screen.getByText('첫 번째 댓글')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: '삭제' }));
+    fireEvent.click(screen.getByRole('button', { name: '홍길동 댓글 삭제' }));
 
     expect(screen.getByRole('dialog', { name: '댓글 삭제' })).toBeInTheDocument();
   });
@@ -163,7 +163,7 @@ describe('CommentsSection — 삭제 다이얼로그 흐름', () => {
       expect(screen.getByText('첫 번째 댓글')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: '삭제' }));
+    fireEvent.click(screen.getByRole('button', { name: '홍길동 댓글 삭제' }));
     fireEvent.click(screen.getByRole('button', { name: '취소' }));
 
     expect(deleteCommentMock).not.toHaveBeenCalled();
@@ -177,7 +177,7 @@ describe('CommentsSection — 삭제 다이얼로그 흐름', () => {
       expect(screen.getByText('첫 번째 댓글')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: '삭제' }));
+    fireEvent.click(screen.getByRole('button', { name: '홍길동 댓글 삭제' }));
     fireEvent.click(screen.getByRole('button', { name: '확인' }));
 
     await waitFor(() => {
@@ -248,5 +248,23 @@ describe('CommentsSection — 댓글 작성 UX', () => {
     await waitFor(() => {
       expect((textarea as HTMLTextAreaElement).value).toBe('');
     });
+  });
+
+  it('댓글 조회 실패 시 사용자 안내와 다시 불러오기를 제공한다', async () => {
+    listCommentsMock.mockRejectedValueOnce(new Error('network'));
+    listCommentsMock.mockResolvedValueOnce([]);
+
+    renderComments();
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('댓글을 불러오지 못했습니다.');
+    expect(screen.getByRole('heading', { name: '댓글', exact: true })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }));
+
+    await waitFor(() => {
+      expect(listCommentsMock).toHaveBeenCalledTimes(2);
+    });
+    expect(await screen.findByRole('heading', { name: '댓글 0' })).toBeInTheDocument();
   });
 });

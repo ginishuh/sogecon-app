@@ -33,7 +33,7 @@ export function ImageGallery({ coverImage, images }: ImageGalleryProps) {
         width={720}
         height={405}
         sizes="(max-width: 768px) 100vw, 720px"
-        className="h-auto w-full rounded-lg object-cover"
+        className="h-auto w-full rounded-xl object-cover"
       />
     );
   }
@@ -48,11 +48,11 @@ export function ImageGallery({ coverImage, images }: ImageGalleryProps) {
         width={720}
         height={405}
         sizes="(max-width: 768px) 100vw, 720px"
-        className="h-auto w-full rounded-lg object-cover"
+        className="h-auto w-full rounded-xl object-cover"
       />
       {/* 추가 이미지 그리드 */}
       {allImages.length > 1 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
           {allImages.slice(1).map((img, idx) => (
             <div key={img} className="relative aspect-square overflow-hidden rounded-lg">
               <Image
@@ -60,7 +60,7 @@ export function ImageGallery({ coverImage, images }: ImageGalleryProps) {
                 alt={`이미지 ${idx + 2}`}
                 fill
                 sizes="(max-width: 640px) 33vw, 25vw"
-                className="object-cover hover:scale-105 transition-transform cursor-pointer"
+                className="cursor-pointer object-cover transition-transform hover:scale-105"
               />
             </div>
           ))}
