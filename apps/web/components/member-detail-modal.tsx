@@ -6,6 +6,7 @@
  * - 접근성: ESC 닫기, 포커스 트랩, aria 속성
  */
 
+import { Buildings, EnvelopeSimple, ShieldCheck, WarningCircle, X } from '@phosphor-icons/react';
 import React, { useCallback, useEffect, useId, useRef } from 'react';
 
 import { formatPhone } from '../lib/phone-utils';
@@ -23,24 +24,24 @@ type MemberDetailModalProps = {
 function InfoItem({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null;
   return (
-    <div>
-      <dt className="text-xs text-neutral-muted">{label}</dt>
-      <dd className="text-sm text-neutral-ink">{value}</dd>
+    <div className="min-w-0">
+      <dt className="text-xs font-medium text-text-muted">{label}</dt>
+      <dd className="mt-1 break-words text-sm leading-6 text-text-primary">{value}</dd>
     </div>
   );
 }
 
 /** 섹션 헤더 */
 function SectionHeader({ children }: { children: React.ReactNode }) {
-  return <h4 className="text-xs font-semibold text-neutral-muted uppercase tracking-wide mb-2">{children}</h4>;
+  return <h4 className="text-base font-semibold text-text-primary">{children}</h4>;
 }
 
 /** 모달 내용 - 기본 정보 */
-function BasicInfoSection({ member, visibilityLabel }: { member: Member; visibilityLabel: string }) {
+function BasicInfoSection({ member }: { member: Member }) {
   return (
-    <section>
-      <div className="flex items-center gap-3 mb-3">
-        <div className="size-16 rounded-full bg-neutral-subtle flex items-center justify-center overflow-hidden shrink-0">
+    <section className="border-b border-neutral-border pb-6">
+      <div className="flex items-center gap-4">
+        <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-subtle">
           {member.avatar_url ? (
             <div
               className="size-full bg-cover bg-center"
@@ -49,29 +50,29 @@ function BasicInfoSection({ member, visibilityLabel }: { member: Member; visibil
               aria-label={`${member.name} 프로필 사진`}
             />
           ) : (
-            <span className="text-2xl text-neutral-muted">{member.name.charAt(0)}</span>
+            <span className="text-3xl font-medium text-text-muted">{member.name.charAt(0)}</span>
           )}
         </div>
-        <div>
-          <p className="text-xl font-semibold text-neutral-ink">{member.name}</p>
-          <p className="text-sm text-neutral-muted">{member.cohort}기 · {member.major ?? '전공 미입력'}</p>
+        <div className="min-w-0">
+          <p className="break-words text-2xl font-semibold tracking-[-0.025em] text-text-primary">{member.name}</p>
+          <p className="mt-1 text-sm text-text-muted">{member.cohort}기 · {member.major ?? '전공 미입력'}</p>
         </div>
       </div>
-      <dl className="grid grid-cols-2 gap-3">
-        <InfoItem label="이메일" value={member.email} />
-        <InfoItem label="공개 범위" value={visibilityLabel} />
-      </dl>
     </section>
   );
 }
 
 /** 모달 내용 - 연락처 */
 function ContactSection({ member }: { member: Member }) {
-  if (!member.phone && !member.addr_personal) return null;
+  if (!member.email && !member.phone && !member.addr_personal) return null;
   return (
-    <section>
-      <SectionHeader>연락처</SectionHeader>
-      <dl className="grid grid-cols-2 gap-3">
+    <section className="border-b border-neutral-border pb-6">
+      <div className="mb-3 flex items-center gap-2 text-brand-700">
+        <EnvelopeSimple aria-hidden="true" size={19} />
+        <SectionHeader>연락처</SectionHeader>
+      </div>
+      <dl className="grid gap-4 sm:grid-cols-2">
+        <InfoItem label="이메일" value={member.email} />
         <InfoItem label="전화번호" value={formatPhone(member.phone)} />
         <InfoItem label="주소" value={member.addr_personal} />
       </dl>
@@ -83,9 +84,12 @@ function ContactSection({ member }: { member: Member }) {
 function WorkSection({ member }: { member: Member }) {
   if (!member.company && !member.department && !member.job_title && !member.industry) return null;
   return (
-    <section>
-      <SectionHeader>직장</SectionHeader>
-      <dl className="grid grid-cols-2 gap-3">
+    <section className="border-b border-neutral-border pb-6">
+      <div className="mb-3 flex items-center gap-2 text-brand-700">
+        <Buildings aria-hidden="true" size={19} />
+        <SectionHeader>직장 정보</SectionHeader>
+      </div>
+      <dl className="grid gap-4 sm:grid-cols-2">
         <InfoItem label="회사" value={member.company} />
         <InfoItem label="부서" value={member.department} />
         <InfoItem label="직함" value={member.job_title} />
@@ -93,6 +97,18 @@ function WorkSection({ member }: { member: Member }) {
         <InfoItem label="회사 전화" value={formatPhone(member.company_phone)} />
         <InfoItem label="회사 주소" value={member.addr_company} />
       </dl>
+    </section>
+  );
+}
+
+function VisibilitySection({ label }: { label: string }) {
+  return (
+    <section className="border-b border-neutral-border pb-6">
+      <div className="mb-3 flex items-center gap-2 text-brand-700">
+        <ShieldCheck aria-hidden="true" size={19} />
+        <SectionHeader>공개 범위</SectionHeader>
+      </div>
+      <p className="text-sm leading-6 text-text-secondary">{label}</p>
     </section>
   );
 }
@@ -172,28 +188,30 @@ export default function MemberDetailModal({ member, open, onClose }: MemberDetai
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-xl"
+        className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-neutral-border bg-white shadow-xl"
       >
-        <div className="sticky top-0 bg-white border-b border-neutral-border px-4 py-3 flex items-center justify-between">
-          <h3 id={titleId} className="text-lg font-semibold text-neutral-ink">회원 정보</h3>
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-border bg-white px-5 py-3 sm:px-6">
+          <h3 id={titleId} className="text-lg font-semibold text-text-primary">회원 정보</h3>
           <button
             type="button"
             data-close-btn
             onClick={onClose}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-md text-neutral-muted hover:bg-neutral-subtle hover:text-neutral-ink focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-text-muted transition hover:bg-neutral-subtle hover:text-text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400"
             aria-label="닫기"
           >
-            <svg aria-hidden="true" className="size-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 5L5 15M5 5l10 10" strokeLinecap="round" />
-            </svg>
+            <X aria-hidden="true" size={21} weight="bold" />
           </button>
         </div>
-        <div className="p-4 space-y-5">
-          <BasicInfoSection member={member} visibilityLabel={VISIBILITY_INFO[member.visibility].label} />
-          {!hasPublicDirectoryDetails(member) ? <div role="status" className="rounded-lg bg-surface-raised p-3 text-sm text-text-muted">이 동문이 공개한 상세 정보가 아직 없어요.</div> : null}
+        <div className="space-y-6 p-5 sm:p-6">
+          <BasicInfoSection member={member} />
+          {!hasPublicDirectoryDetails(member) ? <div role="status" className="rounded-xl bg-surface-raised p-4 text-sm text-text-muted">이 동문이 공개한 상세 정보가 아직 없어요.</div> : null}
           <ContactSection member={member} />
           <WorkSection member={member} />
-          <Link href="/support/contact" className="text-link inline-flex min-h-11 items-center text-sm">정보가 잘못되었나요? 사무국에 알려 주세요</Link>
+          <VisibilitySection label={VISIBILITY_INFO[member.visibility].label} />
+          <Link href="/support/contact" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-brand-700">
+            <WarningCircle aria-hidden="true" size={18} />
+            정보가 잘못되었나요? 사무국에 알려 주세요
+          </Link>
         </div>
       </div>
     </div>
