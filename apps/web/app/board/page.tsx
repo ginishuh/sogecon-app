@@ -30,11 +30,11 @@ function BoardPostList({ posts }: { posts: Post[] }) {
     <ul className="space-y-2">
       {posts.map((post) => (
         <li key={post.id}>
-          <Link href={`/board/${post.id}`} className="flex items-start gap-3 rounded-lg border border-neutral-border bg-white p-4 transition-colors hover:bg-surface-raised focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
-            {post.category === 'share' && post.cover_image ? <Image src={resolveApiAssetUrl(post.cover_image)} alt="" width={96} height={72} className="h-18 w-24 shrink-0 rounded-lg object-cover" /> : null}
+          <Link href={`/board/${post.id}`} className="flex min-w-0 items-start gap-3 rounded-lg border border-neutral-border bg-white p-4 transition-colors hover:bg-surface-raised focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 max-[240px]:flex-col">
+            {post.category === 'share' && post.cover_image ? <Image src={resolveApiAssetUrl(post.cover_image)} alt="" width={96} height={72} className="h-18 w-24 shrink-0 rounded-lg object-cover max-[240px]:h-auto max-[240px]:w-full" /> : null}
             {getBoardCategoryInfo(post.category) ? <span className="mt-0.5 inline-block rounded bg-brand-600 px-2 py-0.5 text-xs font-medium text-white">{getBoardCategoryInfo(post.category)?.shortLabel}</span> : null}
-            <div className="flex-1 space-y-1">
-              <h3 className="text-body font-medium text-text-primary">{post.pinned ? <span className="mr-1">📌</span> : null}{post.title}</h3>
+            <div className="min-w-0 flex-1 space-y-1">
+              <h3 className="break-words text-body font-medium text-text-primary">{post.pinned ? <span className="mr-1">📌</span> : null}{post.title}</h3>
               <div className="flex flex-wrap items-center gap-2 text-xs text-text-muted">
                 <span className="font-medium text-text-secondary">{getAuthorName(post.author_name)}</span>
                 <span>·</span>
@@ -83,8 +83,8 @@ function BoardPanel(props: BoardPanelProps) {
   return (
     <div className="space-y-3 pt-3">
       {props.info ? <p className="text-sm text-text-secondary">{props.info.description}</p> : null}
-      <div className="flex items-center gap-2">
-        <input className="min-h-11 flex-1 rounded-full border border-neutral-border bg-surface-raised px-4 text-sm focus:border-brand-400 focus:bg-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500" value={props.search} onChange={(event) => props.onSearchChange(event.currentTarget.value)} placeholder="제목이나 내용으로 찾아보세요" aria-label="게시글 검색" />
+      <div className="flex min-w-0 items-center gap-2 max-[240px]:flex-col max-[240px]:items-stretch">
+        <input className="min-h-11 min-w-0 flex-1 rounded-full border border-neutral-border bg-surface-raised px-4 text-sm focus:border-brand-400 focus:bg-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500" value={props.search} onChange={(event) => props.onSearchChange(event.currentTarget.value)} placeholder="제목이나 내용으로 찾아보세요" aria-label="게시글 검색" />
         <button type="button" className="min-h-11 rounded-full border border-neutral-border bg-white px-4 text-sm text-text-secondary hover:bg-surface-raised" onClick={props.onSearchReset}>초기화</button>
       </div>
       <BoardResults {...props} />
@@ -161,7 +161,7 @@ function BoardPageInner() {
 
       <Link
         href="/board/new"
-        className="fixed bottom-6 right-6 z-50 flex min-h-14 items-center gap-2 rounded-full bg-brand-primary px-5 font-semibold text-white shadow-lg transition-colors hover:bg-brand-primaryDark focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 active:bg-brand-primaryDark"
+        className="fixed bottom-6 right-6 z-50 flex min-h-14 items-center gap-2 rounded-full bg-brand-primary px-5 font-semibold text-white shadow-lg transition-colors hover:bg-brand-primaryDark focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 active:bg-brand-primaryDark max-[240px]:static max-[240px]:w-full max-[240px]:justify-center"
         aria-label="새 게시글 쓰기"
       >
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

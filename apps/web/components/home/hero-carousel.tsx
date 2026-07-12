@@ -155,7 +155,7 @@ export default function HomeHeroCarousel() {
 
   return (
     <section
-      className="home-hero-carousel relative h-[218px] md:h-[320px] lg:h-[420px] overflow-hidden rounded-2xl shadow-xl"
+      className="home-hero-carousel relative h-[218px] min-w-0 w-full overflow-hidden overflow-clip rounded-2xl shadow-xl [contain:layout_paint] md:h-[320px] lg:h-[420px]"
       aria-label="홈 배너"
       role="region"
       aria-roledescription="carousel"
@@ -173,7 +173,7 @@ export default function HomeHeroCarousel() {
       >
         {/* 슬라이드 트랙 */}
         <div
-          className="flex h-full transition-transform duration-500 ease-in-out"
+          className="flex h-full w-full min-w-0 transition-transform duration-500 ease-in-out"
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
           {slides.map((s, i) => (
