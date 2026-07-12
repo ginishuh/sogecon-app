@@ -64,6 +64,7 @@ REMOVED_AGENT_FILES = (
     ROOT / "scripts/sync_agents_from_base.sh",
 )
 E2E_WORKFLOW = ROOT / ".github/workflows/e2e.yml"
+BRANCH_PROTECTION_SCRIPT = ROOT / "ops/ci/apply_main_branch_protection.sh"
 
 ALLOWED_NOQA_FILES = {
     ROOT / "apps/api/migrations/env.py": {"E402"},
@@ -210,6 +211,12 @@ def check_workflow_policies() -> list[str]:
     text = E2E_WORKFLOW.read_text(encoding="utf-8")
     if re.search(r"^\s*continue-on-error\s*:", text, re.MULTILINE):
         return [f"{E2E_WORKFLOW}: E2E must remain a hard gate"]
+
+    if not BRANCH_PROTECTION_SCRIPT.is_file():
+        return [f"{BRANCH_PROTECTION_SCRIPT}: branch protection script is missing"]
+    protection = BRANCH_PROTECTION_SCRIPT.read_text(encoding="utf-8")
+    if not re.search(r'"context"\s*:\s*"e2e"', protection):
+        return [f"{BRANCH_PROTECTION_SCRIPT}: e2e must remain a required check"]
     return []
 
 

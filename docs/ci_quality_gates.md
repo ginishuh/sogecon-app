@@ -74,7 +74,7 @@ git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 
 머지 후 GitHub **Settings → Rules → main** 에서 아래를 required status checks로 지정한다.
 
-- `repo-guards` / `python` / `contract` / `web` / `secrets-scan` / `semgrep`
+- `repo-guards` / `python` / `contract` / `web` / `e2e` / `secrets-scan` / `semgrep`
 - (권장) CodeQL `analyze` matrix jobs
 - (권장) `dto-verify` on main push
 
