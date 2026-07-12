@@ -33,4 +33,10 @@ describe('Button', () => {
     render(<ButtonLink href="/posts" size="sm">소식 보기</ButtonLink>);
     expect(document.querySelector('a')).toHaveClass('min-h-11', 'min-w-11', 'focus-visible:ring-2');
   });
+
+  it('keeps the loading state authoritative', () => {
+    render(<Button loading aria-busy={false}>저장</Button>);
+    expect(document.querySelector('button')).toBeDisabled();
+    expect(document.querySelector('button')).toHaveAttribute('aria-busy', 'true');
+  });
 });

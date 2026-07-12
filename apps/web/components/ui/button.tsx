@@ -16,7 +16,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
  * - 키보드 포커스 링은 globals.css에서 공통 적용
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { className, variant = 'primary', size = 'md', loading = false, disabled, children, ...rest },
+  { className, variant = 'primary', size = 'md', loading = false, disabled, children, 'aria-busy': ariaBusy, ...rest },
   ref,
 ) {
   const isDisabled = disabled || loading;
@@ -33,9 +33,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       className={classes}
-      aria-busy={loading || undefined}
-      disabled={isDisabled}
       {...rest}
+      aria-busy={loading ? true : ariaBusy}
+      disabled={isDisabled}
     >
       {children}
     </button>

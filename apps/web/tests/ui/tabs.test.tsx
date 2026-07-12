@@ -10,7 +10,8 @@ const items = [
 
 describe('Tabs', () => {
   it('click switches selection and shows panel', () => {
-    render(<Tabs items={items} aria-label="샘플 탭" />);
+    const { container } = render(<Tabs items={items} aria-label="샘플 탭" />);
+    expect(container.firstElementChild).toHaveClass('min-w-0');
     const tab2 = screen.getByRole('tab', { name: '탭2' });
     fireEvent.click(tab2);
     expect(tab2).toHaveAttribute('aria-selected', 'true');
@@ -28,4 +29,3 @@ describe('Tabs', () => {
     expect(t3).toHaveAttribute('aria-selected', 'true');
   });
 });
-

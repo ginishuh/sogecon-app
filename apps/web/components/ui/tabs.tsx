@@ -82,7 +82,7 @@ export function Tabs({ items, defaultIndex = 0, onChange, className, ...rest }: 
   );
 
   return (
-    <div className={className} {...rest}>
+    <div className={['min-w-0', className].filter(Boolean).join(' ')} {...rest}>
       <div role="tablist" aria-label={rest['aria-label']} className="flex max-w-full gap-2 overflow-x-auto border-b border-neutral-border" onKeyDown={onKeyDown}>
         {items.map((t, i) => {
           const selected = i === index;
