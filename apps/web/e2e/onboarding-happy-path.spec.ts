@@ -41,6 +41,21 @@ async function fillFieldByLabel(page: Page, labelText: string, value: string) {
   throw new Error(`label not found: ${labelText}`);
 }
 
+async function waitForBodyText(page: Page, expected: string) {
+  try {
+    await page.waitForFunction(
+      (text) => document.body.textContent?.includes(text),
+      { timeout: 10_000 },
+      expected
+    );
+  } catch (error) {
+    const visibleText = await page.$eval('body', (body) => body.innerText.slice(0, 2_000));
+    throw new Error(`화면에서 '${expected}' 문구를 찾지 못했습니다. 현재 화면:\n${visibleText}`, {
+      cause: error,
+    });
+  }
+}
+
 async function setupOnboardingMocks(page: Page) {
   const state: MockState = { signupStatus: 'pending' };
   const routeResponders = createOnboardingRouteResponders(state);
@@ -52,8 +67,9 @@ async function setupOnboardingMocks(page: Page) {
       const handled = await respondOnboardingApiRequest(request, routeResponders);
       if (handled) return;
       await request.continue();
-    } catch {
-      await request.continue();
+    } catch (error) {
+      console.error('[onboarding-mock-error]', request.method(), request.url(), error);
+      await request.abort('failed');
     }
   });
 }
@@ -198,10 +214,10 @@ describe('Onboarding happy path (CDP E2E)', () => {
     await fillFieldByLabel(page, '기수', '60');
     await fillFieldByLabel(page, '전공', '경제학');
     await fillFieldByLabel(page, '연락처', '010-1234-5678');
-    await fillFieldByLabel(page, '메모', '테스트 신청');
+    await fillFieldByLabel(page, '사무국에 전할 내용', '테스트 신청');
 
     await page.click('button[type="submit"]');
-    await page.waitForFunction(() => document.body.textContent?.includes('가입신청 완료'));
+    await waitForBodyText(page, '가입 신청 완료');
 
     await page.goto(`${WEB_BASE_URL}/admin/signup-requests`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.body.textContent?.includes('가입신청 심사'));
@@ -220,14 +236,14 @@ describe('Onboarding happy path (CDP E2E)', () => {
     await page.goto(`${WEB_BASE_URL}/activate?token=${ACTIVATE_TOKEN}`, { waitUntil: 'domcontentloaded' });
     await fillFieldByLabel(page, '비밀번호', 'new-password-1234');
     const clickedActivate = await page.$$eval('button', (buttons) => {
-      const target = buttons.find((button) => (button.textContent || '').trim() === '활성화');
+      const target = buttons.find((button) => (button.textContent || '').trim() === '비밀번호 만들기 완료');
       if (!target) return false;
       (target as HTMLElement).click();
       return true;
     });
     expect(clickedActivate).toBe(true);
 
-    await page.waitForFunction(() => document.body.textContent?.includes('로그인 상태입니다.'));
-    expect(page.url()).toContain('/activate');
+    await page.waitForFunction(() => document.body.textContent?.includes('첫 로그인 완료'));
+    expect(page.url()).toBe(`${WEB_BASE_URL}/activate`);
   });
 });

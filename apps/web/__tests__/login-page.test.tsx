@@ -36,6 +36,21 @@ describe('LoginPage', () => {
     loginMock.mockReset();
   });
 
+  it('처음 방문한 동문과 승인 안내를 받은 동문의 경로를 구분한다', () => {
+    renderWithProviders(<LoginPage />);
+
+    expect(screen.getByRole('heading', { name: '동문 로그인' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /처음 방문했어요/ })).toHaveAttribute(
+      'href',
+      '/signup'
+    );
+    expect(screen.getByRole('link', { name: /가입 승인 안내를 받았어요/ })).toHaveAttribute(
+      'href',
+      '/activate'
+    );
+    expect(screen.getByText('가입 신청 후 확인 중이라면 별도로 다시 신청하지 않아도 됩니다.')).toBeInTheDocument();
+  });
+
   it('승인 대기 계정은 구체적인 안내 메시지를 표시한다', async () => {
     loginMock.mockRejectedValueOnce(
       new ApiError(403, 'member_pending_approval', 'member_pending_approval')
@@ -53,6 +68,13 @@ describe('LoginPage', () => {
         { type: 'error' }
       );
     });
+    expect(screen.getByRole('alert')).toHaveTextContent('동문회 사무국에서 가입 신청을 확인 중입니다.');
+    expect(screen.getByLabelText('학번')).toHaveAttribute('aria-describedby', 'login-error');
+    expect(screen.getByLabelText('비밀번호')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('link', { name: '확인이 오래 걸리면 사무국에 문의하기' })).toHaveAttribute(
+      'href',
+      '/support/contact'
+    );
   });
 
   it('비활성 계정은 비활성 안내 메시지를 표시한다', async () => {

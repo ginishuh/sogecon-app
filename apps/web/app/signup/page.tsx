@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useToast } from '../../components/toast';
+import { SignupJourney } from '../../components/signup-journey';
 import { ApiError } from '../../lib/api';
 import { memberApiErrorToMessage } from '../../lib/error-map';
 import { MEMBER_LANGUAGE } from '../../lib/member-language';
@@ -33,7 +34,7 @@ function FeedbackBanner({ feedback }: { feedback: Feedback | null }) {
       : 'border-state-error-ring bg-state-error-subtle text-state-error';
 
   return (
-    <p className={`rounded border px-3 py-2 text-sm ${className}`} role="status">
+    <p className={`rounded border px-3 py-2 text-sm ${className}`} role={feedback.tone === 'error' ? 'alert' : 'status'}>
       {feedback.message}
     </p>
   );
@@ -101,13 +102,21 @@ export default function SignupPage() {
   };
 
   if (submitted != null) {
+    const isPending = submitted.status === 'pending';
     return (
       <section className="mx-auto max-w-2xl space-y-5 rounded-xl border border-neutral-border bg-white p-6">
+        <SignupJourney currentStep={2} />
         <h1 className="text-2xl font-semibold text-text-primary">가입 신청 완료</h1>
-        <p className="text-sm text-text-secondary">
-          심사 상태가 <b className="text-text-primary">대기 중</b>으로 접수되었습니다.
-          승인 안내를 받으면 {MEMBER_LANGUAGE.activation}에서 비밀번호를 설정해 주세요.
-        </p>
+        {isPending ? (
+          <p className="text-sm text-text-secondary">
+            현재 <b className="text-text-primary">동문회 사무국 확인 중</b>입니다. 확인이 끝나면
+            등록한 연락처로 비밀번호를 만드는 안내 링크를 보내드립니다.
+          </p>
+        ) : (
+          <p className="text-sm text-text-secondary">
+            신청은 접수되었지만 현재 상태를 화면에서 안내하기 어렵습니다. 동문회 사무국에 문의해 주세요.
+          </p>
+        )}
         <FeedbackBanner feedback={feedback} />
         <dl className="grid gap-2 rounded border border-neutral-border bg-surface-raised p-4 text-sm">
           <div className="flex justify-between gap-3">
@@ -120,21 +129,27 @@ export default function SignupPage() {
           </div>
           <div className="flex justify-between gap-3">
             <dt className="text-text-muted">상태</dt>
-            <dd className="font-medium text-state-info">승인 대기</dd>
+            <dd className="font-medium text-state-info">{isPending ? '사무국 확인 중' : '상태 확인 필요'}</dd>
           </div>
         </dl>
+        {isPending ? (
+          <p className="rounded-lg bg-brand-50 p-3 text-sm text-brand-900">
+            안내를 받기 전에는 로그인하거나 비밀번호를 만들 수 없습니다. 별도로 다시 신청하지 말고
+            안내를 기다려 주세요.
+          </p>
+        ) : null}
         <div className="flex flex-wrap gap-2">
           <Link
-            href="/login"
+            href="/"
             className="rounded bg-brand-700 px-4 py-2 text-sm text-white hover:bg-brand-800 hover:text-white"
           >
-            로그인으로 이동
+            홈으로 이동
           </Link>
           <Link
-            href="/activate"
+            href="/support/contact"
             className="rounded border border-brand-700 px-4 py-2 text-sm text-brand-700 hover:bg-brand-50"
           >
-            {MEMBER_LANGUAGE.activation}
+            확인이 오래 걸리면 문의하기
           </Link>
         </div>
       </section>
@@ -143,6 +158,7 @@ export default function SignupPage() {
 
   return (
     <section className="mx-auto max-w-2xl space-y-6">
+      <SignupJourney currentStep={1} />
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold text-text-primary">{MEMBER_LANGUAGE.signup}</h1>
         <p className="text-sm text-text-secondary">
@@ -236,7 +252,7 @@ export default function SignupPage() {
         </label>
 
         <label className="text-sm text-text-primary">
-          메모(선택)
+          사무국에 전할 내용(선택)
           <textarea
             rows={4}
             className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
@@ -254,7 +270,7 @@ export default function SignupPage() {
             disabled={mutate.isPending}
             className="rounded bg-brand-700 px-4 py-2 text-sm text-white disabled:opacity-60"
           >
-            {mutate.isPending ? '제출 중...' : '가입신청 제출'}
+            {mutate.isPending ? '보내는 중...' : '가입 정보 보내기'}
           </button>
           <Link
             href="/login"
