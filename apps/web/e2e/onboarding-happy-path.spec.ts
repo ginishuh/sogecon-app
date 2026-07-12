@@ -210,7 +210,7 @@ describe('Onboarding happy path (CDP E2E)', () => {
     await configureMockServer('admin');
     await setupOnboardingMocks(page);
 
-    await page.goto(`${WEB_BASE_URL}/signup`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${WEB_BASE_URL}/signup`, { waitUntil: 'networkidle0' });
     await fillFieldByLabel(page, '학번', '20251234');
     await fillFieldByLabel(page, '이름', '신규회원');
     await fillFieldByLabel(page, '이메일', 'new-member@example.com');
@@ -222,7 +222,7 @@ describe('Onboarding happy path (CDP E2E)', () => {
     await page.click('button[type="submit"]');
     await waitForBodyText(page, '가입 신청 완료');
 
-    await page.goto(`${WEB_BASE_URL}/admin/signup-requests`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${WEB_BASE_URL}/admin/signup-requests`, { waitUntil: 'networkidle0' });
     await page.waitForFunction(() => document.body.textContent?.includes('가입신청 심사'));
 
     const clickedApprove = await page.$$eval('button', (buttons) => {
@@ -236,7 +236,7 @@ describe('Onboarding happy path (CDP E2E)', () => {
     await page.waitForFunction(() => document.body.textContent?.includes('최근 발급 대상'));
     await page.waitForFunction(() => document.body.textContent?.includes('토큰 복사'));
 
-    await page.goto(`${WEB_BASE_URL}/activate?token=${ACTIVATE_TOKEN}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${WEB_BASE_URL}/activate?token=${ACTIVATE_TOKEN}`, { waitUntil: 'networkidle0' });
     await fillFieldByLabel(page, '비밀번호', 'new-password-1234');
     const clickedActivate = await page.$$eval('button', (buttons) => {
       const target = buttons.find((button) => (button.textContent || '').trim() === '비밀번호 만들기 완료');

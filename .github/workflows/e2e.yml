@@ -19,6 +19,10 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      WEB_BASE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_WEB_API_BASE: http://127.0.0.1:3001
+      E2E_MOCK_API_CONTROL_URL: http://127.0.0.1:3001
     steps:
       - uses: actions/checkout@v4
       - name: Resolve PNPM version
@@ -55,16 +59,14 @@ jobs:
       - name: Wait for web
         run: |
           for i in {1..30}; do
-            if curl -fsS http://localhost:3001/healthz >/dev/null; then echo "mock API up"; break; fi; sleep 1;
+            if curl -fsS http://127.0.0.1:3001/healthz >/dev/null; then echo "mock API up"; break; fi; sleep 1;
           done
-          curl -fsS http://localhost:3001/healthz >/dev/null || { cat mock-api.log; exit 1; }
+          curl -fsS http://127.0.0.1:3001/healthz >/dev/null || { cat mock-api.log; exit 1; }
           for i in {1..60}; do
-            if curl -fsS http://localhost:3000 >/dev/null; then echo "web up"; exit 0; fi; sleep 1; done
-          echo "web not responding"; curl -v http://localhost:3000 || true; exit 1
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then echo "web up"; exit 0; fi; sleep 1; done
+          echo "web not responding"; curl -v http://127.0.0.1:3000 || true; exit 1
       - name: Run E2E (CDP/Puppeteer)
         env:
-          WEB_BASE_URL: http://localhost:3000
-          E2E_MOCK_API_CONTROL_URL: http://localhost:3001
           PUPPETEER_EXECUTABLE_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: pnpm -C apps/web e2e
       - name: Stop web

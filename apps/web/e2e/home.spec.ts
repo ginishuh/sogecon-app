@@ -10,18 +10,19 @@ let page: Page | null = null;
 async function moveToNextBanner(page: Page): Promise<boolean> {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     try {
-      return await page.evaluate(() => {
+      const clicked = await page.evaluate(() => {
         const button = document.querySelector<HTMLButtonElement>('button[aria-label="다음 배너"]');
         if (!button) return false;
         button.click();
         return true;
       });
+      if (clicked) return true;
     } catch (error) {
       if (!(error instanceof Error) || !error.message.includes('Execution context was destroyed')) {
         throw error;
       }
-      await new Promise((resolve) => setTimeout(resolve, 100));
     }
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
   throw new Error('홈 배너 상호작용 전 페이지 전환이 안정화되지 않았습니다.');
 }
@@ -46,7 +47,7 @@ describe('Home (CDP E2E)', () => {
     if (!page) throw new Error('Puppeteer page not initialized');
     await configureMockServer('member');
     await setupDirectoryMocks(page);
-    await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'networkidle0' });
 
     await page.waitForFunction(
       () => document.querySelector('section[aria-label="홈 배너"]') !== null,

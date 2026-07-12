@@ -42,7 +42,7 @@ describe('Directory URL sync (CDP E2E)', () => {
     if (!page) throw new Error('Puppeteer page not initialized');
     await configureMockServer('member');
     await setupDirectoryMocks(page);
-    await page.goto(`${WEB_BASE_URL}/directory`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${WEB_BASE_URL}/directory`, { waitUntil: 'networkidle0' });
 
     // 인증 후 현재 필터 UI가 보이는지 확인한다.
     await page.waitForSelector('fieldset[aria-label="기본 검색 필터"]');
