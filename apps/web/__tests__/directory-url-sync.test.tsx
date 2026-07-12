@@ -75,6 +75,19 @@ describe('DirectoryPage URL 동기화', () => {
     });
   });
 
+  it('검색 무결과에서 모든 필터를 한 번에 초기화한다', async () => {
+    currentSearchParams = new URLSearchParams([['q', '없는동문']]);
+    renderDirectoryPage();
+
+    const reset = await screen.findByRole('button', { name: '모든 필터 초기화' });
+    fireEvent.click(reset);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    });
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/directory', { scroll: false }));
+  });
+
   it('정렬 옵션을 변경하면 URL과 목록을 최신화한다', async () => {
     renderDirectoryPage();
 

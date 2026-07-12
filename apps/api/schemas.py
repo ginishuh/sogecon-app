@@ -16,6 +16,7 @@ from pydantic import (
 )
 
 from .config import get_settings
+from .directory_schemas import DirectoryMemberRead as _DirectoryMemberRead
 from .media_utils import (
     build_media_url,
     build_media_urls,
@@ -24,6 +25,7 @@ from .media_utils import (
 )
 
 VisibilityLiteral = Literal["all", "cohort", "private"]
+DirectoryMemberRead = _DirectoryMemberRead
 RSVPLiteral = Literal["going", "waitlist", "cancel"]
 EventStatusLiteral = Literal["upcoming", "ongoing", "ended"]
 HeroTargetTypeLiteral = Literal["post", "event"]

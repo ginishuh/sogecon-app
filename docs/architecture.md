@@ -67,6 +67,14 @@
 ## RSVP 규칙
 - v1: 정원 초과 시 요청은 `waitlist`로 강제. 기존 참석자의 재요청은 유지.
 - v2: 참석자 `cancel` 시 대기열(created_at 기준) 최상위 1인을 `going`으로 자동 승급(트랜잭션).
+- Web 조회 계약: `GET /rsvps/{member_id}/{event_id}`의 `rsvp_not_found` 404만 정상적인 미신청 상태로 변환합니다. 인증·서버·네트워크 오류는 미신청으로 숨기지 않고 복구 가능한 오류 화면으로 표시합니다.
+- 사용자 행동: 기본 행동은 참여 신청(`going`)과 참여 취소(`cancel`)이며, 정원 초과 시 `waitlist` 전환은 서버가 결정합니다.
+
+## 동문 수첩 공개 범위
+
+- 일반 회원용 `GET /members`, `/members/count`, `/members/{id}`는 조회자 본인, `all`, 같은 기수의 `cohort` 데이터만 서버에서 반환합니다. 검색과 건수도 같은 조건을 적용해 비공개 회원의 존재를 추론할 수 없게 합니다.
+- `DirectoryMemberRead`는 학번, 역할, 계정 상태를 제외한 동문 수첩 전용 DTO입니다. 관리 화면은 권한이 적용된 `/admin/members` 계약을 사용합니다.
+- 조회자별 건수는 공개 범위 변경을 즉시 반영하기 위해 캐시하지 않습니다.
 
 ## 품질 및 운영 가드레일
 - **정적 검사**: `ruff`, `pyright`, `eslint`, `tsc --noEmit`.

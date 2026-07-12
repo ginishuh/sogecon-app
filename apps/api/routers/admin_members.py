@@ -86,6 +86,17 @@ async def count_members_admin(
     return {"count": count}
 
 
+@router.get("/{member_id}", response_model=schemas.MemberRead)
+async def get_member_admin(
+    member_id: int,
+    _actor: Annotated[CurrentUser, Depends(_require_admin_roles)],
+    db: AsyncSession = Depends(get_db),
+) -> schemas.MemberRead:
+    """관리자용 회원 상세 조회. 공개 범위와 관계없이 관리 필드를 반환한다."""
+    member = await members_service.get_member(db, member_id)
+    return schemas.MemberRead.model_validate(member)
+
+
 @router.post(
     "/",
     response_model=schemas.DirectMemberCreateResponse,

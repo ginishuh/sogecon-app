@@ -1,7 +1,7 @@
 import { apiFetch } from '../lib/api';
 import type { Schema } from './_dto';
 
-export type Member = Schema<'MemberRead'>;
+export type Member = Schema<'DirectoryMemberRead'>;
 
 export type MemberListSort = 'recent' | 'cohort_desc' | 'cohort_asc' | 'name';
 

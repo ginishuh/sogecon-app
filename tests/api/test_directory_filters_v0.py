@@ -22,6 +22,12 @@ def _seed_members(n: int = 5) -> None:
             # seed
             payloads = [
                 dict(
+                    student_id="member001",
+                    email="member001@example.com",
+                    name="Directory Viewer",
+                    cohort=99,
+                ),
+                dict(
                     student_id="alice001",
                     email="a@example.com",
                     name="Alice",

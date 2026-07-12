@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, cast
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
@@ -27,12 +27,12 @@ class MemberListParams(BaseModel):
     sort: Literal["recent", "cohort_desc", "cohort_asc", "name"] = "recent"
 
 
-@router.get("/", response_model=list[schemas.MemberRead])
+@router.get("/", response_model=list[schemas.DirectoryMemberRead])
 async def list_members(
     params: MemberListParams = Depends(),
     db: AsyncSession = Depends(get_db),
-    _member: CurrentMember = Depends(require_member),
-) -> list[schemas.MemberRead]:
+    current_member: CurrentMember = Depends(require_member),
+) -> list[schemas.DirectoryMemberRead]:
     filters: schemas.MemberListFilters = {}
     if params.q:
         filters['q'] = params.q
@@ -50,10 +50,20 @@ async def list_members(
         filters['job_title'] = params.job_title
     if params.sort:
         filters['sort'] = params.sort
-    members = await members_service.list_members(
-        db, limit=params.limit, offset=params.offset, filters=filters
+    viewer = await members_service.get_member_by_student_id(
+        db, current_member.student_id
     )
-    return [schemas.MemberRead.model_validate(member) for member in members]
+    members = await members_service.list_members(
+        db,
+        limit=params.limit,
+        offset=params.offset,
+        filters=filters,
+        viewer=(cast(int, viewer.id), cast(int, viewer.cohort)),
+    )
+    return [
+        members_service.to_directory_member_read(viewer, member)
+        for member in members
+    ]
 
 
 class MemberCount(BaseModel):
@@ -64,7 +74,7 @@ class MemberCount(BaseModel):
 async def count_members(
     params: MemberListParams = Depends(),
     db: AsyncSession = Depends(get_db),
-    _member: CurrentMember = Depends(require_member),
+    current_member: CurrentMember = Depends(require_member),
 ) -> MemberCount:
     filters: schemas.MemberListFilters = {}
     if params.q:
@@ -81,17 +91,25 @@ async def count_members(
         filters['region'] = params.region
     if params.job_title:
         filters['job_title'] = params.job_title
-    c = await members_service.count_members(db, filters=filters)
+    viewer = await members_service.get_member_by_student_id(
+        db, current_member.student_id
+    )
+    c = await members_service.count_members(
+        db,
+        filters=filters,
+        viewer=(cast(int, viewer.id), cast(int, viewer.cohort)),
+    )
     return MemberCount(count=c)
 
 
-@router.get("/{member_id}", response_model=schemas.MemberRead)
+@router.get("/{member_id}", response_model=schemas.DirectoryMemberRead)
 async def get_member(
     member_id: int,
     db: AsyncSession = Depends(get_db),
-    _member: CurrentMember = Depends(require_member),
-) -> schemas.MemberRead:
+    current_member: CurrentMember = Depends(require_member),
+) -> schemas.DirectoryMemberRead:
+    viewer = await members_service.get_member_by_student_id(
+        db, current_member.student_id
+    )
     member = await members_service.get_member(db, member_id)
-    return schemas.MemberRead.model_validate(member)
-
-
+    return members_service.to_directory_member_read(viewer, member)

@@ -14,6 +14,8 @@ from . import escape_like
 
 def _build_member_conditions(
     filters: schemas.MemberListFilters,
+    *,
+    viewer: tuple[int, int] | None = None,
 ) -> list[ColumnElement[bool]]:
     conds: list[ColumnElement[bool]] = []
     qv = filters.get('q')
@@ -56,7 +58,19 @@ def _build_member_conditions(
             models.Member.job_title.ilike(f"%{escape_like(job_title)}%", escape="\\")
         )
 
-    if filters.get('exclude_private', True):
+    if viewer is not None:
+        viewer_id, viewer_cohort = viewer
+        conds.append(
+            or_(
+                models.Member.id == viewer_id,
+                models.Member.visibility == models.Visibility.ALL,
+                and_(
+                    models.Member.visibility == models.Visibility.COHORT,
+                    models.Member.cohort == viewer_cohort,
+                ),
+            )
+        )
+    elif filters.get('exclude_private', True):
         conds.append(models.Member.visibility != models.Visibility.PRIVATE)
     return conds
 
@@ -80,6 +94,7 @@ async def list_members(
     limit: int,
     offset: int,
     filters: schemas.MemberListFilters | None = None,
+    viewer: tuple[int, int] | None = None,
 ) -> Sequence[models.Member]:
     """회원 목록 조회(기본 필터 지원).
 
@@ -90,7 +105,7 @@ async def list_members(
     """
     stmt = select(models.Member)
     f = filters or {}
-    conds = _build_member_conditions(f)
+    conds = _build_member_conditions(f, viewer=viewer)
     if conds:
         stmt = stmt.where(and_(*conds))
     stmt = stmt.order_by(*_order_columns(f.get('sort')))
@@ -100,11 +115,12 @@ async def list_members(
 
 
 async def count_members(
-    db: AsyncSession, *, filters: schemas.MemberListFilters | None = None
+    db: AsyncSession, *, filters: schemas.MemberListFilters | None = None,
+    viewer: tuple[int, int] | None = None,
 ) -> int:
     stmt = select(func.count()).select_from(models.Member)
     f = filters or {}
-    conds = _build_member_conditions(f)
+    conds = _build_member_conditions(f, viewer=viewer)
     if conds:
         stmt = stmt.where(and_(*conds))
     result = await db.execute(stmt)

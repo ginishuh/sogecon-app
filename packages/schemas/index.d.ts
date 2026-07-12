@@ -892,7 +892,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get Member Admin
+         * @description 관리자용 회원 상세 조회. 공개 범위와 관계없이 관리 필드를 반환한다.
+         */
+        get: operations["get_member_admin_admin_members__member_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1209,6 +1213,45 @@ export interface components {
             member: components["schemas"]["MemberRead"];
             /** Activation Token */
             activation_token: string;
+        };
+        /**
+         * DirectoryMemberRead
+         * @description 동문 수첩용 최소 응답. 인증·역할·학번은 노출하지 않는다.
+         */
+        DirectoryMemberRead: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Cohort */
+            cohort: number;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "all" | "cohort" | "private";
+            /** Email */
+            email?: string | null;
+            /** Major */
+            major?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Company */
+            company?: string | null;
+            /** Department */
+            department?: string | null;
+            /** Job Title */
+            job_title?: string | null;
+            /** Company Phone */
+            company_phone?: string | null;
+            /** Addr Personal */
+            addr_personal?: string | null;
+            /** Addr Company */
+            addr_company?: string | null;
+            /** Industry */
+            industry?: string | null;
+            /** Avatar Url */
+            readonly avatar_url: string | null;
         };
         /**
          * EventAdminRead
@@ -2147,7 +2190,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MemberRead"][];
+                    "application/json": components["schemas"]["DirectoryMemberRead"][];
                 };
             };
             /** @description Validation Error */
@@ -2218,7 +2261,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MemberRead"];
+                    "application/json": components["schemas"]["DirectoryMemberRead"];
                 };
             };
             /** @description Validation Error */
@@ -3980,6 +4023,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: number;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_member_admin_admin_members__member_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                member_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberRead"];
                 };
             };
             /** @description Validation Error */

@@ -10,6 +10,8 @@ import React, { useCallback, useEffect, useId, useRef } from 'react';
 
 import { formatPhone } from '../lib/phone-utils';
 import type { Member } from '../services/members';
+import Link from 'next/link';
+import { hasPublicDirectoryDetails, VISIBILITY_INFO } from '../lib/member-experience';
 
 type MemberDetailModalProps = {
   member: Member | null;
@@ -95,12 +97,6 @@ function WorkSection({ member }: { member: Member }) {
   );
 }
 
-const VISIBILITY_LABELS: Record<Member['visibility'], string> = {
-  all: '전체 공개',
-  cohort: '동기만',
-  private: '비공개',
-};
-
 export default function MemberDetailModal({ member, open, onClose }: MemberDetailModalProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const previouslyFocused = useRef<Element | null>(null);
@@ -184,18 +180,20 @@ export default function MemberDetailModal({ member, open, onClose }: MemberDetai
             type="button"
             data-close-btn
             onClick={onClose}
-            className="rounded p-1 text-neutral-muted hover:text-neutral-ink hover:bg-neutral-subtle"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-md text-neutral-muted hover:bg-neutral-subtle hover:text-neutral-ink focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400"
             aria-label="닫기"
           >
-            <svg className="size-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="size-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M15 5L5 15M5 5l10 10" strokeLinecap="round" />
             </svg>
           </button>
         </div>
         <div className="p-4 space-y-5">
-          <BasicInfoSection member={member} visibilityLabel={VISIBILITY_LABELS[member.visibility]} />
+          <BasicInfoSection member={member} visibilityLabel={VISIBILITY_INFO[member.visibility].label} />
+          {!hasPublicDirectoryDetails(member) ? <div role="status" className="rounded-lg bg-surface-raised p-3 text-sm text-text-muted">이 동문이 공개한 상세 정보가 아직 없어요.</div> : null}
           <ContactSection member={member} />
           <WorkSection member={member} />
+          <Link href="/support/contact" className="text-link inline-flex min-h-11 items-center text-sm">정보가 잘못되었나요? 사무국에 알려 주세요</Link>
         </div>
       </div>
     </div>

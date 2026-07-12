@@ -1,6 +1,7 @@
 "use client";
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { ApiError } from '../../lib/api';
@@ -15,6 +16,8 @@ import {
 } from './validation';
 import { getMe, updateMe, updateAvatar, type MemberDto, API_BASE } from '../../services/me';
 import { ChangeRequestSection } from './change-request';
+import Button from '../../components/ui/button';
+import { VISIBILITY_INFO } from '../../lib/member-experience';
 
 const asDisplayString = (value: string | null | undefined): string => value ?? '';
 
@@ -35,9 +38,9 @@ const toFormState = (member: MemberDto): ProfileForm => ({
 });
 
 const inputClass =
-  'mt-1 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400';
+  'mt-1 min-h-11 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400';
 const textareaClass =
-  'mt-1 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400';
+  'mt-1 min-h-11 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400';
 
 const fieldErrorId = (field: keyof ProfileForm) => `profile-${field}-error`;
 
@@ -68,12 +71,14 @@ function TextField<K extends StringField>({
 }: TextFieldProps<K>) {
   const error = errors[field];
   const errorId = error ? fieldErrorId(field) : undefined;
+  const inputId = `profile-${field}`;
 
   return (
-    <label className="flex flex-col">
-      <span className="font-medium text-text-primary">{label}</span>
+    <div className="flex flex-col">
+      <label htmlFor={inputId} className="font-medium text-text-primary">{label}</label>
       {multiline ? (
         <textarea
+          id={inputId}
           className={textareaClass}
           rows={rows}
           value={draft[field]}
@@ -86,6 +91,7 @@ function TextField<K extends StringField>({
         />
       ) : (
         <input
+          id={inputId}
           className={inputClass}
           value={draft[field]}
           placeholder={placeholder}
@@ -101,7 +107,7 @@ function TextField<K extends StringField>({
           {error}
         </p>
       ) : null}
-    </label>
+    </div>
   );
 }
 
@@ -140,11 +146,13 @@ function VisibilityField({
   const error = errors.visibility;
   const errorId = error ? fieldErrorId('visibility') : undefined;
   const describedBy = [helpId, errorId].filter(Boolean).join(' ') || undefined;
+  const fieldId = 'profile-visibility';
 
   return (
-    <label className="flex flex-col">
-      <span className="font-medium text-text-primary">공개 범위</span>
+    <div className="flex flex-col">
+      <label htmlFor={fieldId} className="font-medium text-text-primary">공개 범위</label>
       <select
+        id={fieldId}
         className={inputClass}
         value={value}
         onChange={(event) => onChange(event.target.value as ProfileVisibility)}
@@ -155,15 +163,15 @@ function VisibilityField({
         <option value="private">비공개</option>
       </select>
       <p id={helpId} className="mt-1 text-xs text-text-muted">
-        전체 공개는 모든 회원에게 노출되며, 기수 한정은 같은 기수 회원만 볼 수 있습니다. 비공개는 본인만 확인
-        가능합니다.
+        {VISIBILITY_INFO[value].description}
       </p>
+      <p className="mt-2 rounded-lg bg-surface-raised p-3 text-sm font-medium text-text-primary" role="status">현재 선택: {VISIBILITY_INFO[value].label}</p>
       {error ? (
         <p id={errorId} role="alert" className="mt-1 text-xs text-state-error">
           {error}
         </p>
       ) : null}
-    </label>
+    </div>
   );
 }
 
@@ -261,14 +269,9 @@ function AvatarUploader({ avatarUrl, uploading, onUpload }: AvatarUploaderProps)
         ) : null}
       </div>
       <div className="flex flex-col gap-1 text-xs text-text-muted">
-        <button
-          type="button"
-          onClick={handleButtonClick}
-          disabled={uploading}
-          className="w-fit rounded border border-brand-600 px-3 py-1 text-brand-600 transition hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <Button type="button" onClick={handleButtonClick} disabled={uploading} variant="secondary" size="sm" className="w-fit">
           {uploading ? '업로드 중…' : '이미지 선택'}
-        </button>
+        </Button>
         <p>최대 512px · 2MB · JPG/PNG/WEBP</p>
         <input
           ref={inputRef}
@@ -291,6 +294,8 @@ type ProfileFormSectionProps = {
   onChange: <K extends keyof ProfileForm>(field: K, value: ProfileForm[K]) => void;
   visibilityHelpId: string;
   formErrorId: string;
+  isDirty: boolean;
+  savedMessage: string | null;
 };
 
 function ProfileFormSection({
@@ -302,6 +307,8 @@ function ProfileFormSection({
   onChange,
   visibilityHelpId,
   formErrorId,
+  isDirty,
+  savedMessage,
 }: ProfileFormSectionProps) {
   return (
     <form
@@ -311,6 +318,7 @@ function ProfileFormSection({
     >
       <ProfileSummary profile={profile} />
       <FormErrorMessage message={errors.form} id={formErrorId} />
+      {savedMessage ? <p role="status" className="rounded-lg bg-state-success-subtle px-3 py-2 text-sm text-state-success">{savedMessage}</p> : null}
       <TextField field="email" label="이메일" draft={draft} errors={errors} onChange={onChange} />
       <TextField field="major" label="전공(선택)" draft={draft} errors={errors} onChange={onChange} />
       <VisibilityField
@@ -380,24 +388,22 @@ function ProfileFormSection({
         multiline
       />
       <TextField field="industry" label="업종(선택)" draft={draft} errors={errors} onChange={onChange} />
-      <button
-        disabled={busy}
-        className="rounded bg-brand-700 px-4 py-2 text-text-inverse transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {busy ? '저장 중…' : '저장'}
-      </button>
+      <Button type="submit" disabled={!isDirty} loading={busy} size="lg">{busy ? '저장 중…' : isDirty ? '변경사항 저장하기' : '저장된 상태입니다'}</Button>
+      <Link href="/support/contact" className="text-link inline-flex min-h-11 items-center justify-center text-sm">내 정보 수정이 어려우신가요? 사무국에 문의하기</Link>
     </form>
   );
 }
 
 export default function MePage() {
-  const { status } = useAuth();
+  const { status, invalidate: retryAuth } = useAuth();
   const toast = useToast();
   const [me, setMe] = useState<MemberDto | null>(null);
   const [form, setForm] = useState<ProfileForm | null>(null);
   const [errors, setErrors] = useState<ProfileErrors>({});
   const [busy, setBusy] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -427,13 +433,14 @@ export default function MePage() {
     return () => {
       cancelled = true;
     };
-  }, [status, toast]);
+  }, [reloadKey, status, toast]);
 
   const handleChange = <K extends keyof ProfileForm>(
     field: K,
     value: ProfileForm[K]
   ) => {
     setForm((prev) => (prev ? { ...prev, [field]: value } : prev));
+    setSavedMessage(null);
     setErrors((prev) => {
       if (!prev[field] && !prev.form) return prev;
       const next: ProfileErrors = { ...prev };
@@ -451,6 +458,7 @@ export default function MePage() {
     const validation = validateProfileForm(form);
     if (Object.keys(validation).length > 0) {
       setErrors(validation);
+      setSavedMessage(null);
       toast.show('입력값을 다시 확인해주세요.', { type: 'error' });
       return;
     }
@@ -461,7 +469,9 @@ export default function MePage() {
       setMe(updated);
       setForm(toFormState(updated));
       setErrors({});
-      toast.show('저장되었습니다.', { type: 'success' });
+      const message = '변경사항을 저장했습니다. 동문 수첩에는 선택한 공개 범위에 따라 표시됩니다.';
+      setSavedMessage(message);
+      toast.show('변경사항을 저장했습니다.', { type: 'success' });
     } catch (error) {
       const messageForToast = error instanceof ApiError
         ? memberApiErrorToMessage(error.code, error.message)
@@ -484,6 +494,7 @@ export default function MePage() {
         setErrors((prev) => ({ ...prev, form: messageForToast }));
       }
       toast.show(messageForToast, { type: 'error' });
+      setSavedMessage(null);
     } finally {
       setBusy(false);
     }
@@ -528,7 +539,8 @@ export default function MePage() {
   const informationStatus = (() => {
     if (status === 'loading') return 'loading';
     if (status === 'unauthorized') return 'unauthorized';
-    if (!form || !me) return 'fetching';
+    if (status === 'error') return 'auth-error';
+    if (!form || !me) return errors.form ? 'error' : 'fetching';
     return 'ready';
   })();
 
@@ -537,11 +549,16 @@ export default function MePage() {
     body = <p className="text-sm text-text-muted">로딩 중…</p>;
   } else if (informationStatus === 'unauthorized') {
     body = <p className="text-sm text-text-muted">로그인 후 이용하세요.</p>;
+  } else if (informationStatus === 'auth-error') {
+    body = <div role="alert" className="space-y-3 rounded-xl bg-state-error-subtle p-4 text-sm text-state-error"><p>로그인 상태를 확인하지 못했습니다.</p><Button variant="secondary" onClick={() => void retryAuth()}>다시 확인하기</Button></div>;
   } else if (informationStatus === 'fetching') {
     body = <p className="text-sm text-text-muted">정보를 불러오는 중…</p>;
+  } else if (informationStatus === 'error') {
+    body = <div role="alert" className="space-y-3 rounded-xl bg-state-error-subtle p-4 text-sm text-state-error"><p>{errors.form}</p><div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => { setErrors({}); setReloadKey((value) => value + 1); }}>다시 불러오기</Button><Link href="/support/contact" className="text-link inline-flex min-h-11 items-center">사무국에 문의하기</Link></div></div>;
   } else {
     const draft = form as ProfileForm;
     const profile = me as MemberDto;
+    const isDirty = JSON.stringify(draft) !== JSON.stringify(toFormState(profile));
     body = (
       <div className="flex flex-col gap-6">
         <AvatarUploader
@@ -559,14 +576,16 @@ export default function MePage() {
           onChange={handleChange}
           visibilityHelpId={visibilityHelpId}
           formErrorId={formErrorId}
+          isDirty={isDirty}
+          savedMessage={savedMessage}
         />
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl p-6">
-      <h2 className="mb-4 text-xl font-semibold">내 정보</h2>
+    <div className="mx-auto max-w-2xl space-y-4 p-6">
+      <header className="space-y-2"><h1 className="text-2xl font-semibold">내 정보와 공개 범위</h1><p className="text-sm text-text-muted">연락처와 소속 정보를 최신으로 유지하고, 동문 수첩에 누구에게 보여줄지 선택해 주세요.</p></header>
       {body}
     </div>
   );

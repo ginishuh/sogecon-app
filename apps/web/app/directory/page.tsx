@@ -17,6 +17,7 @@ import DirectoryCard from '../../components/directory-card';
 import MemberDetailModal from '../../components/member-detail-modal';
 import Button from '../../components/ui/button';
 import type { Member } from '../../services/members';
+import { VISIBILITY_INFO } from '../../lib/member-experience';
 
 type DirectoryFiltersProps = {
   value: FilterState;
@@ -54,7 +55,7 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
             <input
               inputMode={inputMode}
               autoComplete={autocompleteHints[key]}
-              className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
+              className="min-h-11 rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
               value={value[key]}
               placeholder={placeholder}
               aria-label={label}
@@ -65,7 +66,7 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
         <label className="flex flex-col text-xs text-text-muted">
           <span className="mb-1 font-medium text-text-secondary">정렬</span>
           <select
-            className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
+            className="min-h-11 rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
             value={value.sort}
             onChange={(event) => onSortChange(event.target.value as SortOption)}
             aria-label="정렬 옵션"
@@ -102,7 +103,7 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
             <input
               inputMode={inputMode}
               autoComplete={autocompleteHints[key]}
-              className="rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
+              className="min-h-11 rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
               value={value[key]}
               placeholder={placeholder}
               aria-label={label}
@@ -134,10 +135,12 @@ function ErrorMessage({ message }: { message: string }) {
   );
 }
 
-function EmptyState() {
+function EmptyState({ onReset }: { onReset: () => void }) {
   return (
-    <div role="status" aria-live="polite" className="rounded border border-neutral-border bg-surface-raised px-3 py-6 text-center text-sm text-text-muted">
-      검색 결과가 없습니다. 필터를 조정하거나 다른 검색어를 입력해보세요.
+    <div role="status" aria-live="polite" className="space-y-3 rounded-xl border border-neutral-border bg-surface-raised px-4 py-8 text-center text-sm text-text-muted">
+      <p className="font-semibold text-text-primary">조건에 맞는 동문을 찾지 못했어요.</p>
+      <p>검색어를 줄이거나 필터를 초기화해 다시 찾아보세요.</p>
+      <Button type="button" variant="secondary" onClick={onReset}>모든 필터 초기화</Button>
     </div>
   );
 }
@@ -151,6 +154,7 @@ function DirectoryResults({
   sortLabel,
   loadMoreLabel,
   onMemberClick,
+  onReset,
 }: {
   items: MemberListPage;
   onLoadMore: () => void;
@@ -160,9 +164,10 @@ function DirectoryResults({
   sortLabel: string;
   loadMoreLabel: string;
   onMemberClick: (member: Member) => void;
+  onReset: () => void;
 }) {
   if (items.length === 0) {
-    return <EmptyState />;
+    return <EmptyState onReset={onReset} />;
   }
 
   return (
@@ -189,22 +194,20 @@ function DirectoryResults({
               <th className="p-2" scope="col">회사</th>
               <th className="p-2" scope="col">업종</th>
               <th className="p-2" scope="col">공개 범위</th>
+              <th className="p-2" scope="col">상세</th>
             </tr>
           </thead>
           <tbody>
             {items.map((m) => (
-              <tr
-                key={m.id}
-                className="border-b last:border-0 cursor-pointer hover:bg-surface-raised transition-colors"
-                onClick={() => onMemberClick(m)}
-              >
+              <tr key={m.id} className="border-b transition-colors last:border-0 hover:bg-surface-raised">
                 <td className="p-2 font-medium text-text-primary">{m.name}</td>
-                <td className="p-2 font-mono text-xs text-text-muted">{m.email}</td>
+                <td className="p-2 text-xs text-text-muted">{m.email || '공개하지 않음'}</td>
                 <td className="p-2">{m.cohort}</td>
-                <td className="p-2">{m.major ?? '-'}</td>
-                <td className="p-2">{m.company ?? '-'}</td>
-                <td className="p-2">{m.industry ?? '-'}</td>
-                <td className="p-2 text-xs uppercase text-text-muted">{m.visibility}</td>
+                <td className="p-2">{m.major || '공개하지 않음'}</td>
+                <td className="p-2">{m.company || '공개하지 않음'}</td>
+                <td className="p-2">{m.industry || '공개하지 않음'}</td>
+                <td className="p-2 text-xs text-text-muted">{VISIBILITY_INFO[m.visibility].label}</td>
+                <td className="p-2"><Button type="button" variant="ghost" size="sm" onClick={() => onMemberClick(m)} aria-label={`${m.name} 상세 정보 보기`}>상세 보기</Button></td>
               </tr>
             ))}
           </tbody>
@@ -266,13 +269,14 @@ function DirectoryPageInner() {
 
   const [shareOpen, setShareOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const activeFilterCount = [filters.q, filters.cohort, filters.major, filters.company, filters.industry, filters.region, filters.jobTitle].filter((value) => value.trim()).length;
 
   return (
     <div className="space-y-4 p-6">
       <header className="space-y-2">
         <h2 className="text-xl font-semibold text-text-primary">동문 수첩</h2>
         <p className="text-sm text-text-muted">
-          검색어나 필터를 조합해 동문 정보를 찾아보세요. 공개 범위가 제한된 항목은 표시되지 않을 수 있습니다.
+          이름과 소속으로 동문을 찾을 수 있어요. 각 동문이 공개하기로 한 정보만 표시됩니다.
         </p>
       </header>
 
@@ -286,8 +290,8 @@ function DirectoryPageInner() {
       <section className="space-y-3" aria-live="polite">
         <div className="flex flex-col gap-2 text-sm text-text-muted">
           <p>
-            총 {totalLabel}명 중 {displayedCount.toLocaleString()}명 표시 (페이지 {currentPage}
-            {totalPages ? ` / ${totalPages}` : ''})
+            {activeFilterCount > 0 ? `검색 조건 ${activeFilterCount}개 · ` : ''}총 {totalLabel}명 중 {displayedCount.toLocaleString()}명 표시
+            <span className="sr-only"> (페이지 {currentPage}{totalPages ? ` / ${totalPages}` : ''})</span>
           </p>
           <div className="flex flex-col gap-2 text-xs text-text-muted">
             <div className="flex items-center gap-2">
@@ -309,7 +313,7 @@ function DirectoryPageInner() {
         {isLoadingMembers ? (
           <LoadingMessage>목록을 불러오는 중입니다…</LoadingMessage>
         ) : membersError ? (
-          <ErrorMessage message="목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요." />
+          <div className="space-y-2"><ErrorMessage message="동문 목록을 불러오지 못했습니다." /><Button variant="secondary" onClick={() => void membersQuery.refetch()}>다시 불러오기</Button></div>
         ) : (
           <DirectoryResults
             items={visibleItems}
@@ -320,6 +324,7 @@ function DirectoryPageInner() {
             sortLabel={SORT_LABELS[sortOption]}
             loadMoreLabel={loadMoreLabel}
             onMemberClick={setSelectedMember}
+            onReset={resetFilters}
           />
         )}
       </section>
