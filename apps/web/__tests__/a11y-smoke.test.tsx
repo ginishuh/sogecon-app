@@ -1,9 +1,9 @@
-import { render } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it } from 'vitest';
 import * as axe from 'axe-core';
 
-import HomeQuickActions from '../components/home/quick-actions';
+import { HomeActionsView } from '../components/home/quick-actions';
+import { renderWithProviders } from '../tests/render-with-providers';
 
 // NOTE:
 // - 문서 타이틀은 Next App Router의 metadata/layout에서 설정되므로
@@ -19,10 +19,9 @@ const axeOptions: axe.RunOptions = {
 
 describe('a11y: home smoke', () => {
   it('has no critical a11y violations in Home quick surface', async () => {
-    const { container } = render(<HomeQuickActions />);
-    expect(container.querySelector('.home-quick-actions')).toBeInTheDocument();
-    expect(container.querySelector('.home-quick-actions__grid')).toBeInTheDocument();
-    expect(container.querySelectorAll('.home-quick-actions__item')).toHaveLength(6);
+    const { container } = renderWithProviders(<HomeActionsView status="unauthorized" isAdmin={false} />);
+    expect(container.querySelector('section[aria-labelledby="home-actions"]')).toBeInTheDocument();
+    expect(container.querySelectorAll('section[aria-labelledby="home-actions"] a')).toHaveLength(3);
 
     const result = await axe.run(container, axeOptions);
     const violations = result.violations.map((v) => ({ id: v.id, impact: v.impact }));

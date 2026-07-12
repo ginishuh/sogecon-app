@@ -6,14 +6,6 @@ import { setupDirectoryMocks } from './utils/mockApi';
 let browser: Browser | null = null;
 let page: Page | null = null;
 
-async function waitForPathname(page: Page, pathname: string): Promise<void> {
-  for (let attempt = 0; attempt < 100; attempt += 1) {
-    if (new URL(page.url()).pathname === pathname) return;
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  throw new Error(`경로 이동 시간 초과: ${pathname} (현재 ${page.url()})`);
-}
-
 async function moveToNextBanner(page: Page): Promise<boolean> {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     try {
@@ -49,7 +41,7 @@ describe('Home (CDP E2E)', () => {
     }
   });
 
-  it('renders hero carousel and validates the directory quick action destination', async () => {
+  it('shows the same activity hierarchy and member action contract on mobile', async () => {
     if (!page) throw new Error('Puppeteer page not initialized');
     await setupDirectoryMocks(page);
     await page.goto(`${WEB_BASE_URL}/`, { waitUntil: 'domcontentloaded' });
@@ -63,11 +55,26 @@ describe('Home (CDP E2E)', () => {
     await page.waitForFunction(() =>
       document.querySelector('button[aria-label="2번째 배너 보기"]')?.getAttribute('aria-current') === 'true'
     );
-    // Link href 계약은 단위 테스트로 고정하고 E2E는 목적 화면을 직접 검증한다.
-    await page.goto(`${WEB_BASE_URL}/directory`, { waitUntil: 'domcontentloaded' });
-    await waitForPathname(page, '/directory');
-    await page.waitForSelector('fieldset[aria-label="기본 검색 필터"]');
-    const url = page.url();
-    expect(url).toContain('/directory');
+    await page.waitForFunction(() => {
+      const text = document.body.innerText;
+      return text.includes('동문으로 이어가기')
+        && text.includes('최근 활동')
+        && text.includes('공지사항')
+        && text.includes('행사안내')
+        && text.includes('소식')
+        && text.includes('함께 만드는 동문회');
+    });
+    const layout = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      viewport: window.innerWidth,
+      oldMenuTile: document.body.innerText.includes('자유게시판 바로가기'),
+    }));
+    expect(layout.scrollWidth).toBeLessThanOrEqual(layout.viewport);
+    expect(layout.oldMenuTile).toBe(false);
+
+    const directoryHref = await page.evaluate(
+      () => document.querySelector<HTMLAnchorElement>('main a[href="/directory"]')?.getAttribute('href')
+    );
+    expect(directoryHref).toBe('/directory');
   });
 });
