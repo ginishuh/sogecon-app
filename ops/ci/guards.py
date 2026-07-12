@@ -209,7 +209,9 @@ def check_workflow_policies() -> list[str]:
         return [f"{E2E_WORKFLOW}: required E2E workflow is missing"]
 
     text = E2E_WORKFLOW.read_text(encoding="utf-8")
-    if re.search(r"^\s*continue-on-error\s*:", text, re.MULTILINE):
+    if re.search(
+        r"^\s*[\"']?continue-on-error[\"']?\s*:", text, re.MULTILINE
+    ):
         return [f"{E2E_WORKFLOW}: E2E must remain a hard gate"]
 
     if not BRANCH_PROTECTION_SCRIPT.is_file():
