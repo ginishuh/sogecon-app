@@ -38,6 +38,7 @@ payload="$(cat <<'JSON'
           { "context": "python" },
           { "context": "contract" },
           { "context": "web" },
+          { "context": "e2e" },
           { "context": "secrets-scan" },
           { "context": "semgrep" }
         ]

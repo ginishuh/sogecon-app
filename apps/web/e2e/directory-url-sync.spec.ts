@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { WEB_BASE_URL } from './utils/env';
 import { setupDirectoryMocks } from './utils/mockApi';
+import { configureMockServer } from './utils/mockServer';
 import type { ConsoleMessage } from 'puppeteer';
 
 let browser: Browser | null = null;
@@ -39,8 +40,9 @@ describe('Directory URL sync (CDP E2E)', () => {
 
   it('updates query string when typing filters and changing sort', async () => {
     if (!page) throw new Error('Puppeteer page not initialized');
+    await configureMockServer('member');
     await setupDirectoryMocks(page);
-    await page.goto(`${WEB_BASE_URL}/directory`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${WEB_BASE_URL}/directory`, { waitUntil: 'networkidle0' });
 
     // 인증 후 현재 필터 UI가 보이는지 확인한다.
     await page.waitForSelector('fieldset[aria-label="기본 검색 필터"]');

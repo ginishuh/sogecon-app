@@ -63,6 +63,8 @@ REMOVED_AGENT_FILES = (
     ROOT / "docs/agents_base.md",
     ROOT / "scripts/sync_agents_from_base.sh",
 )
+E2E_WORKFLOW = ROOT / ".github/workflows/e2e.yml"
+BRANCH_PROTECTION_SCRIPT = ROOT / "ops/ci/apply_main_branch_protection.sh"
 
 ALLOWED_NOQA_FILES = {
     ROOT / "apps/api/migrations/env.py": {"E402"},
@@ -201,8 +203,28 @@ def check_agent_harness() -> list[str]:
     return violations
 
 
+def check_workflow_policies() -> list[str]:
+    """필수 E2E가 다시 soft-fail로 약화되지 않게 검증한다."""
+    if not E2E_WORKFLOW.is_file():
+        return [f"{E2E_WORKFLOW}: required E2E workflow is missing"]
+
+    text = E2E_WORKFLOW.read_text(encoding="utf-8")
+    if re.search(
+        r"^\s*[\"']?continue-on-error[\"']?\s*:", text, re.MULTILINE
+    ):
+        return [f"{E2E_WORKFLOW}: E2E must remain a hard gate"]
+
+    if not BRANCH_PROTECTION_SCRIPT.is_file():
+        return [f"{BRANCH_PROTECTION_SCRIPT}: branch protection script is missing"]
+    protection = BRANCH_PROTECTION_SCRIPT.read_text(encoding="utf-8")
+    if not re.search(r'"context"\s*:\s*"e2e"', protection):
+        return [f"{BRANCH_PROTECTION_SCRIPT}: e2e must remain a required check"]
+    return []
+
+
 def main() -> int:
     all_violations = check_agent_harness()
+    all_violations.extend(check_workflow_policies())
     for path in iter_code_files():
         all_violations.extend(check_banned_comments(path))
         all_violations.extend(check_max_lines(path))

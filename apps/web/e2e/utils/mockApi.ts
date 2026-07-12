@@ -112,6 +112,7 @@ async function respondDirectoryApi(request: HTTPRequest, url: URL): Promise<bool
 }
 
 export async function setupDirectoryMocks(page: Page): Promise<void> {
+  if (process.env.E2E_MOCK_API_CONTROL_URL) return;
   await page.setRequestInterception(true);
   const handler = async (request: HTTPRequest): Promise<void> => {
     try {
