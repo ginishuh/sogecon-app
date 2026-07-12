@@ -54,7 +54,7 @@ describe('동문 사용자 언어', () => {
 
     const source = publicCopySource();
     expect(source.match(/MEMBER_LANGUAGE\.signup/g)).toHaveLength(4);
-    expect(source.match(/MEMBER_LANGUAGE\.activation/g)?.length).toBeGreaterThanOrEqual(6);
+    expect(source.match(/MEMBER_LANGUAGE\.activation/g)).toHaveLength(3);
     expect(source.match(/MEMBER_LANGUAGE\.notificationOnSuccess/g)).toHaveLength(2);
     expect(source.match(/MEMBER_LANGUAGE\.notificationOffSuccess/g)).toHaveLength(2);
   });
