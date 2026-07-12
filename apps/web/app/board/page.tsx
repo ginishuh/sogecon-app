@@ -161,7 +161,7 @@ function BoardPageInner() {
 
       <Link
         href="/board/new"
-        className="fixed bottom-6 right-6 z-50 flex min-h-14 items-center gap-2 rounded-full bg-brand-primary px-5 font-semibold text-white shadow-lg transition-colors hover:bg-brand-primaryDark focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 active:bg-brand-primaryDark"
+        className="fixed bottom-6 right-6 z-50 flex min-h-14 items-center gap-2 rounded-full bg-brand-primary px-5 font-semibold text-white shadow-lg transition-colors hover:bg-brand-primaryDark focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 active:bg-brand-primaryDark max-[240px]:static max-[240px]:w-full max-[240px]:justify-center"
         aria-label="새 게시글 쓰기"
       >
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
