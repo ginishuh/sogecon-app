@@ -58,6 +58,7 @@ async function waitForBodyText(page: Page, expected: string) {
 }
 
 async function setupOnboardingMocks(page: Page) {
+  if (process.env.E2E_MOCK_API_CONTROL_URL) return;
   const state: MockState = { signupStatus: 'pending' };
   const routeResponders = createOnboardingRouteResponders(state);
 
