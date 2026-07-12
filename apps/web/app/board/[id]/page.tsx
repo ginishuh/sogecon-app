@@ -1,3 +1,4 @@
+import { ArrowLeft, PushPin } from '@phosphor-icons/react/dist/ssr';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -29,62 +30,73 @@ export default async function BoardDetailPage({ params }: PageProps) {
 
   try {
     const post = await getPost(id);
+    const category = getBoardCategoryInfo(post.category);
     return (
-      <div className="mx-auto w-full max-w-4xl px-6 py-6">
-        <Link href="/board" className="inline-block mb-4 text-sm text-text-secondary hover:text-text-primary">
-          ← 목록으로
+      <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 md:py-6">
+        <Link
+          href="/board"
+          className="mb-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-brand-700 no-underline transition hover:bg-brand-50 hover:no-underline focus-visible:ring-2 focus-visible:ring-brand-500"
+        >
+          <ArrowLeft aria-hidden="true" size={18} weight="bold" />
+          게시판으로
         </Link>
 
-        {/* 게시글 카드 */}
-        <article className="border border-neutral-border bg-white">
-          {/* 헤더 */}
-          <header className="border-b-2 border-neutral-border bg-surface-raised px-6 py-4">
-            <div className="flex items-center gap-2 mb-3">
-              {getBoardCategoryInfo(post.category) ? (
-                <span className="inline-block rounded bg-neutral-subtle px-2 py-1 text-xs font-medium text-text-secondary">
-                  {getBoardCategoryInfo(post.category)?.label}
+        <article>
+          <header className="border-b border-neutral-border pb-6 md:pb-7">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              {category ? (
+                <span className="inline-flex min-h-8 items-center rounded-lg border border-brand-200 bg-brand-50 px-3 text-xs font-semibold text-brand-700">
+                  {category.label}
                 </span>
               ) : null}
               {post.pinned ? (
-                <span className="text-state-error">📌</span>
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700">
+                  <PushPin aria-hidden="true" size={16} weight="fill" />
+                  주요 이야기
+                </span>
               ) : null}
             </div>
-            <h1 className="text-xl font-bold text-text-primary mb-3">{post.title}</h1>
-            <div className="flex items-center gap-4 text-xs text-text-secondary">
-              <span>{getAuthorName(post.author_name)}</span>
-              <span>•</span>
-              <span>
-                {formatFullDate(post.published_at)}
-              </span>
+
+            <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+              <div className="min-w-0">
+                <h1 className="break-words text-[1.75rem] font-semibold leading-[1.3] tracking-[-0.035em] text-text-primary md:text-[2rem]">
+                  {post.title}
+                </h1>
+                <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-muted">
+                  <span className="font-semibold text-text-secondary">{getAuthorName(post.author_name)}</span>
+                  <span aria-hidden="true">·</span>
+                  <time dateTime={post.published_at ?? undefined}>{formatFullDate(post.published_at)}</time>
+                </div>
+              </div>
+              <div className="shrink-0">
+                <BoardPostActions postId={id} postTitle={post.title} authorId={post.author_id} />
+              </div>
             </div>
           </header>
 
-          {/* 본문 */}
-          <div className="px-6 py-8 space-y-6">
-            {/* 이미지 갤러리 */}
-            <ImageGallery coverImage={post.cover_image} images={post.images} />
+          <div className="space-y-7 py-7 md:space-y-9 md:py-9">
+            <div className="max-w-2xl">
+              <ImageGallery coverImage={post.cover_image} images={post.images} />
+            </div>
 
-            <div className="prose prose-sm max-w-none">
-              <div className="whitespace-pre-wrap text-sm leading-7 text-text-primary">
-                {post.content}
-              </div>
+            <div className="max-w-2xl whitespace-pre-wrap break-words text-[0.98rem] leading-8 text-text-primary">
+              {post.content}
             </div>
           </div>
 
-          {/* 하단 버튼 영역 */}
-          <div className="border-t border-neutral-border bg-surface-raised px-6 py-3 flex justify-between">
-            <Link
-              href="/board"
-              className="inline-flex min-h-11 items-center rounded border border-neutral-border bg-white px-4 text-sm text-text-secondary hover:bg-surface-raised focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500"
-            >
-              목록
-            </Link>
-            <BoardPostActions postId={id} postTitle={post.title} authorId={post.author_id} />
-          </div>
         </article>
 
-        {/* 댓글 영역 */}
         <CommentsSection postId={id} />
+
+        <div className="mt-8 border-t border-neutral-border pt-5">
+          <Link
+            href="/board"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-brand-700 no-underline transition hover:bg-brand-50 hover:no-underline focus-visible:ring-2 focus-visible:ring-brand-500"
+          >
+            <ArrowLeft aria-hidden="true" size={18} weight="bold" />
+            게시판으로 돌아가기
+          </Link>
+        </div>
       </div>
     );
   } catch (error) {

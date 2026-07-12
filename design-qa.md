@@ -149,4 +149,75 @@ No actionable P0, P1, or P2 differences remain.
 - Capture the optional featured story in Desktop and Mobile when an eligible post exists.
 - Continue the same editorial language into `/board/[id]` and comments under #227.
 
+## Board detail and comments design QA
+
+- Source visual truth: `/home/ginis/.codex/generated_images/019f4f96-1245-7ea2-8709-9a4b34ee179c/exec-b4364241-b04b-4dce-85c8-c21568a22a5c.png`
+- Implementation desktop captures: `/home/ginis/sogecon-app/.artifacts/design-qa-board-detail-260713/implementation-board-detail-desktop.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-board-detail-260713/implementation-board-detail-comments-desktop.png`
+- Implementation mobile captures: `/home/ginis/sogecon-app/.artifacts/design-qa-board-detail-260713/implementation-board-detail-mobile.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-board-detail-260713/implementation-board-detail-comments-mobile.png`
+- Full-view comparison: `/home/ginis/sogecon-app/.artifacts/design-qa-board-detail-260713/board-detail-comparison-full.png`
+- Focused article-to-comments comparison: `/home/ginis/sogecon-app/.artifacts/design-qa-board-detail-260713/board-detail-comparison-focused.png`
+- Viewports: desktop `1440×1024`; mobile `390×844`
+- State: production runtime, authenticated synthetic E2E member, `/board/13`; no post, comment, or fixture mutation
+
+### Findings
+
+No actionable P0, P1, or P2 differences remain.
+
+- [P3] The selected source shows two populated comments while the existing safe fixture has no comments.
+  - Location: comments timeline.
+  - Evidence: the focused comparison shows the same article-to-conversation hierarchy, composer, and final return action; the implementation presents a purposeful empty state before the composer because `GET /comments/?post_id=13` returned an empty collection.
+  - Impact: representative comment-author, timestamp, delete-action, and long-comment density remain unverified visually.
+  - Follow-up: capture a populated synthetic comment state in a later pass when an approved fixture exists.
+
+- [P3] The selected source contains a longer article and populated publication date, while the current synthetic fixture has short copy and displays `게시 예정`.
+  - Location: article metadata and body.
+  - Evidence: the implementation preserves the selected reading column, typography, image treatment, and vertical flow, but the available content cannot exercise long-paragraph rhythm or attachment states.
+  - Impact: no current usability defect; this is a content-coverage limitation.
+  - Follow-up: recheck long body, attachment, and normal publication-date states with representative data.
+
+### Required fidelity surfaces
+
+- Fonts and typography: passed. The repository's Pretendard and KoPub variables remain authoritative; the final desktop title is `32px`, the mobile title is `28px`, metadata is deliberately restrained, and article/comment copy keeps readable Korean line height and wrapping.
+- Spacing and layout rhythm: passed. The card shell and shadow were removed, the article and comments now form one journal-style flow, and the final board-return action sits after the composer. Mobile article width is `311.2px`, up from the audited `245.6px`, without document overflow.
+- Colors and visual tokens: passed. Existing Sogang burgundy, warm-white canvas, neutral rules, muted metadata, semantic destructive action, and brand focus ring are preserved without introducing a new palette or gradient.
+- Image quality and asset fidelity: passed. The live post image loads through the Next optimizer with positive natural dimensions and its original ratio. Phosphor icons are used for navigation, pin, edit, and delete actions; no placeholder or hand-built decorative asset was introduced.
+- Copy and content: passed for the available state. Korean category, author, navigation, empty-comment, composer, retry, and action copy are user-facing and do not expose raw category keys, internal IDs, HTTP text, or object serialization.
+
+### Responsive and interaction evidence
+
+- Desktop article width: `848px`; rendered image `672×179.2`; title `32px`.
+- Mobile document: `scrollWidth=clientWidth=375`; article, body, image, and comments use a `311.2px` reading width.
+- Mobile image: positive natural size and rendered at `311.2×83.14` with ratio preserved.
+- Top and final board-return links, edit, delete, and submit actions meet the `44px` touch-height contract.
+- Textarea has the accessible name `댓글로 대화에 참여하기`, keyboard focus-visible styling, and an appropriately disabled empty submit state.
+- Article body is followed by the comments region and then the final board-return action in DOM and visual order.
+- Console errors/warnings, hydration, chunk, CSP, and image errors: 0; observed product 5xx/404: 0.
+
+### Comparison history
+
+#### Iteration 1
+
+- Finding: [P2] The audited implementation nested a card inside broad page padding, leaving only `245.6px` of usable mobile reading width; the top return link was `20px` high and the desktop surface read like a management card rather than editorial content.
+- Fix: removed the card background, radius, and shadow; widened the mobile reading column to `311.2px`; raised navigation and author actions to `44px`; strengthened the title hierarchy; and rebuilt the detail/comments flow as one journal surface.
+- Post-fix evidence: the first production captures showed positive image dimensions, no horizontal overflow, `44px` actions, and a `26.7%` wider mobile content column.
+
+#### Iteration 2
+
+- Finding: [P2] The first implementation placed the final `게시판으로 돌아가기` action between the article and comments, interrupting the selected source's article-to-conversation continuity; desktop top spacing and the `37.6px` title were also looser than the source.
+- Fix: moved the final return action after the comment composer, reduced desktop top and back-link spacing, and set the desktop title to `32px`.
+- Post-fix evidence: the latest full and focused combined comparisons show article → comments empty state → composer → final return action, with the category/title/image block moved upward. Windows production QA reports no visual, runtime, or accessibility regression.
+
+### Implementation checklist
+
+- [x] Preserve official logo, colors, fonts, and existing auth/data behavior.
+- [x] Recreate the selected journal-style article and continuous comment conversation flow.
+- [x] Remove nested card chrome and recover useful mobile reading width.
+- [x] Keep edit, delete, retry, empty, loading, disabled, and navigation states functional and accessible.
+- [x] Verify Desktop, 390px Mobile, keyboard focus, image rendering, console, network, and no document overflow.
+- [x] Compare the source and final implementation in combined full and focused evidence.
+
+### Follow-up polish
+
+- Capture populated comments, a long article, attachment content, and a normal publication date when approved synthetic fixtures are available.
+
 final result: passed

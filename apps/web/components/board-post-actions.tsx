@@ -1,5 +1,6 @@
 "use client";
 
+import { PencilSimple, Trash } from '@phosphor-icons/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -55,15 +56,17 @@ export function BoardPostActions({ postId, postTitle, authorId }: BoardPostActio
       <div className="flex gap-2">
         <Link
           href={`/board/${postId}/edit`}
-          className="rounded border border-neutral-border px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-raised"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-neutral-border bg-white px-4 text-sm font-semibold text-text-secondary no-underline transition hover:bg-surface-raised hover:no-underline focus-visible:ring-2 focus-visible:ring-brand-500"
         >
+          <PencilSimple aria-hidden="true" size={17} />
           수정
         </Link>
         <button
           type="button"
-          className="rounded border border-state-error-ring px-3 py-1.5 text-sm font-medium text-state-error hover:bg-state-error-subtle"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-state-error-ring bg-white px-4 text-sm font-semibold text-state-error transition hover:bg-state-error-subtle focus-visible:ring-2 focus-visible:ring-state-error"
           onClick={() => setShowDeleteDialog(true)}
         >
+          <Trash aria-hidden="true" size={17} />
           삭제
         </button>
       </div>
