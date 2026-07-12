@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { useToast } from '../../components/toast';
 import { ApiError } from '../../lib/api';
 import { memberApiErrorToMessage } from '../../lib/error-map';
+import Button from '../../components/ui/button';
+import { FIELD_CONTROL } from '../../components/ui/styles';
 import {
   createChangeRequest,
   listMyChangeRequests,
@@ -86,33 +88,34 @@ function InlineForm({ fieldName, currentValue, hasPending, onClose }: InlineForm
   }
 
   return (
-    <div className="flex items-end gap-2">
+    <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-end">
       <label className="flex flex-1 flex-col text-xs">
         <span className="mb-1 text-text-secondary">
           새 {label} (현재: {currentValue})
         </span>
         <input
-          className="rounded border border-neutral-border px-2 py-1 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-1 focus:ring-brand-400"
+          className={FIELD_CONTROL}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={`새 ${label} 입력`}
         />
       </label>
-      <button
+      <Button
         type="button"
         disabled={!value.trim() || mutation.isPending}
         onClick={() => mutation.mutate()}
-        className="rounded bg-brand-700 px-3 py-1 text-xs text-white transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
+        size="sm"
       >
         {mutation.isPending ? '요청 중…' : '요청'}
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
         onClick={onClose}
-        className="rounded border border-neutral-border px-3 py-1 text-xs text-text-secondary transition hover:bg-neutral-subtle"
+        variant="secondary"
+        size="sm"
       >
         취소
-      </button>
+      </Button>
     </div>
   );
 }
@@ -157,13 +160,16 @@ export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
                 {pendingFields.has(key) && <StatusBadge status="pending" />}
               </div>
               {editingField !== key && (
-                <button
+                <Button
                   type="button"
                   onClick={() => setEditingField(key)}
-                  className="text-xs text-brand-600 underline transition hover:text-brand-800"
+                  variant="ghost"
+                  size="sm"
+                  aria-label={`${label} 변경 요청`}
+                  className="shrink-0 underline"
                 >
                   변경 요청
-                </button>
+                </Button>
               )}
             </div>
             {editingField === key && (
@@ -183,7 +189,7 @@ export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
       {/* 요청 이력 */}
       {requests && requests.length > 0 && (
         <details className="text-xs">
-          <summary className="cursor-pointer text-text-secondary hover:text-text-primary">
+          <summary className="inline-flex min-h-11 cursor-pointer items-center text-text-secondary hover:text-text-primary">
             변경 요청 이력 ({requests.length}건)
           </summary>
           <ul className="mt-2 space-y-1">
