@@ -11,6 +11,7 @@
 ## 보안 업데이트와 SLA
 
 Dependabot alerts와 security updates를 활성화한다. 보안 업데이트는 월간 일정을 기다리지 않고 advisory 감지 시 PR을 생성한다.
+minor/patch security update는 ecosystem별 한 PR로 묶고, major security update는 그룹에서 제외해 독립 PR로 생성한다.
 
 | 심각도 | 최초 분류 | 수정 또는 완화 목표 |
 | --- | --- | --- |
