@@ -4,7 +4,7 @@ import logging
 from typing import Literal
 
 from fastapi import APIRouter, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from ..logging_utils import log_json
 
@@ -33,6 +33,14 @@ class WebVitalEvent(BaseModel):
     device: str | None = Field(default=None, description="mobile|desktop (heuristic)")
     commit: str | None = Field(default=None, description="Client commit sha")
     ts: int | None = Field(default=None, description="Client timestamp (ms)")
+
+    @field_validator("navType", mode="before")
+    @classmethod
+    def normalize_legacy_nav_type(cls, value: str | None) -> str | None:
+        """v4 Navigation Timing 표기를 v5 계약으로 정규화합니다."""
+        if value == "back_forward":
+            return "back-forward"
+        return value
 
 
 @router.post("/vitals")
