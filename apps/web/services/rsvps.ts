@@ -15,7 +15,7 @@ export async function getOptionalRsvp(memberId: number, eventId: number): Promis
   try {
     return await getRsvp(memberId, eventId);
   } catch (error) {
-    if (error instanceof ApiError && error.status === 404) return null;
+    if (error instanceof ApiError && error.status === 404 && error.code === 'rsvp_not_found') return null;
     throw error;
   }
 }

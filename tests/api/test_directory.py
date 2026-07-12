@@ -167,6 +167,13 @@ def test_directory_enforces_visibility_on_server(admin_login: TestClient) -> Non
 
     hidden_detail = client.get(f"/members/{ids['other215']}")
     assert hidden_detail.status_code == HTTPStatus.NOT_FOUND
+    assert hidden_detail.json()["code"] == "member_not_found"
+    private_detail = client.get(f"/members/{ids['private215']}")
+    assert private_detail.status_code == HTTPStatus.NOT_FOUND
+    assert private_detail.json()["code"] == "member_not_found"
+    missing_detail = client.get("/members/99999999")
+    assert missing_detail.status_code == HTTPStatus.NOT_FOUND
+    assert missing_detail.json()["code"] == hidden_detail.json()["code"]
     hidden_count = client.get("/members/count?q=other215@example.com")
     assert hidden_count.status_code == HTTPStatus.OK
     assert hidden_count.json() == {"count": 0}
@@ -175,3 +182,10 @@ def test_directory_enforces_visibility_on_server(admin_login: TestClient) -> Non
     visible_count = client.get("/members/count?q=other215@example.com")
     assert visible_count.status_code == HTTPStatus.OK
     assert visible_count.json() == {"count": 1}
+
+    viewer_id = _set_visibility("__seed__admin", models.Visibility.PRIVATE)
+    own_detail = client.get(f"/members/{viewer_id}")
+    assert own_detail.status_code == HTTPStatus.OK
+    own_search = client.get("/members/?q=__seed__admin")
+    assert own_search.status_code == HTTPStatus.OK
+    assert [row["id"] for row in own_search.json()] == [viewer_id]

@@ -211,7 +211,8 @@ def to_directory_member_read(
     viewer: models.Member, target: models.Member
 ) -> schemas.DirectoryMemberRead:
     if not can_view_directory_member(viewer, target):
-        raise NotFoundError(code="member_not_visible", detail="Member not found")
+        # 미존재 회원과 같은 응답을 사용해 숨김 회원의 존재를 추론하지 못하게 한다.
+        raise NotFoundError(code="member_not_found", detail="Member not found")
     return schemas.DirectoryMemberRead.model_validate(target)
 
 

@@ -23,4 +23,10 @@ describe('getOptionalRsvp', () => {
     apiFetchMock.mockRejectedValueOnce(error);
     await expect(getOptionalRsvp(9, 1)).rejects.toBe(error);
   });
+
+  it('다른 종류의 404는 미신청으로 숨기지 않는다', async () => {
+    const error = new ApiError(404, 'Event not found', 'event_not_found');
+    apiFetchMock.mockRejectedValueOnce(error);
+    await expect(getOptionalRsvp(9, 1)).rejects.toBe(error);
+  });
 });
