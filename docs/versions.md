@@ -32,7 +32,7 @@
 - pyright==1.1.411
 - pytest==9.1.1
 - pytest-asyncio==1.4.0
-- httpx==0.27.2
+- httpx==0.28.1
 - bandit==1.9.4
 - PyYAML==6.0.3 (`ops/ci/check_dependabot.py` 설정 검증)
 
