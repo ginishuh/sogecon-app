@@ -1,5 +1,6 @@
 "use client";
 
+import { MagnifyingGlass, SlidersHorizontal, X } from '@phosphor-icons/react';
 import React, { Suspense, useState, type ReactNode } from 'react';
 
 import {
@@ -40,33 +41,49 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
     jobTitle: 'organization-title',
   };
 
-  // 기본 필터: 검색어 + 기수
-  const basicFields = FILTER_FIELDS.filter((f) => f.key === 'q' || f.key === 'cohort');
+  const searchField = FILTER_FIELDS.find((field) => field.key === 'q');
+  const cohortField = FILTER_FIELDS.find((field) => field.key === 'cohort');
   // 상세 필터: 나머지
   const advancedFields = FILTER_FIELDS.filter((f) => f.key !== 'q' && f.key !== 'cohort');
 
   return (
-    <div className="space-y-3">
-      {/* 기본 필터: 항상 표시 */}
-      <fieldset className="flex flex-wrap items-end gap-3" aria-label="기본 검색 필터">
-        {basicFields.map(({ key, label, placeholder, inputMode }) => (
-          <label key={key} className="flex flex-col text-xs text-text-muted">
-            <span className="mb-1 font-medium text-text-secondary">{label}</span>
+    <div className="rounded-2xl border border-neutral-border bg-white p-4 sm:p-5">
+      <fieldset className="grid grid-cols-2 items-end gap-3 lg:grid-cols-[minmax(0,1fr)_9rem_11rem_auto]" aria-label="기본 검색 필터">
+        {searchField ? (
+          <label className="col-span-2 min-w-0 text-xs text-text-muted lg:col-span-1">
+            <span className="mb-1.5 block font-semibold text-text-secondary">동문 검색</span>
+            <span className="relative block">
+              <MagnifyingGlass aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
+              <input
+                inputMode={searchField.inputMode}
+                autoComplete={autocompleteHints.q}
+                className="min-h-12 w-full rounded-xl border border-neutral-border py-2 pl-12 pr-4 text-base focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
+                value={value.q}
+                placeholder="이름·이메일·회사로 검색"
+                aria-label="검색어"
+                onChange={(event) => onChange('q', event.target.value)}
+              />
+            </span>
+          </label>
+        ) : null}
+        {cohortField ? (
+          <label className="text-xs text-text-muted">
+            <span className="mb-1.5 block font-semibold text-text-secondary">기수</span>
             <input
-              inputMode={inputMode}
-              autoComplete={autocompleteHints[key]}
-              className="min-h-11 rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
-              value={value[key]}
-              placeholder={placeholder}
-              aria-label={label}
-              onChange={(event) => onChange(key, event.target.value)}
+              inputMode={cohortField.inputMode}
+              autoComplete={autocompleteHints.cohort}
+              className="min-h-12 w-full rounded-xl border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
+              value={value.cohort}
+              placeholder="예: 10"
+              aria-label="기수"
+              onChange={(event) => onChange('cohort', event.target.value)}
             />
           </label>
-        ))}
-        <label className="flex flex-col text-xs text-text-muted">
-          <span className="mb-1 font-medium text-text-secondary">정렬</span>
+        ) : null}
+        <label className="text-xs text-text-muted">
+          <span className="mb-1.5 block font-semibold text-text-secondary">정렬</span>
           <select
-            className="min-h-11 rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
+            className="min-h-12 w-full rounded-xl border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
             value={value.sort}
             onChange={(event) => onSortChange(event.target.value as SortOption)}
             aria-label="정렬 옵션"
@@ -79,31 +96,32 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
           </select>
         </label>
 
-        {/* 모바일: 상세 검색 토글 버튼 */}
         <Button
           type="button"
           onClick={() => setShowAdvanced((v) => !v)}
           variant="secondary"
-          size="sm"
-          className="md:hidden"
+          size="md"
+          className="col-span-2 min-h-12 gap-2 sm:col-span-1 lg:col-span-1"
           aria-expanded={showAdvanced}
+          aria-controls="directory-advanced-filters"
         >
+          <SlidersHorizontal aria-hidden="true" size={18} />
           {showAdvanced ? '상세 검색 닫기' : '상세 검색'}
         </Button>
       </fieldset>
 
-      {/* 상세 필터: 모바일에서는 토글, 데스크톱에서는 항상 표시 */}
       <fieldset
-        className={`flex flex-wrap items-end gap-3 ${showAdvanced ? 'block' : 'hidden'} md:flex`}
+        id="directory-advanced-filters"
+        className={`${showAdvanced ? 'mt-5 grid' : 'hidden'} grid-cols-2 gap-3 border-t border-neutral-border pt-5 lg:grid-cols-6`}
         aria-label="상세 검색 필터"
       >
         {advancedFields.map(({ key, label, placeholder, inputMode }) => (
-          <label key={key} className="flex flex-col text-xs text-text-muted">
-            <span className="mb-1 font-medium text-text-secondary">{label}</span>
+          <label key={key} className="text-xs text-text-muted">
+            <span className="mb-1.5 block font-semibold text-text-secondary">{label}</span>
             <input
               inputMode={inputMode}
               autoComplete={autocompleteHints[key]}
-              className="min-h-11 rounded border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
+              className="min-h-11 w-full rounded-xl border border-neutral-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400"
               value={value[key]}
               placeholder={placeholder}
               aria-label={label}
@@ -111,7 +129,8 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
             />
           </label>
         ))}
-        <Button type="button" onClick={onReset} variant="secondary" size="sm">
+        <Button type="button" onClick={onReset} variant="ghost" size="md" className="col-span-2 gap-2 self-end lg:col-span-1">
+          <X aria-hidden="true" size={17} />
           필터 초기화
         </Button>
       </fieldset>
@@ -172,8 +191,7 @@ function DirectoryResults({
 
   return (
     <div className="space-y-4">
-      {/* 카드 뷰 — 모바일 전용 */}
-      <ul className="grid gap-3 md:hidden" aria-label={`동문 목록 — ${sortLabel}`}>
+      <ul className="grid gap-3 lg:hidden" aria-label={`동문 목록 — ${sortLabel}`}>
         {items.map((m) => (
           <li key={m.id}>
             <DirectoryCard member={m} onClick={() => onMemberClick(m)} />
@@ -181,38 +199,31 @@ function DirectoryResults({
         ))}
       </ul>
 
-      {/* 테이블 뷰 — md 이상 유지 */}
-      <div className="hidden overflow-x-auto md:block">
-        <table className="min-w-[640px] table-fixed border-collapse text-left text-sm">
-          <caption className="sr-only">동문 목록 — {sortLabel}</caption>
-          <thead>
-            <tr className="border-b bg-surface-raised text-xs uppercase tracking-wide text-text-muted">
-              <th className="p-2" scope="col">이름</th>
-              <th className="p-2" scope="col">이메일</th>
-              <th className="p-2" scope="col">기수</th>
-              <th className="p-2" scope="col">전공</th>
-              <th className="p-2" scope="col">회사</th>
-              <th className="p-2" scope="col">업종</th>
-              <th className="p-2" scope="col">공개 범위</th>
-              <th className="p-2" scope="col">상세</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((m) => (
-              <tr key={m.id} className="border-b transition-colors last:border-0 hover:bg-surface-raised">
-                <td className="p-2 font-medium text-text-primary">{m.name}</td>
-                <td className="p-2 text-xs text-text-muted">{m.email || '공개하지 않음'}</td>
-                <td className="p-2">{m.cohort}</td>
-                <td className="p-2">{m.major || '공개하지 않음'}</td>
-                <td className="p-2">{m.company || '공개하지 않음'}</td>
-                <td className="p-2">{m.industry || '공개하지 않음'}</td>
-                <td className="p-2 text-xs text-text-muted">{VISIBILITY_INFO[m.visibility].label}</td>
-                <td className="p-2"><Button type="button" variant="ghost" size="sm" onClick={() => onMemberClick(m)} aria-label={`${m.name} 상세 정보 보기`}>상세 보기</Button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ul className="hidden divide-y divide-neutral-border border-y border-neutral-border lg:block" aria-label={`동문 목록 — ${sortLabel}`}>
+        {items.map((member) => {
+          const workSummary = [member.company, member.job_title].filter(Boolean).join(' · ');
+          return (
+            <li key={member.id} className="grid min-h-28 grid-cols-[4rem_minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-5 px-3 py-5 transition-colors hover:bg-surface-raised">
+              <div className="flex size-16 items-center justify-center rounded-full bg-neutral-subtle text-2xl font-medium text-text-muted" aria-hidden="true">
+                {member.name.charAt(0)}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-lg font-semibold text-text-primary">{member.name}</p>
+                <p className="mt-1 text-sm font-medium text-brand-700">{member.cohort}기</p>
+                {member.email ? <p className="mt-1 truncate text-sm text-text-muted">{member.email}</p> : null}
+              </div>
+              <div className="min-w-0 text-sm">
+                <p className="font-medium text-text-secondary">소속 · 직함</p>
+                <p className="mt-1 truncate text-text-muted">{workSummary || '소속 정보 비공개'}</p>
+              </div>
+              <p className="text-sm text-text-muted">{VISIBILITY_INFO[member.visibility].label}</p>
+              <Button type="button" variant="secondary" size="md" onClick={() => onMemberClick(member)} aria-label={`${member.name} 상세 정보 보기`}>
+                프로필 보기
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
 
       {/* 페이지네이션/무한 스크롤 버튼 — 위치/접근성 정리 */}
       <nav
@@ -272,11 +283,11 @@ function DirectoryPageInner() {
   const activeFilterCount = [filters.q, filters.cohort, filters.major, filters.company, filters.industry, filters.region, filters.jobTitle].filter((value) => value.trim()).length;
 
   return (
-    <div className="space-y-4 p-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       <header className="space-y-2">
-        <h2 className="text-xl font-semibold text-text-primary">동문 수첩</h2>
-        <p className="text-sm text-text-muted">
-          이름과 소속으로 동문을 찾을 수 있어요. 각 동문이 공개하기로 한 정보만 표시됩니다.
+        <h1 className="text-[1.75rem] font-semibold tracking-[-0.035em] text-text-primary md:text-[2rem]">동문 수첩</h1>
+        <p className="text-sm leading-6 text-text-muted sm:text-base">
+          이름과 소속으로 동문을 찾아보세요. 각 동문이 공개하기로 한 정보만 표시됩니다.
         </p>
       </header>
 
@@ -287,13 +298,16 @@ function DirectoryPageInner() {
         onSortChange={updateSort}
       />
 
-      <section className="space-y-3" aria-live="polite">
-        <div className="flex flex-col gap-2 text-sm text-text-muted">
-          <p>
-            {activeFilterCount > 0 ? `검색 조건 ${activeFilterCount}개 · ` : ''}총 {totalLabel}명 중 {displayedCount.toLocaleString()}명 표시
-            <span className="sr-only"> (페이지 {currentPage}{totalPages ? ` / ${totalPages}` : ''})</span>
-          </p>
-          <div className="flex flex-col gap-2 text-xs text-text-muted">
+      <section className="space-y-4" aria-live="polite" aria-labelledby="directory-results-title">
+        <div className="flex flex-col gap-3 border-b border-neutral-border pb-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 id="directory-results-title" className="text-xl font-semibold text-text-primary">{displayedCount.toLocaleString()}명의 동문</h2>
+            <p className="mt-1 text-sm text-text-muted">
+              {activeFilterCount > 0 ? `검색 조건 ${activeFilterCount}개 · ` : ''}전체 {totalLabel}명
+              <span className="sr-only"> (페이지 {currentPage}{totalPages ? ` / ${totalPages}` : ''})</span>
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 text-xs text-text-muted sm:items-end">
             <div className="flex items-center gap-2">
               <span className="font-medium text-text-secondary">공유</span>
               <Button type="button" variant="ghost" size="sm" aria-expanded={shareOpen} aria-controls="share-panel" onClick={() => setShareOpen((v) => !v)}>

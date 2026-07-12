@@ -83,6 +83,7 @@ describe('DirectoryPage 공유 링크/페이지 요약', () => {
     fireEvent.click(toggle);
 
     expect(screen.getByText('/directory?sort=cohort_asc&page=2')).toBeInTheDocument();
-    expect(screen.getByText((_text, element) => element?.tagName === 'P' && element.textContent === '총 25명 중 25명 표시 (페이지 3 / 3)')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '25명의 동문' })).toBeInTheDocument();
+    expect(screen.getByText((_text, element) => element?.tagName === 'P' && element.textContent === '전체 25명 (페이지 3 / 3)')).toBeInTheDocument();
   });
 });

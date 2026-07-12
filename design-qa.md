@@ -220,4 +220,82 @@ No actionable P0, P1, or P2 differences remain.
 
 - Capture populated comments, a long article, attachment content, and a normal publication date when approved synthetic fixtures are available.
 
+## Directory and member profile design QA
+
+- Desktop source visual truth: `/home/ginis/.codex/generated_images/019f4f96-1245-7ea2-8709-9a4b34ee179c/exec-ef2191cf-5d17-4280-baf1-0da5a30aa1b5.png`
+- Mobile source visual truth: `/home/ginis/.codex/generated_images/019f4f96-1245-7ea2-8709-9a4b34ee179c/exec-83e1960c-7d36-4368-9514-1accf1ff64ed.png`
+- Implementation captures: `/home/ginis/sogecon-app/.artifacts/design-qa-directory-260713/01-directory-desktop.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-directory-260713/02-member-modal-desktop.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-directory-260713/03-directory-tablet.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-directory-260713/04-directory-mobile.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-directory-260713/05-directory-mobile-filters.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-directory-260713/06-member-modal-mobile.png`
+- Combined comparisons: `/home/ginis/sogecon-app/.artifacts/design-qa-directory-260713/directory-comparison-desktop.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-directory-260713/directory-comparison-mobile.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-directory-260713/directory-comparison-modal.png`
+- Viewports: desktop `1440×1024`; tablet `768×900`; mobile `390×844`
+- State: production runtime, authenticated synthetic E2E member filtered by name; no member, profile, or fixture mutation
+
+### Findings
+
+No actionable P0, P1, or P2 differences remain.
+
+- [P3] The desktop implementation retains a restrained bordered filter panel instead of the source's open filter row and active-filter chips.
+  - Location: directory search and filter controls.
+  - Evidence: the combined desktop comparison shows the same wide search, cohort, sort, disclosure, and immediate result flow; the implementation uses the repository's existing form-surface language and live URL summary instead of introducing a second chip interaction model.
+  - Impact: minor source-fidelity difference only; filter behavior and result access remain clear.
+  - Follow-up: reconsider chips only if multiple simultaneous filters become common in real usage.
+
+- [P3] The source mobile card uses a visually separate full-width profile button, while the implementation makes the whole card operable and presents the final action as a label and arrow.
+  - Location: mobile and tablet member cards.
+  - Evidence: the combined mobile comparison preserves identity, cohort, email, organization privacy, visibility, and final profile action in the same order. The implementation's complete `311.2×230.4` card is keyboard and pointer operable.
+  - Impact: intentional accessibility improvement with a small visual difference.
+  - Follow-up: none unless user testing shows the whole-card behavior is insufficiently discoverable.
+
+- [P3] The selected desktop source contains several representative rows and a populated work section, while the safe local fixture provides one member without work data.
+  - Location: directory result density and member modal work section.
+  - Evidence: the final production captures use the real filtered API state; the work section is correctly omitted and no placeholder row or invented profile data is rendered.
+  - Impact: long company names, dense pagination, and populated work hierarchy remain visual coverage limits rather than current defects.
+  - Follow-up: repeat the visual check when approved representative synthetic fixtures are available.
+
+### Required fidelity surfaces
+
+- Fonts and typography: passed. Existing Pretendard and KoPub variables remain authoritative; the page now has a semantic `h1`, a clear result heading, stronger member identity, and readable Korean wrapping at every tested width.
+- Spacing and layout rhythm: passed. Desktop uses a full-width editorial result row, while widths below `1024px` switch to cards. The collapsed filter keeps results near the top, and the expanded mobile filter uses a compact two-column grid.
+- Colors and visual tokens: passed. Existing Sogang burgundy, warm-white surfaces, neutral rules, muted metadata, and brand focus ring are preserved. No unrelated palette or gradient was introduced.
+- Image and icon fidelity: passed for the available state. Initial avatars are purposeful fallbacks, and Phosphor icons provide search, filtering, privacy, contact, work, support, and directional cues without hand-built SVGs.
+- Copy and content: passed. Korean labels explain search, privacy, profile actions, and support in user language. Raw `all`, `cohort`, `private`, roles, status, internal IDs, and repeated `공개하지 않음` strings are not exposed.
+
+### Responsive and interaction evidence
+
+- Desktop result row: `1024×116`; profile action `97.525×44`; no eight-column table remains.
+- Tablet document: `scrollWidth=clientWidth=753`; the table is absent and a profile card is shown without fragmented columns.
+- Mobile document: `scrollWidth=clientWidth=375`; collapsed search controls lead directly to the first result card.
+- Mobile advanced filter: `277.6×298.7625`, reduced from the first implementation's `454.7375px`; five inputs are `44px` high in a two-column grid and reset is `277.6×44`.
+- Mobile result heading moves to document Y `813.1375px`, about `163px` earlier than the failed layout's expected position.
+- Search query and sorting synchronize to the URL and survive reload; reset restores `/directory` and the default sort.
+- Modal uses `aria-modal=true`, an accessible `회원 정보` name, `44×44` close control, focus trap, Escape dismissal, and focus return to the calling profile action.
+- Console errors/warnings, hydration, chunk, CSP, and image errors: 0; observed product 5xx/404: 0.
+
+### Comparison history
+
+#### Iteration 1
+
+- Finding: [P1] The audited `768px` layout retained an eight-column desktop table, causing member details to fragment into two or three lines and making comparison difficult. Desktop filters also dominated the results, privacy placeholders repeated across columns, and the page title was an `h2` without an `h1`.
+- Fix: moved the desktop list breakpoint to `1024px`, introduced editorial rows at desktop and profile cards below it, collapsed advanced filters by default, consolidated privacy into one summary, and promoted the page title to `h1`.
+- Post-fix evidence: Windows production QA confirms no visible table at `768px`, no horizontal overflow, a full-width desktop row, one privacy summary, and stable search, sort, reset, modal, focus, and URL behavior.
+
+#### Iteration 2
+
+- Finding: [P1] The first mobile implementation stacked all five advanced fields vertically, increasing the expanded filter from the audited `423.9375px` to `454.7375px` and pushing results farther down.
+- Fix: changed the advanced filter to a two-column mobile grid and made reset span both columns while retaining the six-column desktop expansion.
+- Post-fix evidence: focused Windows production QA measures `298.7625px`, a `34.3%` reduction from the failed implementation and `29.5%` below the audit baseline; inputs and reset remain `44px`, with no overlap or document overflow.
+
+### Implementation checklist
+
+- [x] Preserve official logo, colors, repository fonts, and existing privacy behavior.
+- [x] Replace the tablet table with readable cards and provide scalable desktop editorial rows.
+- [x] Keep advanced filters collapsed by default and compact when expanded on mobile.
+- [x] Consolidate privacy language and rebuild member detail as identity, contact, optional work, visibility, and support.
+- [x] Preserve search, sort, URL recovery, reset, modal focus, Escape, and focus-return behavior.
+- [x] Verify Desktop, Tablet, Mobile, expanded filters, modal, console, network, and document overflow in production Chrome.
+- [x] Compare the selected source and final implementation in combined desktop, mobile, and modal evidence.
+
+### Follow-up polish
+
+- Recheck dense result lists, long organization names, populated work details, and multiple pages when approved representative synthetic fixtures exist.
+
 final result: passed
