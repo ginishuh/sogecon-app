@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
 import React from 'react';
 import { Button } from '../../components/ui/button';
+import { ButtonLink } from '../../components/ui/button-link';
 
 describe('Button', () => {
   it('renders the default control with a 44px minimum target and focus contract', () => {
@@ -26,5 +27,10 @@ describe('Button', () => {
     expect(getByText('Danger')).toBeInTheDocument();
     expect(getByText('Small')).toBeDisabled();
     expect(getByText('Small')).toHaveClass('min-h-11', 'min-w-11');
+  });
+
+  it('shares the touch and focus contract with ButtonLink', () => {
+    render(<ButtonLink href="/posts" size="sm">소식 보기</ButtonLink>);
+    expect(document.querySelector('a')).toHaveClass('min-h-11', 'min-w-11', 'focus-visible:ring-2');
   });
 });

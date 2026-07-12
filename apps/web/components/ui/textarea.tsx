@@ -11,11 +11,12 @@ export interface TextAreaProps
 }
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
-  { label, id, helperText, errorText, className, 'aria-invalid': ariaInvalid, ...rest },
+  { label, id, helperText, errorText, className, 'aria-invalid': ariaInvalid, 'aria-describedby': ariaDescribedBy, ...rest },
   ref,
 ) {
   const invalid = Boolean(ariaInvalid) || Boolean(errorText);
   const { describedBy } = fieldDescriptionIds(id, helperText, errorText);
+  const allDescriptions = [describedBy, ariaDescribedBy].filter(Boolean).join(' ') || undefined;
 
   const classes = [
     FIELD_CONTROL,
@@ -31,9 +32,9 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
         ref={ref}
         id={id}
         className={classes}
-        aria-invalid={invalid || undefined}
-        aria-describedby={describedBy}
         {...rest}
+        aria-invalid={invalid || undefined}
+        aria-describedby={allDescriptions}
       />
     </FormField>
   );

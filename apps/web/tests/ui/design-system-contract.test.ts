@@ -22,4 +22,15 @@ describe('design system CSS contract', () => {
     const names = [...utilities.matchAll(/@utility\s+([^\s{]+)/g)].map((match) => match[1]);
     expect(new Set(names).size).toBe(names.length);
   });
+
+  it('keeps the source CSS layers within the documented size budget', () => {
+    const budgets: Record<string, number> = {
+      'app/globals.css': 6_000,
+      'app/styles/tailwind-theme.css': 6_000,
+      'app/styles/component-utilities.css': 12_000,
+    };
+    for (const [file, budget] of Object.entries(budgets)) {
+      expect(fs.statSync(path.join(root, file)).size, `${file} exceeded ${budget} bytes`).toBeLessThanOrEqual(budget);
+    }
+  });
 });
