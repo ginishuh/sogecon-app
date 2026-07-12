@@ -21,8 +21,12 @@ module.exports = {
       ]
     ],
     'type-case': [2, 'always', 'lower-case'],
-    // scopes are lowercase identifiers for areas of the monorepo
-    'scope-enum': [2, 'always', ['api', 'web', 'schemas', 'infra', 'docs', 'ops', 'ci', 'build']],
+    // scopes identify monorepo areas or dependency-update intent
+    'scope-enum': [
+      2,
+      'always',
+      ['api', 'web', 'schemas', 'infra', 'docs', 'ops', 'ci', 'build', 'deps', 'deps-dev']
+    ],
     'scope-case': [2, 'always', 'lower-case'],
     // Allow Korean or mixed-language subjects; do not enforce subject-case
     'subject-case': [0],
