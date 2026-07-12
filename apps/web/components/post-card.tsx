@@ -3,6 +3,8 @@ import type { Route } from 'next';
 import React from 'react';
 import Image from 'next/image';
 import { Card } from './ui/card';
+import { getPostCategoryLabel } from '../lib/community';
+import { resolveApiAssetUrl } from '../lib/api';
 
 export interface PostCardProps {
   title: string;
@@ -16,6 +18,7 @@ export interface PostCardProps {
 
 /** 게시판 카드 — 카테고리 배지, 날짜, 제목, 요약 */
 export function PostCard({ title, content, category, pinned, cover_image, published_at, href }: PostCardProps) {
+  const categoryLabel = getPostCategoryLabel(category);
   const headingNode = href ? (
     <Link href={href} className="hover:underline">
       {title}
@@ -31,13 +34,13 @@ export function PostCard({ title, content, category, pinned, cover_image, publis
       heading={headingNode}
       meta={
         <div className="flex items-center gap-2 text-xs text-neutral-muted">
-          {category ? (
-            <span aria-label="category" className="inline-flex min-w-9 items-center justify-center rounded bg-brand-surface px-2 py-0.5 text-caption font-medium text-brand-700">
-              {category}
+          {categoryLabel ? (
+            <span aria-label="글 종류" className="inline-flex min-w-9 items-center justify-center rounded bg-brand-surface px-2 py-0.5 text-caption font-medium text-brand-700">
+              {categoryLabel}
             </span>
           ) : null}
           {pinned ? (
-            <span aria-label="pinned" title="상단 고정" className="inline-flex items-center text-state-warning">📌</span>
+            <span aria-label="중요 공지" title="상단 고정" className="inline-flex items-center text-state-warning">📌</span>
           ) : null}
           {published_at ? (
             <time dateTime={published_at}>{new Date(published_at).toLocaleDateString()}</time>
@@ -47,8 +50,8 @@ export function PostCard({ title, content, category, pinned, cover_image, publis
     >
       {cover_image ? (
         <Image
-          src={cover_image}
-          alt="cover"
+          src={resolveApiAssetUrl(cover_image)}
+          alt={`${title} 대표 이미지`}
           width={640}
           height={160}
           className="mb-2 h-40 w-full rounded object-cover"

@@ -14,15 +14,14 @@ describe('PostCard', () => {
         published_at={null}
       />
     );
-    expect(screen.getByLabelText('category')).toHaveTextContent('notice');
-    expect(screen.getByLabelText('pinned')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'cover' })).toBeInTheDocument();
+    expect(screen.getByLabelText('글 종류')).toHaveTextContent('공지사항');
+    expect(screen.getByLabelText('중요 공지')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Notice Pinned 대표 이미지' })).toBeInTheDocument();
   });
 
   it('renders without optional props', () => {
     render(<PostCard title="News" content="Body" />);
-    expect(screen.queryByLabelText('category')).toBeNull();
-    expect(screen.queryByLabelText('pinned')).toBeNull();
+    expect(screen.queryByLabelText('글 종류')).toBeNull();
+    expect(screen.queryByLabelText('중요 공지')).toBeNull();
   });
 });
-

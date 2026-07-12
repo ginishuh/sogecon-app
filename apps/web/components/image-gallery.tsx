@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { resolveApiAssetUrl } from '../lib/api';
 
 export interface ImageGalleryProps {
   coverImage?: string | null;
@@ -9,11 +10,12 @@ export interface ImageGalleryProps {
 export function ImageGallery({ coverImage, images }: ImageGalleryProps) {
   // 모든 이미지 수집 (커버 + 추가 이미지, 중복 제거)
   const allImages: string[] = [];
-  if (coverImage) allImages.push(coverImage);
+  if (coverImage) allImages.push(resolveApiAssetUrl(coverImage));
   if (images) {
     for (const img of images) {
-      if (!allImages.includes(img)) {
-        allImages.push(img);
+      const resolvedImage = resolveApiAssetUrl(img);
+      if (!allImages.includes(resolvedImage)) {
+        allImages.push(resolvedImage);
       }
     }
   }

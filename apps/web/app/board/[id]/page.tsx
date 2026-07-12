@@ -6,6 +6,7 @@ import { ApiError } from '../../../lib/api';
 import { getPost } from '../../../services/posts';
 import { formatFullDate } from '../../../lib/date-utils';
 import { ImageGallery } from '../../../components/image-gallery';
+import { getAuthorName, getBoardCategoryInfo } from '../../../lib/community';
 
 const CommentsSection = dynamic(
   () => import('../../../components/comments-section').then((mod) => ({ default: mod.CommentsSection }))
@@ -39,9 +40,9 @@ export default async function BoardDetailPage({ params }: PageProps) {
           {/* 헤더 */}
           <header className="border-b-2 border-neutral-border bg-surface-raised px-6 py-4">
             <div className="flex items-center gap-2 mb-3">
-              {post.category ? (
+              {getBoardCategoryInfo(post.category) ? (
                 <span className="inline-block rounded bg-neutral-subtle px-2 py-1 text-xs font-medium text-text-secondary">
-                  {post.category}
+                  {getBoardCategoryInfo(post.category)?.label}
                 </span>
               ) : null}
               {post.pinned ? (
@@ -50,7 +51,7 @@ export default async function BoardDetailPage({ params }: PageProps) {
             </div>
             <h1 className="text-xl font-bold text-text-primary mb-3">{post.title}</h1>
             <div className="flex items-center gap-4 text-xs text-text-secondary">
-              <span>작성자: {post.author_name || `회원${post.author_id}`}</span>
+              <span>{getAuthorName(post.author_name)}</span>
               <span>•</span>
               <span>
                 {formatFullDate(post.published_at)}
@@ -74,7 +75,7 @@ export default async function BoardDetailPage({ params }: PageProps) {
           <div className="border-t border-neutral-border bg-surface-raised px-6 py-3 flex justify-between">
             <Link
               href="/board"
-              className="rounded border border-neutral-border bg-white px-4 py-1.5 text-sm text-text-secondary hover:bg-surface-raised"
+              className="inline-flex min-h-11 items-center rounded border border-neutral-border bg-white px-4 text-sm text-text-secondary hover:bg-surface-raised focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500"
             >
               목록
             </Link>

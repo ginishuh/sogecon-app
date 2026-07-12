@@ -15,10 +15,12 @@ vi.mock('../services/posts', () => ({
   createPost: (...args: unknown[]) => createPostMock(...(args as Parameters<typeof createPostMock>)),
 }));
 
+const authStatusRef: { current: 'authorized' | 'unauthorized' | 'loading' } = { current: 'authorized' };
+
 vi.mock('../hooks/useAuth', () => ({
   useAuth: () => ({
-    data: { kind: 'member' as const, email: 'user@example.com', student_id: '20250001' },
-    status: 'authorized' as const,
+    data: authStatusRef.current === 'authorized' ? { kind: 'member' as const, email: 'user@example.com', student_id: '20250001' } : null,
+    status: authStatusRef.current,
   }),
 }));
 
@@ -50,6 +52,7 @@ describe('BoardPage', () => {
     listPostsMock.mockReset();
     createPostMock.mockReset();
     currentSearchParams = new URLSearchParams();
+    authStatusRef.current = 'authorized';
   });
 
   it('목록을 렌더링하고 검색으로 필터링한다', async () => {
@@ -64,7 +67,7 @@ describe('BoardPage', () => {
       expect(screen.getByText('첫 번째 글')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('검색');
+    const searchInput = screen.getByRole('textbox', { name: '게시글 검색' });
     fireEvent.change(searchInput, { target: { value: 'Q&A' } });
 
     expect(screen.queryByText('첫 번째 글')).not.toBeInTheDocument();
@@ -97,7 +100,7 @@ describe('BoardPage', () => {
       }),
     );
 
-    const questionTab = screen.getByRole('tab', { name: '질문' });
+    const questionTab = screen.getByRole('tab', { name: '묻고 답하기' });
     fireEvent.click(questionTab);
 
     await waitFor(() => {
@@ -112,16 +115,26 @@ describe('BoardNewPage', () => {
     pushMock.mockReset();
     createPostMock.mockReset();
     createPostMock.mockResolvedValue({ id: 99 });
+    authStatusRef.current = 'authorized';
+  });
+
+  it('비회원에게 제출 폼 대신 로그인 복구 행동을 제공한다', () => {
+    authStatusRef.current = 'unauthorized';
+    renderWithClient(<BoardNewPage />);
+
+    expect(screen.getByRole('heading', { name: '로그인 후 이야기를 남길 수 있어요' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '동문 로그인' })).toHaveAttribute('href', '/login');
+    expect(screen.queryByRole('button', { name: '게시글 등록하기' })).not.toBeInTheDocument();
   });
 
   it('폼 제출 시 게시글 생성 API를 호출한다', async () => {
     renderWithClient(<BoardNewPage />);
 
-    fireEvent.change(screen.getByPlaceholderText('글 제목을 입력하세요'), { target: { value: '새 글' } });
-    fireEvent.change(screen.getByLabelText('카테고리'), { target: { value: 'question' } });
-    fireEvent.change(screen.getByPlaceholderText('커뮤니티 글 내용을 입력하세요'), { target: { value: '본문 내용' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /^제목/ }), { target: { value: '새 글' } });
+    fireEvent.change(screen.getByLabelText('글 종류'), { target: { value: 'question' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /^내용/ }), { target: { value: '본문 내용' } });
 
-    fireEvent.click(screen.getByRole('button', { name: '작성' }));
+    fireEvent.click(screen.getByRole('button', { name: '게시글 등록하기' }));
 
     await waitFor(() => {
       expect(createPostMock).toHaveBeenCalledWith(
@@ -150,15 +163,15 @@ describe('BoardNewPage', () => {
 
     renderWithClient(<BoardNewPage />);
 
-    fireEvent.change(screen.getByPlaceholderText('글 제목을 입력하세요'), { target: { value: '제목' } });
-    fireEvent.change(screen.getByLabelText('카테고리'), { target: { value: 'discussion' } });
-    fireEvent.change(screen.getByPlaceholderText('커뮤니티 글 내용을 입력하세요'), { target: { value: '본문' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /^제목/ }), { target: { value: '제목' } });
+    fireEvent.change(screen.getByLabelText('글 종류'), { target: { value: 'discussion' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /^내용/ }), { target: { value: '본문' } });
 
-    const submit = screen.getByRole('button', { name: '작성' });
+    const submit = screen.getByRole('button', { name: '게시글 등록하기' });
     fireEvent.click(submit);
     // pending 텍스트 — 비동기 상태 반영 대기
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: '작성 중…' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: '등록하는 중…' })).toBeDisabled();
     });
 
     // 오류 전환

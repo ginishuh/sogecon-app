@@ -26,6 +26,11 @@ function resolveApiBase(): string {
 }
 export const API_BASE = resolveApiBase();
 
+export function resolveApiAssetUrl(value: string): string {
+  if (value.startsWith('/media/')) return `${API_BASE}${value}`;
+  return value;
+}
+
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export type ProblemDetails = {
