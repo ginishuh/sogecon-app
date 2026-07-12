@@ -51,7 +51,9 @@ describe('이름·기수 변경 요청 접근성', () => {
   it('모든 변경 조작에 최소 44px 높이 계약을 적용한다', async () => {
     renderSection();
 
-    const nameButton = await screen.findByRole('button', { name: '이름 변경 요청' });
+    expect(await screen.findByRole('heading', { name: '이름·기수 변경 요청' })).toBeInTheDocument();
+    expect(screen.getByText('아직 접수한 변경 요청이 없어요.')).toBeInTheDocument();
+    const nameButton = screen.getByRole('button', { name: '이름 변경 요청' });
     const cohortButton = screen.getByRole('button', { name: '기수 변경 요청' });
     expect(nameButton).toHaveClass('min-h-11');
     expect(cohortButton).toHaveClass('min-h-11');

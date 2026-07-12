@@ -55,15 +55,39 @@ describe('내 정보 공개 범위 여정', () => {
     render(<MePage />);
 
     expect(await screen.findByRole('heading', { name: '내 정보와 공개 범위' })).toBeInTheDocument();
+    expect(screen.getByText('저장된 상태예요')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '동문에게 이렇게 보여요' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '저장된 상태입니다' })).toBeDisabled();
 
-    fireEvent.change(screen.getByLabelText('공개 범위'), { target: { value: 'private' } });
+    fireEvent.click(screen.getByRole('radio', { name: '나만 보기' }));
     expect(screen.getByText('현재 선택: 나만 보기')).toBeInTheDocument();
+    expect(screen.getByText('저장하지 않은 변경사항이 있어요')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '변경사항 저장하기' }));
     await waitFor(() => expect(updateMeMock).toHaveBeenCalledWith(expect.objectContaining({ visibility: 'private' })));
     expect(await screen.findByText('변경사항을 저장했습니다. 동문 수첩에는 선택한 공개 범위에 따라 표시됩니다.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '저장된 상태입니다' })).toBeDisabled();
+  });
+
+  it('연락처와 소속 편집을 접힌 요약에서 필요한 영역만 연다', async () => {
+    render(<MePage />);
+
+    await screen.findByRole('heading', { name: '내 정보와 공개 범위' });
+    const contact = screen.getByRole('button', { name: /연락처 정보/ });
+    const organization = screen.getByRole('button', { name: /소속 정보/ });
+    expect(contact).toHaveAttribute('aria-expanded', 'false');
+    expect(organization).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByLabelText('휴대전화(선택)')).not.toBeVisible();
+
+    fireEvent.click(contact);
+    expect(contact).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByLabelText('휴대전화(선택)')).toBeVisible();
+
+    fireEvent.click(organization);
+    expect(contact).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByLabelText('휴대전화(선택)')).not.toBeVisible();
+    expect(organization).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByLabelText('회사명(선택)')).toBeVisible();
   });
 
   it('로그인 상태 조회 실패를 무한 로딩 대신 재시도 상태로 보여준다', () => {
