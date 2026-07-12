@@ -284,6 +284,12 @@ No actionable P0, P1, or P2 differences remain.
 - Fix: changed the advanced filter to a two-column mobile grid and made reset span both columns while retaining the six-column desktop expansion.
 - Post-fix evidence: focused Windows production QA measures `298.7625px`, a `34.3%` reduction from the failed implementation and `29.5%` below the audit baseline; inputs and reset remain `44px`, with no overlap or document overflow.
 
+#### Iteration 3
+
+- Finding: [P1] PR review found that collapsing advanced filters also hid the only general reset action, so users with successful basic search results had to clear fields individually or open the advanced panel first.
+- Fix: added a result-summary reset action whenever search, sort, or page state differs from the default; kept the advanced-panel reset; distinguished public organization and private organization icons; added narrow-grid protection and automated coverage for disclosure, one-click reset, editorial rows, modal focus trap, and focus return.
+- Post-fix evidence: Windows production QA verifies a `109.925×44` reset action at both `390px` and `1440px`, one-click restoration to `/directory`, automatic disappearance in the default state, the existing `298.7625px` compact filter, card/list breakpoints, modal keyboard behavior, and zero console or HTTP errors. Public-organization icon rendering remains browser-blocked by fixture absence, while private organization retains the correct lock icon and the public branch is fixed in component code.
+
 ### Implementation checklist
 
 - [x] Preserve official logo, colors, repository fonts, and existing privacy behavior.

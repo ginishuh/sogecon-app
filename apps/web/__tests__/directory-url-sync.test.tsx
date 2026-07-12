@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { vi } from 'vitest';
@@ -109,6 +109,12 @@ describe('DirectoryPage URL 동기화', () => {
   it('직함 필터를 적용하면 job_title 파라미터를 추가한다', async () => {
     renderDirectoryPage();
 
+    const disclosure = screen.getByRole('button', { name: '상세 검색' });
+    expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+    expect(disclosure).toHaveAttribute('aria-controls', 'directory-advanced-filters');
+    fireEvent.click(disclosure);
+    expect(screen.getByRole('button', { name: '상세 검색 닫기' })).toHaveAttribute('aria-expanded', 'true');
+
     const jobTitleInput = screen.getByLabelText('직함');
     fireEvent.change(jobTitleInput, { target: { value: '팀장' } });
 
@@ -123,6 +129,60 @@ describe('DirectoryPage URL 동기화', () => {
     const params = new URLSearchParams(lastUrl.split('?')[1] ?? '');
     expect(params.get('job_title')).toBe('팀장');
     expect(listMembersMock).toHaveBeenLastCalledWith(expect.objectContaining({ jobTitle: '팀장' }));
+  });
+
+  it('기본 검색 결과가 있어도 한 번에 기본 상태로 초기화한다', async () => {
+    currentSearchParams = new URLSearchParams([['q', 'E2E']]);
+    const member = {
+      id: 177,
+      email: 'e2e177@example.com',
+      name: 'E2E 테스트 회원',
+      cohort: 177,
+      major: null,
+      company: null,
+      industry: null,
+      roles: 'member' as const,
+      visibility: 'all' as const,
+    };
+    listMembersMock.mockResolvedValue([member]);
+    countMembersMock.mockResolvedValue(1);
+
+    renderDirectoryPage();
+
+    const reset = await screen.findByRole('button', { name: '검색 조건과 정렬 초기화' });
+    fireEvent.click(reset);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    });
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/directory', { scroll: false }));
+  });
+
+  it('데스크톱 결과를 표가 아닌 편집형 행으로 제공한다', async () => {
+    const member = {
+      id: 177,
+      email: 'e2e177@example.com',
+      name: 'E2E 테스트 회원',
+      cohort: 177,
+      major: null,
+      company: '서강동문회사',
+      job_title: '대표',
+      industry: null,
+      roles: 'member' as const,
+      visibility: 'all' as const,
+    };
+    listMembersMock.mockResolvedValue([member]);
+    countMembersMock.mockResolvedValue(1);
+
+    renderDirectoryPage();
+    await screen.findAllByText('E2E 테스트 회원');
+
+    expect(document.querySelector('table')).not.toBeInTheDocument();
+    const desktopList = Array.from(document.querySelectorAll('ul')).find((element) => element.classList.contains('lg:block'));
+    expect(desktopList).toBeTruthy();
+    expect(within(desktopList as HTMLElement).getByText('서강동문회사 · 대표')).toBeInTheDocument();
+    expect(within(desktopList as HTMLElement).getByText('모든 동문에게 공개')).toBeInTheDocument();
+    expect(within(desktopList as HTMLElement).queryByText('공개하지 않음')).not.toBeInTheDocument();
   });
 
   it('더 불러오기 시 page 파라미터를 증가시킨다', async () => {

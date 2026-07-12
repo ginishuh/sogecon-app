@@ -116,7 +116,7 @@ function DirectoryFilters({ value, onChange, onReset, onSortChange }: DirectoryF
         aria-label="상세 검색 필터"
       >
         {advancedFields.map(({ key, label, placeholder, inputMode }) => (
-          <label key={key} className="text-xs text-text-muted">
+          <label key={key} className="min-w-0 text-xs text-text-muted">
             <span className="mb-1.5 block font-semibold text-text-secondary">{label}</span>
             <input
               inputMode={inputMode}
@@ -281,6 +281,7 @@ function DirectoryPageInner() {
   const [shareOpen, setShareOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const activeFilterCount = [filters.q, filters.cohort, filters.major, filters.company, filters.industry, filters.region, filters.jobTitle].filter((value) => value.trim()).length;
+  const hasNonDefaultState = activeFilterCount > 0 || filters.sort !== 'recent' || filters.page > 0;
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
@@ -300,12 +301,20 @@ function DirectoryPageInner() {
 
       <section className="space-y-4" aria-live="polite" aria-labelledby="directory-results-title">
         <div className="flex flex-col gap-3 border-b border-neutral-border pb-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 id="directory-results-title" className="text-xl font-semibold text-text-primary">{displayedCount.toLocaleString()}명의 동문</h2>
-            <p className="mt-1 text-sm text-text-muted">
-              {activeFilterCount > 0 ? `검색 조건 ${activeFilterCount}개 · ` : ''}전체 {totalLabel}명
-              <span className="sr-only"> (페이지 {currentPage}{totalPages ? ` / ${totalPages}` : ''})</span>
-            </p>
+          <div className="flex flex-wrap items-end gap-2 sm:gap-3">
+            <div>
+              <h2 id="directory-results-title" className="text-xl font-semibold text-text-primary">{displayedCount.toLocaleString()}명의 동문</h2>
+              <p className="mt-1 text-sm text-text-muted">
+                {activeFilterCount > 0 ? `검색 조건 ${activeFilterCount}개 · ` : ''}전체 {totalLabel}명
+                <span className="sr-only"> (페이지 {currentPage}{totalPages ? ` / ${totalPages}` : ''})</span>
+              </p>
+            </div>
+            {hasNonDefaultState ? (
+              <Button type="button" variant="ghost" size="sm" className="gap-1.5" aria-label="검색 조건과 정렬 초기화" onClick={resetFilters}>
+                <X aria-hidden="true" size={16} />
+                필터 초기화
+              </Button>
+            ) : null}
           </div>
           <div className="flex flex-col gap-2 text-xs text-text-muted sm:items-end">
             <div className="flex items-center gap-2">

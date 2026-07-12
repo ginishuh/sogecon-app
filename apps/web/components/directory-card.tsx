@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, LockSimple, UsersThree } from '@phosphor-icons/react';
+import { ArrowRight, Buildings, LockSimple, UsersThree } from '@phosphor-icons/react';
 import type { Member } from '../services/members';
 import { hasPublicDirectoryDetails, VISIBILITY_INFO } from '../lib/member-experience';
 
@@ -39,7 +39,7 @@ export default function DirectoryCard({ member, onClick }: Props) {
       </header>
       <div className="mt-4 space-y-2 border-t border-neutral-border pt-4 text-sm text-text-muted">
         <p className="flex items-center gap-2">
-          <LockSimple aria-hidden="true" size={17} />
+          {workSummary ? <Buildings aria-hidden="true" size={17} /> : <LockSimple aria-hidden="true" size={17} />}
           {workSummary || (hasDetails ? '소속 정보 비공개' : '공개된 소속 정보가 아직 없어요.')}
         </p>
         <p className="flex items-center gap-2">
