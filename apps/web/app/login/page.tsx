@@ -13,7 +13,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { MEMBER_LANGUAGE } from '../../lib/member-language';
 import { AuthHeading, AuthPage } from '../../components/auth-page';
 import { Button } from '../../components/ui/button';
-import { ButtonLink } from '../../components/ui/button-link';
 import { Input } from '../../components/ui/input';
 
 export default function LoginPage() {
@@ -70,7 +69,7 @@ function LoginForm() {
         <div id="login-error" role="alert" className="space-y-2 rounded-lg border border-state-error-ring bg-state-error-subtle p-3 text-sm text-state-error">
           <p>{loginError.message}</p>
           {loginError.code === 'member_pending_approval' ? (
-            <Link href="/support/contact" className="font-medium underline">확인이 오래 걸리면 사무국에 문의하기</Link>
+            <Link href="/support/contact" className="inline-flex min-h-11 items-center font-medium underline">확인이 오래 걸리면 사무국에 문의하기</Link>
           ) : null}
         </div>
       ) : null}
@@ -103,14 +102,14 @@ function LoginForm() {
       >로그인</Button>
       </form>
       <nav aria-label="다른 인증 방법" className="grid gap-3 sm:grid-cols-2">
-        <ButtonLink href="/signup" variant="secondary" className="min-h-20 flex-col items-start px-4 py-3 text-left">
+        <Link href="/signup" className="inline-flex min-h-20 min-w-11 flex-col items-start justify-center rounded-md border border-neutral-border bg-surface-raised px-4 py-3 text-left text-text-primary no-underline transition-colors hover:bg-surface-sunken hover:no-underline focus-visible:no-underline">
           <strong className="block text-sm text-text-primary">처음 방문했어요</strong>
           <span className="mt-1 block text-xs font-normal text-text-secondary">{MEMBER_LANGUAGE.signup}부터 시작합니다.</span>
-        </ButtonLink>
-        <ButtonLink href="/activate" variant="secondary" className="min-h-20 flex-col items-start px-4 py-3 text-left">
+        </Link>
+        <Link href="/activate" className="inline-flex min-h-20 min-w-11 flex-col items-start justify-center rounded-md border border-neutral-border bg-surface-raised px-4 py-3 text-left text-text-primary no-underline transition-colors hover:bg-surface-sunken hover:no-underline focus-visible:no-underline">
           <strong className="block text-sm text-text-primary">가입 승인 안내를 받았어요</strong>
           <span className="mt-1 block text-xs font-normal text-text-secondary">안내 링크에서 비밀번호를 만듭니다.</span>
-        </ButtonLink>
+        </Link>
       </nav>
       <div className="space-y-2 text-center text-sm text-text-muted">
         <p>가입 신청 후 확인 중이라면 별도로 다시 신청하지 않아도 됩니다.</p>

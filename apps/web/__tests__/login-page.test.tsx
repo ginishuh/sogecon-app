@@ -69,10 +69,10 @@ describe('LoginPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('동문회 사무국에서 가입 신청을 확인 중입니다.');
     expect(screen.getByLabelText('학번')).toHaveAttribute('aria-describedby', 'login-error');
     expect(screen.getByLabelText('비밀번호')).toHaveAttribute('aria-invalid', 'true');
-    expect(screen.getByRole('link', { name: '확인이 오래 걸리면 사무국에 문의하기' })).toHaveAttribute(
-      'href',
-      '/support/contact'
-    );
+    expect(screen.getByRole('link', { name: '확인이 오래 걸리면 사무국에 문의하기' }))
+      .toHaveAttribute('href', '/support/contact');
+    expect(screen.getByRole('link', { name: '확인이 오래 걸리면 사무국에 문의하기' }))
+      .toHaveClass('min-h-11');
   });
 
   it('비활성 계정은 비활성 안내 메시지를 표시한다', async () => {

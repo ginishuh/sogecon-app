@@ -69,6 +69,15 @@
 - hydration/chunk/CSP 오류: 0
 - 입력 제출·POST·DB 변경: 0
 
+### PR #238 리뷰 수정 — passed
+
+- 가입 API 오류를 synthetic POST 422로 재현하고 실제 API·DB 전달 없이 검증했다.
+- 오류 banner가 `role=alert`, `tabIndex=-1`과 실제 포커스를 받았고 `343.2×57.6` rect 전체가 viewport에 표시됐다.
+- 로컬 기수 오류로 전환하면 이전 API banner가 제거되고 기수 입력에 포커스·`aria-invalid`·연결된 오류만 남았다.
+- 선택 메모는 기본 접힘·summary `44px`, 로그인 문의 링크는 `44px`를 유지했다.
+- Desktop 로그인 보조 카드 2개는 각각 `282×80`, `flex-direction: column`, `align-items: flex-start`로 렌더됐다.
+- Desktop header overflow·control 교차 0, console error/warning 0, 예상 밖 4xx/5xx 0.
+
 ## Findings
 
 수용을 막는 시각·반응형·접근성 차이는 남아 있지 않다.

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from '@tanstack/react-query';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { AuthHeading, AuthPage, AuthSectionHeading } from '../../components/auth-page';
 import { useToast } from '../../components/toast';
 import { SignupJourney } from '../../components/signup-journey';
@@ -29,7 +29,13 @@ function parseCohort(value: string): number | null {
   return parsed;
 }
 
-function FeedbackBanner({ feedback }: { feedback: Feedback | null }) {
+function FeedbackBanner({
+  feedback,
+  elementRef,
+}: {
+  feedback: Feedback | null;
+  elementRef?: RefObject<HTMLParagraphElement | null>;
+}) {
   if (feedback == null) return null;
 
   const className =
@@ -38,7 +44,12 @@ function FeedbackBanner({ feedback }: { feedback: Feedback | null }) {
       : 'border-state-error-ring bg-state-error-subtle text-state-error';
 
   return (
-    <p className={`rounded border px-3 py-2 text-sm ${className}`} role={feedback.tone === 'error' ? 'alert' : 'status'}>
+    <p
+      ref={elementRef}
+      className={`rounded border px-3 py-2 text-sm ${className}`}
+      role={feedback.tone === 'error' ? 'alert' : 'status'}
+      tabIndex={feedback.tone === 'error' ? -1 : undefined}
+    >
       {feedback.message}
     </p>
   );
@@ -51,6 +62,7 @@ export default function SignupPage() {
   const [fieldErrors, setFieldErrors] = useState<{ cohort?: string; phone?: string }>({});
   const cohortRef = useRef<HTMLInputElement | null>(null);
   const phoneRef = useRef<HTMLInputElement | null>(null);
+  const feedbackRef = useRef<HTMLParagraphElement | null>(null);
   const [form, setForm] = useState({
     studentId: '',
     email: '',
@@ -78,18 +90,28 @@ export default function SignupPage() {
     },
   });
 
+  useEffect(() => {
+    if (feedback?.tone !== 'error') return;
+    const banner = feedbackRef.current;
+    if (banner == null) return;
+    banner.focus({ preventScroll: true });
+    banner.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+  }, [feedback]);
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const cohort = parseCohort(form.cohort);
     const phone = form.phone.trim();
     if (cohort == null) {
       const message = '기수를 숫자로 입력해 주세요.';
+      setFeedback(null);
       setFieldErrors((previous) => ({ ...previous, cohort: message }));
       cohortRef.current?.focus();
       return;
     }
     if (!phone) {
       const message = '연락처를 입력해 주세요.';
+      setFeedback(null);
       setFieldErrors((previous) => ({ ...previous, phone: message }));
       phoneRef.current?.focus();
       return;
@@ -180,7 +202,7 @@ export default function SignupPage() {
         onSubmit={onSubmit}
         className="space-y-6 bg-white md:rounded-2xl md:border md:border-neutral-border md:p-8"
       >
-        <FeedbackBanner feedback={feedback} />
+        <FeedbackBanner feedback={feedback} elementRef={feedbackRef} />
         <section className="space-y-4" aria-labelledby="signup-identity-heading">
           <div id="signup-identity-heading"><AuthSectionHeading>동문 확인 정보</AuthSectionHeading></div>
           <div className="grid gap-5 md:grid-cols-2">
