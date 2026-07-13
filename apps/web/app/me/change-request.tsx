@@ -128,7 +128,13 @@ type ChangeRequestSectionProps = {
 export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
   const [editingField, setEditingField] = useState<'name' | 'cohort' | null>(null);
 
-  const { data: requests, isLoading } = useQuery({
+  const {
+    data: requests,
+    isError,
+    isFetching,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['me', 'change-requests'],
     queryFn: listMyChangeRequests,
     staleTime: 10_000,
@@ -197,6 +203,19 @@ export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
 
       {isLoading ? (
         <p className="mt-4 text-sm text-text-muted" role="status">변경 요청 이력을 불러오는 중…</p>
+      ) : isError ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2" role="alert">
+          <p className="text-sm text-text-secondary">변경 요청 이력을 불러오지 못했어요.</p>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={isFetching}
+            onClick={() => void refetch()}
+          >
+            {isFetching ? '다시 확인 중…' : '다시 확인하기'}
+          </Button>
+        </div>
       ) : requests && requests.length > 0 ? (
         <details className="mt-4 text-xs">
           <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 font-medium text-text-secondary hover:text-text-primary">

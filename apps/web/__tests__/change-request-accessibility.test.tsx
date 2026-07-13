@@ -4,6 +4,7 @@ import React from 'react';
 import { vi } from 'vitest';
 
 import { ChangeRequestSection } from '../app/me/change-request';
+import { listMyChangeRequests } from '../services/me';
 
 vi.mock('../components/toast', () => ({ useToast: () => ({ show: vi.fn() }) }));
 vi.mock('../services/me', async (importOriginal) => {
@@ -48,6 +49,10 @@ function renderSection() {
 }
 
 describe('이름·기수 변경 요청 접근성', () => {
+  beforeEach(() => {
+    vi.mocked(listMyChangeRequests).mockReset().mockResolvedValue([]);
+  });
+
   it('모든 변경 조작에 최소 44px 높이 계약을 적용한다', async () => {
     renderSection();
 
@@ -69,6 +74,22 @@ describe('이름·기수 변경 요청 접근성', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('변경 요청 이력을 불러오는 중');
     expect(screen.queryByText('아직 접수한 변경 요청이 없어요.')).not.toBeInTheDocument();
+    expect(await screen.findByText('아직 접수한 변경 요청이 없어요.')).toBeInTheDocument();
+  });
+
+  it('요청 이력 조회 실패를 빈 상태로 숨기지 않고 다시 확인할 수 있다', async () => {
+    vi.mocked(listMyChangeRequests)
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce([]);
+    renderSection();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '변경 요청 이력을 불러오지 못했어요.',
+    );
+    expect(screen.queryByText('아직 접수한 변경 요청이 없어요.')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '다시 확인하기' }));
+
     expect(await screen.findByText('아직 접수한 변경 요청이 없어요.')).toBeInTheDocument();
   });
 });
