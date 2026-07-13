@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import UTC, datetime
 from http import HTTPStatus
 
 import httpx
@@ -48,7 +49,100 @@ def test_member_can_create_board_post(member_login: TestClient) -> None:
     assert body["title"] == payload["title"]
     assert body["pinned"] is False
     assert body["published_at"] is None
+    assert body["created_at"] is not None
     assert body["author_id"] == _get_member_id()
+
+
+def _seed_posts_for_effective_date_order() -> None:
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found")
+
+    async def _do_seed() -> None:
+        async for db in override():
+            result = await db.execute(
+                select(models.Member).where(models.Member.email == "member@example.com")
+            )
+            member = result.scalars().first()
+            if member is None:
+                raise RuntimeError("member@example.com not seeded")
+            member_id = member.id
+            posts = [
+                models.Post(
+                    author_id=member_id,
+                    title="고정 글",
+                    content="본문",
+                    category="discussion",
+                    pinned=True,
+                    created_at=datetime(2026, 1, 1, tzinfo=UTC),
+                ),
+                models.Post(
+                    author_id=member_id,
+                    title="신규 동문 글",
+                    content="본문",
+                    category="discussion",
+                    created_at=datetime(2026, 1, 4, tzinfo=UTC),
+                ),
+                models.Post(
+                    author_id=member_id,
+                    title="관리자 발행 글",
+                    content="본문",
+                    category="discussion",
+                    created_at=datetime(2026, 1, 2, tzinfo=UTC),
+                    published_at=datetime(2026, 1, 3, tzinfo=UTC),
+                ),
+                models.Post(
+                    author_id=member_id,
+                    title="동률 이전 글",
+                    content="본문",
+                    category="discussion",
+                    created_at=datetime(2026, 1, 2, tzinfo=UTC),
+                ),
+                models.Post(
+                    author_id=member_id,
+                    title="동률 이후 글",
+                    content="본문",
+                    category="discussion",
+                    created_at=datetime(2026, 1, 2, tzinfo=UTC),
+                ),
+                models.Post(
+                    author_id=member_id,
+                    title="작성일 없는 기존 글",
+                    content="본문",
+                    category="discussion",
+                    created_at=datetime(2026, 1, 5, tzinfo=UTC),
+                ),
+            ]
+            db.add_all(posts)
+            await db.commit()
+            posts[-1].created_at = None
+            await db.commit()
+            return
+        raise RuntimeError("DB session not available")
+
+    asyncio.run(_do_seed())
+
+
+def test_posts_use_published_or_created_date_for_order(
+    member_login: TestClient,
+) -> None:
+    _seed_posts_for_effective_date_order()
+
+    res = member_login.get("/posts/?limit=10&offset=0&category=discussion")
+
+    assert res.status_code == HTTPStatus.OK
+    items = res.json()
+    assert [item["title"] for item in items] == [
+        "고정 글",
+        "신규 동문 글",
+        "관리자 발행 글",
+        "동률 이후 글",
+        "동률 이전 글",
+        "작성일 없는 기존 글",
+    ]
+    assert items[1]["published_at"] is None
+    assert items[1]["created_at"] is not None
+    assert items[-1]["created_at"] is None
 
 
 def test_post_create_requires_auth(client: TestClient) -> None:

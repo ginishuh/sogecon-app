@@ -124,6 +124,11 @@ class Post(Base):
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
     published_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    # 기존 게시글은 작성 시각을 저장하지 않았으므로 nullable로 유지한다.
+    # 신규 게시글은 DB 기본값으로 작성 시각을 기록한다.
+    created_at = Column(
+        DateTime(timezone=True), nullable=True, server_default=func.now(), index=True
+    )
     category = Column(String(64), nullable=True, index=True)  # 'notice' | 'news' | ...
     pinned = Column(
         Boolean, nullable=False, default=False, server_default="0", index=True
@@ -143,6 +148,12 @@ class Post(Base):
 Index("ix_posts_published_at_desc", Post.published_at.desc())
 # 복합 인덱스: list_posts 쿼리 최적화 (pinned DESC, published_at DESC)
 Index("ix_posts_pinned_published", Post.pinned.desc(), Post.published_at.desc())
+Index(
+    "ix_posts_pinned_effective_date",
+    Post.pinned.desc(),
+    func.coalesce(Post.published_at, Post.created_at).desc().nullslast(),
+    Post.id.desc(),
+)
 
 
 class Comment(Base):

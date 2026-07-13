@@ -34,7 +34,13 @@ async def list_posts(
     elif category:
         stmt = stmt.where(models.Post.category == category)
     stmt = (
-        stmt.order_by(desc(models.Post.pinned), desc(models.Post.published_at))
+        stmt.order_by(
+            desc(models.Post.pinned),
+            desc(
+                func.coalesce(models.Post.published_at, models.Post.created_at)
+            ).nullslast(),
+            desc(models.Post.id),
+        )
         .offset(offset)
         .limit(limit)
     )

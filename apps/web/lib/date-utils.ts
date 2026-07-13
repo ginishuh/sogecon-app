@@ -44,3 +44,34 @@ export function formatFullDate(dateString: string | null | undefined): string {
   if (Number.isNaN(date.getTime())) return '게시 예정';
   return fullDateFormatter.format(date);
 }
+
+/**
+ * 관리자 발행 시각을 우선하고, 일반 동문 글은 작성 시각을 사용한다.
+ * 손상된 발행 시각이 있으면 유효한 작성 시각으로 안전하게 대체한다.
+ */
+export function resolvePostDate(
+  publishedAt: string | null | undefined,
+  createdAt: string | null | undefined,
+): string | null {
+  for (const candidate of [publishedAt, createdAt]) {
+    if (!candidate) continue;
+    if (!Number.isNaN(new Date(candidate).getTime())) return candidate;
+  }
+  return null;
+}
+
+export function formatPostBoardDate(
+  publishedAt: string | null | undefined,
+  createdAt: string | null | undefined,
+): string {
+  const date = resolvePostDate(publishedAt, createdAt);
+  return date ? formatBoardDate(date) : '작성일 미확인';
+}
+
+export function formatPostFullDate(
+  publishedAt: string | null | undefined,
+  createdAt: string | null | undefined,
+): string {
+  const date = resolvePostDate(publishedAt, createdAt);
+  return date ? formatFullDate(date) : '작성일 미확인';
+}

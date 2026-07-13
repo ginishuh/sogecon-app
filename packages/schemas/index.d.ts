@@ -1704,6 +1704,8 @@ export interface components {
             author_id: number;
             /** Author Name */
             author_name?: string | null;
+            /** Created At */
+            created_at: string | null;
             /**
              * Comment Count
              * @default 0
