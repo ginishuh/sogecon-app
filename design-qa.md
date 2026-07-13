@@ -305,3 +305,90 @@ No actionable P0, P1, or P2 differences remain.
 - Recheck dense result lists, long organization names, populated work details, and multiple pages when approved representative synthetic fixtures exist.
 
 final result: passed
+
+## My profile and privacy design QA
+
+- Source visual truth: `/home/ginis/sogecon-app/.artifacts/design-qa-me-233/source-hybrid.png`
+- Implementation mobile captures: `/home/ginis/sogecon-app/.artifacts/design-qa-me-233/implementation-mobile.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-me-233/implementation-mobile-lower.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-me-233/implementation-mobile-contact-open.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-me-233/implementation-mobile-change-request.png`
+- Implementation desktop captures: `/home/ginis/sogecon-app/.artifacts/design-qa-me-233/implementation-desktop.png`, `/home/ginis/sogecon-app/.artifacts/design-qa-me-233/implementation-desktop-lower.png`
+- Full-view mobile comparison: `/home/ginis/sogecon-app/.artifacts/design-qa-me-233/comparison-source-vs-implementation-mobile.png`
+- Viewports: mobile `390×844`; desktop `1440×1024`; responsive smoke `768×900`
+- State: production runtime, authenticated synthetic E2E member; no profile save, avatar upload, change-request submission, database, or fixture mutation
+
+### Findings
+
+No actionable P0, P1, or P2 differences remain.
+
+- [P3] The final privacy section begins at document Y `455.39px`, `5.39px` below the focused `450px` art-direction target.
+  - Location: mobile `fieldset[aria-describedby="profile-visibility-help"]`.
+  - Evidence: the final source-to-implementation comparison and browser rect measurement show preview, privacy, summaries, save, and change-request entry in the intended order; save is at `793.39px` and change request at `942.19px`, both within their acceptance targets.
+  - Impact: no meaningful discovery or task-flow cost; the difference is a small spacing variation.
+  - Follow-up: none unless later content-density testing requires another compact pass.
+
+- [P3] The source uses a filled muted-rose avatar, while the implementation uses the repository's existing pink outline fallback for members without an uploaded image.
+  - Location: identity and directory preview avatars.
+  - Evidence: both final mobile and desktop captures use the same purposeful repository fallback and a real 44px photo-change control.
+  - Impact: minor visual-source difference only; no placeholder box or broken asset is shown.
+  - Follow-up: verify a real uploaded avatar when an approved synthetic image fixture is available.
+
+### Required fidelity surfaces
+
+- Fonts and typography: passed. Existing Pretendard and KoPub variables remain authoritative; the semantic `h1` is followed by `h2` sections, identity and status are compact on mobile, and desktop hierarchy remains unchanged.
+- Spacing and layout rhythm: passed. The selected privacy-first order is preserved, the mobile document shrank from `1839px` during the failed iteration to `1482px`, and the save and change-request actions now meet their focused document-position targets.
+- Colors and visual tokens: passed. Existing Sogang burgundy, navy text, warm-white surfaces, neutral rules, semantic success color, and brand focus ring remain in use without a new palette or gradient.
+- Image and icon fidelity: passed for the available state. The official header logo remains intact; Phosphor icons provide camera, privacy, contact, organization, status, and change-request cues; no hand-built SVG or fake asset was introduced.
+- Copy and content: passed. Korean identity, saved/dirty state, privacy impact, contact and organization summaries, support, and change-request copy use user language and expose no raw enums, internal IDs, HTTP text, or serialized objects.
+
+### Responsive and interaction evidence
+
+- Mobile document: `scrollWidth=clientWidth=375`; clipped or overlapping controls: 0.
+- Final mobile positions: preview `276.99px`, privacy `455.39px`, summaries `634.99px`, save `793.39px`, change-request entry `942.19px`.
+- Photo change, change-request actions, lunar checkbox label, inputs, and primary actions retain at least a `44px` operable area.
+- Privacy choices expose accessible names for all members, same cohort, and private; their help and live status update with the selection and return to `all` without saving.
+- Contact and organization summaries use matching `aria-expanded`, `aria-controls`, and hidden targets, and the single-section state closes one when the other opens.
+- Dirty feedback changes both the top status and save CTA, then returns to the saved state when the temporary edit is reverted.
+- Desktop document: `scrollWidth=clientWidth=1440`; responsive smoke at `768px` and `1440px` found no clipped controls.
+- Console errors/warnings, hydration, chunk, and CSP errors: 0; observed product 4xx/5xx: 0.
+
+### Comparison history
+
+#### Iteration 1
+
+- Finding: [P2] The audited page was a roughly `1365px` undifferentiated form with the save action about `1662px` below the heading, weak section semantics, a native privacy select, and a lunar-checkbox hit area below `44px`.
+- Fix: rebuilt the page as identity and save status, directory preview, three descriptive privacy radio cards, collapsed contact and organization summaries, a clear save boundary, and a separate change-request module.
+- Post-fix evidence: automated tests, lint, production build, and repository guards passed; Windows production QA confirmed the new hierarchy, privacy behavior, dirty state, 44px controls, and responsive stability.
+
+#### Iteration 2
+
+- Finding: [P1] Browser QA initially appeared to show a contact/organization accordion mismatch, and the implementation allowed both independent panels to remain open.
+- Fix: replaced two booleans with a single explicit `openSection` state and added regression coverage proving the newly opened panel closes the other.
+- Post-fix evidence: fresh production Chrome checks showed contact opens only contact fields, organization opens only organization fields, and button, target, and label visibility remain aligned.
+
+#### Iteration 3
+
+- Finding: [P2] The first redesign still placed preview at `468.99px`, privacy at `691.39px`, save at `1135.39px`, and change request at `1292.19px`, giving photo editing more mobile priority than the privacy task.
+- Fix: hid the explanatory paragraph visually on mobile while keeping it accessible, integrated photo change into the identity avatar, compacted the identity row, and reduced mobile preview, privacy, summary-row, and section spacing without changing desktop density.
+- Post-fix evidence: final production Chrome measurements are preview `276.99px`, privacy `455.39px`, save `793.39px`, and change request `942.19px`; the full-view comparison classifies the remaining `5.39px` privacy spacing difference as P3.
+
+#### Iteration 4
+
+- Finding: [P1] PR review found that the mobile camera action targeted a file input inside a `display:none` responsive parent and that the visually hidden privacy radios had no card-level keyboard focus ring. It also identified loading/empty ambiguity, URL resolver drift, missing mobile upload guidance, and missing validation-open coverage.
+- Fix: moved the shared file input into the always-active DOM, restored the mobile size/type guidance, added `focus-within` rings to privacy cards, switched avatars to `resolveApiAssetUrl`, separated change-request loading from empty state, and added focused regression tests.
+- Post-fix evidence: targeted profile, change-request, and asset URL tests pass together with the full Web suite, lint, and production build. Windows production focused QA opened and cancelled the native file chooser from the mobile camera action, found no `display:none` ancestor on the shared file input, confirmed the visible mobile upload guidance, and verified keyboard movement plus the white-offset brand ring on all privacy cards. With the new guidance line, focused mobile positions are preview `304.99px`, privacy `483.39px`, save `821.39px`, and change request `949.39px`; the document remains `390/390` with no P2 impact. Loading-versus-empty timing is covered by the focused automated test because the Browser Control interception could not reliably pause the server-side request.
+- Follow-up polish: the re-review's only remaining Minor was closed in the same branch by separating change-request history fetch errors from the empty state and providing a 44px retry action with regression coverage.
+
+### Implementation checklist
+
+- [x] Preserve the official logo, repository fonts, Sogang color system, existing auth, profile, privacy, and change-request contracts.
+- [x] Show identity, saved/dirty status, and the directory-facing profile preview before editing details.
+- [x] Replace the opaque privacy select with accessible, descriptive radio cards.
+- [x] Collapse contact and organization fields into accurate one-at-a-time summaries with validation recovery.
+- [x] Keep save and name/cohort change-request boundaries separate and explain empty request history.
+- [x] Verify Mobile, Tablet, Desktop, keyboard focus, 44px actions, accordion mapping, privacy state, dirty recovery, console, network, and no document overflow.
+- [x] Compare the selected source and final implementation in one full-view mobile evidence image.
+
+### Follow-up polish
+
+- Recheck a completed avatar upload, populated change-request history, and long organization/address content when approved synthetic fixtures are available.
+
+final result: passed

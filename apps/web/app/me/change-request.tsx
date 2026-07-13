@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CaretDown, IdentificationCard } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { useToast } from '../../components/toast';
 import { ApiError } from '../../lib/api';
@@ -88,7 +89,7 @@ function InlineForm({ fieldName, currentValue, hasPending, onClose }: InlineForm
   }
 
   return (
-    <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-end">
+    <div className="mt-3 flex flex-col items-stretch gap-2 rounded-xl bg-white p-3 sm:flex-row sm:items-end">
       <label className="flex flex-1 flex-col text-xs">
         <span className="mb-1 text-text-secondary">
           새 {label} (현재: {currentValue})
@@ -127,7 +128,13 @@ type ChangeRequestSectionProps = {
 export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
   const [editingField, setEditingField] = useState<'name' | 'cohort' | null>(null);
 
-  const { data: requests } = useQuery({
+  const {
+    data: requests,
+    isError,
+    isFetching,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['me', 'change-requests'],
     queryFn: listMyChangeRequests,
     staleTime: 10_000,
@@ -145,18 +152,26 @@ export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
   ];
 
   return (
-    <section className="flex flex-col gap-3">
-      <h3 className="text-sm font-semibold text-text-primary">이름 / 기수</h3>
-      <p className="text-xs text-text-muted">
-        이름과 기수는 동문회 사무국 확인을 거쳐 변경됩니다.
-      </p>
-      <div className="rounded border border-neutral-border bg-surface-raised p-3">
+    <section aria-labelledby="change-request-title" className="rounded-2xl border border-neutral-border bg-surface-raised p-5 sm:p-6">
+      <div className="flex items-start gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-brand-700">
+          <IdentificationCard size={24} aria-hidden="true" />
+        </span>
+        <div>
+          <h2 id="change-request-title" className="text-xl font-semibold text-text-primary">이름·기수 변경 요청</h2>
+          <p className="mt-1 text-sm leading-6 text-text-muted">
+            이름과 기수는 동문회 사무국 확인 후 반영돼요.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 divide-y divide-neutral-border rounded-xl border border-neutral-border bg-white px-4">
         {fieldRows.map(({ key, label, value }) => (
-          <div key={key} className="mb-2 last:mb-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm">
+          <div key={key} className="py-3">
+            <div className="flex min-h-11 items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2 text-sm">
                 <span className="font-medium text-text-secondary">{label}</span>
-                <span className="text-text-primary">{value}</span>
+                <span className="truncate text-text-primary">{value}</span>
                 {pendingFields.has(key) && <StatusBadge status="pending" />}
               </div>
               {editingField !== key && (
@@ -166,7 +181,7 @@ export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
                   variant="ghost"
                   size="sm"
                   aria-label={`${label} 변경 요청`}
-                  className="shrink-0 underline"
+                  className="shrink-0"
                 >
                   변경 요청
                 </Button>
@@ -186,11 +201,26 @@ export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
         ))}
       </div>
 
-      {/* 요청 이력 */}
-      {requests && requests.length > 0 && (
-        <details className="text-xs">
-          <summary className="inline-flex min-h-11 cursor-pointer items-center text-text-secondary hover:text-text-primary">
-            변경 요청 이력 ({requests.length}건)
+      {isLoading ? (
+        <p className="mt-4 text-sm text-text-muted" role="status">변경 요청 이력을 불러오는 중…</p>
+      ) : isError ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2" role="alert">
+          <p className="text-sm text-text-secondary">변경 요청 이력을 불러오지 못했어요.</p>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={isFetching}
+            onClick={() => void refetch()}
+          >
+            {isFetching ? '다시 확인 중…' : '다시 확인하기'}
+          </Button>
+        </div>
+      ) : requests && requests.length > 0 ? (
+        <details className="mt-4 text-xs">
+          <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 font-medium text-text-secondary hover:text-text-primary">
+            변경 요청 이력 {requests.length}건
+            <CaretDown size={16} aria-hidden="true" />
           </summary>
           <ul className="mt-2 space-y-1">
             {requests.map((r: ProfileChangeRequestRead) => (
@@ -212,6 +242,8 @@ export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
             ))}
           </ul>
         </details>
+      ) : (
+        <p className="mt-4 text-sm text-text-muted">아직 접수한 변경 요청이 없어요.</p>
       )}
     </section>
   );

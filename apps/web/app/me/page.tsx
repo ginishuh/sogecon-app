@@ -1,23 +1,22 @@
 "use client";
 
-import Image from 'next/image';
+import { Buildings, Camera, CaretRight, CheckCircle, Phone } from '@phosphor-icons/react';
 import Link from 'next/link';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import Button from '../../components/ui/button';
+import { useToast } from '../../components/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { ApiError } from '../../lib/api';
 import { memberApiErrorToMessage } from '../../lib/error-map';
-import { useToast } from '../../components/toast';
+import { getMe, updateAvatar, updateMe, type MemberDto } from '../../services/me';
+import { ChangeRequestSection } from './change-request';
+import { Avatar, ProfilePreview, VisibilityField } from './profile-overview';
 import {
   buildProfilePayload,
-  ProfileErrors,
-  ProfileForm,
-  ProfileVisibility,
+  type ProfileErrors,
+  type ProfileForm,
   validateProfileForm,
 } from './validation';
-import { getMe, updateMe, updateAvatar, type MemberDto, API_BASE } from '../../services/me';
-import { ChangeRequestSection } from './change-request';
-import Button from '../../components/ui/button';
-import { VISIBILITY_INFO } from '../../lib/member-experience';
 
 const asDisplayString = (value: string | null | undefined): string => value ?? '';
 
@@ -37,13 +36,12 @@ const toFormState = (member: MemberDto): ProfileForm => ({
   industry: asDisplayString(member.industry),
 });
 
-const inputClass =
-  'mt-1 min-h-11 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400';
-const textareaClass =
-  'mt-1 min-h-11 w-full rounded border border-neutral-border px-3 py-2 focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400';
+const inputClass = [
+  'mt-1 min-h-11 w-full min-w-0 rounded-md border border-neutral-border bg-white px-3 py-2 text-text-primary',
+  'placeholder:text-text-muted focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-400',
+].join(' ');
 
 const fieldErrorId = (field: keyof ProfileForm) => `profile-${field}-error`;
-
 const MAX_UPLOAD_BYTES = 2_000_000;
 
 type StringField = Exclude<keyof ProfileForm, 'birth_lunar' | 'visibility'>;
@@ -72,156 +70,75 @@ function TextField<K extends StringField>({
   const error = errors[field];
   const errorId = error ? fieldErrorId(field) : undefined;
   const inputId = `profile-${field}`;
+  const sharedProps = {
+    id: inputId,
+    className: inputClass,
+    value: draft[field],
+    placeholder,
+    'aria-invalid': Boolean(error),
+    'aria-describedby': errorId,
+  };
 
   return (
-    <div className="flex flex-col">
+    <div className="min-w-0">
       <label htmlFor={inputId} className="font-medium text-text-primary">{label}</label>
       {multiline ? (
         <textarea
-          id={inputId}
-          className={textareaClass}
+          {...sharedProps}
           rows={rows}
-          value={draft[field]}
-          placeholder={placeholder}
-          onChange={(event) =>
-            onChange(field, event.target.value as ProfileForm[K])
-          }
-          aria-invalid={Boolean(error)}
-          aria-describedby={errorId}
+          onChange={(event) => onChange(field, event.target.value as ProfileForm[K])}
         />
       ) : (
         <input
-          id={inputId}
-          className={inputClass}
-          value={draft[field]}
-          placeholder={placeholder}
-          onChange={(event) =>
-            onChange(field, event.target.value as ProfileForm[K])
-          }
-          aria-invalid={Boolean(error)}
-          aria-describedby={errorId}
+          {...sharedProps}
+          onChange={(event) => onChange(field, event.target.value as ProfileForm[K])}
         />
       )}
-      {error ? (
-        <p id={errorId} role="alert" className="mt-1 text-xs text-state-error">
-          {error}
-        </p>
-      ) : null}
+      {error ? <p id={errorId} role="alert" className="mt-1 text-xs text-state-error">{error}</p> : null}
     </div>
   );
 }
 
-type CheckboxFieldProps = {
-  label: string;
+function CheckboxField({
+  checked,
+  onChange,
+}: {
   checked: boolean;
   onChange: (next: boolean) => void;
-};
-
-function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
+}) {
   return (
-    <label className="inline-flex items-center gap-2 text-sm font-medium text-text-primary">
+    <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-1 text-sm font-medium text-text-primary">
       <input
         type="checkbox"
+        className="h-5 w-5 accent-brand-700"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
       />
-      {label}
+      생일을 음력으로 표시
     </label>
   );
 }
 
-type VisibilityFieldProps = {
-  value: ProfileVisibility;
-  errors: ProfileErrors;
-  onChange: (next: ProfileVisibility) => void;
-  helpId: string;
-};
-
-function VisibilityField({
-  value,
-  errors,
-  onChange,
-  helpId,
-}: VisibilityFieldProps) {
-  const error = errors.visibility;
-  const errorId = error ? fieldErrorId('visibility') : undefined;
-  const describedBy = [helpId, errorId].filter(Boolean).join(' ') || undefined;
-  const fieldId = 'profile-visibility';
-
-  return (
-    <div className="flex flex-col">
-      <label htmlFor={fieldId} className="font-medium text-text-primary">공개 범위</label>
-      <select
-        id={fieldId}
-        className={inputClass}
-        value={value}
-        onChange={(event) => onChange(event.target.value as ProfileVisibility)}
-        aria-describedby={describedBy}
-      >
-        <option value="all">전체 공개</option>
-        <option value="cohort">기수 한정 공개</option>
-        <option value="private">비공개</option>
-      </select>
-      <p id={helpId} className="mt-1 text-xs text-text-muted">
-        {VISIBILITY_INFO[value].description}
-      </p>
-      <p className="mt-2 rounded-lg bg-surface-raised p-3 text-sm font-medium text-text-primary" role="status">현재 선택: {VISIBILITY_INFO[value].label}</p>
-      {error ? (
-        <p id={errorId} role="alert" className="mt-1 text-xs text-state-error">
-          {error}
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-function ProfileSummary({ profile }: { profile: MemberDto }) {
-  return (
-    <dl className="rounded border border-neutral-border bg-surface-raised p-3 text-xs text-text-muted">
-      <div className="flex justify-between">
-        <dt className="font-medium text-text-secondary">학번</dt>
-        <dd>{profile.student_id}</dd>
-      </div>
-    </dl>
-  );
-}
-
-function FormErrorMessage({
-  message,
-  id,
-}: {
-  message?: string;
-  id: string;
-}) {
+function FormErrorMessage({ message, id }: { message?: string; id: string }) {
   if (!message) return null;
-  return (
-    <p
-      id={id}
-      role="alert"
-      className="rounded border border-state-error-ring bg-state-error-subtle px-3 py-2 text-xs text-state-error"
-    >
-      {message}
-    </p>
-  );
+  return <p id={id} role="alert" className="rounded-lg bg-state-error-subtle px-4 py-3 text-sm text-state-error">{message}</p>;
 }
 
-type AvatarUploaderProps = {
-  avatarUrl: string | null;
+function AvatarUploader({
+  profile,
+  uploading,
+  onUpload,
+}: {
+  profile: MemberDto;
   uploading: boolean;
   onUpload: (file: File) => Promise<void>;
-};
-
-function AvatarUploader({ avatarUrl, uploading, onUpload }: AvatarUploaderProps) {
+}) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleButtonClick = () => {
-    inputRef.current?.click();
-  };
-
   const handleInputChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const input = event.target;
-    const file = input.files && input.files[0];
+    const file = input.files?.[0];
     if (!file) return;
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
@@ -237,65 +154,96 @@ function AvatarUploader({ avatarUrl, uploading, onUpload }: AvatarUploaderProps)
   };
 
   return (
-    <section aria-label="프로필 사진" className="flex items-start gap-4">
-      <div className="relative h-20 w-20 overflow-hidden rounded-full border border-neutral-border bg-surface-raised">
-        {previewUrl ? (
-          <Image
-            src={previewUrl}
-            alt="선택한 프로필 사진 미리보기"
-            fill
-            unoptimized
-            sizes="80px"
-            className="object-cover"
-          />
-        ) : avatarUrl ? (
-          <Image
-            src={`${API_BASE}${avatarUrl}`}
-            alt="현재 프로필 사진"
-            fill
-            unoptimized
-            sizes="80px"
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs text-text-muted">
-            사진 없음
-          </div>
-        )}
-        {uploading ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/70 text-xs text-state-success">
-            업로드 중…
-          </div>
-        ) : null}
+    <section aria-label="프로필 사진" className="flex min-w-0 items-center gap-4">
+      <div className="relative shrink-0">
+        <Avatar profile={profile} previewUrl={previewUrl} />
+        <button
+          type="button"
+          aria-label={uploading ? '프로필 사진 업로드 중' : '프로필 사진 변경'}
+          className="absolute -bottom-2 -right-2 flex h-11 w-11 items-center justify-center rounded-full border border-neutral-border bg-white text-brand-700 shadow-sm transition-colors hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60 sm:hidden"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+        >
+          <Camera size={20} aria-hidden="true" />
+        </button>
       </div>
-      <div className="flex flex-col gap-1 text-xs text-text-muted">
-        <Button type="button" onClick={handleButtonClick} disabled={uploading} variant="secondary" size="sm" className="w-fit">
-          {uploading ? '업로드 중…' : '이미지 선택'}
+      <div className="hidden min-w-0 space-y-1 sm:block">
+        <Button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          variant="secondary"
+          size="sm"
+        >
+          {uploading ? '업로드 중…' : '사진 변경'}
         </Button>
-        <p>최대 512px · 2MB · JPG/PNG/WEBP</p>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleInputChange}
-        />
+        <p className="text-xs leading-5 text-text-muted">최대 2MB · JPG/PNG/WEBP</p>
       </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={handleInputChange}
+      />
     </section>
   );
 }
 
-type ProfileFormSectionProps = {
-  draft: ProfileForm;
-  profile: MemberDto;
-  errors: ProfileErrors;
-  busy: boolean;
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  onChange: <K extends keyof ProfileForm>(field: K, value: ProfileForm[K]) => void;
-  visibilityHelpId: string;
-  formErrorId: string;
-  isDirty: boolean;
-  savedMessage: string | null;
+function SectionToggle({
+  id,
+  title,
+  summary,
+  icon: Icon,
+  open,
+  onToggle,
+}: {
+  id: string;
+  title: string;
+  summary: string;
+  icon: typeof Phone;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="flex min-h-16 w-full items-center gap-3 border-t border-neutral-border py-3 text-left first:border-t-0 sm:min-h-20 sm:py-4"
+      aria-expanded={open}
+      aria-controls={id}
+      onClick={onToggle}
+    >
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-raised text-text-secondary">
+        <Icon size={23} aria-hidden="true" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-semibold text-text-primary">{title}</span>
+        <span className="mt-1 block truncate text-sm text-text-muted">{summary}</span>
+      </span>
+      <CaretRight className={`shrink-0 transition-transform ${open ? 'rotate-90' : ''}`} size={22} aria-hidden="true" />
+    </button>
+  );
+}
+
+const CONTACT_FIELDS: Array<keyof ProfileErrors> = ['email', 'birth_date', 'phone', 'addr_personal'];
+const ORGANIZATION_FIELDS: Array<keyof ProfileErrors> = [
+  'major',
+  'company',
+  'department',
+  'job_title',
+  'company_phone',
+  'addr_company',
+  'industry',
+];
+
+const hasAnyError = (errors: ProfileErrors, fields: Array<keyof ProfileErrors>) =>
+  fields.some((field) => Boolean(errors[field]));
+
+const summarizeValues = (values: string[], emptyMessage: string) => {
+  const summary = values.filter(Boolean).join(' · ');
+  return summary || emptyMessage;
 };
 
 function ProfileFormSection({
@@ -309,87 +257,95 @@ function ProfileFormSection({
   formErrorId,
   isDirty,
   savedMessage,
-}: ProfileFormSectionProps) {
+}: {
+  draft: ProfileForm;
+  profile: MemberDto;
+  errors: ProfileErrors;
+  busy: boolean;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  onChange: <K extends keyof ProfileForm>(field: K, value: ProfileForm[K]) => void;
+  visibilityHelpId: string;
+  formErrorId: string;
+  isDirty: boolean;
+  savedMessage: string | null;
+}) {
+  const [openSection, setOpenSection] = useState<'contact' | 'organization' | null>(null);
+  const contactHasError = hasAnyError(errors, CONTACT_FIELDS);
+  const organizationHasError = hasAnyError(errors, ORGANIZATION_FIELDS);
+
+  useEffect(() => {
+    if (contactHasError) setOpenSection('contact');
+    else if (organizationHasError) setOpenSection('organization');
+  }, [contactHasError, organizationHasError]);
+
+  const contactSummary = summarizeValues([draft.email, draft.phone], '입력한 연락처가 없어요');
+  const organizationSummary = summarizeValues(
+    [draft.company, draft.department, draft.job_title],
+    '소속 정보가 비어 있어요',
+  );
+
   return (
-    <form
-      onSubmit={onSubmit}
-      className="flex flex-col gap-4 text-sm"
-      aria-describedby={errors.form ? formErrorId : undefined}
-    >
-      <ProfileSummary profile={profile} />
+    <form onSubmit={onSubmit} className="space-y-3 sm:space-y-7" aria-describedby={errors.form ? formErrorId : undefined}>
       <FormErrorMessage message={errors.form} id={formErrorId} />
-      {savedMessage ? <p role="status" className="rounded-lg bg-state-success-subtle px-3 py-2 text-sm text-state-success">{savedMessage}</p> : null}
-      <TextField field="email" label="이메일" draft={draft} errors={errors} onChange={onChange} />
-      <TextField field="major" label="전공(선택)" draft={draft} errors={errors} onChange={onChange} />
+      {savedMessage ? <p role="status" className="rounded-xl bg-state-success-subtle px-4 py-3 text-sm text-state-success">{savedMessage}</p> : null}
+
+      <ProfilePreview profile={profile} draft={draft} />
+
       <VisibilityField
         value={draft.visibility}
         errors={errors}
         onChange={(next) => onChange('visibility', next)}
         helpId={visibilityHelpId}
       />
-      <TextField
-        field="birth_date"
-        label="생일(선택)"
-        draft={draft}
-        errors={errors}
-        onChange={onChange}
-        placeholder="YYYY-MM-DD"
-      />
-      <CheckboxField
-        label="음력 여부"
-        checked={draft.birth_lunar}
-        onChange={(next) => onChange('birth_lunar', next)}
-      />
-      <TextField
-        field="phone"
-        label="휴대전화(선택)"
-        draft={draft}
-        errors={errors}
-        onChange={onChange}
-        placeholder="010-1234-5678"
-      />
-      <TextField field="company" label="회사명(선택)" draft={draft} errors={errors} onChange={onChange} />
-      <TextField
-        field="department"
-        label="부서(선택)"
-        draft={draft}
-        errors={errors}
-        onChange={onChange}
-      />
-      <TextField
-        field="job_title"
-        label="직함(선택)"
-        draft={draft}
-        errors={errors}
-        onChange={onChange}
-      />
-      <TextField
-        field="company_phone"
-        label="회사 연락처(선택)"
-        draft={draft}
-        errors={errors}
-        onChange={onChange}
-        placeholder="02-1234-5678"
-      />
-      <TextField
-        field="addr_personal"
-        label="개인 주소(선택)"
-        draft={draft}
-        errors={errors}
-        onChange={onChange}
-        multiline
-      />
-      <TextField
-        field="addr_company"
-        label="회사 주소(선택)"
-        draft={draft}
-        errors={errors}
-        onChange={onChange}
-        multiline
-      />
-      <TextField field="industry" label="업종(선택)" draft={draft} errors={errors} onChange={onChange} />
-      <Button type="submit" disabled={!isDirty} loading={busy} size="lg">{busy ? '저장 중…' : isDirty ? '변경사항 저장하기' : '저장된 상태입니다'}</Button>
-      <Link href="/support/contact" className="text-link inline-flex min-h-11 items-center justify-center text-sm">내 정보 수정이 어려우신가요? 사무국에 문의하기</Link>
+
+      <section aria-label="프로필 세부 정보" className="border-y border-neutral-border">
+        <SectionToggle
+          id="profile-contact-fields"
+          title="연락처 정보"
+          summary={contactSummary}
+          icon={Phone}
+          open={openSection === 'contact'}
+          onToggle={() => setOpenSection((current) => (current === 'contact' ? null : 'contact'))}
+        />
+        <div id="profile-contact-fields" hidden={openSection !== 'contact'} className="grid gap-4 border-t border-neutral-border py-5 sm:grid-cols-2">
+          <TextField field="email" label="이메일" draft={draft} errors={errors} onChange={onChange} />
+          <TextField field="phone" label="휴대전화(선택)" draft={draft} errors={errors} onChange={onChange} placeholder="010-1234-5678" />
+          <TextField field="birth_date" label="생일(선택)" draft={draft} errors={errors} onChange={onChange} placeholder="YYYY-MM-DD" />
+          <CheckboxField checked={draft.birth_lunar} onChange={(next) => onChange('birth_lunar', next)} />
+          <div className="sm:col-span-2">
+            <TextField field="addr_personal" label="개인 주소(선택)" draft={draft} errors={errors} onChange={onChange} multiline />
+          </div>
+        </div>
+
+        <SectionToggle
+          id="profile-organization-fields"
+          title="소속 정보"
+          summary={organizationSummary}
+          icon={Buildings}
+          open={openSection === 'organization'}
+          onToggle={() => setOpenSection((current) => (current === 'organization' ? null : 'organization'))}
+        />
+        <div id="profile-organization-fields" hidden={openSection !== 'organization'} className="grid gap-4 border-t border-neutral-border py-5 sm:grid-cols-2">
+          <TextField field="major" label="전공(선택)" draft={draft} errors={errors} onChange={onChange} />
+          <TextField field="industry" label="업종(선택)" draft={draft} errors={errors} onChange={onChange} />
+          <TextField field="company" label="회사명(선택)" draft={draft} errors={errors} onChange={onChange} />
+          <TextField field="department" label="부서(선택)" draft={draft} errors={errors} onChange={onChange} />
+          <TextField field="job_title" label="직함(선택)" draft={draft} errors={errors} onChange={onChange} />
+          <TextField field="company_phone" label="회사 연락처(선택)" draft={draft} errors={errors} onChange={onChange} placeholder="02-1234-5678" />
+          <div className="sm:col-span-2">
+            <TextField field="addr_company" label="회사 주소(선택)" draft={draft} errors={errors} onChange={onChange} multiline />
+          </div>
+        </div>
+      </section>
+
+      <div className="space-y-3">
+        <Button type="submit" disabled={!isDirty} loading={busy} size="lg" className="w-full">
+          {busy ? '저장 중…' : isDirty ? '변경사항 저장하기' : '저장된 상태입니다'}
+        </Button>
+        <Link href="/support/contact" className="text-link inline-flex min-h-11 w-full items-center justify-center text-sm">
+          내 정보 수정이 어려우신가요? 사무국에 문의하기
+        </Link>
+      </div>
     </form>
   );
 }
@@ -411,9 +367,7 @@ export default function MePage() {
       setMe(null);
       setForm(null);
       setErrors({});
-      return () => {
-        cancelled = true;
-      };
+      return () => { cancelled = true; };
     }
     void (async () => {
       try {
@@ -426,34 +380,27 @@ export default function MePage() {
         if (cancelled) return;
         setMe(null);
         setForm(null);
-        setErrors((prev) => ({ ...prev, form: '내 정보를 불러오지 못했습니다.' }));
+        setErrors((previous) => ({ ...previous, form: '내 정보를 불러오지 못했습니다.' }));
         toast.show('내 정보를 불러오지 못했습니다.', { type: 'error' });
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [reloadKey, status, toast]);
 
-  const handleChange = <K extends keyof ProfileForm>(
-    field: K,
-    value: ProfileForm[K]
-  ) => {
-    setForm((prev) => (prev ? { ...prev, [field]: value } : prev));
+  const handleChange = <K extends keyof ProfileForm>(field: K, value: ProfileForm[K]) => {
+    setForm((previous) => (previous ? { ...previous, [field]: value } : previous));
     setSavedMessage(null);
-    setErrors((prev) => {
-      if (!prev[field] && !prev.form) return prev;
-      const next: ProfileErrors = { ...prev };
+    setErrors((previous) => {
+      if (!previous[field] && !previous.form) return previous;
+      const next = { ...previous };
       delete next[field];
-      if (next.form) {
-        delete next.form;
-      }
+      delete next.form;
       return next;
     });
   };
 
-  const onSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSave = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!form) return;
     const validation = validateProfileForm(form);
     if (Object.keys(validation).length > 0) {
@@ -464,8 +411,7 @@ export default function MePage() {
     }
     setBusy(true);
     try {
-      const payload = buildProfilePayload(form);
-      const updated = await updateMe(payload);
+      const updated = await updateMe(buildProfilePayload(form));
       setMe(updated);
       setForm(toFormState(updated));
       setErrors({});
@@ -473,27 +419,18 @@ export default function MePage() {
       setSavedMessage(message);
       toast.show('변경사항을 저장했습니다.', { type: 'success' });
     } catch (error) {
-      const messageForToast = error instanceof ApiError
+      const message = error instanceof ApiError
         ? memberApiErrorToMessage(error.code, error.message)
         : '내 정보를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.';
-      if (error instanceof ApiError) {
-        if (error.status === 401) {
-          setErrors((prev) => ({
-            ...prev,
-            form: '로그인 세션이 만료되었습니다. 다시 로그인해주세요.',
-          }));
-        } else if (error.status === 422) {
-          setErrors((prev) => ({
-            ...prev,
-            form: '서버 검증을 통과하지 못했습니다. 입력값을 다시 확인해주세요.',
-          }));
-        } else {
-          setErrors((prev) => ({ ...prev, form: messageForToast }));
-        }
-      } else {
-        setErrors((prev) => ({ ...prev, form: messageForToast }));
-      }
-      toast.show(messageForToast, { type: 'error' });
+      setErrors((previous) => ({
+        ...previous,
+        form: error instanceof ApiError && error.status === 401
+          ? '로그인 세션이 만료되었습니다. 다시 로그인해주세요.'
+          : error instanceof ApiError && error.status === 422
+            ? '서버 검증을 통과하지 못했습니다. 입력값을 다시 확인해주세요.'
+            : message,
+      }));
+      toast.show(message, { type: 'error' });
       setSavedMessage(null);
     } finally {
       setBusy(false);
@@ -511,30 +448,28 @@ export default function MePage() {
     }
     setAvatarUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('avatar', file);
-      const updated = await updateAvatar(formData);
+      const payload = new FormData();
+      payload.append('avatar', file);
+      const updated = await updateAvatar(payload);
       setMe(updated);
       setForm(toFormState(updated));
-      setErrors((prev) => {
-        if (!prev.form) return prev;
-        const rest = { ...prev };
-        delete rest.form;
-        return rest;
+      setErrors((previous) => {
+        const next = { ...previous };
+        delete next.form;
+        return next;
       });
       toast.show('프로필 사진이 업데이트되었습니다.', { type: 'success' });
     } catch (error) {
-      const message = error instanceof ApiError
-        ? memberApiErrorToMessage(error.code, error.message)
-        : '프로필 사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요.';
-      toast.show(message, { type: 'error' });
+      toast.show(
+        error instanceof ApiError
+          ? memberApiErrorToMessage(error.code, error.message)
+          : '프로필 사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요.',
+        { type: 'error' },
+      );
     } finally {
       setAvatarUploading(false);
     }
   };
-
-  const visibilityHelpId = 'profile-visibility-help';
-  const formErrorId = 'profile-form-error';
 
   const informationStatus = (() => {
     if (status === 'loading') return 'loading';
@@ -560,13 +495,19 @@ export default function MePage() {
     const profile = me as MemberDto;
     const isDirty = JSON.stringify(draft) !== JSON.stringify(toFormState(profile));
     body = (
-      <div className="flex flex-col gap-6">
-        <AvatarUploader
-          avatarUrl={profile.avatar_url}
-          uploading={avatarUploading}
-          onUpload={onAvatarUpload}
-        />
-        <ChangeRequestSection profile={profile} />
+      <div className="space-y-6 sm:space-y-8">
+        <section aria-labelledby="profile-identity-title" className="grid grid-cols-[auto_1fr] items-center gap-4 border-b border-neutral-border pb-6 sm:gap-5 sm:pb-8">
+          <AvatarUploader profile={profile} uploading={avatarUploading} onUpload={onAvatarUpload} />
+          <div className="min-w-0">
+            <h2 id="profile-identity-title" className="truncate text-2xl font-semibold text-text-primary">{profile.name} · {profile.cohort}기</h2>
+            <p className={`mt-3 flex items-center gap-2 text-sm font-medium ${isDirty ? 'text-brand-700' : 'text-state-success'}`} role="status">
+              <CheckCircle size={21} weight="fill" aria-hidden="true" />
+              {isDirty ? '저장하지 않은 변경사항이 있어요' : '저장된 상태예요'}
+            </p>
+            <p className="mt-2 text-xs leading-5 text-text-muted sm:hidden">사진은 JPG, PNG, WEBP · 최대 2MB</p>
+          </div>
+        </section>
+
         <ProfileFormSection
           draft={draft}
           profile={profile}
@@ -574,18 +515,23 @@ export default function MePage() {
           busy={busy}
           onSubmit={onSave}
           onChange={handleChange}
-          visibilityHelpId={visibilityHelpId}
-          formErrorId={formErrorId}
+          visibilityHelpId="profile-visibility-help"
+          formErrorId="profile-form-error"
           isDirty={isDirty}
           savedMessage={savedMessage}
         />
+
+        <ChangeRequestSection profile={profile} />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 p-6">
-      <header className="space-y-2"><h1 className="text-2xl font-semibold">내 정보와 공개 범위</h1><p className="text-sm text-text-muted">연락처와 소속 정보를 최신으로 유지하고, 동문 수첩에 누구에게 보여줄지 선택해 주세요.</p></header>
+    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-6 sm:space-y-8 sm:px-6 sm:py-10 lg:px-8">
+      <header className="space-y-3">
+        <h1 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">내 정보와 공개 범위</h1>
+        <p className="sr-only max-w-2xl text-sm leading-6 text-text-muted sm:not-sr-only sm:text-base">연락처와 소속 정보를 최신으로 유지하고, 동문 수첩에 누구에게 보여줄지 선택해 주세요.</p>
+      </header>
       {body}
     </div>
   );
