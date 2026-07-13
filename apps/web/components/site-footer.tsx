@@ -18,7 +18,11 @@ export function SiteFooter() {
       </div>
       <nav aria-label="지원 정보" className="flex flex-wrap gap-3">
         {SUPPORT_LINKS.map((link) => (
-          <Link key={link.href} href={link.href} className="text-link">
+          <Link
+            key={link.href}
+            href={link.href}
+            className="text-link inline-flex min-h-11 min-w-11 items-center justify-center"
+          >
             {link.label}
           </Link>
         ))}

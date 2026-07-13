@@ -40,7 +40,7 @@ export function SiteHeader() {
     <header className="border-b-2 border-brand-700 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
         {/* 로고 */}
-        <Link href="/" className="flex min-w-0 items-center gap-2 text-brand-primary no-underline hover:no-underline" aria-label="홈으로">
+        <Link href="/" className="flex min-h-11 min-w-0 items-center gap-2 text-brand-primary no-underline hover:no-underline" aria-label="홈으로">
           <Image src="/images/brand/sogang-signature.png" alt="서강대학교" width={150} height={50} className="h-auto w-[100px] lg:w-[150px]" priority />
           <span className="font-kopub text-lg tracking-tight text-neutral-ink lg:text-xl truncate">
             경제대학원 총동문회
@@ -73,7 +73,7 @@ export function SiteHeader() {
         {/* 모바일 햄버거 버튼 */}
         <button
           type="button"
-          className="site-header__hamburger lg:hidden inline-flex items-center justify-center rounded-md border border-brand-200 px-3 py-2 text-sm text-brand-700 transition hover:bg-brand-50 hover:text-brand-800 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-700"
+          className="site-header__hamburger inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-brand-200 p-0 text-sm text-brand-700 transition hover:bg-brand-50 hover:text-brand-800 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-700 lg:hidden"
           aria-controls="primary-navigation"
           aria-expanded={open}
           aria-label={open ? '전체 메뉴 닫기' : '전체 메뉴 열기'}
@@ -131,17 +131,17 @@ function DesktopAuthButtons({ status, name }: { status: string; name?: string })
       <InstallAppButton />
       <Link
         href="/login"
-        className="px-3 py-2 text-sm text-white bg-brand-700 rounded-lg no-underline hover:no-underline hover:text-white hover:bg-brand-800 transition-colors"
+        className="inline-flex min-h-11 items-center rounded-lg bg-brand-700 px-3 py-2 text-sm text-white no-underline transition-colors hover:bg-brand-800 hover:text-white hover:no-underline"
       >
         로그인
       </Link>
       <Link
         href="/signup"
-        className="px-3 py-2 text-sm text-brand-700 border border-brand-700 rounded-lg no-underline hover:no-underline hover:bg-brand-50 transition-colors"
+        className="inline-flex min-h-11 items-center rounded-lg border border-brand-700 px-3 py-2 text-sm text-brand-700 no-underline transition-colors hover:bg-brand-50 hover:no-underline"
       >
         {MEMBER_LANGUAGE.signup}
       </Link>
-      <Link href="/activate" className="px-2 text-xs text-text-secondary underline">
+      <Link href="/activate" className="inline-flex min-h-11 items-center px-2 text-xs text-text-secondary underline">
         {MEMBER_LANGUAGE.activation}
       </Link>
     </div>

@@ -3,6 +3,7 @@ import React from 'react';
 import { vi } from 'vitest';
 
 import SignupPage from '../app/signup/page';
+import { ApiError } from '../lib/api';
 import { renderWithProviders } from '../tests/render-with-providers';
 
 const showMock = vi.fn();
@@ -93,6 +94,59 @@ describe('SignupPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '가입 정보 보내기' }));
 
     expect(screen.getByText('연락처를 입력해 주세요.')).toBeInTheDocument();
-    expect(showMock).toHaveBeenCalledWith('연락처를 입력해 주세요.', { type: 'error' });
+    expect(phoneInput).toHaveFocus();
+    expect(phoneInput).toHaveAttribute('aria-invalid', 'true');
+    expect(showMock).not.toHaveBeenCalled();
+  });
+
+  it('숫자가 아닌 기수는 해당 입력에 연결된 오류와 포커스를 제공한다', () => {
+    renderWithProviders(<SignupPage />);
+
+    const cohortInput = screen.getByLabelText('기수') as HTMLInputElement;
+    fireEvent.change(screen.getByLabelText('학번'), { target: { value: '20260001' } });
+    fireEvent.change(screen.getByLabelText('이름'), { target: { value: '홍길동' } });
+    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'hong@example.com' } });
+    fireEvent.change(cohortInput, { target: { value: '58abc' } });
+    fireEvent.change(screen.getByLabelText('연락처'), { target: { value: '01012345678' } });
+    fireEvent.click(screen.getByRole('button', { name: '가입 정보 보내기' }));
+
+    expect(screen.getByText('기수를 숫자로 입력해 주세요.')).toBeInTheDocument();
+    expect(cohortInput).toHaveFocus();
+    expect(cohortInput).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('API 오류 banner로 포커스를 옮겨 긴 폼에서도 안내를 놓치지 않게 한다', async () => {
+    createSignupRequestMock.mockRejectedValueOnce(
+      new ApiError(409, 'signup_already_pending', 'signup_already_pending')
+    );
+    renderWithProviders(<SignupPage />);
+
+    fireEvent.change(screen.getByLabelText('학번'), { target: { value: '20260001' } });
+    fireEvent.change(screen.getByLabelText('이름'), { target: { value: '홍길동' } });
+    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'hong@example.com' } });
+    fireEvent.change(screen.getByLabelText('기수'), { target: { value: '58' } });
+    fireEvent.change(screen.getByLabelText('연락처'), { target: { value: '01012345678' } });
+    fireEvent.click(screen.getByRole('button', { name: '가입 정보 보내기' }));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveFocus();
+    expect(showMock).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText('기수'), { target: { value: 'abc' } });
+    fireEvent.click(screen.getByRole('button', { name: '가입 정보 보내기' }));
+    expect(alert).not.toBeInTheDocument();
+    expect(screen.getByText('기수를 숫자로 입력해 주세요.')).toBeInTheDocument();
+  });
+
+  it('긴 가입 폼을 동문 확인 정보와 연락받을 정보로 나눈다', () => {
+    renderWithProviders(<SignupPage />);
+
+    expect(screen.getByRole('heading', { name: '가입 신청은 이렇게 진행돼요' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '동문 확인 정보' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '연락받을 정보' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '이미 가입했어요' })).toHaveAttribute('href', '/login');
+    const optionalNote = screen.getByText('사무국에 전할 내용이 있나요? (선택)').closest('details');
+    expect(optionalNote).not.toHaveAttribute('open');
+    expect(optionalNote?.querySelector('summary')).toHaveClass('min-h-11');
   });
 });

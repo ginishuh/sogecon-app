@@ -12,10 +12,12 @@ export interface InputProps
   helperText?: string;
   /** 에러 텍스트(존재 시 aria-invalid=true, error id로 설명 연결) */
   errorText?: string;
+  /** 좁은 인증 폼 등에서 label과 control을 한 행에 놓는다. */
+  layout?: 'stacked' | 'inline';
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { label, id, helperText, errorText, className, 'aria-invalid': ariaInvalid, 'aria-describedby': ariaDescribedBy, ...rest },
+  { label, id, helperText, errorText, layout = 'stacked', className, 'aria-invalid': ariaInvalid, 'aria-describedby': ariaDescribedBy, ...rest },
   ref,
 ) {
   const invalid = Boolean(ariaInvalid) || Boolean(errorText);
@@ -31,7 +33,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     .join(' ');
 
   return (
-    <FormField id={id} label={label} helperText={helperText} errorText={errorText}>
+    <FormField id={id} label={label} helperText={helperText} errorText={errorText} layout={layout}>
       <input
         ref={ref}
         id={id}

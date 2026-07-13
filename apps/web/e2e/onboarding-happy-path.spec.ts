@@ -33,7 +33,12 @@ async function fillFieldByLabel(page: Page, labelText: string, value: string) {
   for (const label of labels) {
     const text = await label.evaluate((node) => node.textContent ?? '');
     if (!text.includes(labelText)) continue;
-    const input = await label.$('input, textarea');
+
+    const controlHandle = await label.evaluateHandle((node) => {
+      const htmlLabel = node as HTMLLabelElement;
+      return htmlLabel.control ?? htmlLabel.querySelector('input, textarea');
+    });
+    const input = controlHandle.asElement();
     if (!input) throw new Error(`input/textarea not found: ${labelText}`);
     await input.click({ clickCount: 3 });
     await input.type(value);
@@ -217,6 +222,7 @@ describe('Onboarding happy path (CDP E2E)', () => {
     await fillFieldByLabel(page, '기수', '60');
     await fillFieldByLabel(page, '전공', '경제학');
     await fillFieldByLabel(page, '연락처', '010-1234-5678');
+    await page.click('details summary');
     await fillFieldByLabel(page, '사무국에 전할 내용', '테스트 신청');
 
     await page.click('button[type="submit"]');

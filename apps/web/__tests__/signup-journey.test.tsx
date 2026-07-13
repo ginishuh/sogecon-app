@@ -14,7 +14,13 @@ describe('동문 가입 진행 단계', () => {
       'step'
     );
     expect(screen.getByText('가입 정보 보내기').closest('li')).toHaveTextContent('완료');
-    expect(screen.getByText('첫 로그인 완료').closest('li')).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('list', { name: '동문 가입 진행 단계' }).querySelectorAll('li')).toHaveLength(3);
+  });
+
+  it('첫 로그인 완료 상태에서는 세 단계를 모두 완료로 표시한다', () => {
+    render(<SignupJourney currentStep={4} />);
+
+    expect(screen.getByText('첫 로그인 완료')).toBeInTheDocument();
+    expect(screen.getAllByText('완료')).toHaveLength(3);
   });
 });
-

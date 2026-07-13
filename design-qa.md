@@ -1,105 +1,103 @@
-# Issue #235 공지·동문 소식·행사 Design QA
+# Issue #237 인증 여정 디자인 QA
 
-## Comparison target
+## 비교 대상
 
-- Source visual truth: `/home/ginis/sogecon-app/.artifacts/design-qa-events-235/source-hybrid.png`
-- Windows source copy: `C:\Users\USER\Documents\Codex\2026-07-11\chrome-browser-control-sogecon-app-pr\design-qa-events-235\source-hybrid.png`
-- Implementation: `http://localhost:3000/events`
-- Primary viewport/state: Desktop `1440×1024`, synthetic upcoming events 3건
-- Responsive states: Tablet `768×900`, Mobile `390×844`, past-events empty state, `/events/5`, `/events/999999`
-- Comparison image: `C:\Users\USER\Documents\Codex\2026-07-11\chrome-browser-control-sogecon-app-pr\design-qa-events-235\comparison-source-vs-implementation-desktop.png`
-- Runtime: Next.js 16.2.10 production, Chrome extension Browser Control
+- source visual truth: `/mnt/c/Users/USER/Documents/Codex/2026-07-11/chrome-browser-control-sogecon-app-pr/design-qa-auth-237/source-option-2.png`
+- implementation top: `/mnt/c/Users/USER/Documents/Codex/2026-07-11/chrome-browser-control-sogecon-app-pr/design-qa-auth-237/implementation-signup-mobile.jpg`
+- implementation lower: `/mnt/c/Users/USER/Documents/Codex/2026-07-11/chrome-browser-control-sogecon-app-pr/design-qa-auth-237/implementation-signup-mobile-lower.jpg`
+- full-view comparison: `/mnt/c/Users/USER/Documents/Codex/2026-07-11/chrome-browser-control-sogecon-app-pr/design-qa-auth-237/comparison-source-vs-implementation-mobile.jpg`
+- route: `http://localhost:3000/signup`
+- viewport: `390×844`
+- state: 로그아웃, 빈 가입 폼, 선택 메모 접힘, 제출 전
+- browser: Windows Chrome 확장 Browser Control production runtime
 
-## Evidence
+## 전체 화면 비교
 
-- `implementation-desktop.png` — latest build, `1440×1024`
-- `implementation-tablet.png` — latest build, `768×900`
-- `implementation-mobile.png` — latest build, `390×844`
-- `implementation-empty-mobile.png` — latest build, `390×844`
-- `implementation-detail-desktop.png` — detail-only prior build, `1440×1024`
-- `implementation-detail-mobile.png` — detail-only prior build, `390×844`
-- `implementation-not-found.png` — 404-only prior build, `390×844`
+- 공식 서강대학교 로고, burgundy·warm white·navy 토큰, KoPub·Pretendard 계층을 유지했다.
+- source의 `진행 단계 → 제목 → 동문 확인 정보 → 연락 정보 → 제출 행동` 순서를 구현에서도 보존했다.
+- 실제 제품 계약에 필요한 6개 필수·핵심 입력은 source보다 많지만 모바일 inline label과 접힌 선택 메모로 밀도를 조정했다.
+- 최종 구현의 제출 CTA는 `docY=1008.8px`로, 수용 기준 `1025px 이하`를 충족한다.
+- 문서는 `clientWidth=375`, `scrollWidth=375`로 수평 overflow가 없다.
 
-All evidence files have valid PNG magic and the expected dimensions. The detail and not-found screenshots predate the list-only notification-strip correction; their components and routes did not change afterward. Attempts to recapture those three files on the latest build hit the Chrome screenshot command timeout, which is recorded as a collection limitation rather than product evidence.
+## 집중 비교
+
+별도 crop은 만들지 않았다. 390×844 top/lower 캡처에서 진행 단계, 입력 행, 접힌 선택 메모, 제출 CTA가 판독 가능했고, Windows Chrome에서 각 영역의 DOM rect를 직접 실측해 같은 상태의 full-view 비교를 보완했다.
+
+- 진행 안내: `docY=154.4`, `309.6×92`
+- 제목: `docY=291.2`, `343.2×40`
+- 첫 입력: `docY=463.2`, `239.2×44`
+- 필수 core input 6개: 모두 높이 `44px`
+- 선택 메모 summary: `docY=892`, `317.6×44`, `open=false`
+- 제출 CTA: `docY=1008.8`, `343.2×48`
+- 보조 행동: `docY=1068.8`, `343.2×44`
+- 모바일 메뉴: `44×44`
+
+## 필수 fidelity surface
+
+- fonts and typography: source와 같은 공식 로고·한글 중심 hierarchy를 유지하고, H1과 section heading의 크기·무게 차이가 명확하다.
+- spacing and layout rhythm: 첫 구현의 과도한 세로 적층을 inline field와 접힘 선택 영역으로 줄여 source의 compact editorial rhythm에 근접했다.
+- colors and tokens: 기존 브랜드 burgundy, warm surface, navy text, neutral border 토큰을 재사용했다.
+- image quality and asset fidelity: 기존 공식 로고 asset을 Next Image로 유지했으며 placeholder·대체 drawing을 추가하지 않았다.
+- copy and content: 내부 구현 용어 없이 `정보 보내기 → 사무국 확인 → 비밀번호 만들기`와 두 정보 그룹, 다음 행동을 한국어로 설명한다.
+
+## 비교 이력
+
+### 1차 — blocked
+
+- finding P2: 모바일 가입 CTA가 `docY=1389.59px`, 문서 높이가 `1742px`로 source보다 지나치게 아래에 있었다.
+- fix: 모바일 설명과 card padding을 줄이고 label/input을 compact inline row로 바꾸며, 선택 메모를 기본 접힘 영역으로 이동했다.
+- post-fix evidence: CTA `docY=1008.8px`, 문서 높이 `1341px`, 선택 메모 접힘, core input 6개 높이 `44px`.
+
+### 2차 — blocked
+
+- finding P2: 공통 header 홈 링크 높이 `31.25px`, footer 지원 링크 높이 `15.99px`로 44px 조작 계약에 미달했다.
+- fix: header home anchor에 `min-h-11`, footer anchors에 `inline-flex min-h-11 min-w-11`을 적용했다.
+- post-fix evidence:
+  - header 홈: `249.99×44`
+  - 자주 묻는 질문: `68.25×44`
+  - 문의하기: `44×44`
+  - 이용약관: `44×44`
+  - 개인정보처리방침: `82.97×44`
+
+### 3차 — passed
+
+- P0: 없음
+- P1: 없음
+- P2: 없음
+- P3: 없음
+- console error/warning: 0
+- hydration/chunk/CSP 오류: 0
+- 입력 제출·POST·DB 변경: 0
+
+### PR #238 리뷰 수정 — passed
+
+- 가입 API 오류를 synthetic POST 422로 재현하고 실제 API·DB 전달 없이 검증했다.
+- 오류 banner가 `role=alert`, `tabIndex=-1`과 실제 포커스를 받았고 `343.2×57.6` rect 전체가 viewport에 표시됐다.
+- 로컬 기수 오류로 전환하면 이전 API banner가 제거되고 기수 입력에 포커스·`aria-invalid`·연결된 오류만 남았다.
+- 선택 메모는 기본 접힘·summary `44px`, 로그인 문의 링크는 `44px`를 유지했다.
+- Desktop 로그인 보조 카드 2개는 각각 `282×80`, `flex-direction: column`, `align-items: flex-start`로 렌더됐다.
+- Desktop header overflow·control 교차 0, console error/warning 0, 예상 밖 4xx/5xx 0.
 
 ## Findings
 
-No actionable P0, P1, or P2 differences remain.
+수용을 막는 시각·반응형·접근성 차이는 남아 있지 않다.
 
-- [P3] The source uses a stronger active navigation underline than the rendered site header.
-  - Location: global header `행사 일정` item.
-  - Evidence: the source underline is prominent; the implementation relies more on the existing header's text state.
-  - Impact: small current-location emphasis difference only.
-  - Follow-up: keep the shared header contract unless navigation is refreshed as a separate scope.
+## Open Questions
 
-- [P3] The source date tile includes a more decorative year/month treatment.
-  - Location: featured event date block.
-  - Evidence: implementation retains year, `7.18`, and weekday but removes the source's stronger calendar-header treatment.
-  - Impact: date remains the first readable signal; no information loss.
-  - Follow-up: none required.
+- source가 표현하지 않은 가입 완료·오류 상태는 제품 계약에 따른 합리적 확장으로 분리했으며 자동화 테스트와 기존 인증 흐름 감사 근거로 검증한다.
 
-- [P3] The Mobile featured event is `398.39px` tall, so the next event begins below the first viewport.
-  - Location: `/events` at `390×844`.
-  - Evidence: card `x=16`, `w=358.4`, `h=398.39`; all event metadata and the `316.8×44` CTA fit without clipping.
-  - Impact: one additional scroll gesture, with intact reading order and no overflow.
-  - Follow-up: reconsider only if denser production content makes the first card materially taller.
+## Implementation Checklist
 
-## Required fidelity surfaces
+- [x] 3단계 가입 여정 hierarchy
+- [x] 모바일 compact 필수 정보 흐름
+- [x] 선택 메모 기본 접힘
+- [x] CTA 접근 거리 기준 충족
+- [x] 입력·버튼·보조 행동·header/footer 44px 조작 영역
+- [x] 수평 overflow 없음
+- [x] production Windows Chrome console 안정성
 
-- Fonts and typography: passed. Existing KoPub/Pretendard variables remain authoritative. Source and implementation preserve eyebrow → H1 → featured title → ledger hierarchy; the implementation is intentionally one step more compact.
-- Spacing and layout rhythm: passed. Desktop uses the repository `1152px` centered content contract, with featured band → ledger rows → update strip matching the source order. Tablet and Mobile reflow without overlap.
-- Colors and visual tokens: passed. Sogang burgundy, navy text, warm cream surfaces, neutral borders, green status badges, and brand focus rings match the selected direction.
-- Image and icon fidelity: passed. The screen requires no event photography. The official logo remains the shared header asset, and Calendar, MapPin, Users, Bell, Clock, and Arrow icons come from the existing Phosphor library.
-- Copy and content: passed. Korean date, time, place, capacity, status, detail, empty, and recovery copy is present. Application totals and progress bars are intentionally omitted because public `EventRead` exposes no aggregate RSVP count; the implementation does not fabricate data.
+## Follow-up Polish
 
-## Responsive and interaction evidence
-
-- `/posts`의 전체·공지사항·동문 소식 분류는 현재 선택을 `aria-pressed`로 노출하고, 44px 조작 영역과 기존 브랜드 포커스 표시를 유지한다.
-- 존재하지 않는 `/posts/[id]`는 영문 Next 기본 404 대신 “소식을 찾지 못했습니다.”와 공지·소식 목록 복귀 행동을 제공한다.
-- 최신 Windows focused QA에서 `/posts` Desktop `1440/1440`, Mobile `390/390`, 세 분류 버튼 `44px`, 실제 선택 전환과 키보드 포커스를 확인했다. `/posts/999999`는 한국어 복구 UI를 포함한 의도된 Document 404로 렌더되고, Console 오류·경고와 예상 밖 4xx/5xx는 0건이었다.
-- Desktop main: centered `1152px`; featured event `1088×176.7`; two ledger rows approximately `1086.4×95`.
-- Tablet document: `753/753`; featured `688.8×219.2`; rows reflow without horizontal overflow.
-- Mobile document: `390/390`; featured and later cards remain within the viewport; all detail actions are at least `44px` tall.
-- Filters expose `aria-pressed`; Chrome coordinate click switches upcoming → past empty state → upcoming, and Tab/Shift+Tab show the white-offset brand ring.
-- Past empty state provides a working `316.8×44` “예정된 행사 보기” action.
-- Detail preserves title → status → schedule/place/capacity → description → RSVP → support.
-- Missing event returns “행사를 찾지 못했습니다.” with 44px event-list and office-contact recovery actions instead of indefinite loading.
-- Console errors/warnings, hydration, chunk, CSP, and unexpected 4xx/5xx: 0. The `/events/999999` API 404 is the expected not-found test.
-
-## Comparison history
-
-### Iteration 1
-
-- Finding: [P2] The first implementation rendered the source's empty-state sentence below three real events, creating a false “등록된 예정 행사가 없습니다” message.
-- Fix: split the real zero-result state from a truthful data-present update prompt. The list now shows “새 행사 소식을 놓치지 마세요.” while the past-events filter shows the actual empty state.
-- Post-fix evidence: latest Desktop/Tablet/Mobile/empty captures show the corrected strip, preserve source order, and contain no P0/P1/P2 mismatch.
-
-### Iteration 2
-
-- Finding: no actionable P0/P1/P2 differences.
-- Post-fix evidence: Windows production QA passed the full-view comparison, filters, responsive layout, detail hierarchy, 404 recovery, focus, console, and network checks.
-
-### PR review follow-up
-
-- Finding: the first query only inspected the oldest 20 API rows, so many past events could hide a real upcoming event. Past view copy and hidden section labels also retained future-tense language.
-- Fix: read public events in 100-row pages until exhaustion, add boundary/sort/pagination tests, synchronize H1/description/list labels with the selected view, use a KST year formatter, and route invalid event slugs to the same Korean recovery UI.
-- Focused Windows evidence: Desktop and Mobile view switching, past copy, empty state, invalid slug, `/posts` regression, Console, and Network passed. The initially unstable selected-filter ring was changed to a focus-state contract; selected and unselected filters both retained a white `2px` offset plus brand `4px` ring at `44px` height.
-
-## Implementation checklist
-
-- [x] Keep `소식` and `행사 일정` as separate navigation routes.
-- [x] Expose the selected post category to assistive technology and provide a Korean missing-post recovery state.
-- [x] Add H1, description, and accessible upcoming/past controls.
-- [x] Emphasize the nearest event and retain practical ledger rows on Desktop.
-- [x] Reflow the same information into one-column Tablet/Mobile cards.
-- [x] Provide truthful zero-result and data-present next actions.
-- [x] Replace missing-event indefinite loading with Korean recovery UI.
-- [x] Preserve RSVP behavior without performing QA mutations.
-- [x] Validate production build, responsive states, keyboard focus, console, and network.
-
-## Follow-up polish
-
-- Public aggregate RSVP counts would require an explicit API contract decision; do not infer or fabricate them in the Web layer.
-- Recheck populated waitlist and completed-event states when approved synthetic fixtures are available.
+- 없음.
 
 final result: passed
