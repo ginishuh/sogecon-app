@@ -1,5 +1,6 @@
 'use client';
 
+import { Plus } from '@phosphor-icons/react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -68,10 +69,10 @@ function PostsList({ posts, category, setCategory }: { posts: Post[]; category: 
   const hasContent = pinned.length > 0 || regular.length > 0;
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2 text-sm" aria-label="공지와 동문 소식 분류">
-        <button onClick={() => setCategory('all')} className={`min-h-11 rounded-full px-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 ${category==='all'?'bg-brand-700 text-text-inverse':'border border-neutral-border text-text-primary'}`}>전체</button>
-        <button onClick={() => setCategory('notice')} className={`min-h-11 rounded-full px-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 ${category==='notice'?'bg-brand-700 text-text-inverse':'border border-neutral-border text-text-primary'}`}>공지사항</button>
-        <button onClick={() => setCategory('news')} className={`min-h-11 rounded-full px-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 ${category==='news'?'bg-brand-700 text-text-inverse':'border border-neutral-border text-text-primary'}`}>동문 소식</button>
+      <div className="flex flex-wrap items-center gap-2 text-sm" role="group" aria-label="공지와 동문 소식 분류">
+        <button type="button" aria-pressed={category === 'all'} onClick={() => setCategory('all')} className={`min-h-11 rounded-full px-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 ${category==='all'?'bg-brand-700 text-text-inverse':'border border-neutral-border text-text-primary'}`}>전체</button>
+        <button type="button" aria-pressed={category === 'notice'} onClick={() => setCategory('notice')} className={`min-h-11 rounded-full px-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 ${category==='notice'?'bg-brand-700 text-text-inverse':'border border-neutral-border text-text-primary'}`}>공지사항</button>
+        <button type="button" aria-pressed={category === 'news'} onClick={() => setCategory('news')} className={`min-h-11 rounded-full px-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 ${category==='news'?'bg-brand-700 text-text-inverse':'border border-neutral-border text-text-primary'}`}>동문 소식</button>
       </div>
       {showPinnedSection ? (
         <PinnedList
@@ -112,10 +113,7 @@ function WriteButton() {
   if (!hasPermissionSession(auth, 'admin_posts')) return null;
   return (
     <ButtonLink href="/admin/posts/new" className="gap-1 shadow-sm">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19" />
-        <line x1="5" y1="12" x2="19" y2="12" />
-      </svg>
+      <Plus size={17} weight="bold" aria-hidden="true" />
       글쓰기
     </ButtonLink>
   );
