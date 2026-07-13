@@ -93,6 +93,17 @@ describe('SignupPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '가입 정보 보내기' }));
 
     expect(screen.getByText('연락처를 입력해 주세요.')).toBeInTheDocument();
-    expect(showMock).toHaveBeenCalledWith('연락처를 입력해 주세요.', { type: 'error' });
+    expect(phoneInput).toHaveFocus();
+    expect(phoneInput).toHaveAttribute('aria-invalid', 'true');
+    expect(showMock).not.toHaveBeenCalled();
+  });
+
+  it('긴 가입 폼을 동문 확인 정보와 연락받을 정보로 나눈다', () => {
+    renderWithProviders(<SignupPage />);
+
+    expect(screen.getByRole('heading', { name: '가입 신청은 이렇게 진행돼요' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '동문 확인 정보' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '연락받을 정보' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '이미 가입했어요' })).toHaveAttribute('href', '/login');
   });
 });

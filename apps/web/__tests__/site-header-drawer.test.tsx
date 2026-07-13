@@ -27,6 +27,7 @@ describe('SiteHeader drawer', () => {
 
     expect(screen.getByRole('navigation', { name: '주요 메뉴' })).toHaveClass('site-header__desktop-nav');
     expect(screen.getByLabelText('전체 메뉴 열기')).toHaveClass('site-header__hamburger');
+    expect(screen.getByRole('link', { name: '홈으로' })).toHaveClass('min-h-11');
   });
 
   it('opens drawer and closes on button click', async () => {

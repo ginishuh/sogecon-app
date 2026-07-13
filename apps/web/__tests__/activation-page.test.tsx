@@ -83,6 +83,7 @@ describe('첫 로그인 설정 화면', () => {
       'href',
       '/support/contact'
     );
+    expect(showMock).not.toHaveBeenCalled();
   });
 
   it('이미 사용한 링크는 로그인 행동을 제공한다', async () => {
@@ -99,6 +100,7 @@ describe('첫 로그인 설정 화면', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('이미 비밀번호 만들기를 마친 안내');
     });
     expect(screen.getByRole('link', { name: '로그인하기' })).toHaveAttribute('href', '/login');
+    expect(showMock).not.toHaveBeenCalled();
   });
 
   it('완료하면 4단계와 다음 동문 메뉴를 안내한다', async () => {

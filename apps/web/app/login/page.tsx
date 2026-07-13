@@ -11,6 +11,10 @@ import { ApiError } from '../../lib/api';
 import { memberApiErrorToMessage } from '../../lib/error-map';
 import { useAuth } from '../../hooks/useAuth';
 import { MEMBER_LANGUAGE } from '../../lib/member-language';
+import { AuthHeading, AuthPage } from '../../components/auth-page';
+import { Button } from '../../components/ui/button';
+import { ButtonLink } from '../../components/ui/button-link';
+import { Input } from '../../components/ui/input';
 
 export default function LoginPage() {
   return (
@@ -45,18 +49,18 @@ function LoginForm() {
         ? memberApiErrorToMessage(e.code, e.message)
         : '로그인하지 못했습니다. 잠시 후 다시 시도해 주세요.';
       setLoginError({ message: msg, code: e instanceof ApiError ? e.code : undefined });
-      show(msg, { type: 'error' });
     }
   });
 
   return (
-    <section className="mx-auto max-w-lg space-y-6">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-text-primary">동문 로그인</h1>
-        <p className="text-sm text-text-secondary">이미 비밀번호를 만든 동문은 학번과 비밀번호로 로그인해 주세요.</p>
-      </header>
+    <AuthPage width="narrow">
+      <AuthHeading
+        eyebrow="동문 인증"
+        title="동문 로그인"
+        description="이미 비밀번호를 만든 동문은 학번과 비밀번호로 로그인해 주세요."
+      />
       <form
-        className="space-y-4 rounded-xl border border-neutral-border bg-white p-5"
+        className="space-y-5 rounded-2xl border border-neutral-border bg-white p-5 md:p-7"
         onSubmit={(event) => {
           event.preventDefault();
           mutate.mutate();
@@ -70,38 +74,50 @@ function LoginForm() {
           ) : null}
         </div>
       ) : null}
-      <label className="block text-sm text-text-primary">
-        학번
-        <input aria-invalid={Boolean(loginError)} aria-describedby={loginError ? 'login-error' : undefined} className="mt-1 w-full rounded border border-neutral-border bg-surface px-2 py-1 text-text-primary focus:outline-hidden focus:ring-2 focus:ring-brand-400" value={studentId} onChange={(e) => setStudentId(e.currentTarget.value)} />
-      </label>
-      <label className="block text-sm text-text-primary">
-        비밀번호
-        <input
-          className="mt-1 w-full rounded border border-neutral-border bg-surface px-2 py-1 text-text-primary focus:outline-hidden focus:ring-2 focus:ring-brand-400"
+      <Input
+        id="login-student-id"
+        label="학번"
+        autoComplete="username"
+        inputMode="numeric"
+        aria-invalid={Boolean(loginError)}
+        aria-describedby={loginError ? 'login-error' : undefined}
+        value={studentId}
+        onChange={(event) => setStudentId(event.currentTarget.value)}
+      />
+      <Input
+          id="login-password"
+          label="비밀번호"
           type="password"
+          autoComplete="current-password"
           aria-invalid={Boolean(loginError)}
           aria-describedby={loginError ? 'login-error' : undefined}
           value={password}
-          onChange={(e) => setPassword(e.currentTarget.value)}
-        />
-      </label>
-      <button
+          onChange={(event) => setPassword(event.currentTarget.value)}
+      />
+      <Button
         type="submit"
-        className="rounded bg-brand-700 px-3 py-1 text-text-inverse hover:bg-brand-800 disabled:opacity-50"
+        size="lg"
+        loading={mutate.isPending}
+        className="w-full"
         disabled={mutate.isPending || !studentId || !password}
-      >로그인</button>
+      >로그인</Button>
       </form>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Link href="/signup" className="rounded-xl border border-neutral-border bg-white p-4 no-underline hover:border-brand-400 hover:no-underline">
+      <nav aria-label="다른 인증 방법" className="grid gap-3 sm:grid-cols-2">
+        <ButtonLink href="/signup" variant="secondary" className="min-h-20 flex-col items-start px-4 py-3 text-left">
           <strong className="block text-sm text-text-primary">처음 방문했어요</strong>
-          <span className="mt-1 block text-xs text-text-secondary">{MEMBER_LANGUAGE.signup}부터 시작합니다.</span>
-        </Link>
-        <Link href="/activate" className="rounded-xl border border-neutral-border bg-white p-4 no-underline hover:border-brand-400 hover:no-underline">
+          <span className="mt-1 block text-xs font-normal text-text-secondary">{MEMBER_LANGUAGE.signup}부터 시작합니다.</span>
+        </ButtonLink>
+        <ButtonLink href="/activate" variant="secondary" className="min-h-20 flex-col items-start px-4 py-3 text-left">
           <strong className="block text-sm text-text-primary">가입 승인 안내를 받았어요</strong>
-          <span className="mt-1 block text-xs text-text-secondary">안내 링크에서 비밀번호를 만듭니다.</span>
+          <span className="mt-1 block text-xs font-normal text-text-secondary">안내 링크에서 비밀번호를 만듭니다.</span>
+        </ButtonLink>
+      </nav>
+      <div className="space-y-2 text-center text-sm text-text-muted">
+        <p>가입 신청 후 확인 중이라면 별도로 다시 신청하지 않아도 됩니다.</p>
+        <Link href="/support/contact" className="inline-flex min-h-11 items-center px-2 font-medium text-brand-700 underline">
+          비밀번호를 잊었거나 로그인이 어려우신가요?
         </Link>
       </div>
-      <p className="text-center text-xs text-text-muted">가입 신청 후 확인 중이라면 별도로 다시 신청하지 않아도 됩니다.</p>
-    </section>
+    </AuthPage>
   );
 }

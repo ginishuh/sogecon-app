@@ -63,11 +63,9 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '로그인' }));
 
     await waitFor(() => {
-      expect(showMock).toHaveBeenCalledWith(
-        '동문회 사무국에서 가입 신청을 확인 중입니다. 승인 안내를 받은 뒤 첫 로그인 설정을 진행해 주세요.',
-        { type: 'error' }
-      );
+      expect(screen.getByRole('alert')).toHaveTextContent('동문회 사무국에서 가입 신청을 확인 중입니다.');
     });
+    expect(showMock).not.toHaveBeenCalled();
     expect(screen.getByRole('alert')).toHaveTextContent('동문회 사무국에서 가입 신청을 확인 중입니다.');
     expect(screen.getByLabelText('학번')).toHaveAttribute('aria-describedby', 'login-error');
     expect(screen.getByLabelText('비밀번호')).toHaveAttribute('aria-invalid', 'true');
@@ -87,11 +85,9 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '로그인' }));
 
     await waitFor(() => {
-      expect(showMock).toHaveBeenCalledWith(
-        '아직 이용할 수 없는 계정입니다. 동문회 사무국에 문의해 주세요.',
-        { type: 'error' }
-      );
+      expect(screen.getByRole('alert')).toHaveTextContent('아직 이용할 수 없는 계정입니다.');
     });
+    expect(showMock).not.toHaveBeenCalled();
   });
 
   it('학번/비밀번호 불일치 시 기본 로그인 실패 메시지를 표시한다', async () => {
@@ -104,7 +100,8 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '로그인' }));
 
     await waitFor(() => {
-      expect(showMock).toHaveBeenCalledWith('학번 또는 비밀번호가 올바르지 않습니다.', { type: 'error' });
+      expect(screen.getByRole('alert')).toHaveTextContent('학번 또는 비밀번호가 올바르지 않습니다.');
     });
+    expect(showMock).not.toHaveBeenCalled();
   });
 });

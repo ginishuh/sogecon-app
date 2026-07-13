@@ -3,8 +3,12 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
+import { AuthHeading, AuthPage } from '../../components/auth-page';
 import { useToast } from '../../components/toast';
 import { SignupJourney } from '../../components/signup-journey';
+import { Button } from '../../components/ui/button';
+import { ButtonLink } from '../../components/ui/button-link';
+import { Input } from '../../components/ui/input';
 import { useAuth } from '../../hooks/useAuth';
 import { ApiError } from '../../lib/api';
 import { memberApiErrorToMessage } from '../../lib/error-map';
@@ -50,10 +54,10 @@ function activationErrorFeedback(error: unknown): Feedback {
 
 function RecoveryActions({ recovery }: { recovery?: Feedback['recovery'] }) {
   if (recovery === 'login') {
-    return <Link href="/login" className="text-sm font-medium text-brand-700 underline">로그인하기</Link>;
+    return <Link href="/login" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700 underline">로그인하기</Link>;
   }
   if (recovery === 'contact') {
-    return <Link href="/support/contact" className="text-sm font-medium text-brand-700 underline">동문회 사무국에 문의하기</Link>;
+    return <Link href="/support/contact" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700 underline">동문회 사무국에 문의하기</Link>;
   }
   return null;
 }
@@ -88,18 +92,22 @@ export default function ActivatePage() {
 
 function CompletedPanel() {
   return (
-    <div className="mx-auto max-w-2xl space-y-5 p-6">
+    <AuthPage>
       <SignupJourney currentStep={4} />
-      <h1 className="text-2xl font-semibold">첫 로그인 완료</h1>
-      <section className="space-y-4 rounded-xl border border-state-success-ring bg-state-success-subtle p-5">
+      <AuthHeading
+        eyebrow="동문 인증 완료"
+        title="첫 로그인 완료"
+        description="비밀번호를 만들고 동문 전용 서비스에 로그인했습니다."
+      />
+      <section className="space-y-4 rounded-2xl border border-state-success-ring bg-state-success-subtle p-5 md:p-7">
         <p role="status" className="font-medium text-state-success">첫 로그인 설정을 마치고 로그인했습니다.</p>
         <p className="text-sm text-text-secondary">이제 동문 수첩과 게시판 등 동문 전용 메뉴를 이용할 수 있습니다.</p>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/me" className="rounded bg-brand-700 px-4 py-2 text-sm text-white">내 정보 확인하기</Link>
-          <Link href="/" className="rounded border border-brand-700 px-4 py-2 text-sm text-brand-700">홈으로 이동</Link>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <ButtonLink href="/me" className="flex-1">내 정보 확인하기</ButtonLink>
+          <ButtonLink href="/" variant="secondary" className="flex-1">홈으로 이동</ButtonLink>
         </div>
       </section>
-    </div>
+    </AuthPage>
   );
 }
 
@@ -120,14 +128,14 @@ type ActivationSetupProps = {
 
 function LinkPrompt({ onManualEntry }: { onManualEntry: () => void }) {
   return (
-    <section className="space-y-4 rounded-xl border border-neutral-border bg-white p-5">
+    <section className="space-y-4 rounded-2xl border border-neutral-border bg-white p-5 md:p-7">
       <h2 className="font-semibold text-text-primary">안내 링크를 받으셨나요?</h2>
       <p className="text-sm text-text-secondary">받은 메시지의 링크를 다시 열어 주세요. 링크를 열면 별도의 코드 입력 없이 비밀번호를 만들 수 있습니다.</p>
-      <div className="flex flex-wrap gap-3">
-        <button type="button" onClick={onManualEntry} className="rounded border border-brand-700 px-4 py-2 text-sm text-brand-700">
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button type="button" onClick={onManualEntry} variant="secondary">
           코드 직접 입력하기
-        </button>
-        <Link href="/support/contact" className="px-2 py-2 text-sm text-brand-700 underline">안내를 받지 못했어요</Link>
+        </Button>
+        <ButtonLink href="/support/contact" variant="ghost">안내를 받지 못했어요</ButtonLink>
       </div>
     </section>
   );
@@ -136,42 +144,39 @@ function LinkPrompt({ onManualEntry }: { onManualEntry: () => void }) {
 function ActivationInputForm(props: ActivationSetupProps) {
   const hasError = props.feedback?.tone === 'error';
   return (
-    <form onSubmit={props.onSubmit} className="flex flex-col gap-3 rounded-xl border border-neutral-border bg-white p-5">
+    <form onSubmit={props.onSubmit} className="flex flex-col gap-5 rounded-2xl border border-neutral-border bg-white p-5 md:p-7">
       <FeedbackBanner feedback={props.feedback} />
       {!props.hasLinkedToken ? (
-        <label className="text-sm">
-          {MEMBER_LANGUAGE.activationCode}
-          <input
-            ref={props.codeInputRef}
-            required
-            aria-invalid={hasError}
-            aria-describedby={hasError ? 'activation-feedback' : undefined}
-            className="mt-1 w-full rounded border px-3 py-2"
-            value={props.token}
-            onChange={(event) => props.onTokenChange(event.target.value)}
-            placeholder="안내받은 코드를 입력해 주세요"
-          />
-        </label>
+        <Input
+          ref={props.codeInputRef}
+          id="activation-code"
+          label={MEMBER_LANGUAGE.activationCode}
+          required
+          aria-invalid={hasError}
+          aria-describedby={hasError ? 'activation-feedback' : undefined}
+          value={props.token}
+          onChange={(event) => props.onTokenChange(event.target.value)}
+          placeholder="안내받은 코드를 입력해 주세요"
+        />
       ) : (
         <p className="rounded-lg bg-brand-50 p-3 text-sm text-brand-900">안내 링크에서 코드를 불러왔습니다.</p>
       )}
-      <label className="text-sm">
-        새 비밀번호
-        <input
-          required
-          minLength={8}
-          autoComplete="new-password"
-          type="password"
-          aria-invalid={hasError}
-          aria-describedby={hasError ? 'activation-feedback' : undefined}
-          className="mt-1 w-full rounded border px-3 py-2"
-          value={props.password}
-          onChange={(event) => props.onPasswordChange(event.target.value)}
-        />
-      </label>
-      <button disabled={props.busy} className="rounded bg-state-success px-4 py-2 text-white disabled:opacity-50">
+      <Input
+        id="activation-password"
+        label="새 비밀번호"
+        required
+        minLength={8}
+        autoComplete="new-password"
+        type="password"
+        helperText="8자 이상, UTF-8 기준 72바이트 이하로 만들어 주세요."
+        aria-invalid={hasError}
+        aria-describedby={hasError ? 'activation-feedback' : undefined}
+        value={props.password}
+        onChange={(event) => props.onPasswordChange(event.target.value)}
+      />
+      <Button loading={props.busy} size="lg" className="w-full">
         {props.busy ? '설정 중...' : '비밀번호 만들기 완료'}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -183,14 +188,13 @@ function ActivationSetup(props: ActivationSetupProps) {
     : '가입 확인이 끝나면 동문회 사무국에서 비밀번호 만들기 링크를 보내드립니다.';
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5 p-6">
+    <AuthPage>
       <SignupJourney currentStep={3} />
-      <h1 className="text-2xl font-semibold">비밀번호 만들기</h1>
-      <p className="text-sm text-text-secondary">{description}</p>
+      <AuthHeading eyebrow="첫 로그인 설정" title="비밀번호 만들기" description={description} />
       {showForm ? <ActivationInputForm {...props} /> : <LinkPrompt onManualEntry={props.onManualEntry} />}
       {props.status === 'authorized' ? <p className="text-sm text-state-success">로그인 상태입니다.</p> : null}
-      <Link href="/login" className="text-xs text-brand-700 underline">로그인 페이지로 이동</Link>
-    </div>
+      <ButtonLink href="/login" variant="ghost" className="w-full sm:w-auto">로그인 페이지로 이동</ButtonLink>
+    </AuthPage>
   );
 }
 
@@ -223,7 +227,6 @@ function ActivateForm() {
     e.preventDefault();
     if (!isPasswordWithinBcryptLimit(password)) {
       setFeedback({ tone: 'error', message: PASSWORD_TOO_LONG_MESSAGE });
-      toast.show(PASSWORD_TOO_LONG_MESSAGE, { type: 'error' });
       return;
     }
     setBusy(true);
@@ -238,7 +241,6 @@ function ActivateForm() {
     } catch (error: unknown) {
       const nextFeedback = activationErrorFeedback(error);
       setFeedback(nextFeedback);
-      toast.show(nextFeedback.message, { type: 'error' });
     } finally {
       setBusy(false);
     }
