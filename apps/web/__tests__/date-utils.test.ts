@@ -22,6 +22,7 @@ describe('게시글 날짜', () => {
     const created = '2026-07-13T12:00:00+09:00';
 
     expect(resolvePostDate('invalid', created)).toBe(created);
+    expect(formatPostBoardDate(null, null)).toBe('작성일 미확인');
     expect(formatPostFullDate(null, null)).toBe('작성일 미확인');
   });
 });

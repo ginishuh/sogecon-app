@@ -154,6 +154,35 @@ describe('BoardPage', () => {
     expect(screen.queryByRole('link', { name: /주요 이야기:/ })).not.toBeInTheDocument();
   });
 
+  it('목록에서 작성 시각과 레거시 날짜 fallback을 표시한다', async () => {
+    listPostsMock.mockResolvedValueOnce([
+      {
+        id: 32,
+        title: '작성 시각이 있는 글',
+        content: '본문',
+        published_at: null,
+        created_at: '2026-07-13T12:00:00+09:00',
+        author_id: 1,
+        category: 'discussion',
+      },
+      {
+        id: 33,
+        title: '작성 시각이 없는 기존 글',
+        content: '본문',
+        published_at: null,
+        created_at: null,
+        author_id: 1,
+        category: 'discussion',
+      },
+    ]);
+
+    renderWithClient(<BoardPage />);
+
+    expect(await screen.findByText('작성 시각이 있는 글')).toBeInTheDocument();
+    expect(screen.getByText('07/13')).toBeInTheDocument();
+    expect(screen.getByText('작성일 미확인')).toBeInTheDocument();
+  });
+
   it('게시글이 0건이면 첫 글 행동이 있는 빈 상태를 표시한다', async () => {
     listPostsMock.mockResolvedValueOnce([]);
 

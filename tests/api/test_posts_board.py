@@ -93,6 +93,20 @@ def _seed_posts_for_effective_date_order() -> None:
                 ),
                 models.Post(
                     author_id=member_id,
+                    title="동률 이전 글",
+                    content="본문",
+                    category="discussion",
+                    created_at=datetime(2026, 1, 2, tzinfo=UTC),
+                ),
+                models.Post(
+                    author_id=member_id,
+                    title="동률 이후 글",
+                    content="본문",
+                    category="discussion",
+                    created_at=datetime(2026, 1, 2, tzinfo=UTC),
+                ),
+                models.Post(
+                    author_id=member_id,
                     title="작성일 없는 기존 글",
                     content="본문",
                     category="discussion",
@@ -122,6 +136,8 @@ def test_posts_use_published_or_created_date_for_order(
         "고정 글",
         "신규 동문 글",
         "관리자 발행 글",
+        "동률 이후 글",
+        "동률 이전 글",
         "작성일 없는 기존 글",
     ]
     assert items[1]["published_at"] is None
