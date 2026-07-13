@@ -128,7 +128,7 @@ type ChangeRequestSectionProps = {
 export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
   const [editingField, setEditingField] = useState<'name' | 'cohort' | null>(null);
 
-  const { data: requests } = useQuery({
+  const { data: requests, isLoading } = useQuery({
     queryKey: ['me', 'change-requests'],
     queryFn: listMyChangeRequests,
     staleTime: 10_000,
@@ -195,7 +195,9 @@ export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
         ))}
       </div>
 
-      {requests && requests.length > 0 ? (
+      {isLoading ? (
+        <p className="mt-4 text-sm text-text-muted" role="status">변경 요청 이력을 불러오는 중…</p>
+      ) : requests && requests.length > 0 ? (
         <details className="mt-4 text-xs">
           <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 font-medium text-text-secondary hover:text-text-primary">
             변경 요청 이력 {requests.length}건

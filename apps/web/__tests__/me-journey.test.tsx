@@ -60,6 +60,7 @@ describe('내 정보 공개 범위 여정', () => {
     expect(screen.getByRole('button', { name: '저장된 상태입니다' })).toBeDisabled();
 
     fireEvent.click(screen.getByRole('radio', { name: '나만 보기' }));
+    expect(screen.getByRole('radio', { name: '나만 보기' }).closest('label')).toHaveClass('focus-within:ring-2');
     expect(screen.getByText('현재 선택: 나만 보기')).toBeInTheDocument();
     expect(screen.getByText('저장하지 않은 변경사항이 있어요')).toBeInTheDocument();
 
@@ -88,6 +89,36 @@ describe('내 정보 공개 범위 여정', () => {
     expect(screen.getByLabelText('휴대전화(선택)')).not.toBeVisible();
     expect(organization).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByLabelText('회사명(선택)')).toBeVisible();
+  });
+
+  it('검증 오류가 있는 편집 영역을 다시 열어 수정할 필드를 보여준다', async () => {
+    render(<MePage />);
+
+    await screen.findByRole('heading', { name: '내 정보와 공개 범위' });
+    const contact = screen.getByRole('button', { name: /연락처 정보/ });
+    fireEvent.click(contact);
+    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'invalid-email' } });
+    fireEvent.click(contact);
+    expect(contact).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(screen.getByRole('button', { name: '변경사항 저장하기' }));
+    await waitFor(() => expect(contact).toHaveAttribute('aria-expanded', 'true'));
+    expect(screen.getByLabelText('이메일')).toBeVisible();
+    expect(updateMeMock).not.toHaveBeenCalled();
+  });
+
+  it('모바일 사진 변경 버튼이 활성 DOM의 file input을 연다', async () => {
+    const inputClick = vi.spyOn(HTMLInputElement.prototype, 'click');
+    render(<MePage />);
+
+    await screen.findByRole('heading', { name: '내 정보와 공개 범위' });
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
+    expect(fileInput).toHaveClass('sr-only');
+    expect(fileInput?.closest('.hidden')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: '프로필 사진 변경' }));
+    expect(inputClick).toHaveBeenCalledTimes(1);
+    inputClick.mockRestore();
   });
 
   it('로그인 상태 조회 실패를 무한 로딩 대신 재시도 상태로 보여준다', () => {

@@ -6,8 +6,9 @@ import {
   UsersThree,
 } from '@phosphor-icons/react';
 import Image from 'next/image';
+import { resolveApiAssetUrl } from '../../lib/api';
 import { VISIBILITY_INFO } from '../../lib/member-experience';
-import { API_BASE, type MemberDto } from '../../services/me';
+import type { MemberDto } from '../../services/me';
 import type { ProfileErrors, ProfileForm, ProfileVisibility } from './validation';
 
 const fieldErrorId = (field: keyof ProfileForm) => `profile-${field}-error`;
@@ -45,7 +46,7 @@ export function VisibilityField({
           return (
             <label
               key={option}
-              className={`relative flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-sm transition-colors sm:min-h-28 sm:gap-2 sm:py-3 ${
+              className={`relative flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-sm transition-colors focus-within:z-10 focus-within:ring-2 focus-within:ring-brand-400 focus-within:ring-offset-2 sm:min-h-28 sm:gap-2 sm:py-3 ${
                 index > 0 ? 'border-l border-neutral-border' : ''
               } ${selected ? 'bg-brand-50 text-brand-800' : 'text-text-secondary hover:bg-surface-raised'}`}
             >
@@ -76,7 +77,7 @@ export function VisibilityField({
 }
 
 export function Avatar({ profile, previewUrl }: { profile: MemberDto; previewUrl?: string | null }) {
-  const source = previewUrl ?? (profile.avatar_url ? `${API_BASE}${profile.avatar_url}` : null);
+  const source = previewUrl ?? (profile.avatar_url ? resolveApiAssetUrl(profile.avatar_url) : null);
   return (
     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-neutral-border bg-surface-raised sm:h-24 sm:w-24">
       {source ? (

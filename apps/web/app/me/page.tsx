@@ -178,8 +178,16 @@ function AvatarUploader({
           {uploading ? '업로드 중…' : '사진 변경'}
         </Button>
         <p className="text-xs leading-5 text-text-muted">최대 2MB · JPG/PNG/WEBP</p>
-        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleInputChange} />
       </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={handleInputChange}
+      />
     </section>
   );
 }
@@ -496,6 +504,7 @@ export default function MePage() {
               <CheckCircle size={21} weight="fill" aria-hidden="true" />
               {isDirty ? '저장하지 않은 변경사항이 있어요' : '저장된 상태예요'}
             </p>
+            <p className="mt-2 text-xs leading-5 text-text-muted sm:hidden">사진은 JPG, PNG, WEBP · 최대 2MB</p>
           </div>
         </section>
 

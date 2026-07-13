@@ -52,7 +52,7 @@ describe('이름·기수 변경 요청 접근성', () => {
     renderSection();
 
     expect(await screen.findByRole('heading', { name: '이름·기수 변경 요청' })).toBeInTheDocument();
-    expect(screen.getByText('아직 접수한 변경 요청이 없어요.')).toBeInTheDocument();
+    expect(await screen.findByText('아직 접수한 변경 요청이 없어요.')).toBeInTheDocument();
     const nameButton = screen.getByRole('button', { name: '이름 변경 요청' });
     const cohortButton = screen.getByRole('button', { name: '기수 변경 요청' });
     expect(nameButton).toHaveClass('min-h-11');
@@ -62,5 +62,13 @@ describe('이름·기수 변경 요청 접근성', () => {
     expect(screen.getByPlaceholderText('새 이름 입력')).toHaveClass('min-h-11');
     expect(screen.getByRole('button', { name: '요청' })).toHaveClass('min-h-11');
     expect(screen.getByRole('button', { name: '취소' })).toHaveClass('min-h-11');
+  });
+
+  it('요청 이력을 불러오는 동안 빈 상태를 먼저 보여주지 않는다', async () => {
+    renderSection();
+
+    expect(screen.getByRole('status')).toHaveTextContent('변경 요청 이력을 불러오는 중');
+    expect(screen.queryByText('아직 접수한 변경 요청이 없어요.')).not.toBeInTheDocument();
+    expect(await screen.findByText('아직 접수한 변경 요청이 없어요.')).toBeInTheDocument();
   });
 });

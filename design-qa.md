@@ -370,6 +370,12 @@ No actionable P0, P1, or P2 differences remain.
 - Fix: hid the explanatory paragraph visually on mobile while keeping it accessible, integrated photo change into the identity avatar, compacted the identity row, and reduced mobile preview, privacy, summary-row, and section spacing without changing desktop density.
 - Post-fix evidence: final production Chrome measurements are preview `276.99px`, privacy `455.39px`, save `793.39px`, and change request `942.19px`; the full-view comparison classifies the remaining `5.39px` privacy spacing difference as P3.
 
+#### Iteration 4
+
+- Finding: [P1] PR review found that the mobile camera action targeted a file input inside a `display:none` responsive parent and that the visually hidden privacy radios had no card-level keyboard focus ring. It also identified loading/empty ambiguity, URL resolver drift, missing mobile upload guidance, and missing validation-open coverage.
+- Fix: moved the shared file input into the always-active DOM, restored the mobile size/type guidance, added `focus-within` rings to privacy cards, switched avatars to `resolveApiAssetUrl`, separated change-request loading from empty state, and added focused regression tests.
+- Post-fix evidence: targeted profile, change-request, and asset URL tests pass together with the full Web suite, lint, and production build. Windows production focused QA opened and cancelled the native file chooser from the mobile camera action, found no `display:none` ancestor on the shared file input, confirmed the visible mobile upload guidance, and verified keyboard movement plus the white-offset brand ring on all privacy cards. With the new guidance line, focused mobile positions are preview `304.99px`, privacy `483.39px`, save `821.39px`, and change request `949.39px`; the document remains `390/390` with no P2 impact. Loading-versus-empty timing is covered by the focused automated test because the Browser Control interception could not reliably pause the server-side request.
+
 ### Implementation checklist
 
 - [x] Preserve the official logo, repository fonts, Sogang color system, existing auth, profile, privacy, and change-request contracts.
@@ -382,6 +388,6 @@ No actionable P0, P1, or P2 differences remain.
 
 ### Follow-up polish
 
-- Recheck a real uploaded avatar, populated change-request history, and long organization/address content when approved synthetic fixtures are available.
+- Recheck a completed avatar upload, populated change-request history, and long organization/address content when approved synthetic fixtures are available.
 
 final result: passed
