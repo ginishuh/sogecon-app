@@ -196,7 +196,7 @@ function BoardResults(props: Pick<BoardPanelProps, 'posts' | 'isLoading' | 'isEr
       <div className="flex justify-center pt-5">
         <button
           type="button"
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-neutral-border bg-white px-6 text-sm text-text-secondary transition hover:bg-surface-raised disabled:opacity-40"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-neutral-border bg-white px-6 text-sm text-text-secondary transition hover:bg-surface-raised focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40"
           onClick={props.onNextPage}
           disabled={!props.hasNextPage || props.isFetchingNextPage}
         >
@@ -225,7 +225,7 @@ function BoardPanel(props: BoardPanelProps) {
         </label>
         <button
           type="button"
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-neutral-border bg-white px-5 text-sm text-text-secondary transition hover:bg-surface-raised"
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-neutral-border bg-white px-5 text-sm text-text-secondary transition hover:bg-surface-raised focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           onClick={props.onSearchReset}
         >
           <ArrowCounterClockwise aria-hidden="true" size={18} />

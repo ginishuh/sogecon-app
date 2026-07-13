@@ -226,6 +226,34 @@ describe('BoardPage', () => {
     expect(listPostsMock).toHaveBeenLastCalledWith(expect.objectContaining({ offset: 10 }));
     expect(screen.getByRole('button', { name: '더 불러오기' })).toBeDisabled();
   });
+
+  it('검색 초기화와 활성 더 불러오기에 공통 키보드 포커스 링 계약을 적용한다', async () => {
+    listPostsMock.mockResolvedValueOnce(Array.from({ length: 10 }, (_, index) => ({
+      id: index + 1,
+      title: `포커스 게시글 ${index + 1}`,
+      content: '본문',
+      published_at: null,
+      created_at: `2026-07-${String(13 - index).padStart(2, '0')}T00:00:00+09:00`,
+      author_id: 1,
+      category: 'discussion',
+    })));
+
+    renderWithClient(<BoardPage />);
+
+    expect(await screen.findByText('포커스 게시글 1')).toBeInTheDocument();
+    for (const button of [
+      screen.getByRole('button', { name: '초기화' }),
+      screen.getByRole('button', { name: '더 불러오기' }),
+    ]) {
+      expect(button).toHaveClass(
+        'focus-visible:outline-hidden',
+        'focus-visible:ring-2',
+        'focus-visible:ring-brand-400',
+        'focus-visible:ring-offset-2',
+        'focus-visible:ring-offset-surface',
+      );
+    }
+  });
 });
 
 describe('BoardNewPage', () => {
