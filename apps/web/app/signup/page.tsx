@@ -24,7 +24,9 @@ type Feedback = {
 };
 
 function parseCohort(value: string): number | null {
-  const parsed = Number.parseInt(value, 10);
+  const normalized = value.trim();
+  if (!/^\d+$/.test(normalized)) return null;
+  const parsed = Number.parseInt(normalized, 10);
   if (!Number.isFinite(parsed) || parsed <= 0) return null;
   return parsed;
 }

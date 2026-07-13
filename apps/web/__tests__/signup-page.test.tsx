@@ -106,7 +106,7 @@ describe('SignupPage', () => {
     fireEvent.change(screen.getByLabelText('학번'), { target: { value: '20260001' } });
     fireEvent.change(screen.getByLabelText('이름'), { target: { value: '홍길동' } });
     fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'hong@example.com' } });
-    fireEvent.change(cohortInput, { target: { value: 'abc' } });
+    fireEvent.change(cohortInput, { target: { value: '58abc' } });
     fireEvent.change(screen.getByLabelText('연락처'), { target: { value: '01012345678' } });
     fireEvent.click(screen.getByRole('button', { name: '가입 정보 보내기' }));
 
