@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 
 import { ApiError } from '../../../lib/api';
 import { getPost } from '../../../services/posts';
-import { formatFullDate } from '../../../lib/date-utils';
+import { formatPostFullDate, resolvePostDate } from '../../../lib/date-utils';
 import { ImageGallery } from '../../../components/image-gallery';
 import { getAuthorName, getBoardCategoryInfo } from '../../../lib/community';
 
@@ -65,7 +65,9 @@ export default async function BoardDetailPage({ params }: PageProps) {
                 <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-muted">
                   <span className="font-semibold text-text-secondary">{getAuthorName(post.author_name)}</span>
                   <span aria-hidden="true">·</span>
-                  <time dateTime={post.published_at ?? undefined}>{formatFullDate(post.published_at)}</time>
+                  <time dateTime={resolvePostDate(post.published_at, post.created_at) ?? undefined}>
+                    {formatPostFullDate(post.published_at, post.created_at)}
+                  </time>
                 </div>
               </div>
               <div className="shrink-0">

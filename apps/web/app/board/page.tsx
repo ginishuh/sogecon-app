@@ -9,16 +9,16 @@ import {
   PencilSimple,
   PushPin,
 } from '@phosphor-icons/react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useMemo, useState } from 'react';
 
 import { Tabs } from '../../components/ui/tabs';
 import { resolveApiAssetUrl } from '../../lib/api';
 import { BOARD_CATEGORY_KEYS, getAuthorName, getBoardCategoryInfo, type BoardCategoryKey } from '../../lib/community';
-import { formatBoardDate } from '../../lib/date-utils';
+import { formatPostBoardDate, resolvePostDate } from '../../lib/date-utils';
 import { listPosts, type Post } from '../../services/posts';
 
 const BOARD_CATEGORIES = [
@@ -75,7 +75,9 @@ function FeaturedStory({ post }: { post: Post }) {
         <span className="mt-3 line-clamp-2 text-sm leading-6 text-text-secondary">{postExcerpt(post)}</span>
         <span className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-muted">
           <span className="font-medium text-text-secondary">{getAuthorName(post.author_name)}</span>
-          <time>{formatBoardDate(post.published_at)}</time>
+          <time dateTime={resolvePostDate(post.published_at, post.created_at) ?? undefined}>
+            {formatPostBoardDate(post.published_at, post.created_at)}
+          </time>
           <span className="inline-flex items-center gap-1">
             <ChatCircle aria-hidden="true" size={16} />
             {post.comment_count ?? 0}
@@ -119,7 +121,12 @@ function BoardPostList({ posts }: { posts: Post[] }) {
                   </span>
                 </span>
                 <span className="text-xs font-medium text-text-secondary sm:text-sm">{getAuthorName(post.author_name)}</span>
-                <time className="text-xs text-text-muted">{formatBoardDate(post.published_at)}</time>
+                <time
+                  className="text-xs text-text-muted"
+                  dateTime={resolvePostDate(post.published_at, post.created_at) ?? undefined}
+                >
+                  {formatPostBoardDate(post.published_at, post.created_at)}
+                </time>
                 <span className="inline-flex items-center gap-1 text-xs text-text-muted sm:justify-center">
                   <ChatCircle aria-hidden="true" size={16} />
                   {post.comment_count ?? 0}
@@ -137,9 +144,10 @@ type BoardPanelProps = {
   info: ReturnType<typeof getBoardCategoryInfo> | null;
   search: string;
   posts: Post[];
-  sourceCount: number;
   isLoading: boolean;
   isError: boolean;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
   onSearchChange: (value: string) => void;
   onSearchReset: () => void;
   onRetry: () => void;
@@ -152,7 +160,7 @@ function emptyCopy(search: string, info: BoardPanelProps['info']) {
   return { title: '아직 등록된 게시글이 없습니다.', description: '먼저 동문들과 이야기를 나눠 보세요.' };
 }
 
-function BoardResults(props: Pick<BoardPanelProps, 'posts' | 'sourceCount' | 'isLoading' | 'isError' | 'search' | 'info' | 'onRetry' | 'onNextPage'>) {
+function BoardResults(props: Pick<BoardPanelProps, 'posts' | 'isLoading' | 'isError' | 'hasNextPage' | 'isFetchingNextPage' | 'search' | 'info' | 'onRetry' | 'onNextPage'>) {
   if (props.isLoading) {
     return (
       <div className="space-y-2" aria-label="게시글을 불러오는 중">
@@ -190,9 +198,9 @@ function BoardResults(props: Pick<BoardPanelProps, 'posts' | 'sourceCount' | 'is
           type="button"
           className="inline-flex min-h-11 items-center gap-2 rounded-full border border-neutral-border bg-white px-6 text-sm text-text-secondary transition hover:bg-surface-raised disabled:opacity-40"
           onClick={props.onNextPage}
-          disabled={props.sourceCount < PAGE_SIZE}
+          disabled={!props.hasNextPage || props.isFetchingNextPage}
         >
-          더 불러오기
+          {props.isFetchingNextPage ? '불러오는 중…' : '더 불러오기'}
           <ArrowDown aria-hidden="true" size={17} />
         </button>
       </div>
@@ -239,24 +247,24 @@ function BoardPageInner() {
       ? 'discussion'
       : 'all';
   const [category, setCategory] = useState<BoardCategory>(initialCategory);
-  const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
 
-  useEffect(() => setPage(0), [category]);
-
-  const query = useQuery<Post[]>({
-    queryKey: ['board', category, page],
-    queryFn: () => {
-      const baseParams = { limit: PAGE_SIZE, offset: page * PAGE_SIZE };
+  const query = useInfiniteQuery<Post[]>({
+    queryKey: ['board', category],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) => {
+      const baseParams = { limit: PAGE_SIZE, offset: Number(pageParam) };
       return category === 'all'
         ? listPosts({ ...baseParams, categories: [...BOARD_POST_CATEGORIES] })
         : listPosts({ ...baseParams, category });
     },
-    placeholderData: keepPreviousData,
+    getNextPageParam: (lastPage, pages) => (
+      lastPage.length === PAGE_SIZE ? pages.length * PAGE_SIZE : undefined
+    ),
   });
 
   const filtered = useMemo(() => {
-    const data = query.data ?? [];
+    const data = query.data?.pages.flat() ?? [];
     const term = search.trim().toLowerCase();
     if (!term) return data;
     return data.filter((post) => {
@@ -267,8 +275,8 @@ function BoardPageInner() {
   }, [query.data, search]);
 
   const featured = useMemo(
-    () => page === 0 && !search.trim() ? filtered.find((post) => post.pinned && postImage(post)) ?? null : null,
-    [filtered, page, search]
+    () => !search.trim() ? filtered.find((post) => post.pinned && postImage(post)) ?? null : null,
+    [filtered, search]
   );
   // 주요 이야기는 목록에서 제거하지 않는다. 한 건뿐인 저콘텐츠 상태에서도
   // 강조 카드와 "게시글 없음"이 동시에 노출되지 않고, 목록의 완전성도 유지된다.
@@ -281,16 +289,16 @@ function BoardPageInner() {
       info={selectedInfo}
       search={search}
       posts={listPostsData}
-      sourceCount={(query.data ?? []).length}
       isLoading={query.isLoading}
       isError={query.isError}
+      hasNextPage={query.hasNextPage}
+      isFetchingNextPage={query.isFetchingNextPage}
       onSearchChange={(value) => {
         setSearch(value);
-        setPage(0);
       }}
       onSearchReset={() => setSearch('')}
       onRetry={() => void query.refetch()}
-      onNextPage={() => setPage((previous) => previous + 1)}
+      onNextPage={() => void query.fetchNextPage()}
     />
   );
 
@@ -329,7 +337,13 @@ function BoardPageInner() {
 
 export default function BoardPage() {
   return (
-    <Suspense fallback={<section className="brand-wide-page py-8 text-sm text-text-secondary">게시판을 불러오는 중…</section>}>
+    <Suspense
+      fallback={(
+        <section className="brand-wide-page py-8 text-sm text-text-secondary">
+          {'게시판을 불러오는 중…'}
+        </section>
+      )}
+    >
       <BoardPageInner />
     </Suspense>
   );

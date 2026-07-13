@@ -153,6 +153,50 @@ describe('BoardPage', () => {
     });
     expect(screen.queryByRole('link', { name: /주요 이야기:/ })).not.toBeInTheDocument();
   });
+
+  it('게시글이 0건이면 첫 글 행동이 있는 빈 상태를 표시한다', async () => {
+    listPostsMock.mockResolvedValueOnce([]);
+
+    renderWithClient(<BoardPage />);
+
+    expect(await screen.findByText('아직 등록된 게시글이 없습니다.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '첫 글 남기기' })).toHaveAttribute('href', '/board/new');
+  });
+
+  it('다음 페이지를 불러와도 앞선 게시글을 유지한다', async () => {
+    const firstPage = Array.from({ length: 10 }, (_, index) => ({
+      id: index + 1,
+      title: `게시글 ${index + 1}`,
+      content: '본문',
+      published_at: null,
+      created_at: `2026-07-${String(12 - index).padStart(2, '0')}T00:00:00+09:00`,
+      author_id: 1,
+      category: 'discussion',
+    }));
+    listPostsMock
+      .mockResolvedValueOnce(firstPage)
+      .mockResolvedValueOnce([
+        {
+          id: 11,
+          title: '게시글 11',
+          content: '본문',
+          published_at: null,
+          created_at: '2026-07-01T00:00:00+09:00',
+          author_id: 1,
+          category: 'discussion',
+        },
+      ]);
+
+    renderWithClient(<BoardPage />);
+
+    expect(await screen.findByText('게시글 1')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '더 불러오기' }));
+
+    expect(await screen.findByText('게시글 11')).toBeInTheDocument();
+    expect(screen.getByText('게시글 1')).toBeInTheDocument();
+    expect(listPostsMock).toHaveBeenLastCalledWith(expect.objectContaining({ offset: 10 }));
+    expect(screen.getByRole('button', { name: '더 불러오기' })).toBeDisabled();
+  });
 });
 
 describe('BoardNewPage', () => {

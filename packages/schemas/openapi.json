@@ -5695,6 +5695,18 @@
             ],
             "title": "Author Name"
           },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
           "comment_count": {
             "type": "integer",
             "title": "Comment Count",
@@ -5706,7 +5718,8 @@
           "title",
           "content",
           "id",
-          "author_id"
+          "author_id",
+          "created_at"
         ],
         "title": "PostRead"
       },
