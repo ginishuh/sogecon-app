@@ -10,8 +10,9 @@ const getEventMock = vi.fn();
 const getOptionalRsvpMock = vi.fn();
 const upsertEventRsvpMock = vi.fn();
 const showToastMock = vi.fn();
+const routeParams = vi.hoisted(() => ({ id: '1' }));
 
-vi.mock('next/navigation', () => ({ useParams: () => ({ id: '1' }), notFound: vi.fn() }));
+vi.mock('next/navigation', () => ({ useParams: () => routeParams }));
 vi.mock('../hooks/useAuth', () => ({ useAuth: () => ({ status: 'authorized', data: { id: 9 } }) }));
 vi.mock('../components/toast', () => ({ useToast: () => ({ show: showToastMock }) }));
 vi.mock('../services/events', () => ({
@@ -38,6 +39,7 @@ function renderPage() {
 describe('행사 참여 사용자 여정', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    routeParams.id = '1';
     getEventMock.mockResolvedValue(event);
     upsertEventRsvpMock.mockResolvedValue(undefined);
   });
@@ -71,5 +73,13 @@ describe('행사 참여 사용자 여정', () => {
     expect(screen.queryByText('행사 정보를 불러오는 중…')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: '행사 목록으로' })).toHaveAttribute('href', '/events');
     expect(screen.getByRole('link', { name: '사무국에 문의하기' })).toHaveAttribute('href', '/support/contact');
+  });
+
+  it('잘못된 행사 주소도 같은 한국어 복구 화면으로 안내한다', async () => {
+    routeParams.id = '잘못된-id';
+    renderPage();
+
+    expect(screen.getByRole('heading', { name: '행사를 찾지 못했습니다.' })).toBeInTheDocument();
+    expect(getEventMock).not.toHaveBeenCalled();
   });
 });

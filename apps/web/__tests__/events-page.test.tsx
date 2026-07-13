@@ -58,6 +58,7 @@ describe('행사 일정 목록', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '지난 행사' }));
     expect(screen.getByRole('button', { name: '지난 행사' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('heading', { name: '지난 행사' })).toBeInTheDocument();
     expect(screen.getByText('지난 행사가 아직 없습니다.')).toBeInTheDocument();
   });
 
@@ -69,6 +70,21 @@ describe('행사 일정 목록', () => {
     expect(screen.getByRole('heading', { name: '글로벌 경제 전망 특강' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /행사 자세히 보기/ })).toHaveAttribute('href', '/events/1');
     expect(screen.getByRole('link', { name: '자세히 보기' })).toHaveAttribute('href', '/events/2');
-    expect(screen.getAllByText('신청 가능')).toHaveLength(2);
+    expect(screen.getAllByText('예정')).toHaveLength(2);
+  });
+
+  it('지난 행사 목록의 제목과 보조공학 라벨을 과거 맥락으로 바꾼다', async () => {
+    listEventsMock.mockResolvedValue([
+      { ...events[0], id: 10, starts_at: '2020-07-18T16:00:00+09:00', ends_at: '2020-07-18T19:00:00+09:00' },
+      { ...events[1], id: 11, starts_at: '2020-07-25T14:00:00+09:00', ends_at: '2020-07-25T16:30:00+09:00' },
+    ]);
+    renderPage();
+
+    await screen.findByRole('heading', { name: '다가오는 행사' });
+    fireEvent.click(screen.getByRole('button', { name: '지난 행사' }));
+
+    expect(screen.getByRole('heading', { name: '지난 행사' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '최근 지난 행사' })).toHaveClass('sr-only');
+    expect(screen.getAllByText('종료')).toHaveLength(2);
   });
 });

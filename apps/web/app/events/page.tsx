@@ -17,6 +17,7 @@ import Button from '../../components/ui/button';
 import ButtonLink from '../../components/ui/button-link';
 import {
   getEventStatus,
+  loadAllEvents,
   selectEvents,
   type EventListView,
 } from '../../lib/event-experience';
@@ -41,6 +42,11 @@ const weekday = new Intl.DateTimeFormat('ko-KR', {
   weekday: 'long',
 });
 
+const eventYear = new Intl.DateTimeFormat('ko-KR', {
+  timeZone: 'Asia/Seoul',
+  year: 'numeric',
+});
+
 const eventTime = new Intl.DateTimeFormat('ko-KR', {
   timeZone: 'Asia/Seoul',
   hour: '2-digit',
@@ -60,7 +66,7 @@ function EventFilters({ view, onChange }: { view: EventListView; onChange: (view
           type="button"
           aria-pressed={view === value}
           onClick={() => onChange(value)}
-          className={`min-h-11 rounded-full px-5 text-sm font-semibold transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
+          className={`min-h-11 rounded-full px-5 text-sm font-semibold transition focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
             view === value
               ? 'bg-brand-700 text-text-inverse'
               : 'border border-neutral-border bg-white text-text-primary hover:bg-brand-50'
@@ -89,7 +95,7 @@ function EventDateBlock({ event, compact = false }: { event: Event; compact?: bo
   return (
     <div className="flex w-full shrink-0 items-center gap-4 border-b border-neutral-border pb-4 sm:w-auto sm:min-w-40 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-6 lg:min-w-48 lg:justify-center">
       <div className="text-center">
-        <span className="block text-xs font-semibold text-brand-700">{startsAt.getFullYear()}년</span>
+        <span className="block text-xs font-semibold text-brand-700">{eventYear.format(startsAt)}</span>
         <strong className="mt-1 block font-heading text-5xl font-semibold leading-none text-brand-700 lg:text-6xl">
           {month}.{day}
         </strong>
@@ -206,8 +212,8 @@ function EventUpdatesPrompt() {
 export default function EventsPage() {
   const [view, setView] = useState<EventListView>('upcoming');
   const query = useQuery<Event[]>({
-    queryKey: ['events', 20, 0],
-    queryFn: () => listEvents({ limit: 20 }),
+    queryKey: ['events', 'all'],
+    queryFn: () => loadAllEvents(listEvents),
   });
 
   const selectedEvents = useMemo(
@@ -222,9 +228,13 @@ export default function EventsPage() {
       <header className="space-y-5">
         <div className="space-y-2">
           <p className="text-sm font-semibold text-brand-700">행사 일정</p>
-          <h1 className="font-heading text-3xl font-semibold leading-tight text-text-primary lg:text-4xl">다가오는 행사</h1>
+          <h1 className="font-heading text-3xl font-semibold leading-tight text-text-primary lg:text-4xl">
+            {view === 'past' ? '지난 행사' : '다가오는 행사'}
+          </h1>
           <p className="max-w-2xl text-sm leading-6 text-text-secondary sm:text-base">
-            서강 경제 동문을 위한 모임과 강연, 네트워킹 행사를 확인하세요.
+            {view === 'past'
+              ? '함께했던 서강 경제 동문 행사의 기록을 확인하세요.'
+              : '서강 경제 동문을 위한 모임과 강연, 네트워킹 행사를 확인하세요.'}
           </p>
         </div>
         <EventFilters view={view} onChange={setView} />
@@ -244,7 +254,9 @@ export default function EventsPage() {
           <FeaturedEvent event={featuredEvent} />
           {laterEvents.length > 0 ? (
             <section className="overflow-hidden rounded-2xl border border-neutral-border bg-white" aria-labelledby="more-events-title">
-              <h2 id="more-events-title" className="sr-only">이어서 열리는 행사</h2>
+              <h2 id="more-events-title" className="sr-only">
+                {view === 'past' ? '최근 지난 행사' : '이어서 열리는 행사'}
+              </h2>
               <div className="hidden border-b border-neutral-border bg-surface-raised px-6 py-3 text-xs font-medium text-text-muted lg:grid lg:grid-cols-[15rem_minmax(0,1fr)_9rem_7rem_8rem] lg:gap-5">
                 <span>일시</span><span>행사 정보</span><span>정원</span><span>상태</span><span>보기</span>
               </div>

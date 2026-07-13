@@ -10,7 +10,7 @@ import {
 } from '@phosphor-icons/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { notFound, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { getEvent, type Event, upsertEventRsvp, type RSVPLiteral } from '../../../services/events';
 import { getOptionalRsvp, type RSVP } from '../../../services/rsvps';
@@ -60,7 +60,7 @@ export default function EventDetailPage() {
   });
 
   if (!Number.isFinite(id)) {
-    return notFound();
+    return <EventNotFound />;
   }
 
   if (eventQuery.isLoading) {

@@ -79,6 +79,12 @@ No actionable P0, P1, or P2 differences remain.
 - Finding: no actionable P0/P1/P2 differences.
 - Post-fix evidence: Windows production QA passed the full-view comparison, filters, responsive layout, detail hierarchy, 404 recovery, focus, console, and network checks.
 
+### PR review follow-up
+
+- Finding: the first query only inspected the oldest 20 API rows, so many past events could hide a real upcoming event. Past view copy and hidden section labels also retained future-tense language.
+- Fix: read public events in 100-row pages until exhaustion, add boundary/sort/pagination tests, synchronize H1/description/list labels with the selected view, use a KST year formatter, and route invalid event slugs to the same Korean recovery UI.
+- Focused Windows evidence: Desktop and Mobile view switching, past copy, empty state, invalid slug, `/posts` regression, Console, and Network passed. The initially unstable selected-filter ring was changed to a focus-state contract; selected and unselected filters both retained a white `2px` offset plus brand `4px` ring at `44px` height.
+
 ## Implementation checklist
 
 - [x] Keep `소식` and `행사 일정` as separate navigation routes.
