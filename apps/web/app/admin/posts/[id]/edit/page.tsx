@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 
+import { AdminAuthState } from '../../../../../components/admin-auth-state';
 import { HeroTargetToggle } from '../../../../../components/hero-target-toggle';
 import { PostForm, type PostFormData } from '../../../../../components/post-form';
 import { RequirePermission } from '../../../../../components/require-permission';
@@ -89,7 +90,7 @@ export default function EditPostPage() {
   });
 
   if (status !== 'authorized') {
-    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
+    return <AdminAuthState status={status} />;
   }
 
   return (

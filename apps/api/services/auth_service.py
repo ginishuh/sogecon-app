@@ -5,18 +5,20 @@
 """
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, cast
 
-from fastapi import HTTPException, Request
+from fastapi import Depends, HTTPException, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .. import models
 from ..config import get_settings
-from ..errors import ApiError
+from ..db import get_db
+from ..errors import ApiError, NotFoundError
 from ..passwords import hash_password, verify_password
 from ..ratelimit import consume_limit
 from ..repositories import auth as auth_repo
@@ -112,6 +114,38 @@ def _clear_session(req: Request) -> None:
     req.session.pop("admin", None)
 
 
+async def _refresh_user_session(
+    db: AsyncSession,
+    req: Request,
+    user: CurrentUser,
+) -> tuple[CurrentUser, models.Member]:
+    """DB의 현재 회원·역할을 세션에 반영한다."""
+    try:
+        member = await members_repo.get_member_by_student_id(db, user.student_id)
+    except NotFoundError:
+        _clear_session(req)
+        raise HTTPException(status_code=401, detail="unauthorized") from None
+    if cast(str, member.status) != "active":
+        _clear_session(req)
+        raise HTTPException(status_code=401, detail="unauthorized")
+
+    refreshed = CurrentUser(
+        student_id=cast(str, member.student_id),
+        roles=ensure_member_role(normalize_roles(member.roles)),
+        id=cast(int, member.id),
+        email=cast(str | None, member.email),
+    )
+    if refreshed != user:
+        _set_user_session(
+            req,
+            student_id=refreshed.student_id,
+            roles=refreshed.roles,
+            id=refreshed.id,
+            email=refreshed.email,
+        )
+    return refreshed, member
+
+
 # ---- 권한 확인 의존성 ----
 
 
@@ -135,7 +169,7 @@ def require_permission(
     permission: str,
     *,
     allow_admin_fallback: bool = True,
-) -> Callable[[Request], CurrentUser]:
+) -> Callable[..., Awaitable[CurrentUser]]:
     """기능권한 의존성 팩토리.
 
     - `super_admin`은 항상 통과.
@@ -143,9 +177,13 @@ def require_permission(
     - `allow_admin_fallback=True`이면 기존 `admin` 등급도 임시 통과.
     """
 
-    def _dependency(req: Request) -> CurrentUser:
+    async def _dependency(
+        req: Request,
+        db: AsyncSession = Depends(get_db),
+    ) -> CurrentUser:
         user = _get_user_session(req)
         if user is not None:
+            user, _member = await _refresh_user_session(db, req, user)
             if has_permission(
                 user.roles,
                 permission,
@@ -332,12 +370,12 @@ async def get_session_info(
     """통합 세션 조회."""
     u = _get_user_session(request)
     if u:
+        u, member = await _refresh_user_session(db, request, u)
         kind = (
             "admin"
             if ("admin" in u.roles or "super_admin" in u.roles)
             else "member"
         )
-        member = await members_repo.get_member_by_student_id(db, u.student_id)
         email = u.email or (member.email if isinstance(member.email, str) else "")
         name = member.name if isinstance(member.name, str) else ""
         member_id = cast(int, member.id)

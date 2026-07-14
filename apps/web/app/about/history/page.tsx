@@ -17,6 +17,7 @@ export default function HistoryPage() {
           <AboutHeroPhoto
             src="/images/about/sogang-main-gate.png"
             alt="서강대학교 정문과 교정"
+            priority
           />
         )}
       />

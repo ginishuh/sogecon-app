@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
+import { AdminAuthState } from '../../../components/admin-auth-state';
 import { DirectMemberCreateForm } from './create-form';
 import { MembersBody } from './members-table';
 import { useAdminMembersModel } from './use-admin-members';
@@ -105,17 +106,7 @@ export default function AdminMembersPage() {
     status === 'authorized' && hasPermissionSession(session, 'admin_roles');
   const model = useAdminMembersModel({ enabled: canManageMembers });
 
-  if (status === 'loading') {
-    return <div className="p-6 text-sm text-text-secondary">관리자 권한을 확인하고 있습니다.</div>;
-  }
-
-  if (status === 'error') {
-    return <div className="p-6 text-sm text-state-error">로그인 상태를 확인하지 못했습니다.</div>;
-  }
-
-  if (status === 'unauthorized') {
-    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
-  }
+  if (status !== 'authorized') return <AdminAuthState status={status} />;
 
   return (
     <RequirePermission

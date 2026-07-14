@@ -8,7 +8,7 @@ import { listAdminSupportTickets } from '../services/support';
 
 const mocks = vi.hoisted(() => ({
   auth: {
-    status: 'loading' as 'loading' | 'authorized',
+    status: 'loading' as 'loading' | 'authorized' | 'error',
     data: undefined as
       | undefined
       | {
@@ -51,6 +51,15 @@ describe('문의 관리자 인증과 권한 경계', () => {
     render(<AdminSupportPage />, { wrapper: QueryProvider });
 
     expect(screen.getByText('관리자 권한을 확인하고 있습니다.')).toBeInTheDocument();
+    expect(screen.queryByText('관리자 로그인이 필요합니다.')).not.toBeInTheDocument();
+    expect(listAdminSupportTickets).not.toHaveBeenCalled();
+  });
+
+  it('세션 조회 오류를 비로그인 상태와 구분한다', () => {
+    mocks.auth.status = 'error';
+    render(<AdminSupportPage />, { wrapper: QueryProvider });
+
+    expect(screen.getByText('로그인 상태를 확인하지 못했습니다.')).toBeInTheDocument();
     expect(screen.queryByText('관리자 로그인이 필요합니다.')).not.toBeInTheDocument();
     expect(listAdminSupportTickets).not.toHaveBeenCalled();
   });

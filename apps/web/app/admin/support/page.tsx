@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { AdminAuthState } from '../../../components/admin-auth-state';
 import { RequirePermission } from '../../../components/require-permission';
 import {
   CONTROL_BASE,
@@ -178,14 +179,8 @@ function AdminSupportPageContent() {
 export default function AdminSupportPage() {
   const { status } = useAuth();
 
-  if (status === 'loading') {
-    return <div className="p-4 text-sm text-text-secondary">관리자 권한을 확인하고 있습니다.</div>;
-  }
-
   if (status !== 'authorized') {
-    return (
-      <div className="p-4 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>
-    );
+    return <AdminAuthState status={status} />;
   }
 
   return (

@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from apps.api import models, models_support  # noqa: E402
 from apps.api.config import get_settings  # noqa: E402
-from apps.api.models_support import SupportTicket  # noqa: E402
 
 config = context.config
 
@@ -26,7 +26,10 @@ settings = get_settings()
 _safe_url = settings.database_url.replace("%", "%%")
 config.set_main_option("sqlalchemy.url", _safe_url)
 
-target_metadata = SupportTicket.metadata
+if models_support.SupportTicket.metadata is not models.Base.metadata:
+    raise RuntimeError("SupportTicket must use the shared SQLAlchemy metadata")
+
+target_metadata = models.Base.metadata
 
 
 def run_migrations_offline() -> None:

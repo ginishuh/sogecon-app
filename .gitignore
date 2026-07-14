@@ -41,6 +41,7 @@ _tmp/
 .releases/
 # Local analysis/build artifacts (do not commit)
 artifacts/
+.artifacts/
 htmlcov/
 apps/web/.lighthouseci/
 # Local tooling (e.g., pinned Node for builds)

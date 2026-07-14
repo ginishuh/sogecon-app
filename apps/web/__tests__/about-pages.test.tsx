@@ -49,7 +49,7 @@ describe('About static pages', () => {
     const { asFragment } = render(<OrgPage />);
     expect(screen.getByRole('heading', { level: 1, name: '동문회 조직도' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: '현재 운영진과 역할' })).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: '행사장에서 대화를 나누는 서강 경제 동문들' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '행사장에서 대화를 나누는 서강 경제 동문들' })).toHaveAttribute('data-priority', 'true');
     expect(screen.getByRole('heading', { level: 3, name: '운영 방향과 점검' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 3, name: '실행 조직' })).toBeInTheDocument();
     expect(screen.getByText(/회장단과 사무국, 분과 운영진이 역할을 나누어/)).toBeInTheDocument();
@@ -75,7 +75,7 @@ describe('About static pages', () => {
   it('renders searchable class president records including official gaps', () => {
     render(<ClassPresidentsPage />);
     expect(screen.getByRole('heading', { level: 1, name: '역대 기수별 원우회장' })).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: '서강대학교 알바트로스탑' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '서강대학교 알바트로스탑' })).toHaveAttribute('data-priority', 'true');
     const search = screen.getByRole('searchbox', { name: '기수, 이름 또는 근무처 검색' });
     expect(search).toBeInTheDocument();
     expect(screen.getByText('허민철')).toBeInTheDocument();
@@ -94,7 +94,7 @@ describe('About static pages', () => {
 
   it('renders a preparation state while official alumni president records are verified', () => {
     const { asFragment } = render(<HistoryPage />);
-    expect(screen.getByRole('img', { name: '서강대학교 정문과 교정' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '서강대학교 정문과 교정' })).toHaveAttribute('data-priority', 'true');
     expect(screen.getByRole('heading', { level: 1, name: '역대 회장단과 연혁' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: '역대 총동문회장 명단을 준비하고 있습니다' })).toBeInTheDocument();
     expect(screen.getByText(/현재 9대 총동문회장은 47기 허민철 회장입니다/)).toBeInTheDocument();

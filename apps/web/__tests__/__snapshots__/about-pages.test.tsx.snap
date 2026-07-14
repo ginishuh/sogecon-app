@@ -38,6 +38,7 @@ exports[`About static pages > renders a preparation state while official alumni 
           <img
             alt="서강대학교 정문과 교정"
             class="object-cover"
+            data-priority="true"
             sizes="(max-width: 767px) calc(100vw - 80px), (max-width: 1279px) 36vw, 27rem"
             src="/images/about/sogang-main-gate.png"
             style="object-position: center;"
@@ -97,6 +98,7 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
       <img
         alt="총동문회장 인사말"
         class="w-full h-auto"
+        data-priority="true"
         height="670"
         src="/images/about/greeting-card.webp"
         width="1200"
@@ -174,6 +176,7 @@ exports[`About static pages > renders the current organization structure 1`] = `
           <img
             alt="행사장에서 대화를 나누는 서강 경제 동문들"
             class="object-cover"
+            data-priority="true"
             sizes="(max-width: 767px) calc(100vw - 80px), (max-width: 1279px) 36vw, 27rem"
             src="/images/home/alumni-networking-hero.webp"
             style="object-position: 56% center;"

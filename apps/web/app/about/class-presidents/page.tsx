@@ -19,6 +19,7 @@ export default function ClassPresidentsPage() {
             src="/images/about/sogang-albatross-tower.png"
             alt="서강대학교 알바트로스탑"
             objectPosition="center 46%"
+            priority
           />
         )}
       />

@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import asyncio
 from http import HTTPStatus
 
+import bcrypt
 import httpx
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from apps.api import models
+from apps.api.db import get_db
 from apps.api.main import app
 
 
@@ -78,3 +83,68 @@ def test_member_cannot_list_support_tickets(member_login: TestClient) -> None:
     res = member_login.get("/support/admin/tickets?limit=20")
     assert res.status_code == HTTPStatus.FORBIDDEN
     assert res.json()["detail"] == "admin_permission_required"
+
+
+def test_active_admin_session_refreshes_backfilled_support_role(
+    client: TestClient,
+) -> None:
+    student_id = "suppbackfill"
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found")
+
+    async def _seed_admin() -> None:
+        async for db in override():
+            member = models.Member(
+                student_id=student_id,
+                email="support-backfill-admin@test.example.com",
+                name="Support Admin",
+                cohort=1,
+                roles="member,admin,admin_posts",
+                status="active",
+            )
+            db.add(member)
+            await db.flush()
+            db.add(
+                models.MemberAuth(
+                    member_id=member.id,
+                    student_id=member.student_id,
+                    password_hash=bcrypt.hashpw(
+                        b"support-password", bcrypt.gensalt()
+                    ).decode(),
+                )
+            )
+            await db.commit()
+            break
+
+    async def _backfill_role() -> None:
+        async for db in override():
+            member = await db.scalar(
+                select(models.Member).where(
+                        models.Member.student_id == student_id
+                )
+            )
+            if member is None:
+                raise RuntimeError("seeded member not found")
+            member.roles = "member,admin,admin_posts,admin_support"
+            await db.commit()
+            break
+
+    asyncio.run(_seed_admin())
+    login = client.post(
+        "/auth/login",
+        json={
+            "student_id": student_id,
+            "password": "support-password",
+        },
+    )
+    assert login.status_code == HTTPStatus.OK
+    assert client.get("/support/admin/tickets").status_code == HTTPStatus.FORBIDDEN
+
+    asyncio.run(_backfill_role())
+
+    tickets = client.get("/support/admin/tickets")
+    assert tickets.status_code == HTTPStatus.OK
+    session = client.get("/auth/session")
+    assert session.status_code == HTTPStatus.OK
+    assert "admin_support" in session.json()["roles"]

@@ -8,10 +8,12 @@ vi.mock('next/image', () => ({
   // DOM에 유효하지 않은 prop은 제거한다.
   default: (props: Record<string, unknown>) => {
     const sanitized = { ...props };
+    const priority = sanitized.priority === true;
     delete sanitized.priority;
     delete sanitized.placeholder;
     delete sanitized.blurDataURL;
     delete sanitized.fill;
+    if (priority) sanitized['data-priority'] = 'true';
     return React.createElement('img', sanitized as React.ImgHTMLAttributes<HTMLImageElement>);
   },
 }));
