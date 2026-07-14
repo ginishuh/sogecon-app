@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
+import { AdminAuthState } from '../../../components/admin-auth-state';
 import { RequirePermission } from '../../../components/require-permission';
 import { useToast } from '../../../components/toast';
 import { useAuth } from '../../../hooks/useAuth';
@@ -305,9 +306,7 @@ function AdminSignupRequestsContent() {
 export default function AdminSignupRequestsPage() {
   const { status } = useAuth();
 
-  if (status !== 'authorized') {
-    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
-  }
+  if (status !== 'authorized') return <AdminAuthState status={status} />;
 
   return (
     <RequirePermission

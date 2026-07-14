@@ -23,6 +23,7 @@ const ABOUT_LINKS: LinkItem[] = [
   { href: '/about/greeting', label: '총동문회장 인사말' },
   { href: '/about/dean-greeting', label: '대학원장 인사말' },
   { href: '/about/org', label: '조직도' },
+  { href: '/about/class-presidents', label: '역대 원우회장' },
   { href: '/about/history', label: '연혁' },
   { href: '/posts?category=notice', label: '공지사항' }
 ];
@@ -149,7 +150,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
                 <Link
                   href={link.href}
                   onClick={onClose}
-                  className="block rounded-[10px] px-3 py-2 text-neutral-muted text-sm hover:bg-neutral-subtle transition-colors"
+                  className="flex min-h-11 items-center rounded-[10px] px-3 py-2 text-neutral-muted text-sm transition-colors hover:bg-neutral-subtle focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400"
                 >
                   {link.label}
                 </Link>
@@ -223,7 +224,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
                 <Link
                   href={link.href}
                   onClick={onClose}
-                  className="block rounded-[10px] px-3 py-2 text-neutral-muted text-sm hover:bg-neutral-subtle transition-colors"
+                  className="flex min-h-11 items-center rounded-[10px] px-3 py-2 text-neutral-muted text-sm transition-colors hover:bg-neutral-subtle focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400"
                 >
                   {link.label}
                 </Link>
@@ -242,7 +243,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
           <button
             type="button"
             onClick={() => setAdminOpen(!adminOpen)}
-            className="w-full flex items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 text-neutral-ink text-sm hover:bg-neutral-subtle transition-colors"
+            className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 text-sm text-neutral-ink transition-colors hover:bg-neutral-subtle focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400"
           >
             <div className="flex items-center gap-3">
               <svg className="size-5 text-neutral-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -261,7 +262,7 @@ export function DrawerMenu({ status, onClose }: DrawerMenuProps) {
                   <Link
                     href={link.href}
                     onClick={onClose}
-                    className="block rounded-[10px] px-3 py-2 text-neutral-muted text-sm hover:bg-neutral-subtle transition-colors"
+                    className="flex min-h-11 items-center rounded-[10px] px-3 py-2 text-neutral-muted text-sm transition-colors hover:bg-neutral-subtle focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400"
                   >
                     {link.label}
                   </Link>

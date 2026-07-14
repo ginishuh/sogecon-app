@@ -5,16 +5,21 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { HeroItemForm } from '../../../../components/hero-item-form';
-import { RequirePermission } from '../../../../components/require-permission';
+import { AdminAuthState } from '../../../../components/admin-auth-state';
 import { useToast } from '../../../../components/toast';
+import { useAuth } from '../../../../hooks/useAuth';
 import { ApiError } from '../../../../lib/api';
 import { apiErrorToMessage } from '../../../../lib/error-map';
+import { hasPermissionSession } from '../../../../lib/rbac';
 import { createAdminHeroItem, type CreateHeroItemPayload } from '../../../../services/hero';
 
 export default function AdminHeroNewPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { show } = useToast();
+  const auth = useAuth();
+  const canManageHero = auth.status === 'authorized'
+    && hasPermissionSession(auth.data, 'admin_hero');
 
   const mutation = useMutation({
     mutationFn: (payload: CreateHeroItemPayload) => createAdminHeroItem(payload),
@@ -32,14 +37,20 @@ export default function AdminHeroNewPage() {
     },
   });
 
+  if (auth.status !== 'authorized') {
+    return <AdminAuthState status={auth.status} />;
+  }
+  if (!canManageHero) {
+    return <div className="p-6 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>;
+  }
+
   return (
-    <RequirePermission
-      permission="admin_hero"
-      fallback={<div className="p-6 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>}
-    >
       <section className="mx-auto max-w-2xl space-y-4 p-6">
-        <nav className="text-sm text-text-secondary">
-          <Link href="/admin/hero" className="hover:underline">
+        <nav className="flex min-h-11 items-center text-sm text-text-secondary">
+          <Link
+            href="/admin/hero"
+            className="inline-flex min-h-11 items-center rounded-md px-2 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2"
+          >
             홈 배너 관리
           </Link>
           <span className="mx-2">/</span>
@@ -60,6 +71,5 @@ export default function AdminHeroNewPage() {
           onCancel={() => router.push('/admin/hero')}
         />
       </section>
-    </RequirePermission>
   );
 }

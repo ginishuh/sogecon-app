@@ -32,7 +32,10 @@ class _DummyProvider(PushProvider):
 
 @pytest.mark.anyio
 async def test_admin_send_rate_limit_concurrent(admin_login: TestClient) -> None:
-    app.dependency_overrides[router_mod.get_push_provider] = lambda: _DummyProvider()
+    def _provider_override() -> _DummyProvider:
+        return _DummyProvider()
+
+    app.dependency_overrides[router_mod.get_push_provider] = _provider_override
     try:
         transport = httpx.ASGITransport(app=app, client=("5.6.7.8", 55555))
         async with httpx.AsyncClient(

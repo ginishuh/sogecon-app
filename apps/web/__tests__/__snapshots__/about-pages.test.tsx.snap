@@ -1,5 +1,92 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`About static pages > renders a preparation state while official alumni president records are verified 1`] = `
+<DocumentFragment>
+  <div
+    class="about-page"
+  >
+    <section
+      aria-labelledby="about-hero-heading"
+      class="about-hero"
+    >
+      <div
+        class="about-hero__text"
+      >
+        <p
+          class="about-hero__eyebrow"
+        >
+          총동문회 소개
+        </p>
+        <h1
+          class="about-hero__title break-keep"
+          id="about-hero-heading"
+        >
+          역대 회장단과 연혁
+        </h1>
+        <p
+          class="about-hero__description"
+        >
+          현재 총동문회는 9대 허민철 회장이 이끌고 있습니다. 역대 총동문회장 명단은 공식 자료를 확인한 뒤 공개하겠습니다.
+        </p>
+      </div>
+      <div
+        class="about-hero__media"
+      >
+        <div
+          class="relative aspect-[3/2] w-full overflow-hidden rounded-2xl bg-surface-sunken"
+        >
+          <img
+            alt="서강대학교 정문과 교정"
+            class="object-cover"
+            data-priority="true"
+            sizes="(max-width: 767px) calc(100vw - 80px), (max-width: 1279px) 36vw, 27rem"
+            src="/images/about/sogang-main-gate.png"
+            style="object-position: center;"
+          />
+        </div>
+      </div>
+    </section>
+    <section
+      aria-labelledby="history-preparing-title"
+      class="rounded-3xl border border-neutral-border bg-white px-6 py-12 text-center shadow-sm md:px-10 md:py-16"
+    >
+      <p
+        class="text-sm font-semibold tracking-wide text-brand-700"
+      >
+        역대 명단 확인 중
+      </p>
+      <h2
+        class="mt-3 font-heading text-2xl font-semibold text-brand-primary md:text-3xl"
+        id="history-preparing-title"
+      >
+        역대 총동문회장 명단을 준비하고 있습니다
+      </h2>
+      <p
+        class="mx-auto mt-4 max-w-2xl leading-7 text-text-secondary"
+      >
+        현재 9대 총동문회장은 47기 허민철 회장입니다. 이전 총동문회장 명단은 학교와 총동문회가 보유한 자료를 대조하고 있으며, 확인을 마친 뒤 정확한 이름과 재임 기록을 공개하겠습니다.
+      </p>
+      <div
+        class="mt-8 flex flex-col justify-center gap-3 sm:flex-row"
+      >
+        <a
+          class="inline-flex min-w-11 items-center justify-center rounded-md font-medium transition-colors select-none focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50 no-underline hover:no-underline focus-visible:no-underline bg-brand-700 text-text-inverse hover:bg-brand-800 active:bg-brand-900 min-h-11 px-4 text-sm"
+          href="/about/org"
+        >
+          현재 조직도 보기
+        </a>
+        <a
+          class="inline-flex min-w-11 items-center justify-center rounded-md font-medium transition-colors select-none focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50 no-underline hover:no-underline focus-visible:no-underline border border-neutral-border bg-surface-raised text-text-primary hover:bg-surface-sunken min-h-11 px-4 text-sm"
+          href="/about/class-presidents"
+        >
+          역대 원우회장 보기
+        </a>
+      </div>
+    </section>
+  </div>
+</DocumentFragment>
+`;
+
 exports[`About static pages > renders greeting page hero and sections 1`] = `
 <DocumentFragment>
   <div
@@ -11,6 +98,7 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
       <img
         alt="총동문회장 인사말"
         class="w-full h-auto"
+        data-priority="true"
         height="670"
         src="/images/about/greeting-card.webp"
         width="1200"
@@ -50,7 +138,7 @@ exports[`About static pages > renders greeting page hero and sections 1`] = `
 </DocumentFragment>
 `;
 
-exports[`About static pages > renders history page timeline and archive 1`] = `
+exports[`About static pages > renders the current organization structure 1`] = `
 <DocumentFragment>
   <div
     class="about-page"
@@ -68,576 +156,326 @@ exports[`About static pages > renders history page timeline and archive 1`] = `
           총동문회 소개
         </p>
         <h1
-          class="about-hero__title"
+          class="about-hero__title break-keep"
           id="about-hero-heading"
         >
-          역대 회장단과 연혁
+          동문회 조직도
         </h1>
         <p
           class="about-hero__description"
         >
-          총동문회는 1994년 창립 이후 30년 넘게 동문 교류와 사회 공헌을 이어왔습니다. 연혁과 역대 회장단의 주요 활동을 한눈에 정리했습니다.
+          회장과 감사, 사무국, 분과 운영진이 역할을 나누고 동문들의 의견을 실제 사업과 모임으로 연결합니다. 현재 운영진과 담당 영역을 한눈에 확인해 보세요.
         </p>
       </div>
       <div
-        class="about-hero__image"
+        class="about-hero__media"
       >
-        <img
-          alt="총동문회 연혁을 상징하는 타임라인 삽화"
-          class="h-full w-full rounded-xl object-cover shadow-md"
-          height="480"
-          src="/images/about/history-hero.svg"
-          width="640"
-        />
-      </div>
-    </section>
-    <section
-      aria-labelledby="history-timeline"
-      class="about-section about-section--timeline"
-    >
-      <div
-        class="about-section__content"
-      >
-        <h2
-          class="about-section__heading"
-          id="history-timeline"
+        <div
+          class="relative aspect-[3/2] w-full overflow-hidden rounded-2xl bg-surface-sunken"
         >
-          주요 연혁
-        </h2>
-        <p>
-          동문회의 발자취를 간략히 정리했습니다. 연간 사업 보고서와 자료실에서 더 자세한 기록을 확인할 수 있으며, 2025년부터는 주요 지표를 데이터 보드로 시각화해 제공할 예정입니다.
-        </p>
-      </div>
-      <ol
-        aria-label="총동문회 주요 연혁"
-        class="about-timeline"
-      >
-        <li
-          class="about-timeline__item"
-        >
-          <div
-            aria-hidden="true"
-            class="about-timeline__marker"
+          <img
+            alt="행사장에서 대화를 나누는 서강 경제 동문들"
+            class="object-cover"
+            data-priority="true"
+            sizes="(max-width: 767px) calc(100vw - 80px), (max-width: 1279px) 36vw, 27rem"
+            src="/images/home/alumni-networking-hero.webp"
+            style="object-position: 56% center;"
           />
-          <div
-            class="about-timeline__content"
-          >
-            <span
-              class="about-timeline__year"
-            >
-              1994
-            </span>
-            <h3
-              class="about-timeline__title"
-            >
-              총동문회 창립
-            </h3>
-            <p>
-              첫 4개 기수가 연합해 총동문회를 창립하고, 서강대학교 경제대학원 동문 네트워크의 기반을 마련했습니다.
-            </p>
-          </div>
-        </li>
-        <li
-          class="about-timeline__item"
-        >
-          <div
-            aria-hidden="true"
-            class="about-timeline__marker"
-          />
-          <div
-            class="about-timeline__content"
-          >
-            <span
-              class="about-timeline__year"
-            >
-              2005
-            </span>
-            <h3
-              class="about-timeline__title"
-            >
-              장학기금 조성
-            </h3>
-            <p>
-              동문 기부로 장학기금을 조성해 재학생 후배 지원을 시작했습니다. 현재는 연간 12명에게 장학금을 지급합니다.
-            </p>
-          </div>
-        </li>
-        <li
-          class="about-timeline__item"
-        >
-          <div
-            aria-hidden="true"
-            class="about-timeline__marker"
-          />
-          <div
-            class="about-timeline__content"
-          >
-            <span
-              class="about-timeline__year"
-            >
-              2016
-            </span>
-            <h3
-              class="about-timeline__title"
-            >
-              디지털 커뮤니티 전환
-            </h3>
-            <p>
-              회원 포털과 모바일 알림 시스템을 도입해 행사 신청, 회비 납부, 커뮤니티 운영을 온라인으로 전환했습니다.
-            </p>
-          </div>
-        </li>
-        <li
-          class="about-timeline__item"
-        >
-          <div
-            aria-hidden="true"
-            class="about-timeline__marker"
-          />
-          <div
-            class="about-timeline__content"
-          >
-            <span
-              class="about-timeline__year"
-            >
-              2022
-            </span>
-            <h3
-              class="about-timeline__title"
-            >
-              데이터 거버넌스 강화
-            </h3>
-            <p>
-              회원 데이터 거버넌스 정책과 접근 로그 감사를 도입해 개인정보 보호와 투명한 데이터 사용 체계를 구축했습니다.
-            </p>
-          </div>
-        </li>
-        <li
-          class="about-timeline__item"
-        >
-          <div
-            aria-hidden="true"
-            class="about-timeline__marker"
-          />
-          <div
-            class="about-timeline__content"
-          >
-            <span
-              class="about-timeline__year"
-            >
-              2025
-            </span>
-            <h3
-              class="about-timeline__title"
-            >
-              공식 웹 런치
-            </h3>
-            <p>
-              웹·모바일 통합 경험을 제공하는 공식 웹을 오픈하고, 동문 수첩/공지/행사/소개를 한 번에 연결하도록 개편했습니다.
-            </p>
-          </div>
-        </li>
-      </ol>
-    </section>
-    <section
-      aria-labelledby="history-presidents"
-      class="about-section about-section--stacked"
-    >
-      <div
-        class="about-section__content"
-      >
-        <h2
-          class="about-section__heading"
-          id="history-presidents"
-        >
-          역대 회장단
-        </h2>
-        <p>
-          지난 6년간 총동문회를 이끌어 주신 회장단입니다. 각 회장단의 주요 사업과 과제를 간략히 소개합니다.
-        </p>
-      </div>
-      <ul
-        aria-label="역대 회장단 소개"
-        class="about-section__list"
-      >
-        <li
-          class="about-section__card"
-        >
-          <h3
-            class="about-section__card-title"
-          >
-            13대 회장 박지원
-          </h3>
-          <dl
-            class="about-section__dl"
-          >
-            <div>
-              <dt>
-                활동 기간
-              </dt>
-              <dd>
-                2018 - 2019
-              </dd>
-            </div>
-            <div>
-              <dt>
-                주요 과제
-              </dt>
-              <dd>
-                디지털 전환, 회원 데이터베이스 정비
-              </dd>
-            </div>
-          </dl>
-        </li>
-        <li
-          class="about-section__card"
-        >
-          <h3
-            class="about-section__card-title"
-          >
-            14대 회장 이상훈
-          </h3>
-          <dl
-            class="about-section__dl"
-          >
-            <div>
-              <dt>
-                활동 기간
-              </dt>
-              <dd>
-                2020 - 2021
-              </dd>
-            </div>
-            <div>
-              <dt>
-                주요 과제
-              </dt>
-              <dd>
-                비대면 운영 체계 확립, 온라인 세미나 확대
-              </dd>
-            </div>
-          </dl>
-        </li>
-        <li
-          class="about-section__card"
-        >
-          <h3
-            class="about-section__card-title"
-          >
-            15대 회장 정아름
-          </h3>
-          <dl
-            class="about-section__dl"
-          >
-            <div>
-              <dt>
-                활동 기간
-              </dt>
-              <dd>
-                2022 - 2023
-              </dd>
-            </div>
-            <div>
-              <dt>
-                주요 과제
-              </dt>
-              <dd>
-                장학 사업 확장, ESG 프로젝트 준비
-              </dd>
-            </div>
-          </dl>
-        </li>
-        <li
-          class="about-section__card"
-        >
-          <h3
-            class="about-section__card-title"
-          >
-            16대 회장 김서강
-          </h3>
-          <dl
-            class="about-section__dl"
-          >
-            <div>
-              <dt>
-                활동 기간
-              </dt>
-              <dd>
-                2024 - 2025
-              </dd>
-            </div>
-            <div>
-              <dt>
-                주요 과제
-              </dt>
-              <dd>
-                웹 런치, 데이터 투명성, 산업별 라운드테이블 상시화
-              </dd>
-            </div>
-          </dl>
-        </li>
-      </ul>
-    </section>
-    <section
-      aria-labelledby="history-archive"
-      class="about-section"
-    >
-      <div
-        class="about-section__content"
-      >
-        <h2
-          class="about-section__heading"
-          id="history-archive"
-        >
-          자료실 미리보기
-        </h2>
-        <p>
-          연간 사업 보고서, 회계 감사 보고, 총회 의사록 등은 로그인한 회원에게 순차적으로 열람 권한을 제공할 예정입니다. 정식 오픈 전까지는 핵심 항목만 요약으로 제공하며, 열람 신청이 많은 문서는 우선 공개합니다.
-        </p>
-        <p>
-          자료 공개 범위에 대한 의견은 언제든 사무국으로 전해주세요. 공개 시기와 형식을 구성원과 함께 결정하겠습니다.
-        </p>
-      </div>
-      <figure
-        aria-label="자료 보관소 이미지"
-        class="about-section__figure"
-      >
-        <img
-          alt="자료실 서가를 묘사한 일러스트"
-          class="h-auto w-full rounded-lg object-cover shadow-sm"
-          height="360"
-          src="/images/about/history-archive.svg"
-          width="520"
-        />
-      </figure>
-    </section>
-  </div>
-</DocumentFragment>
-`;
-
-exports[`About static pages > renders organization page with contact list 1`] = `
-<DocumentFragment>
-  <div
-    class="about-page"
-  >
-    <section
-      aria-labelledby="about-hero-heading"
-      class="about-hero"
-    >
-      <div
-        class="about-hero__text"
-      >
-        <p
-          class="about-hero__eyebrow"
-        >
-          총동문회 소개
-        </p>
-        <h1
-          class="about-hero__title"
-          id="about-hero-heading"
-        >
-          조직도
-        </h1>
-        <p
-          class="about-hero__description"
-        >
-          총동문회는 회장단, 집행부, 감사단, 자문위원으로 구성되어 각자의 책임을 분담합니다. 모든 회의록과 결산 자료는 회원 전용 아카이브에 공개합니다.
-        </p>
-      </div>
-      <div
-        class="about-hero__image"
-      >
-        <img
-          alt="총동문회 조직 구성을 보여주는 삽화"
-          class="h-full w-full rounded-xl object-cover shadow-md"
-          height="480"
-          src="/images/about/org-hero.svg"
-          width="640"
-        />
+        </div>
       </div>
     </section>
     <section
-      aria-labelledby="org-structure"
-      class="about-section"
+      aria-labelledby="org-chart"
+      class="rounded-3xl bg-brand-surface px-4 py-8 md:px-10 md:py-12"
     >
       <div
-        class="about-section__content"
+        class="mx-auto max-w-5xl"
       >
-        <h2
-          class="about-section__heading"
-          id="org-structure"
+        <div
+          class="max-w-3xl"
         >
-          회장단과 집행부
-        </h2>
-        <p>
-          회장단은 회장, 수석부회장, 부회장단, 감사단으로 구성되어 전략 방향과 연간 사업계획을 수립합니다. 집행부는 실행 조직으로서 각 분과의 목표를 조정하고, 회원 접점을 통해 수집된 피드백을 정리해 회장단에 보고합니다.
-        </p>
-        <p>
-          모든 분과는 담당자를 두 명 이상 배치해 견제와 협업 구조를 유지하며, 주요 안건은 월 1회 열리는 운영위원회에서 논의 후 공지합니다. 분기별로 공개하는 리포트에는 KPI 달성 현황과 다음 분기 계획이 포함됩니다.
-        </p>
-      </div>
-      <figure
-        aria-label="총동문회 조직 계층 구조"
-        class="about-section__figure"
-      >
-        <img
-          alt="회장단, 집행부, 자문위원으로 구성된 조직도"
-          class="h-auto w-full rounded-lg object-cover shadow-sm"
-          height="360"
-          src="/images/about/org-chart.svg"
-          width="520"
-        />
-      </figure>
-    </section>
-    <section
-      aria-labelledby="org-committees"
-      class="about-section about-section--stacked"
-    >
-      <div
-        class="about-section__content"
-      >
-        <h2
-          class="about-section__heading"
-          id="org-committees"
-        >
-          분과별 주요 역할
-        </h2>
-        <p>
-          각 분과는 연초에 정량 목표와 예산 사용 계획을 공지하고, 분기별 성과와 지출 내역을 대시보드와 PDF 리포트로 공유합니다. 주요 지표는 KPI 보드에서 실시간으로 확인할 수 있습니다.
-        </p>
-      </div>
-      <ul
-        aria-label="분과 역할 목록"
-        class="about-section__list"
-      >
-        <li
-          class="about-section__card"
-        >
-          <h3
-            class="about-section__card-title"
+          <p
+            class="text-xs font-semibold uppercase tracking-widest text-brand-700"
           >
-            집행위원회
-          </h3>
-          <p>
-            연간 사업계획과 예산을 수립하고, 회칙/규정 개정 절차를 관리합니다. 모든 안건과 지출은 분기 총회에서 공개합니다.
+            총동문회 운영진
           </p>
-        </li>
-        <li
-          class="about-section__card"
-        >
-          <h3
-            class="about-section__card-title"
+          <h2
+            class="mt-2 font-heading text-2xl font-semibold text-brand-primary md:text-3xl"
+            id="org-chart"
           >
-            기획분과
-          </h3>
-          <p>
-            산업별 네트워킹, ESG 프로젝트, 장학사업 등 신규 프로그램을 설계합니다. 2025년에는 금융·테크·공공 분야 협업을 우선 추진합니다.
-          </p>
-        </li>
-        <li
-          class="about-section__card"
-        >
-          <h3
-            class="about-section__card-title"
+            현재 운영진과 역할
+          </h2>
+          <p
+            class="mt-3 leading-7 text-text-secondary"
           >
-            회원분과
-          </h3>
-          <p>
-            회원 데이터베이스 정비와 입회/재등록 지원, 복지 프로그램 운영을 담당합니다. 개인정보 보호와 접근성 가이드를 준수해 서비스 품질을 유지합니다.
+            회장단과 사무국, 분과 운영진이 역할을 나누어 동문회 일정과 교류 사업을 함께 이끌고 있습니다. 각 담당 영역과 운영진을 아래에서 확인해 보세요.
           </p>
-        </li>
-        <li
-          class="about-section__card"
+        </div>
+        <div
+          aria-label="총동문회 조직 계층"
+          class="mt-10 space-y-8 md:space-y-10"
         >
-          <h3
-            class="about-section__card-title"
+          <section
+            aria-labelledby="governance-title"
+            class="rounded-3xl border border-brand-100 bg-white p-5 shadow-sm md:p-7"
           >
-            소통분과
-          </h3>
-          <p>
-            뉴스레터·SNS·홈페이지 업데이트를 통합 관리하고, 문의 대응 SLA(48시간)를 모니터링합니다. 내·외부 커뮤니케이션 일정을 조율합니다.
-          </p>
-        </li>
-      </ul>
+            <div
+              class="mb-5 flex items-center gap-4"
+            >
+              <h3
+                class="shrink-0 font-heading text-lg font-semibold text-brand-primary"
+                id="governance-title"
+              >
+                운영 방향과 점검
+              </h3>
+              <span
+                aria-hidden="true"
+                class="h-px flex-1 bg-brand-100"
+              />
+            </div>
+            <div
+              class="grid gap-4 md:grid-cols-[1.15fr_0.85fr]"
+            >
+              <article
+                class="rounded-2xl border p-5 text-center border-brand-800 bg-brand-800 text-white shadow-soft"
+              >
+                <p
+                  class="text-sm font-semibold text-white/75"
+                >
+                  회장
+                </p>
+                <p
+                  class="mt-2 font-heading text-xl font-bold"
+                >
+                  허민철
+                </p>
+                <p
+                  class="mt-1 text-sm text-white/75"
+                >
+                  47기
+                </p>
+              </article>
+              <article
+                class="rounded-2xl border p-5 text-center border-neutral-border bg-white text-text-primary shadow-sm"
+              >
+                <p
+                  class="text-sm font-semibold text-brand-700"
+                >
+                  감사 및 운영
+                </p>
+                <p
+                  class="mt-2 font-heading text-xl font-bold"
+                >
+                  최창선
+                </p>
+                <p
+                  class="mt-1 text-sm text-text-muted"
+                >
+                  53기
+                </p>
+              </article>
+            </div>
+          </section>
+          <section
+            aria-labelledby="operations-title"
+          >
+            <div
+              class="mb-5 flex items-center gap-4"
+            >
+              <h3
+                class="shrink-0 font-heading text-lg font-semibold text-brand-primary"
+                id="operations-title"
+              >
+                실행 조직
+              </h3>
+              <span
+                aria-hidden="true"
+                class="h-px flex-1 bg-brand-200"
+              />
+            </div>
+            <div
+              class="grid gap-6 md:grid-cols-2 md:gap-8"
+            >
+              <section
+                aria-labelledby="secretariat-title"
+                class="rounded-3xl border border-neutral-border bg-white p-5 shadow-sm md:p-7"
+              >
+                <div
+                  id="secretariat-title"
+                >
+                  <article
+                    class="rounded-2xl border p-5 text-center border-neutral-border bg-white text-text-primary shadow-sm"
+                  >
+                    <p
+                      class="text-sm font-semibold text-brand-700"
+                    >
+                      사무국장
+                    </p>
+                    <p
+                      class="mt-2 font-heading text-xl font-bold"
+                    >
+                      황승환
+                    </p>
+                    <p
+                      class="mt-1 text-sm text-text-muted"
+                    >
+                      55기
+                    </p>
+                  </article>
+                </div>
+                <p
+                  class="mt-5 text-sm leading-6 text-text-secondary"
+                >
+                  동문회 운영과 회원 접점을 맡아 일정, 협업, 문의를 조율합니다.
+                </p>
+                <ul
+                  aria-label="사무국 이사"
+                  class="mt-5 divide-y divide-neutral-border border-t border-neutral-border"
+                >
+                  <li
+                    class="flex min-h-16 items-center justify-between gap-4 py-3"
+                  >
+                    <span
+                      class="text-sm font-semibold text-brand-700"
+                    >
+                      이사
+                    </span>
+                    <span
+                      class="text-right font-medium text-text-primary"
+                    >
+                      이윤권
+                      <span
+                        class="ml-1 text-sm font-normal text-text-muted"
+                      >
+                        (57기)
+                      </span>
+                    </span>
+                  </li>
+                  <li
+                    class="flex min-h-16 items-center justify-between gap-4 py-3"
+                  >
+                    <span
+                      class="text-sm font-semibold text-brand-700"
+                    >
+                      이사
+                    </span>
+                    <span
+                      class="text-right font-medium text-text-primary"
+                    >
+                      이정은
+                      <span
+                        class="ml-1 text-sm font-normal text-text-muted"
+                      >
+                        (57기)
+                      </span>
+                    </span>
+                  </li>
+                </ul>
+              </section>
+              <section
+                aria-labelledby="division-title"
+                class="rounded-3xl border border-brand-200 bg-white p-5 shadow-sm md:p-7"
+              >
+                <div
+                  id="division-title"
+                >
+                  <article
+                    class="rounded-2xl border p-5 text-center border-neutral-border bg-white text-text-primary shadow-sm"
+                  >
+                    <p
+                      class="text-sm font-semibold text-brand-700"
+                    >
+                      분과 운영 총괄국장
+                    </p>
+                    <p
+                      class="mt-2 font-heading text-xl font-bold"
+                    >
+                      노준영
+                    </p>
+                    <p
+                      class="mt-1 text-sm text-text-muted"
+                    >
+                      55기
+                    </p>
+                  </article>
+                </div>
+                <p
+                  class="mt-5 text-sm leading-6 text-text-secondary"
+                >
+                  관심 분야별 연구와 교류 프로그램을 기획하고 분과 활동을 연결합니다.
+                </p>
+                <ul
+                  aria-label="분과위원장"
+                  class="mt-5 divide-y divide-neutral-border border-t border-neutral-border"
+                >
+                  <li
+                    class="grid min-h-20 gap-1 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-6 text-brand-700"
+                    >
+                      ESG 연구 분과위원장
+                    </span>
+                    <span
+                      class="font-medium text-text-primary sm:text-right"
+                    >
+                      김형중
+                      <span
+                        class="ml-1 text-sm font-normal text-text-muted"
+                      >
+                        (48기)
+                      </span>
+                    </span>
+                  </li>
+                  <li
+                    class="grid min-h-20 gap-1 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-6 text-brand-700"
+                    >
+                      실물자산·부동산 분과위원장
+                    </span>
+                    <span
+                      class="font-medium text-text-primary sm:text-right"
+                    >
+                      노준영
+                      <span
+                        class="ml-1 text-sm font-normal text-text-muted"
+                      >
+                        (55기)
+                      </span>
+                    </span>
+                  </li>
+                </ul>
+              </section>
+            </div>
+          </section>
+        </div>
+      </div>
     </section>
     <section
       aria-labelledby="org-contact"
-      class="about-section about-section--highlight"
+      class="rounded-3xl border border-neutral-border bg-white px-6 py-8 shadow-sm md:flex md:items-center md:justify-between md:gap-8 md:px-10"
     >
-      <div
-        class="about-section__content"
-      >
+      <div>
         <h2
-          class="about-section__heading"
+          class="font-heading text-xl font-semibold text-brand-primary md:text-2xl"
           id="org-contact"
         >
-          연락 및 협업 채널
+          운영진에게 전할 말이 있나요?
         </h2>
-        <p>
-          공식 창구를 통해 모든 문의를 받고 있습니다. 회비 관련 문의, 협업 제안, 행사 대관 등은 사무국에서 담당자를 지정하여 응대합니다.
+        <p
+          class="mt-2 max-w-2xl leading-7 text-text-secondary"
+        >
+          행사 제안, 분과 활동, 명단 수정 등 동문회 운영에 관한 의견은 사무국에서 담당자에게 연결합니다.
         </p>
       </div>
-      <dl
-        aria-label="사무국 연락처 정보"
-        class="about-contact-list"
+      <a
+        class="mt-5 inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-brand-primary px-6 font-semibold text-white no-underline transition hover:bg-brand-800 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 md:mt-0"
+        href="/support/contact"
       >
-        <div
-          class="about-contact-list__item"
-        >
-          <dt
-            class="about-contact-list__term"
-          >
-            사무국 대표 메일
-          </dt>
-          <dd
-            class="about-contact-list__description"
-          >
-            office@sogang-econ-alumni.kr
-          </dd>
-        </div>
-        <div
-          class="about-contact-list__item"
-        >
-          <dt
-            class="about-contact-list__term"
-          >
-            대표 전화
-          </dt>
-          <dd
-            class="about-contact-list__description"
-          >
-            02-715-1234 (ARS 2번: 행사/협업)
-          </dd>
-        </div>
-        <div
-          class="about-contact-list__item"
-        >
-          <dt
-            class="about-contact-list__term"
-          >
-            운영시간
-          </dt>
-          <dd
-            class="about-contact-list__description"
-          >
-            평일 10:00 - 17:00 (점심 12:00 - 13:00)
-          </dd>
-        </div>
-        <div
-          class="about-contact-list__item"
-        >
-          <dt
-            class="about-contact-list__term"
-          >
-            주소
-          </dt>
-          <dd
-            class="about-contact-list__description"
-          >
-            서울 마포구 백범로 35, 서강대학교 경제대학원 3층 총동문회 사무국
-          </dd>
-        </div>
-      </dl>
+        사무국에 문의하기
+      </a>
     </section>
   </div>
 </DocumentFragment>

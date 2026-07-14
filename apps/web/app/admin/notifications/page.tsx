@@ -2,9 +2,12 @@
 
 import { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
-import { RequirePermission } from '../../../components/require-permission';
 import { useToast } from '../../../components/toast';
 import { useQuery } from '@tanstack/react-query';
+import { AdminAuthState } from '../../../components/admin-auth-state';
+import { Button } from '../../../components/ui/button';
+import { FIELD_CONTROL } from '../../../components/ui/styles';
+import { hasPermissionSession } from '../../../lib/rbac';
 import {
   getNotificationStats,
   getSendLogs,
@@ -16,7 +19,7 @@ import {
 
 type RangeOpt = '24h' | '7d' | '30d';
 
-function StatsBlock({ data, isLoading, isError, statsRange, setStatsRange, onRefresh }:{
+export function StatsBlock({ data, isLoading, isError, statsRange, setStatsRange, onRefresh }:{
   data?: NotificationStats;
   isLoading: boolean;
   isError: boolean;
@@ -27,17 +30,18 @@ function StatsBlock({ data, isLoading, isError, statsRange, setStatsRange, onRef
   return (
     <div className="mb-6">
       <h3 className="mb-2 text-lg font-medium">요약</h3>
-      <div className="mb-2 flex items-center gap-2 text-xs text-text-secondary">
-        <label className="flex items-center gap-1">기간
+      <div className="mb-3 flex flex-wrap items-end gap-3 text-sm text-text-secondary">
+        <label className="grid gap-1" htmlFor="notification-stats-range">기간
           <select
-            className="rounded border px-2 py-1"
+            id="notification-stats-range"
+            className={`${FIELD_CONTROL} min-w-28 text-sm`}
             value={statsRange}
             onChange={(e) => setStatsRange(e.target.value as RangeOpt)}
           >
             {(['24h','7d','30d'] as const).map(v => <option key={v} value={v}>{v}</option>)}
           </select>
         </label>
-        <button type="button" className="rounded border px-2 py-1" onClick={onRefresh}>요약 새로고침</button>
+        <Button type="button" variant="secondary" onClick={onRefresh}>요약 새로고침</Button>
       </div>
       {isLoading ? (
         <div className="text-sm text-text-muted">로딩 중…</div>
@@ -59,7 +63,7 @@ function StatsBlock({ data, isLoading, isError, statsRange, setStatsRange, onRef
   );
 }
 
-function LogsBlock({ data, isLoading, isError, logLimit, setLogLimit }:{
+export function LogsBlock({ data, isLoading, isError, logLimit, setLogLimit }:{
   data?: SendLog[];
   isLoading: boolean;
   isError: boolean;
@@ -69,9 +73,9 @@ function LogsBlock({ data, isLoading, isError, logLimit, setLogLimit }:{
   return (
     <div>
       <h3 className="mb-2 text-lg font-medium">최근 발송 로그</h3>
-      <div className="mb-2 flex items-center gap-2 text-xs text-text-secondary">
-        <label className="flex items-center gap-1">표시 개수
-          <select className="rounded border px-2 py-1" value={logLimit} onChange={(e) => setLogLimit(parseInt(e.target.value, 10))}>
+      <div className="mb-3 flex items-center gap-2 text-sm text-text-secondary">
+        <label className="grid gap-1" htmlFor="notification-log-limit">표시 개수
+          <select id="notification-log-limit" className={`${FIELD_CONTROL} min-w-28 text-sm`} value={logLimit} onChange={(e) => setLogLimit(parseInt(e.target.value, 10))}>
             {[20, 50, 100, 200].map(v => <option key={v} value={v}>{v}</option>)}
           </select>
         </label>
@@ -81,7 +85,7 @@ function LogsBlock({ data, isLoading, isError, logLimit, setLogLimit }:{
       ) : isError ? (
         <div className="text-sm text-state-error">로그 불러오기 실패</div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" role="region" aria-label="최근 발송 로그 표">
           <table className="min-w-[600px] text-left text-sm">
             <thead>
               <tr className="border-b bg-surface-raised">
@@ -92,7 +96,13 @@ function LogsBlock({ data, isLoading, isError, logLimit, setLogLimit }:{
               </tr>
             </thead>
             <tbody>
-              {(data ?? []).map((r, i) => (
+              {(data ?? []).length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="p-6 text-center text-sm text-text-muted">
+                    아직 발송 로그가 없습니다.
+                  </td>
+                </tr>
+              ) : (data ?? []).map((r, i) => (
                 <tr key={i} className="border-b last:border-0">
                   <td className="p-2 font-mono text-xs text-text-secondary">{r.created_at}</td>
                   <td className="p-2">{r.ok ? <span className="text-state-success">성공</span> : <span className="text-state-error">실패</span>}</td>
@@ -108,7 +118,7 @@ function LogsBlock({ data, isLoading, isError, logLimit, setLogLimit }:{
   );
 }
 
-function PrunePanel({ pruneDays, setPruneDays, busy, onPrune }:{
+export function PrunePanel({ pruneDays, setPruneDays, busy, onPrune }:{
   pruneDays: number;
   setPruneDays: (n: number) => void;
   busy: boolean;
@@ -117,25 +127,26 @@ function PrunePanel({ pruneDays, setPruneDays, busy, onPrune }:{
   return (
     <div className="mb-6">
       <h3 className="mb-2 text-lg font-medium">로그 정리</h3>
-      <div className="flex items-center gap-2 text-sm">
-        <label className="text-sm">
+      <div className="flex flex-wrap items-end gap-3 text-sm">
+        <label className="grid gap-1 text-sm" htmlFor="notification-prune-days">
           보관 기간(일)
           <input
+            id="notification-prune-days"
             type="number"
             min={1}
-            className="ml-2 w-24 rounded border px-2 py-1"
+            className={`${FIELD_CONTROL} w-28 text-sm`}
             value={pruneDays}
             onChange={(e) => setPruneDays(Math.max(1, parseInt(e.target.value || '1', 10)))}
           />
         </label>
-        <button disabled={busy} onClick={onPrune} className="rounded border px-3 py-1.5 text-sm disabled:opacity-50">오래된 로그 삭제</button>
+        <Button type="button" variant="danger" disabled={busy} onClick={onPrune}>오래된 로그 삭제</Button>
       </div>
     </div>
   );
 }
 
 export default function AdminNotificationsPage() {
-  const { status } = useAuth();
+  const auth = useAuth();
   const toast = useToast();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -144,11 +155,26 @@ export default function AdminNotificationsPage() {
   const [logLimit, setLogLimit] = useState(50);
   const [pruneDays, setPruneDays] = useState(30);
   const [statsRange, setStatsRange] = useState<'24h'|'7d'|'30d'>('7d');
-  const stats = useQuery({ queryKey: ['notify','stats', statsRange], queryFn: () => getNotificationStats(statsRange!), staleTime: 10_000 });
-  const logs = useQuery<SendLog[]>({ queryKey: ['notify','logs', logLimit], queryFn: () => getSendLogs(logLimit), staleTime: 10_000 });
+  const canManageNotifications = auth.status === 'authorized'
+    && hasPermissionSession(auth.data, 'admin_notifications');
+  const stats = useQuery({
+    queryKey: ['notify','stats', statsRange],
+    queryFn: () => getNotificationStats(statsRange),
+    staleTime: 10_000,
+    enabled: canManageNotifications,
+  });
+  const logs = useQuery<SendLog[]>({
+    queryKey: ['notify','logs', logLimit],
+    queryFn: () => getSendLogs(logLimit),
+    staleTime: 10_000,
+    enabled: canManageNotifications,
+  });
 
-  if (status !== 'authorized') {
-    return <div className="p-4 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
+  if (auth.status !== 'authorized') {
+    return <AdminAuthState status={auth.status} />;
+  }
+  if (!canManageNotifications) {
+    return <div className="p-4 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>;
   }
 
   const onSend = async () => {
@@ -183,25 +209,21 @@ export default function AdminNotificationsPage() {
   };
 
   return (
-    <RequirePermission
-      permission="admin_notifications"
-      fallback={<div className="p-4 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>}
-    >
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <h2 className="mb-4 text-xl font-semibold">알림 발송</h2>
         <div className="mb-6 flex max-w-xl flex-col gap-3">
-          <label className="text-sm">제목
-            <input className="mt-1 w-full rounded border px-3 py-2" placeholder="알림 제목을 입력하세요" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <label className="text-sm" htmlFor="notification-title">제목
+            <input id="notification-title" className={`${FIELD_CONTROL} mt-1`} placeholder="알림 제목을 입력하세요" value={title} onChange={(e) => setTitle(e.target.value)} />
           </label>
-          <label className="text-sm">내용
-            <textarea className="mt-1 w-full rounded border px-3 py-2" rows={3} placeholder="알림 내용을 입력하세요" value={body} onChange={(e) => setBody(e.target.value)} />
+          <label className="text-sm" htmlFor="notification-body">내용
+            <textarea id="notification-body" className={`${FIELD_CONTROL} mt-1 min-h-24 resize-y`} rows={3} placeholder="알림 내용을 입력하세요" value={body} onChange={(e) => setBody(e.target.value)} />
           </label>
-          <label className="text-sm">URL(선택)
-            <input className="mt-1 w-full rounded border px-3 py-2" placeholder="https://example.com" value={url} onChange={(e) => setUrl(e.target.value)} />
+          <label className="text-sm" htmlFor="notification-url">URL(선택)
+            <input id="notification-url" className={`${FIELD_CONTROL} mt-1`} placeholder="https://example.com" value={url} onChange={(e) => setUrl(e.target.value)} />
           </label>
-          <div>
-            <button disabled={busy || !title.trim() || !body.trim()} onClick={onSend} className="rounded bg-state-success px-4 py-2 text-white disabled:opacity-50">발송</button>
-            <button type="button" className="ml-2 rounded border px-3 py-2 text-sm" onClick={async () => { await stats.refetch(); await logs.refetch(); }}>새로고침</button>
+          <div className="flex flex-wrap gap-2">
+            <Button disabled={busy || !title.trim() || !body.trim()} onClick={onSend}>발송</Button>
+            <Button type="button" variant="secondary" onClick={async () => { await stats.refetch(); await logs.refetch(); }}>새로고침</Button>
           </div>
         </div>
 
@@ -224,6 +246,5 @@ export default function AdminNotificationsPage() {
           setLogLimit={setLogLimit}
         />
       </div>
-    </RequirePermission>
   );
 }

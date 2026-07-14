@@ -9,6 +9,7 @@ import {
 describe('rbac helpers', () => {
   it('super_admin은 모든 permission을 통과한다', () => {
     expect(hasPermission(['member', 'super_admin'], 'admin_roles')).toBe(true);
+    expect(hasPermission(['member', 'super_admin'], 'admin_support')).toBe(true);
     expect(
       hasPermissionSession(
         {
@@ -30,6 +31,11 @@ describe('rbac helpers', () => {
         allowAdminFallback: true,
       })
     ).toBe(true);
+  });
+
+  it('문의 내역은 별도 권한이 있는 관리자에게만 허용한다', () => {
+    expect(hasPermission(['member', 'admin', 'admin_posts'], 'admin_support')).toBe(false);
+    expect(hasPermission(['member', 'admin', 'admin_support'], 'admin_support')).toBe(true);
   });
 
   it('관리자/슈퍼관리자 판별이 roles 기반으로 동작한다', () => {

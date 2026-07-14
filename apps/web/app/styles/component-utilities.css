@@ -22,7 +22,7 @@
   @apply text-lg text-neutral-muted;
 }
 
-@utility about-hero__image {
+@utility about-hero__media {
   @apply flex items-center justify-center;
 }
 

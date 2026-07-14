@@ -6,6 +6,7 @@ import type { KeyboardEvent } from 'react';
 import { useMemo, useState } from 'react';
 
 import { ConfirmDialog } from '../../../components/confirm-dialog';
+import { AdminAuthState } from '../../../components/admin-auth-state';
 import { HeroTargetToggle } from '../../../components/hero-target-toggle';
 import { RequirePermission } from '../../../components/require-permission';
 import { useToast } from '../../../components/toast';
@@ -14,6 +15,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
+import { hasPermissionSession } from '../../../lib/rbac';
 import type { HeroTargetLookupItem } from '../../../services/hero';
 import {
   deletePost,
@@ -23,6 +25,12 @@ import {
 } from '../../../services/posts';
 
 const PAGE_SIZE = 20;
+
+function adminPostsDescription(canManageHero: boolean) {
+  return canManageHero
+    ? '홈 배너는 목록의 “홈 배너” 토글로 지정합니다.'
+    : '공지와 동문 소식을 작성하고 관리합니다.';
+}
 
 /* ─────────────────────────────────────────────────────────────────────────
    Sub-components (complexity isolation)
@@ -141,6 +149,7 @@ function FilterBar({
 
 type PostTableRowProps = {
   post: Post;
+  canManageHero: boolean;
   heroItem?: HeroTargetLookupItem;
   heroPending: boolean;
   onDelete: (post: Post) => void;
@@ -150,6 +159,7 @@ type PostTableRowProps = {
 
 function PostTableRow({
   post,
+  canManageHero,
   heroItem,
   heroPending,
   onDelete,
@@ -181,14 +191,16 @@ function PostTableRow({
       <td className="px-3 py-2 text-text-secondary">{post.view_count ?? 0}</td>
       <td className="px-3 py-2 text-text-secondary">{post.comment_count ?? 0}</td>
       <td className="px-3 py-2 text-text-secondary">{formatDate(post.published_at ?? null)}</td>
-      <td className="px-3 py-2">
-        <HeroTargetToggle
-          value={heroItem}
-          isPending={heroPending}
-          onToggle={onToggleHero}
-          onTogglePinned={onTogglePinned}
-        />
-      </td>
+      {canManageHero && (
+        <td className="px-3 py-2">
+          <HeroTargetToggle
+            value={heroItem}
+            isPending={heroPending}
+            onToggle={onToggleHero}
+            onTogglePinned={onTogglePinned}
+          />
+        </td>
+      )}
       <td className="px-3 py-2 text-right">
         <Link
           href={`/admin/posts/${post.id}/edit`}
@@ -251,6 +263,7 @@ type PostTableContentProps = {
   isLoading: boolean;
   isError: boolean;
   items: Post[] | undefined;
+  canManageHero: boolean;
   heroById: Map<number, HeroTargetLookupItem>;
   heroPending: boolean;
   onToggleHeroFor: (post: Post, nextOn: boolean) => void;
@@ -267,6 +280,7 @@ function PostTableContent({
   isLoading,
   isError,
   items,
+  canManageHero,
   heroById,
   heroPending,
   onToggleHeroFor,
@@ -300,7 +314,9 @@ function PostTableContent({
               <th className="px-3 py-2 font-medium text-text-secondary">조회</th>
               <th className="px-3 py-2 font-medium text-text-secondary">댓글</th>
               <th className="px-3 py-2 font-medium text-text-secondary">발행일</th>
-              <th className="px-3 py-2 font-medium text-text-secondary">홈 배너</th>
+              {canManageHero && (
+                <th className="px-3 py-2 font-medium text-text-secondary">홈 배너</th>
+              )}
               <th className="px-3 py-2 text-right font-medium text-text-secondary">액션</th>
             </tr>
           </thead>
@@ -309,6 +325,7 @@ function PostTableContent({
               <PostTableRow
                 key={post.id}
                 post={post}
+                canManageHero={canManageHero}
                 heroItem={heroById.get(post.id)}
                 heroPending={heroPending}
                 onDelete={onDelete}
@@ -318,7 +335,7 @@ function PostTableContent({
             ))}
             {items?.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-3 py-8 text-center text-text-muted">
+                <td colSpan={canManageHero ? 8 : 7} className="px-3 py-8 text-center text-text-muted">
                   게시물이 없습니다.
                 </td>
               </tr>
@@ -415,10 +432,12 @@ function useFilters() {
 ───────────────────────────────────────────────────────────────────────── */
 
 export default function AdminPostsPage() {
-  const { status } = useAuth();
+  const { status, data: session } = useAuth();
   const { show } = useToast();
   const filters = useFilters();
   const [deleteTarget, setDeleteTarget] = useState<Post | null>(null);
+  const canManagePosts = hasPermissionSession(session, 'admin_posts');
+  const canManageHero = hasPermissionSession(session, 'admin_hero');
 
   const clearDeleteTarget = () => setDeleteTarget(null);
   const deleteMutation = useDeleteMutation(clearDeleteTarget, show);
@@ -426,17 +445,21 @@ export default function AdminPostsPage() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin-posts', filters.params],
     queryFn: () => listAdminPosts(filters.params),
+    enabled: canManagePosts,
     staleTime: 30_000,
   });
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
   const postIds = useMemo(() => data?.items.map((post) => post.id) ?? [], [data?.items]);
-  const heroControls = useHeroTargetControls({ targetType: 'post', targetIds: postIds, showToast: show });
+  const heroControls = useHeroTargetControls({
+    targetType: 'post',
+    targetIds: postIds,
+    showToast: show,
+    enabled: canManageHero,
+  });
 
   if (status !== 'authorized') {
-    return (
-      <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>
-    );
+    return <AdminAuthState status={status} />;
   }
 
   return (
@@ -450,7 +473,7 @@ export default function AdminPostsPage() {
           <div>
             <h2 className="text-xl font-semibold">게시물 관리</h2>
             <p className="text-sm text-text-secondary">
-              홈 배너는 목록의 “홈 배너” 토글로 지정합니다.
+              {adminPostsDescription(canManageHero)}
             </p>
           </div>
           <ButtonLink href="/admin/posts/new" className="shadow-sm">
@@ -475,6 +498,7 @@ export default function AdminPostsPage() {
           isLoading={isLoading}
           isError={isError}
           items={data?.items}
+          canManageHero={canManageHero}
           heroById={heroControls.heroById}
           heroPending={heroControls.isPending}
           onToggleHeroFor={(post, nextOn) => heroControls.toggleHero(post.id, nextOn)}

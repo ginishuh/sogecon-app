@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from apps.api import models  # noqa: E402
+from apps.api import models, models_support  # noqa: E402
 from apps.api.config import get_settings  # noqa: E402
 
 config = context.config
@@ -25,6 +25,9 @@ settings = get_settings()
 # URL 내 퍼센트를 이스케이프해 오류를 방지한다.
 _safe_url = settings.database_url.replace("%", "%%")
 config.set_main_option("sqlalchemy.url", _safe_url)
+
+if models_support.SupportTicket.metadata is not models.Base.metadata:
+    raise RuntimeError("SupportTicket must use the shared SQLAlchemy metadata")
 
 target_metadata = models.Base.metadata
 

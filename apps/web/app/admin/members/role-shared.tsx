@@ -66,9 +66,9 @@ export function applyRoleHierarchy(
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  member: 'member',
-  admin: 'admin',
-  super_admin: 'super_admin',
+  member: '일반 회원',
+  admin: '관리자',
+  super_admin: '최고관리자',
   admin_posts: '게시물 관리',
   admin_events: '행사 관리',
   admin_hero: '홈 배너 관리',
@@ -76,6 +76,7 @@ const ROLE_LABELS: Record<string, string> = {
   admin_signup: '가입신청 심사',
   admin_roles: '권한 관리',
   admin_profile: '프로필 변경 심사',
+  admin_support: '문의 내역 조회',
 };
 
 export function roleLabel(role: string): string {
@@ -97,7 +98,7 @@ export function RoleChecklist({
   const hasSuperAdmin = draftRoles.includes('super_admin');
 
   return (
-    <div className="grid grid-cols-2 gap-1">
+    <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
       {KNOWN_ROLE_TOKENS.map((role) => {
         const isAdminPerm = ADMIN_PERM_SET.has(role);
         // member는 항상 체크 + 해제 불가
@@ -112,11 +113,11 @@ export function RoleChecklist({
         return (
           <label
             key={`${id}:${role}`}
-            className={`text-xs ${permDisabled && !hasSuperAdmin ? 'text-text-muted' : 'text-text-primary'}`}
+            className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 text-sm transition hover:bg-surface-raised ${permDisabled && !hasSuperAdmin ? 'cursor-not-allowed text-text-muted' : 'text-text-primary'}`}
           >
             <input
               type="checkbox"
-              className="mr-1 align-middle"
+              className="h-5 w-5 shrink-0 rounded-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
               checked={isChecked}
               disabled={isDisabled}
               onChange={(e) => onToggle(id, role, e.currentTarget.checked)}

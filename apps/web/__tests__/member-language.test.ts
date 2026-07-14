@@ -67,6 +67,12 @@ describe('동문 사용자 언어', () => {
     expect(memberApiErrorToMessage(undefined, 'VAPID token error')).toBe(expected);
     expect(memberApiErrorToMessage(undefined, '활성화 토큰 오류')).toBe(expected);
     expect(memberApiErrorToMessage(undefined, 'HTTP 500')).toBe(expected);
+    expect(
+      memberApiErrorToMessage(
+        undefined,
+        'value is not a valid email address: reserved domain',
+      ),
+    ).toBe(expected);
   });
 
   it('등록된 오류와 안전한 한국어 상세 안내는 보존한다', () => {

@@ -1,112 +1,121 @@
-import Image from 'next/image';
+import Link from 'next/link';
 import React from 'react';
-import { AboutHero } from '../../../components/about-hero';
 
-// 정적 페이지: 1시간 ISR 캐싱
+import { AboutHero } from '../../../components/about-hero';
+import { AboutHeroPhoto } from '../../../components/about/about-hero-photo';
+
 export const revalidate = 3600;
 
-const committees = [
-  {
-    name: '집행위원회',
-    description:
-      '연간 사업계획과 예산을 수립하고, 회칙/규정 개정 절차를 관리합니다. 모든 안건과 지출은 분기 총회에서 공개합니다.'
-  },
-  {
-    name: '기획분과',
-    description:
-      '산업별 네트워킹, ESG 프로젝트, 장학사업 등 신규 프로그램을 설계합니다. 2025년에는 금융·테크·공공 분야 협업을 우선 추진합니다.'
-  },
-  {
-    name: '회원분과',
-    description:
-      '회원 데이터베이스 정비와 입회/재등록 지원, 복지 프로그램 운영을 담당합니다. 개인정보 보호와 접근성 가이드를 준수해 서비스 품질을 유지합니다.'
-  },
-  {
-    name: '소통분과',
-    description:
-      '뉴스레터·SNS·홈페이지 업데이트를 통합 관리하고, 문의 대응 SLA(48시간)를 모니터링합니다. 내·외부 커뮤니케이션 일정을 조율합니다.'
-  }
+type Officer = {
+  role: string;
+  name: string;
+  cohort: number;
+};
+
+const president: Officer = { role: '회장', name: '허민철', cohort: 47 };
+const audit: Officer = { role: '감사 및 운영', name: '최창선', cohort: 53 };
+const secretariat: Officer = { role: '사무국장', name: '황승환', cohort: 55 };
+const divisionLead: Officer = { role: '분과 운영 총괄국장', name: '노준영', cohort: 55 };
+
+const directors: Officer[] = [
+  { role: '이사', name: '이윤권', cohort: 57 },
+  { role: '이사', name: '이정은', cohort: 57 }
 ];
 
-const contactPoints = [
-  { label: '사무국 대표 메일', value: 'office@sogang-econ-alumni.kr' },
-  { label: '대표 전화', value: '02-715-1234 (ARS 2번: 행사/협업)' },
-  { label: '운영시간', value: '평일 10:00 - 17:00 (점심 12:00 - 13:00)' },
-  { label: '주소', value: '서울 마포구 백범로 35, 서강대학교 경제대학원 3층 총동문회 사무국' }
+const committees: Officer[] = [
+  { role: 'ESG 연구 분과위원장', name: '김형중', cohort: 48 },
+  { role: '실물자산·부동산 분과위원장', name: '노준영', cohort: 55 }
 ];
+
+function OfficerCard({ officer, emphasis = false }: { officer: Officer; emphasis?: boolean }) {
+  return (
+    <article className={`rounded-2xl border p-5 text-center ${emphasis ? 'border-brand-800 bg-brand-800 text-white shadow-soft' : 'border-neutral-border bg-white text-text-primary shadow-sm'}`}>
+      <p className={`text-sm font-semibold ${emphasis ? 'text-white/75' : 'text-brand-700'}`}>{officer.role}</p>
+      <p className="mt-2 font-heading text-xl font-bold">{officer.name}</p>
+      <p className={`mt-1 text-sm ${emphasis ? 'text-white/75' : 'text-text-muted'}`}>{officer.cohort}기</p>
+    </article>
+  );
+}
 
 export default function OrgPage() {
   return (
     <div className="about-page">
       <AboutHero
-        title="조직도"
-        description="총동문회는 회장단, 집행부, 감사단, 자문위원으로 구성되어 각자의 책임을 분담합니다. 모든 회의록과 결산 자료는 회원 전용 아카이브에 공개합니다."
-        image={{ src: '/images/about/org-hero.svg', alt: '총동문회 조직 구성을 보여주는 삽화', priority: true }}
+        title="동문회 조직도"
+        description="회장과 감사, 사무국, 분과 운영진이 역할을 나누고 동문들의 의견을 실제 사업과 모임으로 연결합니다. 현재 운영진과 담당 영역을 한눈에 확인해 보세요."
+        media={(
+          <AboutHeroPhoto
+            src="/images/home/alumni-networking-hero.webp"
+            alt="행사장에서 대화를 나누는 서강 경제 동문들"
+            objectPosition="56% center"
+            priority
+          />
+        )}
       />
 
-      <section aria-labelledby="org-structure" className="about-section">
-        <div className="about-section__content">
-          <h2 id="org-structure" className="about-section__heading">
-            회장단과 집행부
-          </h2>
-          <p>
-            회장단은 회장, 수석부회장, 부회장단, 감사단으로 구성되어 전략 방향과 연간 사업계획을 수립합니다. 집행부는
-            실행 조직으로서 각 분과의 목표를 조정하고, 회원 접점을 통해 수집된 피드백을 정리해 회장단에 보고합니다.
-          </p>
-          <p>
-            모든 분과는 담당자를 두 명 이상 배치해 견제와 협업 구조를 유지하며, 주요 안건은 월 1회 열리는 운영위원회에서
-            논의 후 공지합니다. 분기별로 공개하는 리포트에는 KPI 달성 현황과 다음 분기 계획이 포함됩니다.
-          </p>
+      <section aria-labelledby="org-chart" className="rounded-3xl bg-brand-surface px-4 py-8 md:px-10 md:py-12">
+        <div className="mx-auto max-w-5xl">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-widest text-brand-700">총동문회 운영진</p>
+            <h2 id="org-chart" className="mt-2 font-heading text-2xl font-semibold text-brand-primary md:text-3xl">현재 운영진과 역할</h2>
+            <p className="mt-3 leading-7 text-text-secondary">회장단과 사무국, 분과 운영진이 역할을 나누어 동문회 일정과 교류 사업을 함께 이끌고 있습니다. 각 담당 영역과 운영진을 아래에서 확인해 보세요.</p>
+          </div>
+
+          <div className="mt-10 space-y-8 md:space-y-10" aria-label="총동문회 조직 계층">
+            <section aria-labelledby="governance-title" className="rounded-3xl border border-brand-100 bg-white p-5 shadow-sm md:p-7">
+              <div className="mb-5 flex items-center gap-4">
+                <h3 id="governance-title" className="shrink-0 font-heading text-lg font-semibold text-brand-primary">운영 방향과 점검</h3>
+                <span aria-hidden="true" className="h-px flex-1 bg-brand-100" />
+              </div>
+              <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
+                <OfficerCard officer={president} emphasis />
+                <OfficerCard officer={audit} />
+              </div>
+            </section>
+
+            <section aria-labelledby="operations-title">
+              <div className="mb-5 flex items-center gap-4">
+                <h3 id="operations-title" className="shrink-0 font-heading text-lg font-semibold text-brand-primary">실행 조직</h3>
+                <span aria-hidden="true" className="h-px flex-1 bg-brand-200" />
+              </div>
+              <div className="grid gap-6 md:grid-cols-2 md:gap-8">
+                <section aria-labelledby="secretariat-title" className="rounded-3xl border border-neutral-border bg-white p-5 shadow-sm md:p-7">
+                  <div id="secretariat-title"><OfficerCard officer={secretariat} /></div>
+                  <p className="mt-5 text-sm leading-6 text-text-secondary">동문회 운영과 회원 접점을 맡아 일정, 협업, 문의를 조율합니다.</p>
+                  <ul className="mt-5 divide-y divide-neutral-border border-t border-neutral-border" aria-label="사무국 이사">
+                    {directors.map((officer) => (
+                      <li key={officer.name} className="flex min-h-16 items-center justify-between gap-4 py-3">
+                        <span className="text-sm font-semibold text-brand-700">{officer.role}</span>
+                        <span className="text-right font-medium text-text-primary">{officer.name}<span className="ml-1 text-sm font-normal text-text-muted">({officer.cohort}기)</span></span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+
+                <section aria-labelledby="division-title" className="rounded-3xl border border-brand-200 bg-white p-5 shadow-sm md:p-7">
+                  <div id="division-title"><OfficerCard officer={divisionLead} /></div>
+                  <p className="mt-5 text-sm leading-6 text-text-secondary">관심 분야별 연구와 교류 프로그램을 기획하고 분과 활동을 연결합니다.</p>
+                  <ul className="mt-5 divide-y divide-neutral-border border-t border-neutral-border" aria-label="분과위원장">
+                    {committees.map((officer) => (
+                      <li key={officer.role} className="grid min-h-20 gap-1 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4">
+                        <span className="text-sm font-semibold leading-6 text-brand-700">{officer.role}</span>
+                        <span className="font-medium text-text-primary sm:text-right">{officer.name}<span className="ml-1 text-sm font-normal text-text-muted">({officer.cohort}기)</span></span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </div>
+            </section>
+          </div>
         </div>
-        <figure aria-label="총동문회 조직 계층 구조" className="about-section__figure">
-          <Image
-            src="/images/about/org-chart.svg"
-            alt="회장단, 집행부, 자문위원으로 구성된 조직도"
-            width={520}
-            height={360}
-            className="h-auto w-full rounded-lg object-cover shadow-sm"
-          />
-        </figure>
       </section>
 
-      <section aria-labelledby="org-committees" className="about-section about-section--stacked">
-        <div className="about-section__content">
-          <h2 id="org-committees" className="about-section__heading">
-            분과별 주요 역할
-          </h2>
-          <p>
-            각 분과는 연초에 정량 목표와 예산 사용 계획을 공지하고, 분기별 성과와 지출 내역을 대시보드와 PDF 리포트로 공유합니다.
-            주요 지표는 KPI 보드에서 실시간으로 확인할 수 있습니다.
-          </p>
+      <section aria-labelledby="org-contact" className="rounded-3xl border border-neutral-border bg-white px-6 py-8 shadow-sm md:flex md:items-center md:justify-between md:gap-8 md:px-10">
+        <div>
+          <h2 id="org-contact" className="font-heading text-xl font-semibold text-brand-primary md:text-2xl">운영진에게 전할 말이 있나요?</h2>
+          <p className="mt-2 max-w-2xl leading-7 text-text-secondary">행사 제안, 분과 활동, 명단 수정 등 동문회 운영에 관한 의견은 사무국에서 담당자에게 연결합니다.</p>
         </div>
-        <ul className="about-section__list" aria-label="분과 역할 목록">
-          {committees.map((committee) => (
-            <li key={committee.name} className="about-section__card">
-              <h3 className="about-section__card-title">{committee.name}</h3>
-              <p>{committee.description}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section aria-labelledby="org-contact" className="about-section about-section--highlight">
-        <div className="about-section__content">
-          <h2 id="org-contact" className="about-section__heading">
-            연락 및 협업 채널
-          </h2>
-          <p>
-            공식 창구를 통해 모든 문의를 받고 있습니다. 회비 관련 문의, 협업 제안, 행사 대관 등은 사무국에서
-            담당자를 지정하여 응대합니다.
-          </p>
-        </div>
-        <dl className="about-contact-list" aria-label="사무국 연락처 정보">
-          {contactPoints.map((item) => (
-            <div key={item.label} className="about-contact-list__item">
-              <dt className="about-contact-list__term">{item.label}</dt>
-              <dd className="about-contact-list__description">{item.value}</dd>
-            </div>
-          ))}
-        </dl>
+        <Link href="/support/contact" className="mt-5 inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-brand-primary px-6 font-semibold text-white no-underline transition hover:bg-brand-800 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 md:mt-0">사무국에 문의하기</Link>
       </section>
     </div>
   );

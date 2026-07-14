@@ -2,7 +2,14 @@
 
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { RequireAdmin } from '../../../components/require-admin';
+import { AdminAuthState } from '../../../components/admin-auth-state';
+import { RequirePermission } from '../../../components/require-permission';
+import {
+  CONTROL_BASE,
+  CONTROL_SIZE,
+  CONTROL_VARIANT,
+  FIELD_CONTROL,
+} from '../../../components/ui/styles';
 import { useAuth } from '../../../hooks/useAuth';
 import {
   listAdminSupportTickets,
@@ -31,6 +38,55 @@ function filterTickets(items: SupportTicketRead[], query: string): SupportTicket
   });
 }
 
+export function SupportFilters({
+  limit,
+  search,
+  onChangeLimit,
+  onChangeSearch,
+  onRefresh,
+}: {
+  limit: number;
+  search: string;
+  onChangeLimit: (value: number) => void;
+  onChangeSearch: (value: string) => void;
+  onRefresh: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-end gap-3 rounded border border-neutral-border bg-white p-3">
+      <label className="min-w-24 text-xs text-text-secondary">
+        조회 개수
+        <select
+          className={`${FIELD_CONTROL} mt-1 text-sm`}
+          value={limit}
+          onChange={(event) => onChangeLimit(parseInt(event.currentTarget.value, 10))}
+        >
+          {[20, 50, 100, 200].map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="min-w-0 flex-1 text-xs text-text-secondary sm:max-w-72">
+        검색
+        <input
+          className={`${FIELD_CONTROL} mt-1 text-sm`}
+          placeholder="제목/본문/이메일/연락처/IP"
+          value={search}
+          onChange={(event) => onChangeSearch(event.currentTarget.value)}
+        />
+      </label>
+      <button
+        type="button"
+        className={`${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.secondary}`}
+        onClick={onRefresh}
+      >
+        새로고침
+      </button>
+    </div>
+  );
+}
+
 function AdminSupportPageContent() {
   const [limit, setLimit] = useState(50);
   const [search, setSearch] = useState('');
@@ -55,38 +111,13 @@ function AdminSupportPageContent() {
         </p>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3 rounded border border-neutral-border bg-white p-3">
-        <label className="text-xs text-text-secondary">
-          조회 개수
-          <select
-            className="mt-1 block rounded border border-neutral-border px-3 py-2 text-sm"
-            value={limit}
-            onChange={(e) => setLimit(parseInt(e.currentTarget.value, 10))}
-          >
-            {[20, 50, 100, 200].map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs text-text-secondary">
-          검색
-          <input
-            className="mt-1 block w-72 rounded border border-neutral-border px-3 py-2 text-sm"
-            placeholder="제목/본문/이메일/연락처/IP"
-            value={search}
-            onChange={(e) => setSearch(e.currentTarget.value)}
-          />
-        </label>
-        <button
-          type="button"
-          className="rounded border border-neutral-border px-3 py-2 text-sm"
-          onClick={() => void query.refetch()}
-        >
-          새로고침
-        </button>
-      </div>
+      <SupportFilters
+        limit={limit}
+        search={search}
+        onChangeLimit={setLimit}
+        onChangeSearch={setSearch}
+        onRefresh={() => void query.refetch()}
+      />
 
       {query.isLoading ? (
         <p className="rounded border border-neutral-border bg-white px-3 py-8 text-center text-text-muted">
@@ -149,13 +180,12 @@ export default function AdminSupportPage() {
   const { status } = useAuth();
 
   if (status !== 'authorized') {
-    return (
-      <div className="p-4 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>
-    );
+    return <AdminAuthState status={status} />;
   }
 
   return (
-    <RequireAdmin
+    <RequirePermission
+      permission="admin_support"
       fallback={
         <div className="p-4 text-sm text-text-secondary">
           해당 화면 접근 권한이 없습니다.
@@ -163,6 +193,6 @@ export default function AdminSupportPage() {
       }
     >
       <AdminSupportPageContent />
-    </RequireAdmin>
+    </RequirePermission>
   );
 }

@@ -1,12 +1,15 @@
 "use client";
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { RequirePermission } from '../../../../components/require-permission';
+import { AdminAuthState } from '../../../../components/admin-auth-state';
 import { useToast } from '../../../../components/toast';
+import { Button } from '../../../../components/ui/button';
+import { ButtonLink } from '../../../../components/ui/button-link';
+import { FIELD_CONTROL } from '../../../../components/ui/styles';
 import { useAuth } from '../../../../hooks/useAuth';
 import { ApiError } from '../../../../lib/api';
 import { apiErrorToMessage } from '../../../../lib/error-map';
@@ -66,9 +69,7 @@ export default function AdminNewEventPage() {
     startsAt.length > 0 &&
     endsAt.length > 0;
 
-  if (status !== 'authorized') {
-    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
-  }
+  if (status !== 'authorized') return <AdminAuthState status={status} />;
 
   return (
     <RequirePermission
@@ -76,11 +77,11 @@ export default function AdminNewEventPage() {
       fallback={<div className="p-6 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>}
     >
       <div className="mx-auto max-w-2xl space-y-6 p-6">
-        <nav className="text-sm text-text-secondary">
-          <Link href="/admin/events" className="hover:underline">
+        <nav className="flex items-center gap-2 text-sm text-text-secondary">
+          <ButtonLink href="/admin/events" variant="ghost" size="sm">
             행사 관리
-          </Link>
-          <span className="mx-2">/</span>
+          </ButtonLink>
+          <span aria-hidden="true">/</span>
           <span>새 행사</span>
         </nav>
 
@@ -90,7 +91,7 @@ export default function AdminNewEventPage() {
           <label className="block text-sm text-text-secondary">
             제목
             <input
-              className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+              className={`${FIELD_CONTROL} mt-1`}
               value={title}
               onChange={(e) => setTitle(e.currentTarget.value)}
             />
@@ -99,7 +100,7 @@ export default function AdminNewEventPage() {
           <label className="block text-sm text-text-secondary">
             장소
             <input
-              className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+              className={`${FIELD_CONTROL} mt-1`}
               value={location}
               onChange={(e) => setLocation(e.currentTarget.value)}
             />
@@ -108,7 +109,7 @@ export default function AdminNewEventPage() {
           <label className="block text-sm text-text-secondary">
             내용
             <textarea
-              className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+              className={`${FIELD_CONTROL} mt-1 min-h-32 resize-y`}
               rows={6}
               placeholder="행사 소개/공지 내용을 입력하세요."
               value={description}
@@ -119,7 +120,7 @@ export default function AdminNewEventPage() {
           <label className="block text-sm text-text-secondary">
             정원
             <input
-              className="mt-1 w-40 rounded border border-neutral-border px-3 py-2"
+              className={`${FIELD_CONTROL} mt-1 sm:w-40`}
               type="number"
               min={1}
               value={capacity}
@@ -131,7 +132,7 @@ export default function AdminNewEventPage() {
             <label className="block text-sm text-text-secondary">
               시작 일시
               <input
-                className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+                className={`${FIELD_CONTROL} mt-1`}
                 type="datetime-local"
                 value={startsAt}
                 onChange={(e) => setStartsAt(e.currentTarget.value)}
@@ -141,7 +142,7 @@ export default function AdminNewEventPage() {
             <label className="block text-sm text-text-secondary">
               종료 일시
               <input
-                className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+                className={`${FIELD_CONTROL} mt-1`}
                 type="datetime-local"
                 value={endsAt}
                 onChange={(e) => setEndsAt(e.currentTarget.value)}
@@ -150,23 +151,25 @@ export default function AdminNewEventPage() {
           </div>
 
           <div className="flex gap-2 pt-2">
-            <button
+            <Button
               type="button"
-              className="rounded border border-neutral-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-raised"
+              variant="secondary"
+              size="sm"
               onClick={() => router.push('/admin/events')}
               disabled={mutation.isPending}
             >
               취소
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="rounded bg-brand-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              variant="primary"
+              size="sm"
               onClick={() => mutation.mutate()}
               disabled={!canSubmit}
               aria-busy={mutation.isPending}
             >
               {mutation.isPending ? '생성 중...' : '생성'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

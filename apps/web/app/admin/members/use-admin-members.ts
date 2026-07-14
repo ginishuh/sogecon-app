@@ -19,7 +19,7 @@ import {
 } from '../../../services/admin-members';
 const PAGE_SIZE = 20;
 
-export function useAdminMembersModel() {
+export function useAdminMembersModel({ enabled = true }: { enabled?: boolean } = {}) {
   const { show } = useToast();
   const queryClient = useQueryClient();
   const [drafts, setDrafts] = useState<Record<number, string[]>>({});
@@ -42,6 +42,7 @@ export function useAdminMembersModel() {
       offset,
     }),
     staleTime: 5_000,
+    enabled,
   });
 
   const countQuery = useQuery({
@@ -50,6 +51,7 @@ export function useAdminMembersModel() {
       q: searchQuery || undefined,
     }),
     staleTime: 10_000,
+    enabled,
   });
 
   useEffect(() => {

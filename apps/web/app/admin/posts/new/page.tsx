@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { AdminAuthState } from '../../../../components/admin-auth-state';
 import { PostForm, type PostFormData } from '../../../../components/post-form';
 import { RequirePermission } from '../../../../components/require-permission';
 import { useToast } from '../../../../components/toast';
@@ -48,7 +49,7 @@ export default function AdminNewPostPage() {
   });
 
   if (status !== 'authorized') {
-    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
+    return <AdminAuthState status={status} />;
   }
 
   return (

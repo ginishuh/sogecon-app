@@ -3,9 +3,13 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import React from 'react';
 
-type GreetingCard = {
+type BaseGreetingCard = {
   title: string;
   href: Route;
+};
+
+type GreetingCard = BaseGreetingCard & {
+  kind: 'image';
   imageSrc: string;
   imageAlt: string;
   imageWidth: number;
@@ -16,6 +20,7 @@ const GREETING_CARDS: GreetingCard[] = [
   {
     title: '총동문회장 인사말',
     href: '/about/greeting',
+    kind: 'image',
     imageSrc: '/images/about/greeting-card.webp',
     imageAlt: '총동문회장 인사말 이미지 미리보기',
     imageWidth: 1200,
@@ -24,8 +29,9 @@ const GREETING_CARDS: GreetingCard[] = [
   {
     title: '대학원장 인사말',
     href: '/about/dean-greeting',
-    imageSrc: '/images/about/greeting-dean-card.webp',
-    imageAlt: '대학원장 인사말 이미지 미리보기',
+    kind: 'image',
+    imageSrc: '/images/about/dean-kim-doyoung-card.webp',
+    imageAlt: '김도영 경제대학원장 인사말 이미지 미리보기',
     imageWidth: 1200,
     imageHeight: 670
   }

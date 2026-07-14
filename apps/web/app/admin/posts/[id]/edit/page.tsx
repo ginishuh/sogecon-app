@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 
+import { AdminAuthState } from '../../../../../components/admin-auth-state';
 import { HeroTargetToggle } from '../../../../../components/hero-target-toggle';
 import { PostForm, type PostFormData } from '../../../../../components/post-form';
 import { RequirePermission } from '../../../../../components/require-permission';
@@ -13,23 +14,35 @@ import { useAuth } from '../../../../../hooks/useAuth';
 import { useHeroTargetControls } from '../../../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../../../lib/api';
 import { apiErrorToMessage } from '../../../../../lib/error-map';
+import { hasPermissionSession } from '../../../../../lib/rbac';
 import { getPost, updatePost, type UpdatePostPayload } from '../../../../../services/posts';
 
+function canLoadPost(canManagePosts: boolean, postId: number) {
+  return canManagePosts && !Number.isNaN(postId);
+}
+
 export default function EditPostPage() {
-  const { status } = useAuth();
+  const { status, data: session } = useAuth();
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { show } = useToast();
+  const canManagePosts = hasPermissionSession(session, 'admin_posts');
+  const canManageHero = hasPermissionSession(session, 'admin_hero');
 
   const postId = Number(params.id);
   const heroTargetIds = useMemo(() => (Number.isFinite(postId) ? [postId] : []), [postId]);
-  const heroControls = useHeroTargetControls({ targetType: 'post', targetIds: heroTargetIds, showToast: show });
+  const heroControls = useHeroTargetControls({
+    targetType: 'post',
+    targetIds: heroTargetIds,
+    showToast: show,
+    enabled: canManageHero,
+  });
 
   const { data: post, isLoading, isError } = useQuery({
     queryKey: ['post', postId],
     queryFn: () => getPost(postId),
-    enabled: !Number.isNaN(postId),
+    enabled: canLoadPost(canManagePosts, postId),
   });
 
   const mutation = useMutation({
@@ -77,7 +90,7 @@ export default function EditPostPage() {
   });
 
   if (status !== 'authorized') {
-    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
+    return <AdminAuthState status={status} />;
   }
 
   return (
@@ -105,7 +118,7 @@ export default function EditPostPage() {
           </div>
         ) : (
           <>
-            <section className="mb-4 rounded border border-neutral-border bg-white p-3">
+            {canManageHero && <section className="mb-4 rounded border border-neutral-border bg-white p-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="space-y-0.5">
                   <div className="text-sm font-medium text-text-primary">홈 배너</div>
@@ -120,7 +133,7 @@ export default function EditPostPage() {
                   onTogglePinned={(nextPinned) => heroControls.togglePinned(postId, nextPinned)}
                 />
               </div>
-            </section>
+            </section>}
 
             <PostForm
               initialData={post}

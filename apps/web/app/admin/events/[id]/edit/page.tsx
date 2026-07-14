@@ -5,13 +5,17 @@ import { notFound, useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { ConfirmDialog } from '../../../../../components/confirm-dialog';
+import { AdminAuthState } from '../../../../../components/admin-auth-state';
 import { HeroTargetToggle } from '../../../../../components/hero-target-toggle';
 import { RequirePermission } from '../../../../../components/require-permission';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { useHeroTargetControls } from '../../../../../hooks/useHeroTargetControls';
 import { useToast } from '../../../../../components/toast';
+import { Button } from '../../../../../components/ui/button';
+import { FIELD_CONTROL } from '../../../../../components/ui/styles';
 import { ApiError } from '../../../../../lib/api';
 import { apiErrorToMessage } from '../../../../../lib/error-map';
+import { hasPermissionSession } from '../../../../../lib/rbac';
 import {
   getEvent,
   updateAdminEvent,
@@ -44,7 +48,11 @@ function isFormDisabled(form: FormState, isSaving: boolean, isDeleting: boolean)
   return false;
 }
 
-function EventForm({
+function canLoadEvent(canManageEvents: boolean, eventId: number) {
+  return canManageEvents && Number.isFinite(eventId);
+}
+
+export function EventForm({
   state,
   disabled,
   onChange,
@@ -66,7 +74,7 @@ function EventForm({
       <label className="block text-sm text-text-secondary">
         제목
         <input
-          className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+          className={`${FIELD_CONTROL} mt-1`}
           value={state.title}
           onChange={(e) => onChange({ title: e.currentTarget.value })}
         />
@@ -75,7 +83,7 @@ function EventForm({
       <label className="block text-sm text-text-secondary">
         장소
         <input
-          className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+          className={`${FIELD_CONTROL} mt-1`}
           value={state.location}
           onChange={(e) => onChange({ location: e.currentTarget.value })}
         />
@@ -84,7 +92,7 @@ function EventForm({
       <label className="block text-sm text-text-secondary">
         내용
         <textarea
-          className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+          className={`${FIELD_CONTROL} mt-1 min-h-32 resize-y`}
           rows={6}
           placeholder="행사 소개/공지 내용을 입력하세요."
           value={state.description}
@@ -95,7 +103,7 @@ function EventForm({
       <label className="block text-sm text-text-secondary">
         정원
         <input
-          className="mt-1 w-40 rounded border border-neutral-border px-3 py-2"
+          className={`${FIELD_CONTROL} mt-1 sm:w-40`}
           type="number"
           value={state.capacity}
           onChange={(e) =>
@@ -107,7 +115,7 @@ function EventForm({
       <label className="block text-sm text-text-secondary">
         시작 일시
         <input
-          className="mt-1 rounded border border-neutral-border px-3 py-2"
+          className={`${FIELD_CONTROL} mt-1 sm:w-auto`}
           type="datetime-local"
           value={state.startsAt}
           onChange={(e) => onChange({ startsAt: e.currentTarget.value })}
@@ -117,36 +125,39 @@ function EventForm({
       <label className="block text-sm text-text-secondary">
         종료 일시
         <input
-          className="mt-1 rounded border border-neutral-border px-3 py-2"
+          className={`${FIELD_CONTROL} mt-1 sm:w-auto`}
           type="datetime-local"
           value={state.endsAt}
           onChange={(e) => onChange({ endsAt: e.currentTarget.value })}
         />
       </label>
 
-      <div className="flex gap-2">
-        <button
+      <div className="flex flex-wrap gap-2">
+        <Button
           type="button"
-          className="rounded bg-brand-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          variant="primary"
+          size="sm"
           disabled={disabled}
           onClick={onSave}
         >
           {saving ? '저장 중...' : '수정 저장'}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="rounded border px-4 py-2 text-sm text-text-secondary"
+          variant="secondary"
+          size="sm"
           onClick={onView}
         >
           공개 페이지 보기
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="rounded border border-state-error-ring px-3 py-2 text-sm text-state-error hover:bg-state-error-subtle"
+          variant="danger"
+          size="sm"
           onClick={onDeleteClick}
         >
           삭제
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -155,19 +166,22 @@ function EventForm({
 export default function AdminEventEditPage() {
   const params = useParams<{ id: string }>();
   const eventId = Number(params?.id);
-  const { status } = useAuth();
+  const { status, data: session } = useAuth();
   const toast = useToast();
   const router = useRouter();
+  const canManageEvents = hasPermissionSession(session, 'admin_events');
+  const canManageHero = hasPermissionSession(session, 'admin_hero');
   const heroControls = useHeroTargetControls({
     targetType: 'event',
     targetIds: Number.isFinite(eventId) ? [eventId] : [],
     showToast: toast.show,
+    enabled: canManageHero,
   });
 
   const { data, isLoading, isError } = useQuery<Event>({
     queryKey: ['admin-event', eventId],
     queryFn: () => getEvent(eventId),
-    enabled: Number.isFinite(eventId),
+    enabled: canLoadEvent(canManageEvents, eventId),
   });
 
   const [form, setForm] = useState<FormState>({
@@ -234,9 +248,7 @@ export default function AdminEventEditPage() {
     return notFound();
   }
 
-  if (status === 'unauthorized') {
-    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
-  }
+  if (status !== 'authorized') return <AdminAuthState status={status} />;
 
   if (isError) {
     return <div className="p-6 text-sm text-state-error">행사를 불러올 수 없습니다.</div>;
@@ -257,20 +269,21 @@ export default function AdminEventEditPage() {
               </p>
             )}
           </div>
-          <button
+          <Button
             type="button"
-            className="rounded border px-3 py-2 text-sm text-text-secondary"
+            variant="secondary"
+            size="sm"
             onClick={() => router.push('/admin/events')}
           >
             목록으로
-          </button>
+          </Button>
         </div>
 
         {isLoading ? (
           <div className="text-sm text-text-muted">불러오는 중...</div>
         ) : (
           <>
-            <section className="rounded border border-neutral-border bg-white p-3">
+            {canManageHero && <section className="rounded border border-neutral-border bg-white p-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="space-y-0.5">
                   <div className="text-sm font-medium text-text-primary">홈 배너</div>
@@ -285,7 +298,7 @@ export default function AdminEventEditPage() {
                   onTogglePinned={(nextPinned) => heroControls.togglePinned(eventId, nextPinned)}
                 />
               </div>
-            </section>
+            </section>}
 
             <EventForm
               state={form}

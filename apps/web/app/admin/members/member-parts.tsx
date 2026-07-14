@@ -6,6 +6,7 @@ import {
   buildActivationUrl,
 } from '../../../lib/activation';
 import type { DirectMemberCreateResponse } from '../../../services/admin-members';
+import { CONTROL_BASE, CONTROL_SIZE, CONTROL_VARIANT } from '../../../components/ui/styles';
 
 export type Feedback = { tone: 'success' | 'error'; message: string };
 export type RoleFilter = 'all' | 'admin' | 'super_admin';
@@ -31,14 +32,14 @@ export function FeedbackBanner({ feedback }: { feedback: Feedback | null }) {
 
 export function UnknownRoleHint({ unknownRoles }: { unknownRoles: string[] }) {
   if (unknownRoles.length === 0) return null;
-  return <p className="mt-2 text-xs text-text-muted">기타 토큰(보존): {unknownRoles.join(', ')}</p>;
+  return <p className="mt-2 text-xs text-text-muted">기타 역할(그대로 유지): {unknownRoles.join(', ')}</p>;
 }
 
 export function SaveRoleButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
-      className="rounded bg-brand-700 px-3 py-1.5 text-xs text-white disabled:opacity-40"
+      className={`${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.primary}`}
       disabled={disabled}
       onClick={onClick}
     >
@@ -49,8 +50,8 @@ export function SaveRoleButton({ disabled, onClick }: { disabled: boolean; onCli
 
 const ROLE_FILTER_OPTIONS: { value: RoleFilter; label: string }[] = [
   { value: 'all', label: '전체' },
-  { value: 'admin', label: 'admin 이상' },
-  { value: 'super_admin', label: 'super_admin' },
+  { value: 'admin', label: '관리자 이상' },
+  { value: 'super_admin', label: '최고관리자' },
 ];
 
 export function RoleFilterBar({
@@ -61,15 +62,16 @@ export function RoleFilterBar({
   onChange: (filter: RoleFilter) => void;
 }) {
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2" aria-label="회원 역할 필터">
       {ROLE_FILTER_OPTIONS.map((opt) => (
         <button
           key={opt.value}
           type="button"
-          className={`rounded border px-3 py-1 text-xs ${
+          aria-pressed={current === opt.value}
+          className={`${CONTROL_BASE} ${CONTROL_SIZE.sm} ${
             current === opt.value
-              ? 'border-brand-700 bg-brand-700 text-white'
-              : 'border-neutral-border text-text-secondary hover:bg-surface-raised'
+              ? CONTROL_VARIANT.primary
+              : CONTROL_VARIANT.secondary
           }`}
           onClick={() => onChange(opt.value)}
         >

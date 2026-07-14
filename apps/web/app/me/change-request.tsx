@@ -168,6 +168,11 @@ export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
       <div className="mt-5 divide-y divide-neutral-border rounded-xl border border-neutral-border bg-white px-4">
         {fieldRows.map(({ key, label, value }) => (
           <div key={key} className="py-3">
+            {pendingFields.has(key) ? (
+              <span id={`${key}-change-request-pending`} className="sr-only">
+                이미 확인 중인 {label} 변경 요청이 있어요.
+              </span>
+            ) : null}
             <div className="flex min-h-11 items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2 text-sm">
                 <span className="font-medium text-text-secondary">{label}</span>
@@ -181,6 +186,8 @@ export function ChangeRequestSection({ profile }: ChangeRequestSectionProps) {
                   variant="ghost"
                   size="sm"
                   aria-label={`${label} 변경 요청`}
+                  aria-describedby={pendingFields.has(key) ? `${key}-change-request-pending` : undefined}
+                  disabled={pendingFields.has(key)}
                   className="shrink-0"
                 >
                   변경 요청

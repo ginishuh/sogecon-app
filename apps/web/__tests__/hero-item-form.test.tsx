@@ -40,4 +40,23 @@ describe('HeroItemForm', () => {
       image_override: null,
     });
   });
+
+  it('주요 폼 조작에 44px hit area와 focus 표시 계약을 적용한다', () => {
+    render(<HeroItemForm onSubmit={vi.fn()} onCancel={vi.fn()} />);
+
+    expect(screen.getByLabelText('대상 종류')).toHaveClass('min-h-11');
+    expect(screen.getByPlaceholderText('예: 123')).toHaveClass('min-h-11');
+    expect(screen.getByLabelText('제목(옵션)')).toHaveClass('min-h-11');
+    expect(screen.getByLabelText('설명(옵션)')).toHaveClass('min-h-24');
+
+    const enabledCheckbox = screen.getByLabelText('홈 배너 노출');
+    const pinnedCheckbox = screen.getByLabelText('홈 배너 상단 고정');
+    expect(enabledCheckbox.closest('label')).toHaveClass('min-h-11');
+    expect(pinnedCheckbox.closest('label')).toHaveClass('min-h-11');
+    expect(enabledCheckbox).toHaveClass('focus-visible:ring-2');
+    expect(pinnedCheckbox).toHaveClass('focus-visible:ring-2');
+
+    expect(screen.getByRole('button', { name: '취소' })).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: '저장' })).toHaveClass('min-h-11');
+  });
 });

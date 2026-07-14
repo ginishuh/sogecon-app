@@ -65,7 +65,7 @@ function ImagePreview({
             e.stopPropagation();
             onRemove();
           }}
-          className="absolute top-2 right-2 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80 transition-colors"
+          className="absolute right-2 top-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2"
           aria-label="이미지 삭제"
         >
           <svg
@@ -236,7 +236,7 @@ export function ImageUpload({ onUpload, value, onRemove, disabled = false, class
           e.preventDefault();
           setIsDragging(false);
         }}
-        className={`${baseClasses} ${stateClasses} ${disabledClasses} h-40 px-4`}
+        className={`${baseClasses} ${stateClasses} ${disabledClasses} h-40 px-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface`}
         aria-label="이미지 업로드 영역"
         aria-disabled={!isInteractive}
       >
