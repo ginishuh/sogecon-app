@@ -203,7 +203,7 @@ export default function HomeHeroCarousel() {
                 className="mt-7 inline-flex min-h-12 w-fit items-center gap-3 rounded-full bg-brand-700 px-6 py-3 text-sm font-semibold text-white no-underline transition hover:bg-brand-800 hover:text-white hover:no-underline focus-visible:text-white focus-visible:no-underline focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 aria-label={`${slide.title} 자세히 보기`}
               >
-                동문으로 이어가기
+                자세히 보기
                 <ArrowRight aria-hidden="true" size={19} weight="bold" />
               </Link>
             </div>
