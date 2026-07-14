@@ -5,6 +5,12 @@ import {
   buildActivationUrl,
 } from '../../../lib/activation';
 import { formatPhone } from '../../../lib/phone-utils';
+import {
+  CONTROL_BASE,
+  CONTROL_SIZE,
+  CONTROL_VARIANT,
+  FIELD_CONTROL,
+} from '../../../components/ui/styles';
 import type {
   SignupActivationIssueResponse,
   SignupActivationIssueLogRead,
@@ -29,6 +35,17 @@ function statusBadgeClass(status: SignupRequestStatus): string {
   if (status === 'rejected') return 'bg-state-error-subtle text-state-error ring-state-error-ring';
   return 'bg-neutral-subtle text-text-secondary ring-neutral-border';
 }
+
+export function signupRequestStatusLabel(status: SignupRequestStatus): string {
+  if (status === 'pending') return '대기';
+  if (status === 'approved') return '승인';
+  if (status === 'rejected') return '반려';
+  return '활성화 완료';
+}
+
+const secondaryButtonClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.secondary}`;
+const primaryButtonClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.primary}`;
+const dangerButtonClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.danger}`;
 
 export function getListState(params: {
   isLoading: boolean;
@@ -74,8 +91,7 @@ export function ApproveTokenCard({
   const activationMessage = buildActivationMessage(name, student_id, activationUrl);
   const currentIssue = lastApprove.activation_issue;
 
-  const copyBtnClass =
-    'rounded border border-state-success-ring px-3 py-1 text-xs text-state-success hover:bg-white';
+  const copyBtnClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} border border-state-success-ring bg-white text-state-success hover:bg-surface-raised`;
 
   return (
     <div className="space-y-3 rounded border border-state-success-ring bg-state-success-subtle p-4">
@@ -161,20 +177,23 @@ export function FiltersPanel({
   onSearch: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-end gap-3 rounded border border-neutral-border bg-white p-3">
-      <label className="text-xs text-text-secondary">
+    <div className="grid gap-3 rounded border border-neutral-border bg-white p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end">
+      <label htmlFor="signup-request-search" className="min-w-0 text-xs text-text-secondary">
         검색
         <input
-          className="mt-1 block w-56 rounded border border-neutral-border px-3 py-2 text-sm"
+          id="signup-request-search"
+          type="search"
+          className={`${FIELD_CONTROL} mt-1 text-sm`}
           placeholder="학번/이름/이메일"
           value={searchInput}
           onChange={(e) => onSearchInput(e.currentTarget.value)}
         />
       </label>
-      <label className="text-xs text-text-secondary">
+      <label htmlFor="signup-request-status" className="text-xs text-text-secondary">
         상태
         <select
-          className="mt-1 block rounded border border-neutral-border px-3 py-2 text-sm"
+          id="signup-request-status"
+          className={`${FIELD_CONTROL} mt-1 text-sm sm:w-auto`}
           value={statusFilter}
           onChange={(e) => onStatusFilter(e.currentTarget.value as SignupRequestStatus | 'all')}
         >
@@ -187,7 +206,7 @@ export function FiltersPanel({
       </label>
       <button
         type="button"
-        className="rounded bg-brand-700 px-4 py-2 text-sm text-white"
+        className={primaryButtonClass}
         onClick={onSearch}
       >
         조회
@@ -215,19 +234,24 @@ export function RejectPanel({
 
   return (
     <div className="space-y-2 rounded border border-state-error-ring bg-state-error-subtle p-4">
-      <p className="text-sm font-medium text-state-error">
-        반려 사유 입력: {target.name} ({target.student_id})
-      </p>
+      <p className="text-sm font-medium text-state-error">{target.name} ({target.student_id})</p>
+      <label
+        htmlFor={`signup-request-reject-reason-${target.id}`}
+        className="block text-sm font-medium text-state-error"
+      >
+        반려 사유
+      </label>
       <textarea
+        id={`signup-request-reject-reason-${target.id}`}
         rows={3}
-        className="w-full rounded border border-neutral-border px-3 py-2 text-sm"
+        className={`${FIELD_CONTROL} min-h-24 resize-y text-sm`}
         value={reason}
         onChange={(e) => onReason(e.currentTarget.value)}
       />
       <div className="flex gap-2">
         <button
           type="button"
-          className="rounded bg-state-error px-3 py-1.5 text-sm text-white disabled:opacity-60"
+          className={dangerButtonClass}
           disabled={isPending || reason.trim().length === 0}
           onClick={onConfirm}
         >
@@ -235,7 +259,7 @@ export function RejectPanel({
         </button>
         <button
           type="button"
-          className="rounded border border-neutral-border px-3 py-1.5 text-sm"
+          className={secondaryButtonClass}
           onClick={onCancel}
         >
           취소
@@ -273,7 +297,7 @@ function SignupRequestMobileCard({
       </p>
       <div className="mt-2 flex items-center justify-between">
         <span className={`inline-flex rounded px-2 py-0.5 text-xs ring-1 ${statusBadgeClass(row.status)}`}>
-          {row.status}
+          {signupRequestStatusLabel(row.status)}
         </span>
         <p className="text-xs text-text-muted">신청: {formatDate(row.requested_at)}</p>
       </div>
@@ -281,7 +305,7 @@ function SignupRequestMobileCard({
       <div className="mt-3 flex justify-end gap-2">
         <button
           type="button"
-          className="rounded border border-state-success-ring px-3 py-1.5 text-xs text-state-success disabled:opacity-40"
+          className={`${secondaryButtonClass} border-state-success-ring text-state-success`}
           disabled={row.status !== 'pending' || isApprovePending}
           onClick={() => onApprove(row.id)}
         >
@@ -289,7 +313,7 @@ function SignupRequestMobileCard({
         </button>
         <button
           type="button"
-          className="rounded border border-brand-500 px-3 py-1.5 text-xs text-brand-700 disabled:opacity-40"
+          className={`${secondaryButtonClass} border-brand-500 text-brand-700`}
           disabled={row.status !== 'approved' || isReissuePending}
           onClick={() => onReissue(row.id)}
         >
@@ -297,7 +321,7 @@ function SignupRequestMobileCard({
         </button>
         <button
           type="button"
-          className="rounded border border-state-error-ring px-3 py-1.5 text-xs text-state-error disabled:opacity-40"
+          className={`${secondaryButtonClass} border-state-error-ring text-state-error`}
           disabled={row.status !== 'pending' || isRejectPending}
           onClick={() => onStartReject(row)}
         >
@@ -370,7 +394,7 @@ export function SignupRequestsTable({
                 </td>
                 <td className="px-3 py-2">
                   <span className={`inline-flex rounded px-2 py-0.5 text-xs ring-1 ${statusBadgeClass(row.status)}`}>
-                    {row.status}
+                    {signupRequestStatusLabel(row.status)}
                   </span>
                   {row.reject_reason ? <p className="mt-1 text-xs text-state-error">{row.reject_reason}</p> : null}
                 </td>
@@ -383,7 +407,7 @@ export function SignupRequestsTable({
                   <div className="flex justify-end gap-2">
                     <button
                       type="button"
-                      className="rounded border border-state-success-ring px-3 py-1.5 text-xs text-state-success disabled:opacity-40"
+                      className={`${secondaryButtonClass} border-state-success-ring text-state-success`}
                       disabled={row.status !== 'pending' || isApprovePending}
                       onClick={() => onApprove(row.id)}
                     >
@@ -391,7 +415,7 @@ export function SignupRequestsTable({
                     </button>
                     <button
                       type="button"
-                      className="rounded border border-brand-500 px-3 py-1.5 text-xs text-brand-700 disabled:opacity-40"
+                      className={`${secondaryButtonClass} border-brand-500 text-brand-700`}
                       disabled={row.status !== 'approved' || isReissuePending}
                       onClick={() => onReissue(row.id)}
                     >
@@ -399,7 +423,7 @@ export function SignupRequestsTable({
                     </button>
                     <button
                       type="button"
-                      className="rounded border border-state-error-ring px-3 py-1.5 text-xs text-state-error disabled:opacity-40"
+                      className={`${secondaryButtonClass} border-state-error-ring text-state-error`}
                       disabled={row.status !== 'pending' || isRejectPending}
                       onClick={() => onStartReject(row)}
                     >
@@ -439,7 +463,7 @@ export function PaginationBar({
       <div className="flex gap-2">
         <button
           type="button"
-          className="rounded border border-neutral-border px-3 py-1 text-sm disabled:opacity-40"
+          className={secondaryButtonClass}
           disabled={page === 0 || isFetching}
           onClick={onPrev}
         >
@@ -447,7 +471,7 @@ export function PaginationBar({
         </button>
         <button
           type="button"
-          className="rounded border border-neutral-border px-3 py-1 text-sm disabled:opacity-40"
+          className={secondaryButtonClass}
           disabled={page >= totalPages - 1 || isFetching}
           onClick={onNext}
         >

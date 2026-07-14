@@ -7,6 +7,7 @@ const staticPaths = [
   '/about/greeting',
   '/about/dean-greeting',
   '/about/org',
+  '/about/class-presidents',
   '/about/history',
   '/directory',
   '/faq',

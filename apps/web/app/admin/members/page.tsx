@@ -10,8 +10,10 @@ import {
   RoleFilterBar,
 } from './member-parts';
 import { RequirePermission } from '../../../components/require-permission';
+import { Button } from '../../../components/ui/button';
+import { FIELD_CONTROL } from '../../../components/ui/styles';
 import { useAuth } from '../../../hooks/useAuth';
-import { isSuperAdminSession } from '../../../lib/rbac';
+import { hasPermissionSession, isSuperAdminSession } from '../../../lib/rbac';
 
 const SORT_OPTIONS = [
   { value: 'recent', label: '최근 수정순' },
@@ -41,7 +43,8 @@ function SearchInput({
   return (
     <input
       type="search"
-      className="w-full rounded border border-neutral-border px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted"
+      aria-label="회원 검색"
+      className={`${FIELD_CONTROL} text-sm`}
       placeholder="학번, 이름, 이메일 검색..."
       value={local}
       onChange={(e) => handleChange(e.currentTarget.value)}
@@ -72,22 +75,24 @@ function Pagination({
         총 {totalCount}명 · {page + 1} / {totalPages} 페이지
       </p>
       <div className="flex gap-2">
-        <button
+        <Button
           type="button"
-          className="rounded border border-neutral-border px-3 py-1 text-xs disabled:opacity-40"
+          variant="secondary"
+          size="sm"
           disabled={!hasPrev}
           onClick={onPrev}
         >
           이전
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="rounded border border-neutral-border px-3 py-1 text-xs disabled:opacity-40"
+          variant="secondary"
+          size="sm"
           disabled={!hasNext}
           onClick={onNext}
         >
           다음
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -96,9 +101,19 @@ function Pagination({
 export default function AdminMembersPage() {
   const { status, data: session } = useAuth();
   const isSuperAdmin = isSuperAdminSession(session);
-  const model = useAdminMembersModel();
+  const canManageMembers =
+    status === 'authorized' && hasPermissionSession(session, 'admin_roles');
+  const model = useAdminMembersModel({ enabled: canManageMembers });
 
-  if (status !== 'authorized') {
+  if (status === 'loading') {
+    return <div className="p-6 text-sm text-text-secondary">관리자 권한을 확인하고 있습니다.</div>;
+  }
+
+  if (status === 'error') {
+    return <div className="p-6 text-sm text-state-error">로그인 상태를 확인하지 못했습니다.</div>;
+  }
+
+  if (status === 'unauthorized') {
     return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
   }
 
@@ -111,12 +126,12 @@ export default function AdminMembersPage() {
         <header className="space-y-2">
           <h1 className="text-xl font-semibold text-text-primary">회원 관리</h1>
           <p className="text-sm text-text-secondary">
-            조회는 <code>admin_roles</code> 권한으로 가능하며, 역할 변경 및 직접 생성은{' '}
-            <code>super_admin</code>만 가능합니다.
+            회원 정보를 조회하고 역할별 운영 범위를 확인합니다. 회원 정보와 역할 변경은
+            최고관리자만 할 수 있습니다.
           </p>
           {!isSuperAdmin && (
             <p className="text-sm text-state-warning">
-              현재 계정은 조회 전용입니다. (super_admin만 변경 가능)
+              현재 계정은 조회 전용입니다. 회원 정보와 역할을 변경할 수 없습니다.
             </p>
           )}
         </header>
@@ -138,7 +153,8 @@ export default function AdminMembersPage() {
             <SearchInput value={model.searchQuery} onChange={model.setSearchQuery} />
           </div>
           <select
-            className="rounded border border-neutral-border px-3 py-1.5 text-sm text-text-primary"
+            aria-label="정렬 기준"
+            className={`${FIELD_CONTROL} text-sm sm:w-auto`}
             value={model.sortValue}
             onChange={(e) => model.setSortValue(e.currentTarget.value)}
           >

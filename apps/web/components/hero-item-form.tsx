@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ImageUpload } from './image-upload';
+import { Button } from './ui/button';
+import { FIELD_CONTROL } from './ui/styles';
 import type { CreateHeroItemPayload, HeroItem, HeroTargetType } from '../services/hero';
 
 export type HeroItemFormData = {
@@ -116,7 +118,7 @@ export function HeroItemForm({
         <label className="block text-sm text-text-secondary">
           대상 종류
           <select
-            className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+            className={`${FIELD_CONTROL} mt-1`}
             value={form.target_type}
             onChange={(e) => {
               const value = e.currentTarget.value as HeroTargetType;
@@ -132,7 +134,7 @@ export function HeroItemForm({
         <label className="block text-sm text-text-secondary">
           대상 ID
           <input
-            className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+            className={`${FIELD_CONTROL} mt-1`}
             type="number"
             min={1}
             value={formatTargetIdValue(form.target_id)}
@@ -151,7 +153,7 @@ export function HeroItemForm({
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <label className="flex items-center gap-2 text-sm text-text-secondary">
+        <label className="flex min-h-11 items-center gap-2 rounded-md px-2 text-sm text-text-secondary">
           <input
             type="checkbox"
             checked={form.enabled}
@@ -160,12 +162,12 @@ export function HeroItemForm({
               setForm((prev) => ({ ...prev, enabled: checked }));
             }}
             disabled={isPending}
-            className="rounded border-neutral-border"
+            className="h-5 w-5 shrink-0 rounded border-neutral-border focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           />
           홈 배너 노출
         </label>
 
-        <label className="flex items-center gap-2 text-sm text-text-secondary">
+        <label className="flex min-h-11 items-center gap-2 rounded-md px-2 text-sm text-text-secondary">
           <input
             type="checkbox"
             checked={form.pinned}
@@ -174,7 +176,7 @@ export function HeroItemForm({
               setForm((prev) => ({ ...prev, pinned: checked }));
             }}
             disabled={isPending}
-            className="rounded border-neutral-border"
+            className="h-5 w-5 shrink-0 rounded border-neutral-border focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           />
           홈 배너 상단 고정
         </label>
@@ -183,7 +185,7 @@ export function HeroItemForm({
       <label className="block text-sm text-text-secondary">
         제목(옵션)
         <input
-          className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+          className={`${FIELD_CONTROL} mt-1`}
           value={form.title_override}
           onChange={(e) => {
             const value = e.currentTarget.value;
@@ -197,7 +199,7 @@ export function HeroItemForm({
       <label className="block text-sm text-text-secondary">
         설명(옵션)
         <textarea
-          className="mt-1 w-full rounded border border-neutral-border px-3 py-2"
+          className={`${FIELD_CONTROL} mt-1 min-h-24 resize-y`}
           rows={3}
           value={form.description_override}
           onChange={(e) => {
@@ -227,23 +229,23 @@ export function HeroItemForm({
       </p>
 
       <div className="flex gap-2">
-        <button
+        <Button
           type="button"
-          className="rounded border border-neutral-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-raised"
+          variant="secondary"
           onClick={() => onCancel?.()}
           disabled={isPending}
           hidden={!onCancel}
         >
           취소
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
-          className="rounded bg-brand-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          variant="primary"
           disabled={!canSubmit}
-          aria-busy={isPending}
+          loading={isPending}
         >
           {isPending ? loadingLabel : submitLabel}
-        </button>
+        </Button>
       </div>
     </form>
   );

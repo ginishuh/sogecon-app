@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent } from 'react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 type ConfirmDialogProps = {
   /** 다이얼로그 표시 여부 */
@@ -36,15 +36,28 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  const descriptionId = useId();
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
     if (open) {
-      dialog.showModal();
-    } else {
+      if (!dialog.open) {
+        openerRef.current =
+          document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
+        dialog.showModal();
+        cancelButtonRef.current?.focus();
+      }
+    } else if (dialog.open) {
       dialog.close();
+      openerRef.current?.focus();
+      openerRef.current = null;
     }
   }, [open]);
 
@@ -85,18 +98,21 @@ export function ConfirmDialog({
   return (
     <dialog
       ref={dialogRef}
+      aria-labelledby={titleId}
+      aria-describedby={description ? descriptionId : undefined}
       className="rounded-lg p-0 backdrop:bg-black/50"
       onClick={handleBackdropClick}
     >
       <div className="w-80 p-6 sm:w-96">
-        <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
+        <h3 id={titleId} className="text-lg font-semibold text-text-primary">{title}</h3>
         {description && (
-          <p className="mt-2 text-sm text-text-secondary">{description}</p>
+          <p id={descriptionId} className="mt-2 whitespace-pre-line text-sm text-text-secondary">{description}</p>
         )}
         <div className="mt-6 flex justify-end gap-2">
           <button
+            ref={cancelButtonRef}
             type="button"
-            className="rounded border border-neutral-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-raised disabled:opacity-50"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-neutral-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-raised focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 disabled:opacity-50"
             onClick={onCancel}
             disabled={isPending}
           >
@@ -104,7 +120,7 @@ export function ConfirmDialog({
           </button>
           <button
             type="button"
-            className={`rounded px-4 py-2 text-sm font-medium disabled:opacity-50 ${confirmButtonClass}`}
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded px-4 py-2 text-sm font-medium focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 disabled:opacity-50 ${confirmButtonClass}`}
             onClick={onConfirm}
             disabled={isPending}
           >

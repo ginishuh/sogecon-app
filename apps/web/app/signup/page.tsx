@@ -23,6 +23,16 @@ type Feedback = {
   message: string;
 };
 
+function signupErrorToMessage(error: unknown): string {
+  if (!(error instanceof ApiError)) {
+    return '가입 신청을 접수하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+  }
+  if (error.status === 422 && !error.code) {
+    return '입력한 정보를 확인해 주세요. 이메일과 연락처 형식이 올바른지 확인해 주세요.';
+  }
+  return memberApiErrorToMessage(error.code, error.message);
+}
+
 function parseCohort(value: string): number | null {
   const normalized = value.trim();
   if (!/^\d+$/.test(normalized)) return null;
@@ -84,10 +94,7 @@ export default function SignupPage() {
       show(message, { type: 'success' });
     },
     onError: (error: unknown) => {
-      const message =
-        error instanceof ApiError
-          ? memberApiErrorToMessage(error.code, error.message)
-          : '가입 신청을 접수하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      const message = signupErrorToMessage(error);
       setFeedback({ tone: 'error', message });
     },
   });

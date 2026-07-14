@@ -13,6 +13,7 @@ ADMIN_PERMISSION_TOKENS = frozenset(
         "admin_signup",
         "admin_roles",
         "admin_profile",
+        "admin_support",
     }
 )
 ALLOWED_ROLE_TOKENS = frozenset(

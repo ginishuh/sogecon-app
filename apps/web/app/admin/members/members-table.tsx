@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { KNOWN_ROLE_SET, RoleChecklist, normalizeRoles } from './role-shared';
+import { KNOWN_ROLE_SET, RoleChecklist, normalizeRoles, roleLabel } from './role-shared';
 import { UnknownRoleHint, SaveRoleButton } from './member-parts';
+import { memberStatusLabel } from './member-labels';
 import type { MemberRead as Member } from '../../../services/admin-members';
 
 export function memberRoles(m: Member): string[] {
@@ -43,12 +44,12 @@ function MemberRow({
     <article className="rounded border border-neutral-border bg-white p-3 md:hidden">
       <Link
         href={`/admin/members/${row.id}` as Route}
-        className="font-medium text-text-primary hover:text-brand-700 no-underline hover:underline"
+        className="inline-flex min-h-11 items-center rounded-md px-1 font-medium text-text-primary no-underline hover:text-brand-700 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2"
       >
         {row.student_id}
       </Link>
       <p className="text-xs text-text-secondary">{row.name} · {row.email || '-'}</p>
-      <p className="mt-1 text-xs text-text-muted">{row.cohort}기 · {row.status}</p>
+      <p className="mt-1 text-xs text-text-muted">{row.cohort}기 · {memberStatusLabel(row.status)}</p>
       <div className="mt-3">
         <RoleChecklist
           id={String(row.id)}
@@ -141,15 +142,15 @@ export function MembersBody({
                   <td className="px-3 py-2">
                     <Link
                       href={`/admin/members/${row.id}` as Route}
-                      className="font-medium text-text-primary hover:text-brand-700 no-underline hover:underline"
+                      className="inline-flex min-h-11 items-center rounded-md px-1 font-medium text-text-primary no-underline hover:text-brand-700 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2"
                     >
                       {row.student_id}
                     </Link>
                     <p className="text-xs text-text-secondary">{row.name} · {row.email || '-'}</p>
-                    <p className="mt-1 text-xs text-text-muted">{row.cohort}기 · {row.status}</p>
+                    <p className="mt-1 text-xs text-text-muted">{row.cohort}기 · {memberStatusLabel(row.status)}</p>
                   </td>
                   <td className="px-3 py-2">
-                    <p className="text-xs text-text-secondary">{roles.join(', ') || '-'}</p>
+                    <p className="text-xs text-text-secondary">{roles.map(roleLabel).join(', ') || '-'}</p>
                   </td>
                   <td className="px-3 py-2">
                     <RoleChecklist

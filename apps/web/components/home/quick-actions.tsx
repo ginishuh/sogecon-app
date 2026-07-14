@@ -8,6 +8,8 @@ import {
   ArrowRight,
   CalendarDots,
   ChatCircleText,
+  IdentificationCard,
+  ImageSquare,
   Key,
   Megaphone,
   Question,
@@ -18,7 +20,11 @@ import {
 } from '@phosphor-icons/react';
 
 import { useAuth, type AuthStatus } from '../../hooks/useAuth';
-import { isAdminSession } from '../../lib/rbac';
+import {
+  hasPermission,
+  isAdminSession,
+  type AdminPermissionToken,
+} from '../../lib/rbac';
 
 type HomeAction = {
   href: Route;
@@ -26,6 +32,7 @@ type HomeAction = {
   label: string;
   description: string;
   icon: React.ElementType;
+  permission?: AdminPermissionToken;
 };
 
 const GUEST_ACTIONS: HomeAction[] = [
@@ -83,6 +90,7 @@ const ADMIN_ACTIONS: HomeAction[] = [
     label: '가입 신청 확인',
     description: '대기 중인 가입 신청을 확인하고 안내를 이어갑니다.',
     icon: UserPlus,
+    permission: 'admin_signup',
   },
   {
     href: '/admin/posts',
@@ -90,6 +98,7 @@ const ADMIN_ACTIONS: HomeAction[] = [
     label: '공지·소식 관리',
     description: '홈에 표시할 중요 공지와 동문 소식을 관리합니다.',
     icon: Megaphone,
+    permission: 'admin_posts',
   },
   {
     href: '/admin/events',
@@ -97,6 +106,47 @@ const ADMIN_ACTIONS: HomeAction[] = [
     label: '행사 일정 관리',
     description: '다가오는 행사와 신청 정보를 관리합니다.',
     icon: CalendarDots,
+    permission: 'admin_events',
+  },
+  {
+    href: '/admin/notifications',
+    eyebrow: '새 소식 전달',
+    label: '알림 관리',
+    description: '알림 발송 현황을 확인하고 운영 상태를 관리합니다.',
+    icon: Megaphone,
+    permission: 'admin_notifications',
+  },
+  {
+    href: '/admin/hero',
+    eyebrow: '홈 첫 화면 운영',
+    label: '홈 배너 관리',
+    description: '홈에 노출할 주요 게시물과 행사 배너를 관리합니다.',
+    icon: ImageSquare,
+    permission: 'admin_hero',
+  },
+  {
+    href: '/admin/profile-change-requests',
+    eyebrow: '회원 정보 확인',
+    label: '정보변경 심사',
+    description: '이름과 기수 변경 요청을 확인하고 처리합니다.',
+    icon: IdentificationCard,
+    permission: 'admin_profile',
+  },
+  {
+    href: '/admin/members',
+    eyebrow: '회원 현황 확인',
+    label: '회원 관리',
+    description: '회원 정보를 조회하고 역할 운영 범위를 확인합니다.',
+    icon: UsersThree,
+    permission: 'admin_roles',
+  },
+  {
+    href: '/admin/support',
+    eyebrow: '문의 응대',
+    label: '문의 내역',
+    description: '접수된 홈페이지 문의를 확인하고 후속 대응을 준비합니다.',
+    icon: ChatCircleText,
+    permission: 'admin_support',
   },
 ];
 
@@ -124,13 +174,30 @@ const ERROR_ACTIONS: HomeAction[] = [
   },
 ];
 
-export function selectHomeActions(status: AuthStatus, isAdmin: boolean): HomeAction[] {
+export function selectHomeActions(
+  status: AuthStatus,
+  isAdmin: boolean,
+  roles: readonly string[] = [],
+): HomeAction[] {
   if (status === 'error') return ERROR_ACTIONS;
   if (status !== 'authorized') return GUEST_ACTIONS;
-  return isAdmin ? ADMIN_ACTIONS : MEMBER_ACTIONS;
+  if (!isAdmin) return MEMBER_ACTIONS;
+
+  const allowedAdminActions = ADMIN_ACTIONS.filter(
+    (action) => action.permission && hasPermission(roles, action.permission),
+  );
+  return allowedAdminActions.length > 0 ? allowedAdminActions : MEMBER_ACTIONS;
 }
 
-export function HomeActionsView({ status, isAdmin }: { status: AuthStatus; isAdmin: boolean }) {
+export function HomeActionsView({
+  status,
+  isAdmin,
+  roles = [],
+}: {
+  status: AuthStatus;
+  isAdmin: boolean;
+  roles?: readonly string[];
+}) {
   if (status === 'loading') {
     return (
       <section aria-label="홈 핵심 행동을 불러오는 중" className="relative z-10 mt-6 lg:-mt-8 lg:px-4">
@@ -143,8 +210,9 @@ export function HomeActionsView({ status, isAdmin }: { status: AuthStatus; isAdm
     );
   }
 
-  const actions = selectHomeActions(status, isAdmin);
-  const heading = isAdmin ? '오늘의 운영 업무' : status === 'authorized' ? '동문으로 이어가기' : status === 'error' ? '홈 이용 안내' : '동문회와 함께하기';
+  const actions = selectHomeActions(status, isAdmin, roles);
+  const hasAdminActions = actions.some((action) => action.permission !== undefined);
+  const heading = hasAdminActions ? '오늘의 운영 업무' : status === 'authorized' ? '동문으로 이어가기' : status === 'error' ? '홈 이용 안내' : '동문회와 함께하기';
 
   return (
     <section aria-labelledby="home-actions" className="relative z-10 mt-6 lg:-mt-8 lg:px-4">
@@ -178,7 +246,7 @@ export function HomeActionsView({ status, isAdmin }: { status: AuthStatus; isAdm
 export function HomeQuickActions() {
   const auth = useAuth();
   const isAdmin = auth.status === 'authorized' && isAdminSession(auth.data);
-  return <HomeActionsView status={auth.status} isAdmin={isAdmin} />;
+  return <HomeActionsView status={auth.status} isAdmin={isAdmin} roles={auth.data?.roles} />;
 }
 
 export default HomeQuickActions;

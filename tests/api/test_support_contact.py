@@ -72,3 +72,9 @@ def test_admin_can_list_support_tickets(admin_login: TestClient) -> None:
     assert isinstance(first["id"], int)
     assert isinstance(first["subject"], str)
     assert isinstance(first["body"], str)
+
+
+def test_member_cannot_list_support_tickets(member_login: TestClient) -> None:
+    res = member_login.get("/support/admin/tickets?limit=20")
+    assert res.status_code == HTTPStatus.FORBIDDEN
+    assert res.json()["detail"] == "admin_permission_required"

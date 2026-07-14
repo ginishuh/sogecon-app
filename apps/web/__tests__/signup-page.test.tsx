@@ -138,6 +138,28 @@ describe('SignupPage', () => {
     expect(screen.getByText('기수를 숫자로 입력해 주세요.')).toBeInTheDocument();
   });
 
+  it('서버 검증기 원문 대신 입력 형식을 확인할 한국어 안내를 제공한다', async () => {
+    createSignupRequestMock.mockRejectedValueOnce(
+      new ApiError(
+        422,
+        'value is not a valid email address: The part after the @-sign is a special-use or reserved name',
+      ),
+    );
+    renderWithProviders(<SignupPage />);
+
+    fireEvent.change(screen.getByLabelText('학번'), { target: { value: 'e2esignup240714' } });
+    fireEvent.change(screen.getByLabelText('이름'), { target: { value: '합성 가입신청' } });
+    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'e2e@example.invalid' } });
+    fireEvent.change(screen.getByLabelText('기수'), { target: { value: '177' } });
+    fireEvent.change(screen.getByLabelText('연락처'), { target: { value: '01024071400' } });
+    fireEvent.click(screen.getByRole('button', { name: '가입 정보 보내기' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '입력한 정보를 확인해 주세요. 이메일과 연락처 형식이 올바른지 확인해 주세요.',
+    );
+    expect(screen.queryByText(/valid email address/i)).not.toBeInTheDocument();
+  });
+
   it('긴 가입 폼을 동문 확인 정보와 연락받을 정보로 나눈다', () => {
     renderWithProviders(<SignupPage />);
 

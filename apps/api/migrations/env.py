@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from apps.api import models  # noqa: E402
 from apps.api.config import get_settings  # noqa: E402
+from apps.api.models_support import SupportTicket  # noqa: E402
 
 config = context.config
 
@@ -26,7 +26,7 @@ settings = get_settings()
 _safe_url = settings.database_url.replace("%", "%%")
 config.set_main_option("sqlalchemy.url", _safe_url)
 
-target_metadata = models.Base.metadata
+target_metadata = SupportTicket.metadata
 
 
 def run_migrations_offline() -> None:

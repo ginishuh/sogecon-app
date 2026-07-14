@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { ConfirmDialog } from '../../../components/confirm-dialog';
-import { RequirePermission } from '../../../components/require-permission';
+import { AdminAuthState } from '../../../components/admin-auth-state';
 import { useToast } from '../../../components/toast';
+import { useAuth } from '../../../hooks/useAuth';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
+import { hasPermissionSession } from '../../../lib/rbac';
 import {
   deleteAdminHeroItem,
   listAdminHeroItems,
@@ -44,14 +46,18 @@ function buildDeleteDescription(target: HeroItem | null): string {
 }
 
 export default function AdminHeroPage() {
+  const auth = useAuth();
   const queryClient = useQueryClient();
   const { show } = useToast();
   const [page, setPage] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState<HeroItem | null>(null);
+  const canManageHero = auth.status === 'authorized'
+    && hasPermissionSession(auth.data, 'admin_hero');
 
   const query = useQuery({
     queryKey: ['admin-hero', page],
     queryFn: () => listAdminHeroItems({ limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
+    enabled: canManageHero,
     retry: false,
   });
 
@@ -96,11 +102,14 @@ export default function AdminHeroPage() {
     },
   });
 
+  if (auth.status !== 'authorized') {
+    return <AdminAuthState status={auth.status} />;
+  }
+  if (!canManageHero) {
+    return <div className="p-6 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>;
+  }
+
   return (
-    <RequirePermission
-      permission="admin_hero"
-      fallback={<div className="p-6 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>}
-    >
       <section className="mx-auto max-w-4xl space-y-4 p-6">
         <header className="space-y-1">
           <h1 className="text-xl font-semibold">홈 배너(히어로) 관리</h1>
@@ -220,6 +229,5 @@ export default function AdminHeroPage() {
           onCancel={() => setDeleteTarget(null)}
         />
       </section>
-    </RequirePermission>
   );
 }

@@ -118,7 +118,7 @@ async def _seed_admin(session: AsyncSession) -> None:
                 "super_admin,admin,member,"
                 "admin_roles,admin_posts,admin_events,"
                 "admin_hero,admin_notifications,admin_signup,"
-                "admin_profile"
+                "admin_profile,admin_support"
             ),
             status="active",
         )

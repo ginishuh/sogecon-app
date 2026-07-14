@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { vi } from 'vitest';
@@ -91,5 +91,25 @@ describe('이름·기수 변경 요청 접근성', () => {
     fireEvent.click(screen.getByRole('button', { name: '다시 확인하기' }));
 
     expect(await screen.findByText('아직 접수한 변경 요청이 없어요.')).toBeInTheDocument();
+  });
+
+  it('같은 필드의 대기 요청이 있으면 opener 단계에서 중복 요청을 차단한다', async () => {
+    vi.mocked(listMyChangeRequests).mockResolvedValueOnce([
+      {
+        id: 1,
+        member_id: profile.id,
+        field_name: 'name',
+        old_value: profile.name,
+        new_value: '새 이름',
+        status: 'pending',
+        requested_at: '2026-07-14T00:00:00Z',
+      },
+    ]);
+    renderSection();
+
+    const nameButton = await screen.findByRole('button', { name: '이름 변경 요청' });
+    await waitFor(() => expect(nameButton).toBeDisabled());
+    expect(nameButton).toHaveAccessibleDescription('이미 확인 중인 이름 변경 요청이 있어요.');
+    expect(screen.getByRole('button', { name: '기수 변경 요청' })).toBeEnabled();
   });
 });

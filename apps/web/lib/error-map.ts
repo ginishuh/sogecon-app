@@ -50,7 +50,9 @@ const INTERNAL_MESSAGE_PATTERN = /(?:\[object Object\]|토큰|\b(?:VAPID|token|r
 
 function safeFallback(fallback?: string): string | undefined {
   const value = fallback?.trim();
-  if (!value || INTERNAL_MESSAGE_PATTERN.test(value)) return undefined;
+  if (!value || !/[가-힣]/.test(value) || INTERNAL_MESSAGE_PATTERN.test(value)) {
+    return undefined;
+  }
   return value;
 }
 

@@ -24,8 +24,8 @@ export function HeaderDropdown({ label, items, variant = 'default', align = 'lef
   const [open, setOpen] = useState(false);
 
   const buttonClass = variant === 'admin'
-    ? 'flex items-center gap-1 px-2 py-2 font-kopub text-base text-brand-700 hover:text-brand-800 transition-colors'
-    : 'flex items-center gap-1 px-2 py-2 font-kopub text-base text-neutral-ink hover:text-brand-700 transition-colors';
+    ? 'flex min-h-11 items-center gap-1 rounded-md px-2 py-2 font-kopub text-base text-brand-700 transition-colors hover:text-brand-800 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2'
+    : 'flex min-h-11 items-center gap-1 rounded-md px-2 py-2 font-kopub text-base text-neutral-ink transition-colors hover:text-brand-700 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2';
 
   const alignClass = align === 'right' ? 'right-0' : 'left-0';
 
@@ -49,12 +49,12 @@ export function HeaderDropdown({ label, items, variant = 'default', align = 'lef
         </svg>
       </button>
       {open && (
-        <div className={`absolute top-full ${alignClass} mt-1 w-36 bg-white border border-neutral-border rounded-lg shadow-lg py-1 z-50`}>
+        <div className={`absolute top-full ${alignClass} mt-1 w-44 bg-white border border-neutral-border rounded-lg shadow-lg py-1 z-50`}>
           {items.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="block px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:no-underline hover:bg-neutral-subtle hover:text-brand-700"
+              className="flex min-h-11 items-center rounded-md px-4 py-2 font-kopub text-sm text-neutral-ink no-underline hover:bg-neutral-subtle hover:text-brand-700 hover:no-underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2"
             >
               {item.label}
             </Link>

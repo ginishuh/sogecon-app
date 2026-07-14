@@ -29,15 +29,16 @@ export function useHeroTargetControls(params: {
   targetType: HeroTargetType;
   targetIds: number[];
   showToast: ToastFn;
+  enabled?: boolean;
 }) {
-  const { targetType, targetIds, showToast } = params;
+  const { targetType, targetIds, showToast, enabled = true } = params;
   const queryClient = useQueryClient();
   const lookupKey = ['admin-hero-lookup', targetType, targetIds] as const;
 
   const lookup = useQuery({
     queryKey: lookupKey,
     queryFn: () => lookupAdminHeroItems({ target_type: targetType, target_ids: targetIds }),
-    enabled: targetIds.length > 0,
+    enabled: enabled && targetIds.length > 0,
     staleTime: 15_000,
   });
 

@@ -5,12 +5,21 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { ConfirmDialog } from '../../../components/confirm-dialog';
+import { AdminAuthState } from '../../../components/admin-auth-state';
 import { HeroTargetToggle } from '../../../components/hero-target-toggle';
 import { RequirePermission } from '../../../components/require-permission';
 import { useAuth } from '../../../hooks/useAuth';
 import { useToast } from '../../../components/toast';
+import { Button } from '../../../components/ui/button';
 import { ButtonLink } from '../../../components/ui/button-link';
+import {
+  CONTROL_BASE,
+  CONTROL_SIZE,
+  CONTROL_VARIANT,
+  FIELD_CONTROL,
+} from '../../../components/ui/styles';
 import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
+import { hasPermissionSession } from '../../../lib/rbac';
 import {
   deleteAdminEvent,
   listAdminEvents,
@@ -49,7 +58,7 @@ function buildListParams(
   };
 }
 
-function FiltersBar({
+export function FiltersBar({
   query,
   status,
   dateFrom,
@@ -75,7 +84,7 @@ function FiltersBar({
       <label className="flex flex-col gap-1 text-xs text-text-secondary">
         제목 검색
         <input
-          className="rounded border border-neutral-border px-3 py-2 text-sm"
+          className={`${FIELD_CONTROL} text-sm`}
           placeholder="행사 제목"
           value={query}
           onChange={(e) => onChangeQuery(e.currentTarget.value)}
@@ -85,7 +94,7 @@ function FiltersBar({
       <label className="flex flex-col gap-1 text-xs text-text-secondary">
         상태
         <select
-          className="rounded border border-neutral-border px-3 py-2 text-sm"
+          className={`${FIELD_CONTROL} text-sm`}
           value={status}
           onChange={(e) => onChangeStatus(e.currentTarget.value as StatusFilter)}
         >
@@ -99,7 +108,7 @@ function FiltersBar({
       <label className="flex flex-col gap-1 text-xs text-text-secondary">
         시작일(이후)
         <input
-          className="rounded border border-neutral-border px-3 py-2 text-sm"
+          className={`${FIELD_CONTROL} text-sm`}
           type="date"
           value={dateFrom}
           onChange={(e) => onChangeDateFrom(e.currentTarget.value)}
@@ -109,20 +118,22 @@ function FiltersBar({
       <label className="flex flex-col gap-1 text-xs text-text-secondary">
         종료일(이전)
         <input
-          className="rounded border border-neutral-border px-3 py-2 text-sm"
+          className={`${FIELD_CONTROL} text-sm`}
           type="date"
           value={dateTo}
           onChange={(e) => onChangeDateTo(e.currentTarget.value)}
         />
       </label>
 
-      <button
+      <Button
         type="button"
-        className="self-start rounded border px-3 py-2 text-sm text-text-secondary hover:bg-surface-raised md:self-auto"
+        variant="secondary"
+        size="sm"
+        className="self-start md:self-auto"
         onClick={onClear}
       >
         초기화
-      </button>
+      </Button>
     </div>
   );
 }
@@ -180,10 +191,11 @@ function StatusBadge({ startsAt, endsAt }: { startsAt: string; endsAt: string })
 
 type EventRow = AdminEventListResponse['items'][number];
 
-function EventTable({
+export function EventTable({
   items,
   isLoading,
   isError,
+  canManageHero,
   heroById,
   heroPending,
   onToggleHeroFor,
@@ -193,6 +205,7 @@ function EventTable({
   items: EventRow[];
   isLoading: boolean;
   isError: boolean;
+  canManageHero: boolean;
   heroById: Map<number, HeroTargetLookupItem>;
   heroPending: boolean;
   onToggleHeroFor: (event: EventRow, nextOn: boolean) => void;
@@ -209,20 +222,22 @@ function EventTable({
             <th className="px-3 py-2 font-medium text-text-secondary">정원</th>
             <th className="px-3 py-2 font-medium text-text-secondary">참여 현황</th>
             <th className="px-3 py-2 font-medium text-text-secondary">상태</th>
-            <th className="px-3 py-2 font-medium text-text-secondary">홈 배너</th>
+            {canManageHero && (
+              <th className="px-3 py-2 font-medium text-text-secondary">홈 배너</th>
+            )}
             <th className="px-3 py-2 font-medium text-text-secondary text-right">액션</th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
             <tr>
-              <td colSpan={7} className="px-3 py-8 text-center text-text-muted">
+              <td colSpan={canManageHero ? 7 : 6} className="px-3 py-8 text-center text-text-muted">
                 로딩 중...
               </td>
             </tr>
           ) : isError ? (
             <tr>
-              <td colSpan={7} className="px-3 py-8 text-center text-state-error">
+              <td colSpan={canManageHero ? 7 : 6} className="px-3 py-8 text-center text-state-error">
                 데이터를 불러올 수 없습니다.
               </td>
             </tr>
@@ -253,35 +268,38 @@ function EventTable({
                 <td className="px-3 py-2">
                   <StatusBadge startsAt={evt.starts_at} endsAt={evt.ends_at} />
                 </td>
-                <td className="px-3 py-2">
-                  <HeroTargetToggle
-                    value={heroById.get(evt.id)}
-                    isPending={heroPending}
-                    onToggle={(nextOn) => onToggleHeroFor(evt, nextOn)}
-                    onTogglePinned={(nextPinned) => onTogglePinnedFor(evt, nextPinned)}
-                  />
-                </td>
+                {canManageHero && (
+                  <td className="px-3 py-2">
+                    <HeroTargetToggle
+                      value={heroById.get(evt.id)}
+                      isPending={heroPending}
+                      onToggle={(nextOn) => onToggleHeroFor(evt, nextOn)}
+                      onTogglePinned={(nextPinned) => onTogglePinnedFor(evt, nextPinned)}
+                    />
+                  </td>
+                )}
                 <td className="px-3 py-2 text-right">
                   <Link
                     href={`/admin/events/${evt.id}/edit`}
-                    className="text-sm text-text-secondary hover:text-text-primary"
+                    className={`${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.secondary}`}
                   >
                     수정
                   </Link>
-                  <span className="mx-1 text-neutral-border">|</span>
-                  <button
+                  <Button
                     type="button"
-                    className="text-sm text-state-error hover:text-state-error-hover"
+                    variant="danger"
+                    size="sm"
+                    className="ml-2"
                     onClick={() => onDelete(evt)}
                   >
                     삭제
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan={7} className="px-3 py-8 text-center text-text-muted">
+              <td colSpan={canManageHero ? 7 : 6} className="px-3 py-8 text-center text-text-muted">
                 등록된 행사가 없습니다.
               </td>
             </tr>
@@ -292,7 +310,7 @@ function EventTable({
   );
 }
 
-function Pagination({
+export function Pagination({
   page,
   totalPages,
   total,
@@ -313,29 +331,31 @@ function Pagination({
         {isFetching ? '갱신 중...' : `페이지 ${page + 1} / ${totalPages} · 총 ${total}건`}
       </div>
       <div className="flex gap-2">
-        <button
+        <Button
           type="button"
-          className="rounded border px-3 py-1 text-sm disabled:opacity-50"
+          variant="secondary"
+          size="sm"
           disabled={page === 0 || isFetching}
           onClick={onPrev}
         >
           이전
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="rounded border px-3 py-1 text-sm disabled:opacity-50"
+          variant="secondary"
+          size="sm"
           disabled={page >= totalPages - 1 || isFetching}
           onClick={onNext}
         >
           다음
-        </button>
+        </Button>
       </div>
     </div>
   );
 }
 
 export default function AdminEventsPage() {
-  const { status } = useAuth();
+  const { status, data: session } = useAuth();
   const [page, setPage] = useState(0);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -344,12 +364,15 @@ export default function AdminEventsPage() {
   const [deleteTarget, setDeleteTarget] = useState<EventRow | null>(null);
   const { show } = useToast();
   const queryClient = useQueryClient();
+  const canManageEvents = hasPermissionSession(session, 'admin_events');
+  const canManageHero = hasPermissionSession(session, 'admin_hero');
 
   const listParams = buildListParams(page, query, statusFilter, dateFrom, dateTo);
 
   const { data, isLoading, isError, isFetching } = useQuery<AdminEventListResponse>({
     queryKey: ['admin-events', page, listParams.q, listParams.status, dateFrom, dateTo],
     queryFn: () => listAdminEvents(listParams),
+    enabled: canManageEvents,
     staleTime: 10_000,
   });
 
@@ -357,7 +380,12 @@ export default function AdminEventsPage() {
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const eventIds = useMemo(() => items.map((evt) => evt.id), [items]);
-  const heroControls = useHeroTargetControls({ targetType: 'event', targetIds: eventIds, showToast: show });
+  const heroControls = useHeroTargetControls({
+    targetType: 'event',
+    targetIds: eventIds,
+    showToast: show,
+    enabled: canManageHero,
+  });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteAdminEvent(id),
@@ -371,9 +399,7 @@ export default function AdminEventsPage() {
     },
   });
 
-  if (status !== 'authorized') {
-    return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;
-  }
+  if (status !== 'authorized') return <AdminAuthState status={status} />;
 
   return (
     <RequirePermission
@@ -385,7 +411,9 @@ export default function AdminEventsPage() {
           <div>
             <h2 className="text-xl font-semibold">행사 관리</h2>
             <p className="text-sm text-text-secondary">
-              생성한 행사 목록을 확인합니다. 홈 배너는 목록의 “홈 배너” 토글로 지정합니다.
+              {canManageHero
+                ? '생성한 행사 목록을 확인합니다. 홈 배너는 목록의 “홈 배너” 토글로 지정합니다.'
+                : '생성한 행사 목록과 참여 현황을 확인합니다.'}
             </p>
           </div>
           <ButtonLink href="/admin/events/new" className="shadow-sm">
@@ -427,6 +455,7 @@ export default function AdminEventsPage() {
           items={items}
           isLoading={isLoading}
           isError={isError}
+          canManageHero={canManageHero}
           heroById={heroControls.heroById}
           heroPending={heroControls.isPending}
           onToggleHeroFor={(evt, nextOn) => heroControls.toggleHero(evt.id, nextOn)}

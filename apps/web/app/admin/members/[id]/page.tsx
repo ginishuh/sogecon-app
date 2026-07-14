@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { RoleChecklist, applyRoleHierarchy, normalizeRoles } from '../role-shared';
+import { memberStatusLabel } from '../member-labels';
 import { RequirePermission } from '../../../../components/require-permission';
 import { useToast } from '../../../../components/toast';
 import { useAuth } from '../../../../hooks/useAuth';
@@ -62,6 +63,11 @@ function parseMemberRoles(m: Member): string[] {
 function getMemberFieldValue(member: Member, key: string): string {
   const val = (member as Record<string, unknown>)[key];
   return val != null ? String(val) : '';
+}
+
+function getMemberFieldDisplayValue(member: Member, key: string): string {
+  const value = getMemberFieldValue(member, key);
+  return key === 'status' ? memberStatusLabel(value) : value;
 }
 
 // NOT NULL 필드: 빈 값 전송 금지
@@ -211,7 +217,7 @@ function ProfileSection({
               field={f}
               value={form[f.key] ?? ''}
               editing={canEdit}
-              displayValue={getMemberFieldValue(member, f.key)}
+              displayValue={getMemberFieldDisplayValue(member, f.key)}
               onChange={handleFieldChange}
             />
           </div>
@@ -294,7 +300,7 @@ function MemberDetailContent() {
     <section className="space-y-6 p-6">
       <Link
         href="/admin/members"
-        className="text-sm text-brand-700 no-underline hover:underline"
+        className="inline-flex min-h-11 items-center rounded-md px-2 text-sm text-brand-700 no-underline hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2"
       >
         &larr; 회원 목록
       </Link>
@@ -304,7 +310,7 @@ function MemberDetailContent() {
           {member.name} ({member.student_id})
         </h1>
         <p className="text-sm text-text-secondary">
-          {member.cohort}기 · {member.status}
+          {member.cohort}기 · {memberStatusLabel(member.status)}
         </p>
       </header>
 

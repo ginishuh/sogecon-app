@@ -8,6 +8,12 @@ import { useAuth } from '../../../hooks/useAuth';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
 import {
+  CONTROL_BASE,
+  CONTROL_SIZE,
+  CONTROL_VARIANT,
+  FIELD_CONTROL,
+} from '../../../components/ui/styles';
+import {
   approveProfileChangeRequest,
   listProfileChangeRequests,
   rejectProfileChangeRequest,
@@ -47,7 +53,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function RowActions({
+export function RowActions({
   row,
   approving,
   onApprove,
@@ -60,19 +66,19 @@ function RowActions({
 }) {
   if (row.status === 'pending') {
     return (
-      <div className="flex gap-1">
+      <div className="flex flex-wrap gap-2">
         <button
           type="button"
           disabled={approving}
           onClick={() => onApprove(row.id)}
-          className="rounded bg-green-600 px-2 py-0.5 text-xs text-white transition hover:bg-green-700 disabled:opacity-60"
+          className={`${CONTROL_BASE} ${CONTROL_SIZE.sm} bg-green-600 text-white hover:bg-green-700`}
         >
           승인
         </button>
         <button
           type="button"
           onClick={() => onReject(row)}
-          className="rounded bg-red-600 px-2 py-0.5 text-xs text-white transition hover:bg-red-700"
+          className={`${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.danger}`}
         >
           반려
         </button>
@@ -91,7 +97,7 @@ function RowActions({
   return <span className="text-xs text-text-muted">-</span>;
 }
 
-function RejectPanel({
+export function RejectPanel({
   target,
   reason,
   pending,
@@ -111,8 +117,15 @@ function RejectPanel({
       <p className="mb-2 text-sm font-medium text-state-error">
         반려 사유를 입력해주세요 (ID: {target.id})
       </p>
+      <label
+        htmlFor={`profile-change-reject-reason-${target.id}`}
+        className="mb-1 block text-sm font-medium text-text-primary"
+      >
+        반려 사유
+      </label>
       <textarea
-        className="w-full rounded border border-neutral-border px-2 py-1 text-sm"
+        id={`profile-change-reject-reason-${target.id}`}
+        className={`${FIELD_CONTROL} min-h-24 resize-y text-sm`}
         rows={2}
         value={reason}
         onChange={(e) => onReasonChange(e.target.value)}
@@ -123,14 +136,14 @@ function RejectPanel({
           type="button"
           disabled={!reason.trim() || pending}
           onClick={onConfirm}
-          className="rounded bg-red-600 px-3 py-1 text-xs text-white transition hover:bg-red-700 disabled:opacity-60"
+          className={`${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.danger}`}
         >
           {pending ? '처리 중…' : '반려 확인'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border border-neutral-border px-3 py-1 text-xs transition hover:bg-neutral-subtle"
+          className={`${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.secondary}`}
         >
           취소
         </button>
@@ -206,10 +219,13 @@ function AdminProfileChangesContent() {
       </header>
 
       {/* 필터 */}
-      <div className="flex items-center gap-2">
-        <label className="text-sm text-text-secondary">상태:</label>
+      <div className="flex flex-wrap items-center gap-2">
+        <label htmlFor="profile-change-status-filter" className="text-sm text-text-secondary">
+          상태
+        </label>
         <select
-          className="rounded border border-neutral-border px-2 py-1 text-sm"
+          id="profile-change-status-filter"
+          className={`${FIELD_CONTROL} w-auto min-w-32 text-sm`}
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value as ProfileChangeRequestStatus | 'all');
@@ -294,25 +310,25 @@ function AdminProfileChangesContent() {
       )}
 
       {/* 페이지네이션 */}
-      <div className="flex items-center justify-between text-xs text-text-muted">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-text-muted">
         <span>총 {total}건</span>
         <div className="flex gap-2">
           <button
             type="button"
             disabled={page === 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
-            className="rounded border border-neutral-border px-2 py-1 disabled:opacity-40"
+            className={`${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.secondary}`}
           >
             이전
           </button>
-          <span className="px-2 py-1">
+          <span className="px-2 py-1" aria-live="polite">
             {page + 1} / {totalPages}
           </span>
           <button
             type="button"
             disabled={page + 1 >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded border border-neutral-border px-2 py-1 disabled:opacity-40"
+            className={`${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.secondary}`}
           >
             다음
           </button>
@@ -324,6 +340,10 @@ function AdminProfileChangesContent() {
 
 export default function AdminProfileChangeRequestsPage() {
   const { status } = useAuth();
+
+  if (status === 'loading') {
+    return <div className="p-6 text-sm text-text-secondary">관리자 권한을 확인하고 있습니다.</div>;
+  }
 
   if (status !== 'authorized') {
     return <div className="p-6 text-sm text-text-secondary">관리자 로그인이 필요합니다.</div>;

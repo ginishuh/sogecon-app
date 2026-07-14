@@ -15,5 +15,5 @@ export const ADMIN_NAV_LINKS: readonly AdminNavLink[] = [
   { href: '/admin/signup-requests', label: '가입신청 심사', permission: 'admin_signup' },
   { href: '/admin/profile-change-requests', label: '정보변경 심사', permission: 'admin_profile' },
   { href: '/admin/members', label: '회원 관리', permission: 'admin_roles' },
-  { href: '/admin/support', label: '문의 내역' },
+  { href: '/admin/support', label: '문의 내역', permission: 'admin_support' },
 ] as const;

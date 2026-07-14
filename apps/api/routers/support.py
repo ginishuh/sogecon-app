@@ -16,7 +16,12 @@ from ..config import get_settings
 from ..db import get_db
 from ..ratelimit import consume_limit
 from ..repositories import support_tickets as tickets_repo
-from ..routers.auth import CurrentAdmin, CurrentMember, require_admin, require_member
+from ..routers.auth import (
+    CurrentMember,
+    CurrentUser,
+    require_member,
+    require_permission,
+)
 
 router = APIRouter(prefix="/support", tags=["support"])
 limiter = Limiter(key_func=get_remote_address)
@@ -115,7 +120,9 @@ class TicketRead(BaseModel):
 
 @router.get("/admin/tickets", response_model=list[TicketRead])
 async def list_tickets(
-    _admin: CurrentAdmin = Depends(require_admin),
+    _admin: CurrentUser = Depends(
+        require_permission("admin_support", allow_admin_fallback=False)
+    ),
     db: AsyncSession = Depends(get_db),
     limit: int = Query(50, ge=1, le=200),
 ) -> list[TicketRead]:
