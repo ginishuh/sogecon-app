@@ -22,14 +22,14 @@ def check_package_json() -> None:
     expected_deps = {
         "dependencies": {
             "@tanstack/react-query": "5.101.2",
-            "next": "16.2.10",
+            "next": "16.2.11",
             "react": "19.2.7",
             "react-dom": "19.2.7",
             "web-vitals": "5.3.0",
         },
         "devDependencies": {
             "@eslint/eslintrc": "3.3.6",
-            "@next/bundle-analyzer": "16.2.10",
+            "@next/bundle-analyzer": "16.2.11",
             "@testing-library/jest-dom": "6.9.1",
             "@testing-library/react": "16.3.2",
             "@types/node": "24.13.3",
@@ -45,7 +45,7 @@ def check_package_json() -> None:
             "@tailwindcss/postcss": "4.3.2",
             "axe-core": "4.12.1",
             "baseline-browser-mapping": "2.10.42",
-            "postcss": "8.5.16",
+            "postcss": "8.5.18",
             "puppeteer": "24.43.1",
             "tailwindcss": "4.3.2",
             "vitest": "4.1.10",
@@ -120,7 +120,8 @@ def check_workspace_package_manager() -> None:
 
     expected_overrides = {
         "js-yaml": "4.2.0",
-        "postcss": "8.5.16",
+        "postcss": "8.5.18",
+        "sharp": "0.35.3",
     }
     overrides = data.get("pnpm", {}).get("overrides", {})
     if overrides != expected_overrides:
