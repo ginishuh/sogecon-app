@@ -249,6 +249,7 @@ def test_existing_session_is_invalid_after_member_deletion(client: TestClient) -
 def test_super_admin_count_uses_exact_active_role_tokens(client: TestClient) -> None:
     _seed_member(student_id="exact-super", roles="member,super_admin")
     _seed_member(student_id="substring-super", roles="member,super_admin_helper")
+    _seed_member(student_id="wildcard-super", roles="member,superXadmin")
     _seed_member(
         student_id="suspended-super",
         roles="member,super_admin",

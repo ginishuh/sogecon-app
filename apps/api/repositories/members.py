@@ -152,6 +152,10 @@ async def count_active_members_with_role(
             )
         await db.execute(select(func.pg_advisory_xact_lock(_SUPER_ADMIN_ROLE_LOCK_ID)))
 
+    # LIKE wildcards (`_` / `%`) must not match arbitrary role tokens.
+    escaped_role = (
+        role.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    )
     roles_with_boundaries = func.concat(
         literal(","), models.Member.roles, literal(",")
     )
@@ -159,7 +163,7 @@ async def count_active_members_with_role(
         select(func.count())
         .select_from(models.Member)
         .where(
-            roles_with_boundaries.like(f"%,{role},%"),
+            roles_with_boundaries.like(f"%,{escaped_role},%", escape="\\"),
             models.Member.status == "active",
         )
     )

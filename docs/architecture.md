@@ -75,7 +75,10 @@
 - 사무국의 타 회원 RSVP 조회·변경은 `admin_events` 권한으로 보호된
   `GET|POST /admin/events/{event_id}/rsvps/{member_id}`에서만 수행한다.
 - v1: 정원 초과 시 요청은 `waitlist`로 강제. 기존 참석자의 재요청은 유지.
+  `POST /events/{event_id}/rsvp`와 `POST /rsvps/` 생성 경로에 동일하게 적용한다.
 - v2: 참석자 `cancel` 시 대기열(created_at 기준) 최상위 1인을 `going`으로 자동 승급(트랜잭션).
+- 활성 `super_admin`은 역할 강등뿐 아니라 상태 비활성화(`suspended` 등)로도
+  마지막 1명을 제거할 수 없다.
 - Web 조회 계약: `GET /rsvps/{member_id}/{event_id}`의 `rsvp_not_found` 404만 정상적인 미신청 상태로 변환합니다. 인증·서버·네트워크 오류는 미신청으로 숨기지 않고 복구 가능한 오류 화면으로 표시합니다.
 - 사용자 행동: 기본 행동은 참여 신청(`going`)과 참여 취소(`cancel`)이며, 정원 초과 시 `waitlist` 전환은 서버가 결정합니다.
 
