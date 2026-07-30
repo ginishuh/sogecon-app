@@ -784,6 +784,30 @@ export interface paths {
         patch: operations["update_admin_event_admin_events__event_id__patch"];
         trace?: never;
     };
+    "/admin/events/{event_id}/rsvps/{member_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Member Rsvp
+         * @description 관리자 운영용 타 회원 RSVP 조회 경로.
+         */
+        get: operations["get_member_rsvp_admin_events__event_id__rsvps__member_id__get"];
+        put?: never;
+        /**
+         * Upsert Member Rsvp
+         * @description 관리자 운영용 타 회원 RSVP 생성·변경 경로.
+         */
+        post: operations["upsert_member_rsvp_admin_events__event_id__rsvps__member_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/hero/": {
         parameters: {
             query?: never;
@@ -1833,8 +1857,6 @@ export interface components {
         };
         /** RSVPCreate */
         RSVPCreate: {
-            /** Member Id */
-            member_id: number;
             /** Event Id */
             event_id: number;
             /**
@@ -1859,8 +1881,6 @@ export interface components {
         };
         /** RSVPStatusUpdate */
         RSVPStatusUpdate: {
-            /** Member Id */
-            member_id: number;
             /**
              * Status
              * @default going
@@ -3726,6 +3746,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_member_rsvp_admin_events__event_id__rsvps__member_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+                member_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RSVPRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_member_rsvp_admin_events__event_id__rsvps__member_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+                member_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RSVPStatusUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RSVPRead"];
                 };
             };
             /** @description Validation Error */

@@ -120,10 +120,12 @@ async def upsert_rsvp_status(
     cap_int = cast(int, event_obj.capacity)
     if rsvp is None:
         final_status = await _normalize_status(status, None, cap_int)
-        payload = schemas.RSVPCreate(
-            member_id=member_id, event_id=event_id, status=final_status.value
+        rsvp = await rsvps_repo.create_rsvp(
+            db,
+            member_id=member_id,
+            event_id=event_id,
+            status=final_status.value,
         )
-        rsvp = await rsvps_repo.create_rsvp(db, payload)
     else:
         # 타입체커 호환을 위해 setattr 사용
         new_status = await _normalize_status(status, rsvp, cap_int)
@@ -135,3 +137,13 @@ async def upsert_rsvp_status(
             # Postgres: SKIP LOCKED로 경쟁 중복 승급 방지
             await _promote_waitlist_candidate(db, event_id)
     return rsvp
+
+
+async def get_member_rsvp(
+    db: AsyncSession,
+    *,
+    event_id: int,
+    member_id: int,
+) -> models.RSVP:
+    """관리자 운영 경로에서 특정 회원의 RSVP를 조회한다."""
+    return await rsvps_repo.get_rsvp(db, member_id, event_id)

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+from typing import cast
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
 from ..db import get_db
 from ..services import events_service
-from .auth import CurrentAdmin, require_admin
+from .auth import CurrentAdmin, CurrentMember, require_admin, require_member
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -44,8 +46,12 @@ async def create_rsvp(
     event_id: int,
     payload: schemas.RSVPStatusUpdate,
     db: AsyncSession = Depends(get_db),
+    member: CurrentMember = Depends(require_member),
 ) -> schemas.RSVPRead:
     rsvp = await events_service.upsert_rsvp_status(
-        db, event_id=event_id, member_id=payload.member_id, status=payload.status
+        db,
+        event_id=event_id,
+        member_id=cast(int, member.id),
+        status=payload.status,
     )
     return schemas.RSVPRead.model_validate(rsvp)

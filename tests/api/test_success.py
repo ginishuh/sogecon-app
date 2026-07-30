@@ -98,13 +98,13 @@ def test_rsvp_capacity_v1_enforces_waitlist(admin_login: TestClient) -> None:
     )
 
     r1 = client.post(
-        f"/events/{e['id']}/rsvp", json={"member_id": m1["id"], "status": "going"}
+        f"/admin/events/{e['id']}/rsvps/{m1['id']}", json={"status": "going"}
     )
     assert r1.status_code == HTTPStatus.CREATED
     assert r1.json()["status"] == "going"
 
     r2 = client.post(
-        f"/events/{e['id']}/rsvp", json={"member_id": m2["id"], "status": "going"}
+        f"/admin/events/{e['id']}/rsvps/{m2['id']}", json={"status": "going"}
     )
     assert r2.status_code == HTTPStatus.CREATED
     assert r2.json()["status"] == "waitlist"
@@ -132,14 +132,14 @@ def test_rsvp_going_reassertion_keeps_status(admin_login: TestClient) -> None:
     )
 
     r1 = client.post(
-        f"/events/{e['id']}/rsvp", json={"member_id": m1["id"], "status": "going"}
+        f"/admin/events/{e['id']}/rsvps/{m1['id']}", json={"status": "going"}
     )
     assert r1.status_code == HTTPStatus.CREATED
     assert r1.json()["status"] == "going"
 
     # 동일 회원이 다시 going 요청
     r_again = client.post(
-        f"/events/{e['id']}/rsvp", json={"member_id": m1["id"], "status": "going"}
+        f"/admin/events/{e['id']}/rsvps/{m1['id']}", json={"status": "going"}
     )
     assert r_again.status_code == HTTPStatus.CREATED
     assert r_again.json()["status"] == "going"
@@ -154,13 +154,6 @@ def test_list_endpoints_ok(member_login: TestClient) -> None:
 
 def test_rsvp_create_success(admin_login: TestClient) -> None:
     client = admin_login
-    m = _create_member(
-        client,
-        student_id="c001",
-        email="c@example.com",
-        name="C",
-        cohort=2025,
-    )
     e = client.post(
         "/events/",
         json={
@@ -173,7 +166,7 @@ def test_rsvp_create_success(admin_login: TestClient) -> None:
     ).json()
     res = client.post(
         "/rsvps/",
-        json={"member_id": m["id"], "event_id": e["id"], "status": "going"},
+        json={"event_id": e["id"], "status": "going"},
     )
     assert res.status_code == HTTPStatus.CREATED
 
@@ -207,19 +200,19 @@ def test_rsvp_waitlist_promoted_on_cancel(admin_login: TestClient) -> None:
     ).json()
 
     r1 = client.post(
-        f"/events/{e['id']}/rsvp", json={"member_id": m1["id"], "status": "going"}
+        f"/admin/events/{e['id']}/rsvps/{m1['id']}", json={"status": "going"}
     )
     assert r1.status_code == HTTPStatus.CREATED
     r2 = client.post(
-        f"/events/{e['id']}/rsvp", json={"member_id": m2["id"], "status": "going"}
+        f"/admin/events/{e['id']}/rsvps/{m2['id']}", json={"status": "going"}
     )
     assert r2.status_code == HTTPStatus.CREATED and r2.json()["status"] == "waitlist"
 
     # m1 cancel → m2 going 승급
     rc = client.post(
-        f"/events/{e['id']}/rsvp", json={"member_id": m1["id"], "status": "cancel"}
+        f"/admin/events/{e['id']}/rsvps/{m1['id']}", json={"status": "cancel"}
     )
     assert rc.status_code == HTTPStatus.CREATED
-    promoted = client.get(f"/rsvps/{m2['id']}/{e['id']}")
+    promoted = client.get(f"/admin/events/{e['id']}/rsvps/{m2['id']}")
     assert promoted.status_code == HTTPStatus.OK
     assert promoted.json()["status"] == "going"

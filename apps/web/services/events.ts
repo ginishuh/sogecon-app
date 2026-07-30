@@ -46,12 +46,11 @@ export async function getEvent(id: number): Promise<Event> {
 
 export async function upsertEventRsvp(
   eventId: number,
-  memberId: number,
   status: RSVPLiteral
 ) {
   return apiFetch(`/events/${eventId}/rsvp`, {
     method: 'POST',
-    body: JSON.stringify({ member_id: memberId, status })
+    body: JSON.stringify({ status })
   });
 }
 

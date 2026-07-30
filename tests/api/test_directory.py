@@ -246,24 +246,27 @@ def test_directory_routes_do_not_preread_viewer(
         return await original_execute(session, *args, **kwargs)
 
     monkeypatch.setattr(AsyncSession, "execute", _counting_execute)
+    # 요청마다 현재 계정 상태·역할을 확인하는 인증 쿼리 1개와, viewer
+    # scope를 scalar subquery로 포함한 디렉터리 본 쿼리 1개만 허용한다.
+    expected_queries_with_auth_refresh = 2
 
     before = query_count
     listing = admin_login.get("/members/?q=__seed__admin")
     assert listing.status_code == HTTPStatus.OK
     assert [row["id"] for row in listing.json()] == [viewer_id]
-    assert query_count - before == 1
+    assert query_count - before == expected_queries_with_auth_refresh
 
     before = query_count
     count = admin_login.get("/members/count?q=__seed__admin")
     assert count.status_code == HTTPStatus.OK
     assert count.json() == {"count": 1}
-    assert query_count - before == 1
+    assert query_count - before == expected_queries_with_auth_refresh
 
     before = query_count
     detail = admin_login.get(f"/members/{viewer_id}")
     assert detail.status_code == HTTPStatus.OK
     assert detail.json()["id"] == viewer_id
-    assert query_count - before == 1
+    assert query_count - before == expected_queries_with_auth_refresh
 
 
 def test_directory_scope_uses_latest_viewer_cohort(

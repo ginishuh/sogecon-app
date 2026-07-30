@@ -62,9 +62,18 @@
 - 세션 조회: `GET /auth/me` → `{ id, email }`.
 - 로그아웃: `POST /auth/logout` → 세션 제거.
 - 보호 라우트: posts/events/members 생성 시 `require_admin` 의존성 적용.
+- 보호 dependency는 세션에 저장된 역할을 권한 근거로 직접 사용하지 않고,
+  요청마다 현재 `Member.status`와 `roles`를 DB에서 재확인한다. 삭제·정지 계정은
+  401로 세션을 무효화하고, 활성 계정의 역할 회수는 기존 세션에도 즉시 반영한다.
 - 레이트리밋: 로그인 시도 `5/min/IP`(SlowAPI), 글로벌 기본 제한은 설정값(`RATE_LIMIT_DEFAULT`).
 
 ## RSVP 규칙
+- 모든 RSVP 조회·생성·상태 변경은 활성 회원 세션이 필요하다.
+- 일반 회원의 RSVP owner는 요청 body의 `member_id`가 아니라 현재 세션의 회원
+  ID로 결정한다. `GET /rsvps/`는 본인 행만 반환하고,
+  `GET /rsvps/{member_id}/{event_id}`도 본인 ID에만 접근할 수 있다.
+- 사무국의 타 회원 RSVP 조회·변경은 `admin_events` 권한으로 보호된
+  `GET|POST /admin/events/{event_id}/rsvps/{member_id}`에서만 수행한다.
 - v1: 정원 초과 시 요청은 `waitlist`로 강제. 기존 참석자의 재요청은 유지.
 - v2: 참석자 `cancel` 시 대기열(created_at 기준) 최상위 1인을 `going`으로 자동 승급(트랜잭션).
 - Web 조회 계약: `GET /rsvps/{member_id}/{event_id}`의 `rsvp_not_found` 404만 정상적인 미신청 상태로 변환합니다. 인증·서버·네트워크 오류는 미신청으로 숨기지 않고 복구 가능한 오류 화면으로 표시합니다.

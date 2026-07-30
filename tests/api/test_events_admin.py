@@ -157,22 +157,22 @@ class TestAdminEventList:
 
         assert (
             admin_login.post(
-                f"/events/{e_id}/rsvp",
-                json={"member_id": m1["id"], "status": "going"},
+                f"/admin/events/{e_id}/rsvps/{m1['id']}",
+                json={"status": "going"},
             ).status_code
             == HTTPStatus.CREATED
         )
         assert (
             admin_login.post(
-                f"/events/{e_id}/rsvp",
-                json={"member_id": m2["id"], "status": "waitlist"},
+                f"/admin/events/{e_id}/rsvps/{m2['id']}",
+                json={"status": "waitlist"},
             ).status_code
             == HTTPStatus.CREATED
         )
         assert (
             admin_login.post(
-                f"/events/{e_id}/rsvp",
-                json={"member_id": m3["id"], "status": "cancel"},
+                f"/admin/events/{e_id}/rsvps/{m3['id']}",
+                json={"status": "cancel"},
             ).status_code
             == HTTPStatus.CREATED
         )

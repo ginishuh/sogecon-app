@@ -545,16 +545,12 @@ async def update_member_roles(
         previous_profile.grade == "super_admin"
         and "super_admin" not in normalized_roles
     ):
-        # super_admin 수 카운트
-        # roles는 normalize/serialize를 거친 쉼표 구분 토큰 문자열이며,
-        # 현재 역할 스키마에서 "super_admin"은 독립 토큰으로만 사용된다.
-        stmt = select(models.Member).where(
-            models.Member.roles.contains("super_admin"),
-            models.Member.status == "active",
+        super_admin_count = await members_repo.count_active_members_with_role(
+            db,
+            role="super_admin",
+            serialize_super_admin_changes=True,
         )
-        result = await db.execute(stmt)
-        super_admin_members = result.scalars().all()
-        if len(super_admin_members) <= 1:
+        if super_admin_count <= 1:
             raise ApiError(
                 code="last_super_admin_forbidden",
                 detail="Cannot remove the last super_admin",

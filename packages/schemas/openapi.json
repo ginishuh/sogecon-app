@@ -2607,6 +2607,118 @@
         }
       }
     },
+    "/admin/events/{event_id}/rsvps/{member_id}": {
+      "post": {
+        "tags": [
+          "admin-events"
+        ],
+        "summary": "Upsert Member Rsvp",
+        "description": "\uad00\ub9ac\uc790 \uc6b4\uc601\uc6a9 \ud0c0 \ud68c\uc6d0 RSVP \uc0dd\uc131\u00b7\ubcc0\uacbd \uacbd\ub85c.",
+        "operationId": "upsert_member_rsvp_admin_events__event_id__rsvps__member_id__post",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "member_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Member Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RSVPStatusUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RSVPRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "admin-events"
+        ],
+        "summary": "Get Member Rsvp",
+        "description": "\uad00\ub9ac\uc790 \uc6b4\uc601\uc6a9 \ud0c0 \ud68c\uc6d0 RSVP \uc870\ud68c \uacbd\ub85c.",
+        "operationId": "get_member_rsvp_admin_events__event_id__rsvps__member_id__get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "member_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Member Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RSVPRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/hero/": {
       "get": {
         "tags": [
@@ -6021,10 +6133,6 @@
       },
       "RSVPCreate": {
         "properties": {
-          "member_id": {
-            "type": "integer",
-            "title": "Member Id"
-          },
           "event_id": {
             "type": "integer",
             "title": "Event Id"
@@ -6042,7 +6150,6 @@
         },
         "type": "object",
         "required": [
-          "member_id",
           "event_id"
         ],
         "title": "RSVPCreate"
@@ -6077,10 +6184,6 @@
       },
       "RSVPStatusUpdate": {
         "properties": {
-          "member_id": {
-            "type": "integer",
-            "title": "Member Id"
-          },
           "status": {
             "type": "string",
             "enum": [
@@ -6093,9 +6196,6 @@
           }
         },
         "type": "object",
-        "required": [
-          "member_id"
-        ],
         "title": "RSVPStatusUpdate"
       },
       "ScheduledLogRead": {

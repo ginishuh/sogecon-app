@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.elements import ColumnElement
@@ -11,6 +11,8 @@ from sqlalchemy.sql.elements import ColumnElement
 from .. import models, schemas
 from ..errors import NotFoundError
 from . import escape_like
+
+_SUPER_ADMIN_ROLE_LOCK_ID = 0x534F4745434F4E
 
 
 def _build_member_conditions(
@@ -134,6 +136,35 @@ async def count_members(
         stmt = stmt.where(and_(*conds))
     result = await db.execute(stmt)
     return int(result.scalar() or 0)
+
+
+async def count_active_members_with_role(
+    db: AsyncSession,
+    *,
+    role: str,
+    serialize_super_admin_changes: bool = False,
+) -> int:
+    """쉼표 구분 역할 토큰을 정확히 세고 필요 시 역할 변경을 직렬화한다."""
+    if serialize_super_admin_changes:
+        if role != "super_admin":
+            raise ValueError(
+                "serialized role changes are only supported for super_admin"
+            )
+        await db.execute(select(func.pg_advisory_xact_lock(_SUPER_ADMIN_ROLE_LOCK_ID)))
+
+    roles_with_boundaries = func.concat(
+        literal(","), models.Member.roles, literal(",")
+    )
+    stmt = (
+        select(func.count())
+        .select_from(models.Member)
+        .where(
+            roles_with_boundaries.like(f"%,{role},%"),
+            models.Member.status == "active",
+        )
+    )
+    result = await db.execute(stmt)
+    return int(result.scalar_one())
 
 
 async def get_member(db: AsyncSession, member_id: int) -> models.Member:
