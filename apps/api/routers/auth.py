@@ -47,11 +47,6 @@ __all__ = [
     "require_super_admin",
 ]
 
-
-def _is_test_client(request: Request) -> bool:
-    """테스트 클라이언트인지 확인 (레이트리밋 우회용)."""
-    return bool(request.client and request.client.host == "testclient")
-
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 NewPassword = Annotated[str, AfterValidator(validate_password_for_hash)]
@@ -92,8 +87,7 @@ async def login(
     레이트리밋은 이 라우터에서 1회만 차감 (서비스 함수에서는 skip).
     """
     settings = get_settings()
-    if settings.app_env == "prod" and not _is_test_client(request):
-        consume_limit(limiter_login, request, settings.rate_limit_login)
+    consume_limit(limiter_login, request, settings.rate_limit_login)
 
     return await login_member(
         db, request, payload.student_id, payload.password, skip_rate_limit=True

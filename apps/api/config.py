@@ -1,7 +1,30 @@
 from functools import lru_cache
+from ipaddress import ip_address, ip_network
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_APP_ENV_ALLOWED = frozenset({"dev", "test", "staging", "prod"})
+_JWT_MIN_LEN = 32
+# staging/prod 이미지 업로드 한도 상한 (오타로 보호 해제 방지)
+_IMAGE_MAX_UPLOAD_BYTES_CAP = 50_000_000  # 50MB
+_IMAGE_MAX_PIXELS_CAP = 10_000
+
+
+def is_jwt_placeholder(secret: str) -> bool:
+    """공개·문서용 placeholder JWT인지 판별.
+
+    change-me* / replace_me* / replace-me* 접두와 빈 값을 포함한다.
+    """
+    s = (secret or "").strip()
+    if not s:
+        return True
+    lower = s.lower()
+    return (
+        lower.startswith("change-me")
+        or lower.startswith("replace_me")
+        or lower.startswith("replace-me")
+    )
 
 
 class Settings(BaseSettings):
@@ -106,20 +129,78 @@ class Settings(BaseSettings):
     def _normalize_jwt_secret(cls, v: str) -> str:
         return (v or "").strip()
 
+    @field_validator("app_env")
+    @classmethod
+    def _validate_app_env(cls, v: object) -> str:
+        # 필드 미지정은 Field default("dev")가 들어온다.
+        # APP_ENV= 또는 공백만 넣은 경우는 명시적 오설정으로 거부한다.
+        if not isinstance(v, str) or not v.strip():
+            raise ValueError(
+                "APP_ENV must be one of: "
+                + ", ".join(sorted(_APP_ENV_ALLOWED))
+                + " (empty not allowed)"
+            )
+        vv = v.lower().strip()
+        if vv not in _APP_ENV_ALLOWED:
+            raise ValueError(
+                "APP_ENV must be one of: " + ", ".join(sorted(_APP_ENV_ALLOWED))
+            )
+        return vv
+
+    @field_validator("trusted_proxy_ips")
+    @classmethod
+    def _validate_trusted_proxy_ips(cls, v: str) -> str:
+        # 잘못된 IP/CIDR·'*'는 조용히 버리지 않고 기동 실패(fail-closed).
+        raw = v or ""
+        for part in raw.split(","):
+            ip_str = part.strip()
+            if not ip_str:
+                continue
+            if ip_str == "*":
+                raise ValueError("TRUSTED_PROXY_IPS must not contain '*'")
+            try:
+                if "/" in ip_str:
+                    ip_network(ip_str, strict=False)
+                else:
+                    ip_address(ip_str)
+            except ValueError as exc:
+                raise ValueError(
+                    f"invalid TRUSTED_PROXY_IPS entry: {ip_str}"
+                ) from exc
+        return raw
+
     @model_validator(mode="after")
-    def _validate_prod_only(self) -> "Settings":
-        # Enforce strong JWT secret only in prod deployments.
-        if (self.app_env or "dev").lower().strip() == "prod":
-            MIN_LEN = 32
-            if (
-                self.jwt_secret in {"change-me", "change-me-to-a-strong-secret", ""}
-                or len(self.jwt_secret) < MIN_LEN
-            ):
+    def _validate_production_like_jwt(self) -> "Settings":
+        # staging/prod는 약한·placeholder JWT_SECRET을 거부한다 (fail-closed).
+        if self.app_env in {"staging", "prod"}:
+            weak = is_jwt_placeholder(self.jwt_secret)
+            if weak or len(self.jwt_secret) < _JWT_MIN_LEN:
                 msg = (
                     "JWT_SECRET must be strong ("
-                    f"{MIN_LEN}+ chars) and not a placeholder"
+                    f"{_JWT_MIN_LEN}+ chars) and not a placeholder "
+                    f"(change-me*/replace_me*/replace-me*/empty) "
+                    f"when APP_ENV={self.app_env}"
                 )
                 raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def _validate_image_limits(self) -> "Settings":
+        if self.image_max_upload_bytes <= 0 or self.image_max_pixels <= 0:
+            raise ValueError(
+                "IMAGE_MAX_UPLOAD_BYTES and IMAGE_MAX_PIXELS must be positive"
+            )
+        if self.app_env in {"staging", "prod"}:
+            if self.image_max_upload_bytes > _IMAGE_MAX_UPLOAD_BYTES_CAP:
+                raise ValueError(
+                    "IMAGE_MAX_UPLOAD_BYTES exceeds cap "
+                    f"({_IMAGE_MAX_UPLOAD_BYTES_CAP}) when APP_ENV={self.app_env}"
+                )
+            if self.image_max_pixels > _IMAGE_MAX_PIXELS_CAP:
+                raise ValueError(
+                    "IMAGE_MAX_PIXELS exceeds cap "
+                    f"({_IMAGE_MAX_PIXELS_CAP}) when APP_ENV={self.app_env}"
+                )
         return self
 
     @model_validator(mode="after")

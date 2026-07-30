@@ -13,7 +13,6 @@ from typing import Any, cast
 
 from fastapi import Depends, HTTPException, Request
 from slowapi import Limiter
-from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models
@@ -21,7 +20,7 @@ from ..config import get_settings
 from ..db import get_db
 from ..errors import ApiError, NotFoundError
 from ..passwords import hash_password, verify_password
-from ..ratelimit import consume_limit
+from ..ratelimit import consume_limit, get_client_ip_for_rate_limit
 from ..repositories import auth as auth_repo
 from ..repositories import members as members_repo
 from ..repositories import signup_requests as signup_requests_repo
@@ -33,12 +32,7 @@ from .activation_service import (
 from .roles_service import ensure_member_role, has_permission, normalize_roles
 
 # 로그인 레이트리밋 (slowapi)
-limiter_login = Limiter(key_func=get_remote_address)
-
-
-def _is_test_client(request: Request) -> bool:
-    """테스트 클라이언트인지 확인 (레이트리밋 우회용)."""
-    return bool(request.client and request.client.host == "testclient")
+limiter_login = Limiter(key_func=get_client_ip_for_rate_limit)
 
 
 # ---- 세션 데이터 클래스 ----
@@ -278,8 +272,7 @@ async def login_member(
     """
     if not skip_rate_limit:
         settings = get_settings()
-        if settings.app_env == "prod" and not _is_test_client(request):
-            consume_limit(limiter_login, request, settings.rate_limit_login)
+        consume_limit(limiter_login, request, settings.rate_limit_login)
 
     member, creds = await auth_repo.get_member_with_auth_by_student_id(db, student_id)
     if member is None or creds is None:
@@ -323,8 +316,7 @@ async def activate_member(
 ) -> dict[str, str]:
     """멤버 활성화: 승인 기반 토큰 검증 후 비밀번호 설정."""
     settings = get_settings()
-    if settings.app_env == "prod" and not _is_test_client(request):
-        consume_limit(limiter_login, request, settings.rate_limit_login)
+    consume_limit(limiter_login, request, settings.rate_limit_login)
 
     payload = load_activation_payload(token)
     row = await resolve_activation_signup_request(db, payload)
@@ -362,8 +354,7 @@ async def change_member_password(
 ) -> dict[str, str]:
     """멤버 비밀번호 변경."""
     settings = get_settings()
-    if settings.app_env == "prod" and not _is_test_client(request):
-        consume_limit(limiter_login, request, settings.rate_limit_login)
+    consume_limit(limiter_login, request, settings.rate_limit_login)
 
     auth_row = await auth_repo.get_member_auth_by_student_id(db, member.student_id)
 

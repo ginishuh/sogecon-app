@@ -46,7 +46,9 @@ def test_subscription_invalid_payload_returns_422(member_login: TestClient) -> N
 
 
 @pytest.mark.anyio
-async def test_admin_send_rate_limit_429(admin_login: TestClient) -> None:
+async def test_admin_send_rate_limit_429(
+    admin_login: TestClient, enable_rate_limit: None
+) -> None:
     class _DummyProvider(PushProvider):
         def send(
             self, sub: models.PushSubscription, payload: dict[str, object]

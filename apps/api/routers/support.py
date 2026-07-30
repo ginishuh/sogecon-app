@@ -9,12 +9,11 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
-from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
 from ..db import get_db
-from ..ratelimit import consume_limit
+from ..ratelimit import consume_limit, get_client_ip_for_rate_limit
 from ..repositories import support_tickets as tickets_repo
 from ..routers.auth import (
     CurrentMember,
@@ -24,11 +23,7 @@ from ..routers.auth import (
 )
 
 router = APIRouter(prefix="/support", tags=["support"])
-limiter = Limiter(key_func=get_remote_address)
-
-
-def _is_test_client(request: Request) -> bool:
-    return bool(request.client and request.client.host == "testclient")
+limiter = Limiter(key_func=get_client_ip_for_rate_limit)
 
 # 최근 중복/쿨다운 체크(간단 메모리)
 _recent: dict[str, tuple[float, str]] = {}
@@ -50,8 +45,7 @@ async def contact(
     _m: CurrentMember = Depends(require_member),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, str]:
-    if not _is_test_client(request):
-        consume_limit(limiter, request, get_settings().rate_limit_support)
+    consume_limit(limiter, request, get_settings().rate_limit_support)
 
     # 봇/스팸: honeypot 또는 키워드 차단 → 드롭(accepted)
     if payload.hp or _BLOCKLIST.search(payload.subject) or _BLOCKLIST.search(
@@ -60,7 +54,7 @@ async def contact(
         return {"status": "accepted"}
 
     # 최근 동일 사용자(또는 세션 IP) 중복/쿨다운 드롭
-    host = request.client.host if request.client else ""
+    host = get_client_ip_for_rate_limit(request)
     email = getattr(_m, "email", "") or ""
     ident = f"{host}|{email}"
     h = f"{payload.subject}\n{payload.body}"
@@ -79,7 +73,7 @@ async def contact(
             "subject": payload.subject,
             "body": payload.body,
             "contact": payload.contact,
-            "client_ip": (request.client.host if request.client else None),
+            "client_ip": host if host != "unknown" else None,
         },
     )
 

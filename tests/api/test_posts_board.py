@@ -154,7 +154,9 @@ def test_post_create_requires_auth(client: TestClient) -> None:
 
 
 @pytest.mark.anyio("asyncio")
-async def test_post_create_rate_limit(member_login: TestClient) -> None:
+async def test_post_create_rate_limit(
+    member_login: TestClient, enable_rate_limit: None
+) -> None:
     posts_router.reset_member_post_limit_cache()
 
     transport = httpx.ASGITransport(app=app, client=("10.20.30.40", 8080))

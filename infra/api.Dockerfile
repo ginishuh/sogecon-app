@@ -31,12 +31,14 @@ WORKDIR /app
 
 COPY --from=build /install /usr/local
 COPY apps/api ./apps/api
+COPY infra/api-entrypoint.sh /app/infra/api-entrypoint.sh
 
 RUN mkdir -p uploads \
+    && chmod +x /app/infra/api-entrypoint.sh \
     && chown apiuser:apiuser uploads
 
 USER apiuser
 
 EXPOSE 3001
 
-CMD ["uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "3001", "--proxy-headers", "--forwarded-allow-ips", "*"]
+ENTRYPOINT ["/app/infra/api-entrypoint.sh"]

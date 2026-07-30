@@ -31,7 +31,9 @@ class _DummyProvider(PushProvider):
 
 
 @pytest.mark.anyio
-async def test_admin_send_rate_limit_concurrent(admin_login: TestClient) -> None:
+async def test_admin_send_rate_limit_concurrent(
+    admin_login: TestClient, enable_rate_limit: None
+) -> None:
     def _provider_override() -> _DummyProvider:
         return _DummyProvider()
 

@@ -15,11 +15,23 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from apps.api import models
+from apps.api.config import reset_settings_cache
 from apps.api.db import get_db
 from apps.api.main import app
 from apps.api.routers.notifications import limiter_notifications
 from apps.api.routers.support import limiter as limiter_support
 from apps.api.services.auth_service import limiter_login
+
+
+@pytest.fixture()
+def enable_rate_limit(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
+    """레이트리밋 동작 검증용: APP_ENV=test 스킵을 잠시 해제한다."""
+    monkeypatch.setenv("APP_ENV", "dev")
+    reset_settings_cache()
+    try:
+        yield
+    finally:
+        reset_settings_cache()
 
 
 @pytest.fixture(autouse=True)
