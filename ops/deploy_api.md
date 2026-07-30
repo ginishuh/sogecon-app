@@ -5,18 +5,22 @@
 - 데이터베이스는 PostgreSQL 16만 지원한다(루트 `compose.yaml`). 모든 환경에서 `postgresql+psycopg://` 스킴을 사용한다.
 
 ## 2. 필수 환경 변수
-- `APP_ENV`: `dev` / `staging` / `prod`
+- `APP_ENV`: `dev` / `test` / `staging` / `prod` (그 외 값은 기동 실패)
 - `DATABASE_URL`: SQLAlchemy 접속 문자열 (예: `postgresql+psycopg://user:pass@host:5432/db`)
-- `JWT_SECRET`: 세션/토큰 서명 키
+- `JWT_SECRET`: 세션/토큰 서명 키. `staging`/`prod`에서는 32자 이상이며 `change-me*` placeholder 금지
 - `CORS_ORIGINS`: 허용 Origin 목록(JSON 문자열). 예: `[{"origin": "https://sogangeconomics.com"}]`가 아니라 `['https://sogangeconomics.com']` 형태로 보일 수 있으니, 실제 설정은 다음과 같이 JSON 배열 문자열을 권장: `CORS_ORIGINS=["https://sogangeconomics.com"]`
+- `TRUSTED_PROXY_IPS`: Nginx→API hop(또는 docker 네트워크 CIDR). 레이트리밋 XFF 파싱과 Uvicorn `--forwarded-allow-ips`가 동일 목록을 사용. 비어 있으면 `127.0.0.1`만 허용하며 `*`는 금지
 - `RATE_LIMIT_DEFAULT`: 기본 레이트리밋 (예: `120/minute`)
 - `RATE_LIMIT_POST_CREATE`: 멤버 게시글 작성 레이트리밋 (예: `5/minute`)
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
 - `PUSH_ENCRYPT_AT_REST`, `PUSH_KEK`: 푸시 구독 암호화 옵션
 - (선택) 관리자 bootstrap 시드: `SEED_PROD_ADMIN001_VALUE`
 - `MEDIA_ROOT`, `MEDIA_URL_BASE`: 업로드 경로 (기본값 사용 가능)
+- `IMAGE_MAX_UPLOAD_BYTES`, `IMAGE_MAX_PIXELS`: 게시글 커버 등 이미지 업로드 한도 (기본 5MB / 1920px)
 - Sentry/관측: `SENTRY_DSN`, `RELEASE`, `SENTRY_TRACES_SAMPLE_RATE`(기본 0.05), `SENTRY_PROFILES_SAMPLE_RATE`(기본 0.0), `SENTRY_SEND_DEFAULT_PII`(필요 시 `true`)
 - CI/CD 시크릿 스토리지에 위 값을 저장하고 배포 시 주입한다.
+
+> 프록시: Nginx가 `X-Forwarded-For`를 붙이더라도 API는 `TRUSTED_PROXY_IPS`에 등록된 직접 연결 hop에서만 XFF를 신뢰한다. 운영에서는 반드시 Nginx→API(또는 컨테이너 네트워크) IP/CIDR을 `TRUSTED_PROXY_IPS`에 넣는다.
 
 ### 쿠키/세션(도메인 전략에 따른 권장값)
 - 기본(같은 상위도메인의 하위 도메인, 예: `sogangeconomics.com` + `api.sogangeconomics.com`):
@@ -68,12 +72,12 @@
 1) DNS: `sogangeconomics.com`, `www.sogangeconomics.com`, `api.sogangeconomics.com` → VPS IP
 2) API `.env` 혹은 env-file
    - 레포 루트의 `.env.api.example`을 복사해 `.env.api` 생성 후 값 채움
-   - 최소 구성: `APP_ENV=prod`, `CORS_ORIGINS=["https://sogangeconomics.com","https://www.sogangeconomics.com"]`, `JWT_SECRET=...`, `DATABASE_URL=...`
+   - 최소 구성: `APP_ENV=prod`, `CORS_ORIGINS=["https://sogangeconomics.com","https://www.sogangeconomics.com"]`, `JWT_SECRET=...`(32자+), `DATABASE_URL=...`, `TRUSTED_PROXY_IPS=...`(Nginx→API hop)
    - 쿠키: `COOKIE_SAMESITE=lax`(기본), `COOKIE_SECURE=true`
 3) 마이그레이션/기동
    - `API_IMAGE=... ENV_FILE=.env.api ./ops/cloud-migrate.sh`
    - `API_IMAGE=... WEB_IMAGE=... API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web ./ops/cloud-start.sh`
-4) 프록시: `api.sogangeconomics.com` → `127.0.0.1:3001`(예시 Nginx는 `ops/nginx-examples/` 참고)
+4) 프록시: `api.sogangeconomics.com` → `127.0.0.1:3001`(예시 Nginx는 `ops/nginx-examples/` 참고). `TRUSTED_PROXY_IPS`에 해당 hop을 반드시 등록
 5) 헬스체크: `GET https://api.sogangeconomics.com/healthz` → 200
 
 > 추후 별도 도메인(예: `sogecon.app` 등)으로 전환 시:

@@ -20,7 +20,9 @@ def anyio_backend() -> str:
 
 
 @pytest.mark.anyio
-async def test_support_contact_rate_limit_and_validation(client: TestClient) -> None:
+async def test_support_contact_rate_limit_and_validation(
+    client: TestClient, enable_rate_limit: None
+) -> None:
     transport = httpx.ASGITransport(app=app, client=("2.2.2.2", 55555))
     async with httpx.AsyncClient(transport=transport, base_url="http://local") as hc:
         # login as admin to satisfy require_member compatibility

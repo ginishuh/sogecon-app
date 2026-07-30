@@ -7,12 +7,11 @@ from typing import Annotated, cast
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, HttpUrl
 from slowapi import Limiter
-from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.config import get_settings
 from apps.api.db import get_db
-from apps.api.ratelimit import consume_limit
+from apps.api.ratelimit import consume_limit, get_client_ip_for_rate_limit
 from apps.api.repositories import notifications as subs_repo
 from apps.api.repositories import send_logs as logs_repo
 from apps.api.routers.auth import (
@@ -26,11 +25,7 @@ from apps.api.services import scheduled_notifications_service as sched_svc
 from apps.api.services.scheduled_notifications_service import KST
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
-limiter_notifications = Limiter(key_func=get_remote_address)
-
-
-def _is_test_client(request: Request) -> bool:
-    return bool(request.client and request.client.host == "testclient")
+limiter_notifications = Limiter(key_func=get_client_ip_for_rate_limit)
 
 # pyright/ruff 호환 UTC 타임존 (timezone.utc 대체)
 UTC_TZ = timezone(timedelta(0))
@@ -58,12 +53,11 @@ async def save_subscription(
 ) -> None:
     """Web Push 구독 저장(idempotent). 동일 endpoint는 갱신 처리."""
     settings = get_settings()
-    if not _is_test_client(request):
-        consume_limit(
-            limiter_notifications,
-            request,
-            settings.rate_limit_subscribe,
-        )
+    consume_limit(
+        limiter_notifications,
+        request,
+        settings.rate_limit_subscribe,
+    )
     await notif_svc.save_subscription(
         db,
         {
@@ -88,12 +82,11 @@ async def delete_subscription(
     _member: CurrentMember = Depends(require_member),
 ) -> None:
     settings = get_settings()
-    if not _is_test_client(request):
-        consume_limit(
-            limiter_notifications,
-            request,
-            settings.rate_limit_subscribe,
-        )
+    consume_limit(
+        limiter_notifications,
+        request,
+        settings.rate_limit_subscribe,
+    )
     await notif_svc.delete_subscription(db, endpoint=str(payload.endpoint))
 
 
@@ -114,12 +107,11 @@ async def send_push(
     db: AsyncSession = Depends(get_db),
     provider: notif_svc.PushProvider = Depends(get_push_provider),
 ) -> dict[str, int]:
-    if not _is_test_client(request):
-        consume_limit(
-            limiter_notifications,
-            request,
-            get_settings().rate_limit_notify_send,
-        )
+    consume_limit(
+        limiter_notifications,
+        request,
+        get_settings().rate_limit_notify_send,
+    )
 
     result = await notif_svc.send_to_all(
         db, provider, title=_payload.title, body=_payload.body, url=_payload.url

@@ -187,7 +187,9 @@ def test_member_login_inactive_blocked(client: TestClient) -> None:
     assert res.json()["detail"] == "member_not_active"
 
 
-def test_support_contact_rate_limit(admin_login: TestClient) -> None:
+def test_support_contact_rate_limit(
+    admin_login: TestClient, enable_rate_limit: None
+) -> None:
     client = admin_login
     res1 = client.post(
         "/support/contact", json={"subject": "hello", "body": "message long enough"}

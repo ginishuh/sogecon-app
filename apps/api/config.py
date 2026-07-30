@@ -106,10 +106,21 @@ class Settings(BaseSettings):
     def _normalize_jwt_secret(cls, v: str) -> str:
         return (v or "").strip()
 
+    @field_validator("app_env")
+    @classmethod
+    def _validate_app_env(cls, v: str) -> str:
+        allowed = {"dev", "test", "staging", "prod"}
+        vv = (v or "dev").lower().strip() or "dev"
+        if vv not in allowed:
+            raise ValueError(
+                "APP_ENV must be one of: " + ", ".join(sorted(allowed))
+            )
+        return vv
+
     @model_validator(mode="after")
-    def _validate_prod_only(self) -> "Settings":
-        # Enforce strong JWT secret only in prod deployments.
-        if (self.app_env or "dev").lower().strip() == "prod":
+    def _validate_production_like_jwt(self) -> "Settings":
+        # staging/prod는 약한 JWT_SECRET을 거부한다 (fail-closed).
+        if self.app_env in {"staging", "prod"}:
             MIN_LEN = 32
             if (
                 self.jwt_secret in {"change-me", "change-me-to-a-strong-secret", ""}
@@ -117,7 +128,8 @@ class Settings(BaseSettings):
             ):
                 msg = (
                     "JWT_SECRET must be strong ("
-                    f"{MIN_LEN}+ chars) and not a placeholder"
+                    f"{MIN_LEN}+ chars) and not a placeholder "
+                    f"when APP_ENV={self.app_env}"
                 )
                 raise ValueError(msg)
         return self
