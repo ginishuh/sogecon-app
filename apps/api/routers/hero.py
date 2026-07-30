@@ -18,7 +18,7 @@ async def list_hero_slides(
     include_unpublished: bool = Query(False),
     db: AsyncSession = Depends(get_db),
 ) -> list[schemas.HeroSlide]:
-    allow_unpublished = include_unpublished and is_admin(request)
+    allow_unpublished = include_unpublished and await is_admin(db, request)
     return await hero_service.list_hero_slides(
         db, limit=limit, allow_unpublished=allow_unpublished
     )

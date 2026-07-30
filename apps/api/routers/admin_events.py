@@ -104,6 +104,51 @@ async def update_admin_event(
     return schemas.EventRead.model_validate(event)
 
 
+@router.post(
+    "/{event_id}/rsvps/{member_id}",
+    response_model=schemas.RSVPRead,
+    status_code=201,
+)
+async def upsert_member_rsvp(
+    event_id: int,
+    member_id: int,
+    payload: schemas.RSVPStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    _admin: CurrentUser = Depends(
+        require_permission("admin_events", allow_admin_fallback=False)
+    ),
+) -> schemas.RSVPRead:
+    """관리자 운영용 타 회원 RSVP 생성·변경 경로."""
+    rsvp = await events_service.upsert_rsvp_status(
+        db,
+        event_id=event_id,
+        member_id=member_id,
+        status=payload.status,
+    )
+    return schemas.RSVPRead.model_validate(rsvp)
+
+
+@router.get(
+    "/{event_id}/rsvps/{member_id}",
+    response_model=schemas.RSVPRead,
+)
+async def get_member_rsvp(
+    event_id: int,
+    member_id: int,
+    db: AsyncSession = Depends(get_db),
+    _admin: CurrentUser = Depends(
+        require_permission("admin_events", allow_admin_fallback=False)
+    ),
+) -> schemas.RSVPRead:
+    """관리자 운영용 타 회원 RSVP 조회 경로."""
+    rsvp = await events_service.get_member_rsvp(
+        db,
+        event_id=event_id,
+        member_id=member_id,
+    )
+    return schemas.RSVPRead.model_validate(rsvp)
+
+
 @router.delete("/{event_id}", status_code=204)
 async def delete_admin_event(
     event_id: int,

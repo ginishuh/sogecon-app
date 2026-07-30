@@ -51,7 +51,7 @@ describe('행사 참여 사용자 여정', () => {
     expect(await screen.findByText('아직 신청하지 않았어요')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '참여 신청하기' }));
 
-    await waitFor(() => expect(upsertEventRsvpMock).toHaveBeenCalledWith(1, 9, 'going'));
+    await waitFor(() => expect(upsertEventRsvpMock).toHaveBeenCalledWith(1, 'going'));
     expect(await screen.findByText('행사 참여 신청이 완료되었습니다.')).toBeInTheDocument();
   });
 
@@ -62,7 +62,7 @@ describe('행사 참여 사용자 여정', () => {
     expect(await screen.findByText('참여 신청 완료')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '참여 신청하기' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '참여 취소' }));
-    await waitFor(() => expect(upsertEventRsvpMock).toHaveBeenCalledWith(1, 9, 'cancel'));
+    await waitFor(() => expect(upsertEventRsvpMock).toHaveBeenCalledWith(1, 'cancel'));
   });
 
   it('존재하지 않는 행사를 무한 로딩 대신 복구 가능한 안내로 보여준다', async () => {

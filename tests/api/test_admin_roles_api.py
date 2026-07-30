@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from apps.api import models
+from apps.api import models, schemas
 from apps.api.db import get_db
 from apps.api.errors import ApiError
 from apps.api.main import app
@@ -257,5 +257,67 @@ def test_service_blocks_removing_last_super_admin(client: TestClient) -> None:
                 roles=["admin", "admin_roles"],
             )
         assert exc.value.code == "last_super_admin_forbidden"
+
+    _run_in_test_session(_run)
+
+
+def test_cannot_suspend_last_active_super_admin(client: TestClient) -> None:
+    _seed_member_identity(
+        student_id="solo-suspend",
+        password="solo-pass",
+        roles="super_admin,admin,member",
+    )
+    solo_id = _member_id_by_student_id("solo-suspend")
+
+    async def _run(session: AsyncSession) -> None:
+        others = (
+            await session.execute(
+                select(models.Member).where(models.Member.id != solo_id)
+            )
+        ).scalars().all()
+        for other in others:
+            tokens = [
+                token
+                for token in str(other.roles).split(",")
+                if token and token != "super_admin"
+            ]
+            setattr(other, "roles", ",".join(tokens) or "member")
+        await session.commit()
+
+        with pytest.raises(ApiError) as exc:
+            await members_service.update_member_profile_admin(
+                session,
+                member_id=solo_id,
+                data=schemas.AdminMemberUpdate(status="suspended"),
+            )
+        assert exc.value.code == "last_super_admin_forbidden"
+
+        member = await session.get(models.Member, solo_id)
+        assert member is not None
+        assert str(member.status) == "active"
+
+    _run_in_test_session(_run)
+
+
+def test_can_suspend_non_last_super_admin(client: TestClient) -> None:
+    _seed_member_identity(
+        student_id="pair-suspend-a",
+        password="solo-pass",
+        roles="super_admin,admin,member",
+    )
+    _seed_member_identity(
+        student_id="pair-suspend-b",
+        password="solo-pass",
+        roles="super_admin,admin,member",
+    )
+    target_id = _member_id_by_student_id("pair-suspend-a")
+
+    async def _run(session: AsyncSession) -> None:
+        updated = await members_service.update_member_profile_admin(
+            session,
+            member_id=target_id,
+            data=schemas.AdminMemberUpdate(status="suspended"),
+        )
+        assert str(updated.status) == "suspended"
 
     _run_in_test_session(_run)

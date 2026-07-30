@@ -8,6 +8,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from http import HTTPStatus
 from typing import Any, cast
 
 from fastapi import Depends, HTTPException, Request
@@ -149,18 +150,24 @@ async def _refresh_user_session(
 # ---- 권한 확인 의존성 ----
 
 
-def require_admin(req: Request) -> CurrentAdmin:
+async def require_admin(
+    req: Request,
+    db: AsyncSession = Depends(get_db),
+) -> CurrentAdmin:
     """관리자 권한 필요 의존성.
 
     통합 세션(`user`)에 roles 'admin' 또는 'super_admin'이 포함되어야 한다.
     """
-    u = _get_user_session(req)
-    if u and ("admin" in u.roles or "super_admin" in u.roles):
-        email = u.email or u.student_id
+    user = _get_user_session(req)
+    if user is not None:
+        user, _member = await _refresh_user_session(db, req, user)
+        if "admin" not in user.roles and "super_admin" not in user.roles:
+            raise HTTPException(status_code=403, detail="admin_required")
+        email = user.email or user.student_id
         return CurrentAdmin(
-            id=u.id if isinstance(u.id, int) else 0,
+            id=user.id if isinstance(user.id, int) else 0,
             email=email,
-            student_id=u.student_id,
+            student_id=user.student_id,
         )
     raise HTTPException(status_code=401, detail="unauthorized")
 
@@ -196,37 +203,59 @@ def require_permission(
     return _dependency
 
 
-def require_super_admin(req: Request) -> CurrentUser:
+async def require_super_admin(
+    req: Request,
+    db: AsyncSession = Depends(get_db),
+) -> CurrentUser:
     """super_admin 권한 필요 의존성."""
     user = _get_user_session(req)
     if user is not None:
+        user, _member = await _refresh_user_session(db, req, user)
         if "super_admin" in user.roles:
             return user
         raise HTTPException(status_code=403, detail="super_admin_required")
     raise HTTPException(status_code=401, detail="unauthorized")
 
 
-def is_admin(req: Request) -> bool:
-    """현재 요청이 관리자 권한인지 여부만 반환(예외 없이)."""
-    u = _get_user_session(req)
-    return bool(u and ("admin" in u.roles or "super_admin" in u.roles))
+async def is_admin(db: AsyncSession, req: Request) -> bool:
+    """현재 DB 상태 기준 관리자 여부를 반환한다.
+
+    공개 경로에서 선택적으로 관리자 기능을 허용하는 용도이므로, 삭제·정지된
+    세션은 제거한 뒤 익명 사용자와 동일하게 ``False``를 반환한다.
+    """
+    user = _get_user_session(req)
+    if user is None:
+        return False
+    try:
+        user, _member = await _refresh_user_session(db, req, user)
+    except HTTPException as exc:
+        if exc.status_code == HTTPStatus.UNAUTHORIZED:
+            return False
+        raise
+    return "admin" in user.roles or "super_admin" in user.roles
 
 
-def require_member(req: Request) -> CurrentMember:
+async def require_member(
+    req: Request,
+    db: AsyncSession = Depends(get_db),
+) -> CurrentMember:
     """멤버 권한 필요 의존성.
 
     통합 세션(`user`)에 roles 'member' 또는 'admin' 또는 'super_admin'이
     포함되면 통과.
     """
-    u = _get_user_session(req)
-    if u and (
-        "member" in u.roles
-        or "admin" in u.roles
-        or "super_admin" in u.roles
-    ):
+    user = _get_user_session(req)
+    if user is not None:
+        user, _member = await _refresh_user_session(db, req, user)
+        if not (
+            "member" in user.roles
+            or "admin" in user.roles
+            or "super_admin" in user.roles
+        ):
+            raise HTTPException(status_code=403, detail="member_required")
         return CurrentMember(
-            student_id=u.student_id,
-            id=u.id if isinstance(u.id, int) else None,
+            student_id=user.student_id,
+            id=user.id if isinstance(user.id, int) else None,
         )
     raise HTTPException(status_code=401, detail="unauthorized")
 

@@ -132,7 +132,7 @@ function makeRsvpMutationFn(memberId: number | null, eventId: number) {
     if (memberId == null) {
       throw new Error('member_id_missing');
     }
-    await upsertEventRsvp(eventId, memberId, status);
+    await upsertEventRsvp(eventId, status);
   };
 }
 

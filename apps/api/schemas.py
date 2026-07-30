@@ -526,8 +526,9 @@ class RSVPBase(BaseModel):
     status: RSVPLiteral = "going"
 
 
-class RSVPCreate(RSVPBase):
-    pass
+class RSVPCreate(BaseModel):
+    event_id: int
+    status: RSVPLiteral = "going"
 
 
 class MemberAuthCreate(BaseModel):
@@ -536,7 +537,6 @@ class MemberAuthCreate(BaseModel):
 
 
 class RSVPStatusUpdate(BaseModel):
-    member_id: int
     status: RSVPLiteral = "going"
 
 

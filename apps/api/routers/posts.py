@@ -203,7 +203,7 @@ async def get_post(
 ) -> schemas.PostRead:
     post = await posts_service.get_post(db, post_id)
     # 관리자 조회는 통계 왜곡을 피하기 위해 조회수 증가 제외
-    if not is_admin(request):
+    if not await is_admin(db, request):
         # 조회수 증가 후 refresh로 최신 값 반영 (재조회 대신)
         await posts_repo.increment_view_count(db, post_id)
         await db.refresh(post)
@@ -220,7 +220,7 @@ async def create_post(
     db: AsyncSession = Depends(get_db),
 ) -> schemas.PostRead:
     try:
-        admin = require_admin(request)
+        admin = await require_admin(request, db)
         # 보안: 클라이언트가 보낸 author_id를 무시하고 서버에서 강제 주입
         # student_id로 member를 조회하여 author_id 결정 (레거시 세션 호환)
         # 관리자는 pinned, published_at 등 관리자 권한 필드 설정 가능
@@ -236,7 +236,7 @@ async def create_post(
         ):
             raise
         try:
-            member = require_member(request)
+            member = await require_member(request, db)
         except HTTPException as exc_member:
             raise HTTPException(status_code=401, detail="unauthorized") from exc_member
 
@@ -262,7 +262,7 @@ async def update_post(
     db: AsyncSession = Depends(get_db),
 ) -> schemas.PostRead:
     """게시물 수정 (관리자 전용)."""
-    require_admin(request)
+    await require_admin(request, db)
     post = await posts_service.update_admin_post(db, post_id, payload)
     post_read = schemas.PostRead.model_validate(post)
     post_read.author_name = post.author.name if post.author else None
@@ -277,6 +277,6 @@ async def delete_post(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, bool | int]:
     """게시물 삭제 (관리자 전용)."""
-    require_admin(request)
+    await require_admin(request, db)
     deleted_id = await posts_service.delete_admin_post(db, post_id)
     return {"ok": True, "deleted_id": deleted_id}

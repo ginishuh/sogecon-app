@@ -275,6 +275,32 @@ async def get_member_by_student_id(db: AsyncSession, student_id: str) -> models.
     return await members_repo.get_member_by_student_id(db, student_id)
 
 
+async def _ensure_not_deactivating_last_super_admin(
+    db: AsyncSession,
+    *,
+    member: models.Member,
+    next_status: object,
+) -> None:
+    """활성 마지막 super_admin을 비활성 상태로 바꾸지 못하게 막는다."""
+    if not isinstance(next_status, str) or next_status == "active":
+        return
+    if str(member.status) != "active":
+        return
+    if parse_roles(member.roles).grade != "super_admin":
+        return
+    super_admin_count = await members_repo.count_active_members_with_role(
+        db,
+        role="super_admin",
+        serialize_super_admin_changes=True,
+    )
+    if super_admin_count <= 1:
+        raise ApiError(
+            code="last_super_admin_forbidden",
+            detail="Cannot deactivate the last super_admin",
+            status=422,
+        )
+
+
 async def update_member_profile_admin(
     db: AsyncSession, *, member_id: int, data: schemas.AdminMemberUpdate
 ) -> models.Member:
@@ -282,6 +308,14 @@ async def update_member_profile_admin(
     raw_payload = data.model_dump(exclude_unset=True)
     if not raw_payload:
         return await members_repo.get_member(db, member_id)
+
+    member = await members_repo.get_member(db, member_id)
+    if "status" in raw_payload:
+        await _ensure_not_deactivating_last_super_admin(
+            db,
+            member=member,
+            next_status=raw_payload.get("status"),
+        )
 
     sanitized_data: dict[str, object] = {
         key: value.strip() if isinstance(value, str) else value
@@ -545,16 +579,12 @@ async def update_member_roles(
         previous_profile.grade == "super_admin"
         and "super_admin" not in normalized_roles
     ):
-        # super_admin 수 카운트
-        # roles는 normalize/serialize를 거친 쉼표 구분 토큰 문자열이며,
-        # 현재 역할 스키마에서 "super_admin"은 독립 토큰으로만 사용된다.
-        stmt = select(models.Member).where(
-            models.Member.roles.contains("super_admin"),
-            models.Member.status == "active",
+        super_admin_count = await members_repo.count_active_members_with_role(
+            db,
+            role="super_admin",
+            serialize_super_admin_changes=True,
         )
-        result = await db.execute(stmt)
-        super_admin_members = result.scalars().all()
-        if len(super_admin_members) <= 1:
+        if super_admin_count <= 1:
             raise ApiError(
                 code="last_super_admin_forbidden",
                 detail="Cannot remove the last super_admin",

@@ -132,14 +132,7 @@ def test_event_not_found_returns_problem_details(client: TestClient) -> None:
 
 def test_rsvp_not_found_returns_problem_details(admin_login: TestClient) -> None:
     client = admin_login
-    # 선행: 회원/이벤트 생성
-    m = _create_member(
-        client,
-        student_id="rsvp001",
-        email="rsvp@example.com",
-        name="RSVP",
-        cohort=2025,
-    )
+    # 선행: 이벤트 생성
     e = client.post(
         "/events/",
         json={
@@ -151,7 +144,8 @@ def test_rsvp_not_found_returns_problem_details(admin_login: TestClient) -> None
         },
     ).json()
 
-    res = client.get(f"/rsvps/{m['id']}/{e['id']}")
+    current_member_id = client.get("/auth/session").json()["id"]
+    res = client.get(f"/rsvps/{current_member_id}/{e['id']}")
     assert res.status_code == HTTPStatus.NOT_FOUND
     data = res.json()
     assert data["status"] == HTTPStatus.NOT_FOUND
@@ -160,14 +154,7 @@ def test_rsvp_not_found_returns_problem_details(admin_login: TestClient) -> None
 
 def test_rsvp_create_conflict_code(admin_login: TestClient) -> None:
     client = admin_login
-    # 선행: 회원/이벤트 생성
-    m = _create_member(
-        client,
-        student_id="dup001",
-        email="dup@example.com",
-        name="Dup",
-        cohort=2025,
-    )
+    # 선행: 이벤트 생성
     e = client.post(
         "/events/",
         json={
@@ -179,7 +166,7 @@ def test_rsvp_create_conflict_code(admin_login: TestClient) -> None:
         },
     ).json()
 
-    payload = {"member_id": m["id"], "event_id": e["id"], "status": "going"}
+    payload = {"event_id": e["id"], "status": "going"}
     res1 = client.post("/rsvps/", json=payload)
     assert res1.status_code == HTTPStatus.CREATED
 
@@ -192,14 +179,7 @@ def test_rsvp_create_conflict_code(admin_login: TestClient) -> None:
 
 def test_events_rsvp_upsert_create_and_update(admin_login: TestClient) -> None:
     client = admin_login
-    # 선행: 회원/이벤트 생성
-    m = _create_member(
-        client,
-        student_id="upsert001",
-        email="upsert@example.com",
-        name="Up Ser",
-        cohort=2025,
-    )
+    # 선행: 이벤트 생성
     e = client.post(
         "/events/",
         json={
@@ -213,14 +193,14 @@ def test_events_rsvp_upsert_create_and_update(admin_login: TestClient) -> None:
 
     # 생성(create)
     res_create = client.post(
-        f"/events/{e['id']}/rsvp", json={"member_id": m["id"], "status": "going"}
+        f"/events/{e['id']}/rsvp", json={"status": "going"}
     )
     assert res_create.status_code == HTTPStatus.CREATED
     assert res_create.json()["status"] == "going"
 
     # 갱신(update)
     res_update = client.post(
-        f"/events/{e['id']}/rsvp", json={"member_id": m["id"], "status": "waitlist"}
+        f"/events/{e['id']}/rsvp", json={"status": "waitlist"}
     )
     assert res_update.status_code == HTTPStatus.CREATED  # 라우터가 201로 고정 반환
     assert res_update.json()["status"] == "waitlist"
@@ -228,14 +208,7 @@ def test_events_rsvp_upsert_create_and_update(admin_login: TestClient) -> None:
 
 def test_events_rsvp_invalid_enum_422(admin_login: TestClient) -> None:
     client = admin_login
-    # 선행: 회원/이벤트 생성
-    m = _create_member(
-        client,
-        student_id="enum001",
-        email="enum@example.com",
-        name="Enum",
-        cohort=2025,
-    )
+    # 선행: 이벤트 생성
     e = client.post(
         "/events/",
         json={
@@ -248,6 +221,6 @@ def test_events_rsvp_invalid_enum_422(admin_login: TestClient) -> None:
     ).json()
 
     res = client.post(
-        f"/events/{e['id']}/rsvp", json={"member_id": m["id"], "status": "invalid"}
+        f"/events/{e['id']}/rsvp", json={"status": "invalid"}
     )
     assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
