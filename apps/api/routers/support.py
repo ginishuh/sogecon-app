@@ -54,7 +54,7 @@ async def contact(
         return {"status": "accepted"}
 
     # 최근 동일 사용자(또는 세션 IP) 중복/쿨다운 드롭
-    host = request.client.host if request.client else ""
+    host = get_client_ip_for_rate_limit(request)
     email = getattr(_m, "email", "") or ""
     ident = f"{host}|{email}"
     h = f"{payload.subject}\n{payload.body}"
@@ -73,7 +73,7 @@ async def contact(
             "subject": payload.subject,
             "body": payload.body,
             "contact": payload.contact,
-            "client_ip": (request.client.host if request.client else None),
+            "client_ip": host if host != "unknown" else None,
         },
     )
 

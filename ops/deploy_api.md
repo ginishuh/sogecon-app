@@ -5,18 +5,18 @@
 - 데이터베이스는 PostgreSQL 16만 지원한다(루트 `compose.yaml`). 모든 환경에서 `postgresql+psycopg://` 스킴을 사용한다.
 
 ## 2. 필수 환경 변수
-- `APP_ENV`: `dev` / `test` / `staging` / `prod` (그 외 값은 기동 실패)
+- `APP_ENV`: `dev` / `test` / `staging` / `prod` (빈 값·그 외 값은 기동 실패)
 - `DATABASE_URL`: SQLAlchemy 접속 문자열 (예: `postgresql+psycopg://user:pass@host:5432/db`)
-- `JWT_SECRET`: 세션/토큰 서명 키. `staging`/`prod`에서는 32자 이상이며 `change-me*` placeholder 금지
+- `JWT_SECRET`: 세션/토큰 서명 키. `staging`/`prod`에서는 32자 이상이며 `change-me*` / `replace_me*` / `replace-me*` / 빈 값 placeholder 금지
 - `CORS_ORIGINS`: 허용 Origin 목록(JSON 문자열). 예: `[{"origin": "https://sogangeconomics.com"}]`가 아니라 `['https://sogangeconomics.com']` 형태로 보일 수 있으니, 실제 설정은 다음과 같이 JSON 배열 문자열을 권장: `CORS_ORIGINS=["https://sogangeconomics.com"]`
-- `TRUSTED_PROXY_IPS`: Nginx→API hop(또는 docker 네트워크 CIDR). 레이트리밋 XFF 파싱과 Uvicorn `--forwarded-allow-ips`가 동일 목록을 사용. 비어 있으면 `127.0.0.1`만 허용하며 `*`는 금지
+- `TRUSTED_PROXY_IPS`: Nginx→API hop(또는 docker 네트워크 CIDR). 레이트리밋 XFF 파싱과 Uvicorn `--forwarded-allow-ips`가 동일 목록을 사용. 비어 있으면 `127.0.0.1`만 허용하며 `*`와 잘못된 IP/CIDR은 기동 실패
 - `RATE_LIMIT_DEFAULT`: 기본 레이트리밋 (예: `120/minute`)
 - `RATE_LIMIT_POST_CREATE`: 멤버 게시글 작성 레이트리밋 (예: `5/minute`)
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
 - `PUSH_ENCRYPT_AT_REST`, `PUSH_KEK`: 푸시 구독 암호화 옵션
 - (선택) 관리자 bootstrap 시드: `SEED_PROD_ADMIN001_VALUE`
 - `MEDIA_ROOT`, `MEDIA_URL_BASE`: 업로드 경로 (기본값 사용 가능)
-- `IMAGE_MAX_UPLOAD_BYTES`, `IMAGE_MAX_PIXELS`: 게시글 커버 등 이미지 업로드 한도 (기본 5MB / 1920px)
+- `IMAGE_MAX_UPLOAD_BYTES`, `IMAGE_MAX_PIXELS`: 게시글 커버 등 이미지 업로드 한도 (양수 필수; staging/prod는 각각 50MB·10000px 상한)
 - Sentry/관측: `SENTRY_DSN`, `RELEASE`, `SENTRY_TRACES_SAMPLE_RATE`(기본 0.05), `SENTRY_PROFILES_SAMPLE_RATE`(기본 0.0), `SENTRY_SEND_DEFAULT_PII`(필요 시 `true`)
 - CI/CD 시크릿 스토리지에 위 값을 저장하고 배포 시 주입한다.
 

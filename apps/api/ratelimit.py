@@ -10,8 +10,13 @@ from slowapi import Limiter
 from .config import Settings, get_settings
 
 
-def parse_trusted_proxies(raw: str) -> list[str]:
-    """신뢰할 프록시 IP/CIDR 목록 파싱."""
+def parse_trusted_proxies(raw: str, *, strict: bool = False) -> list[str]:
+    """신뢰할 프록시 IP/CIDR 목록 파싱.
+
+    strict=True이면 잘못된 항목·'*'에서 ValueError를 일으킨다.
+    strict=False(기본)는 잘못된 항목을 건너뛴다(하위 호환·부분 파싱).
+    Settings 기동 검증은 config 쪽에서 fail-closed로 수행한다.
+    """
     if not raw:
         return []
     result: list[str] = []
@@ -19,14 +24,21 @@ def parse_trusted_proxies(raw: str) -> list[str]:
         ip_str = part.strip()
         if not ip_str:
             continue
+        if ip_str == "*":
+            if strict:
+                raise ValueError("TRUSTED_PROXY_IPS must not contain '*'")
+            continue
         try:
             if "/" in ip_str:
                 ip_network(ip_str, strict=False)
             else:
                 ip_address(ip_str)
             result.append(ip_str)
-        except ValueError:
-            pass
+        except ValueError as exc:
+            if strict:
+                raise ValueError(
+                    f"invalid TRUSTED_PROXY_IPS entry: {ip_str}"
+                ) from exc
     return result
 
 
