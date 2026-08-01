@@ -178,12 +178,18 @@ const server = createServer(async (request, response) => {
   }
   if (method === 'POST' && url.pathname === '/__e2e/config') {
     const body = await readJson(request);
-    sessionKind = body.session === 'admin_hero' ? 'admin_hero' : body.session === 'admin' ? 'admin' : 'member';
+    sessionKind = ['anonymous', 'member', 'admin', 'admin_hero'].includes(body.session)
+      ? body.session
+      : 'member';
     signupStatus = 'pending';
     sendJson(response, 200, { ok: true, session: sessionKind }, origin);
     return;
   }
   if (method === 'GET' && url.pathname === '/auth/session') {
+    if (sessionKind === 'anonymous') {
+      sendJson(response, 401, { code: 'not_authenticated', detail: 'Not authenticated' }, origin);
+      return;
+    }
     sendJson(response, 200, sessionPayload(), origin);
     return;
   }

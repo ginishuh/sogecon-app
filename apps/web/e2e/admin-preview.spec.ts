@@ -8,6 +8,9 @@ import { configureMockServer } from './utils/mockServer';
 let browser: Browser | null = null;
 let page: Page | null = null;
 
+const heroPreviewLink =
+  'section[aria-label="홈 배너"] a[aria-label="E2E 관리자 초안 자세히 보기"]';
+
 describe('Admin post preview (CDP E2E)', () => {
   beforeAll(async () => {
     browser = await puppeteer.launch({
@@ -19,6 +22,7 @@ describe('Admin post preview (CDP E2E)', () => {
   });
 
   afterAll(async () => {
+    await configureMockServer('member');
     setLocalMockSession('member');
     try {
       if (page) await page.close();
@@ -39,13 +43,19 @@ describe('Admin post preview (CDP E2E)', () => {
     await page.waitForSelector('section[aria-label="홈 배너"]');
     await page.waitForFunction(() => document.body.innerText.includes('관리자 미리보기'));
 
-    const href = await page.$eval(
-      'section[aria-label="홈 배너"] a[aria-label="E2E 관리자 초안 자세히 보기"]',
-      (anchor) => anchor.getAttribute('href'),
-    );
+    const href = await page.$eval(heroPreviewLink, (anchor) => anchor.getAttribute('href'));
     expect(href).toBe('/admin/posts/42/preview');
 
-    await page.click('section[aria-label="홈 배너"] a[aria-label="E2E 관리자 초안 자세히 보기"]');
+    await page.$eval(heroPreviewLink, (anchor) => {
+      anchor.scrollIntoView({ block: 'center', inline: 'center' });
+    });
+    await page.waitForFunction((selector) => {
+      const anchor = document.querySelector<HTMLElement>(selector);
+      if (!anchor) return false;
+      const rect = anchor.getBoundingClientRect();
+      return rect.top >= 0 && rect.bottom <= window.innerHeight;
+    }, {}, heroPreviewLink);
+    await page.click(heroPreviewLink);
     await page.waitForFunction(() => window.location.pathname === '/admin/posts/42/preview');
     await page.waitForFunction(() => document.body.innerText.includes('E2E 관리자 preview 본문'));
     expect(await page.$('a[href="/admin/posts/42/edit"]')).toBeNull();
@@ -53,14 +63,17 @@ describe('Admin post preview (CDP E2E)', () => {
 
   it('익명 사용자는 같은 draft의 공개 상세에서 404를 받는다', async () => {
     if (!browser) throw new Error('Puppeteer browser not initialized');
-    await configureMockServer('member');
-    setLocalMockSession('member');
+    await configureMockServer('anonymous');
+    setLocalMockSession('anonymous');
     const anonymousPage = await browser.newPage();
     try {
       const response = await anonymousPage.goto(`${WEB_BASE_URL}/posts/42`, {
         waitUntil: 'networkidle0',
       });
       expect(response?.status()).toBe(404);
+      await anonymousPage.waitForFunction(() =>
+        document.body.innerText.includes('소식을 찾지 못했습니다.'),
+      );
     } finally {
       await anonymousPage.close();
     }

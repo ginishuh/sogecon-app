@@ -2,7 +2,7 @@ import type { Page, HTTPRequest } from 'puppeteer';
 
 import { WEB_BASE_URL } from './env';
 
-type LocalMockSession = 'member' | 'admin' | 'admin_hero';
+type LocalMockSession = 'anonymous' | 'member' | 'admin' | 'admin_hero';
 let localMockSession: LocalMockSession = 'member';
 
 export function setLocalMockSession(session: LocalMockSession): void {
@@ -110,6 +110,23 @@ function localSessionPayload(): {
   };
 }
 
+function isLocalAnonymousSession(): boolean {
+  return localMockSession === 'anonymous';
+}
+
+async function respondAnonymousSessionApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  if (request.method() !== 'GET' || url.pathname !== '/auth/session' || !isLocalAnonymousSession()) {
+    return false;
+  }
+  await request.respond({
+    status: 401,
+    contentType: 'application/json',
+    headers: corsHeaders,
+    body: JSON.stringify({ code: 'not_authenticated', detail: 'Not authenticated' }),
+  });
+  return true;
+}
+
 async function respondAdminPostPreviewApi(request: HTTPRequest, url: URL): Promise<boolean> {
   if (request.method() !== 'GET' || url.pathname !== '/admin/posts/42/preview') return false;
   await request.respond({
@@ -192,6 +209,7 @@ export async function setupDirectoryMocks(page: Page): Promise<void> {
       const url = new URL(request.url());
       if (await respondHeroApi(request, url)) return;
       if (await respondAdminPostPreviewApi(request, url)) return;
+      if (await respondAnonymousSessionApi(request, url)) return;
       if (await respondDirectoryApi(request, url)) return;
       await request.continue();
     } catch {
