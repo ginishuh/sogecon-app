@@ -16,10 +16,18 @@ from ..errors import ApiError
 from ..ratelimit import get_client_ip_for_rate_limit, should_skip_rate_limit
 from ..repositories import posts as posts_repo
 from ..services import posts_service
-from ..services.auth_service import is_admin
-from .auth import require_admin, require_member
+from ..services.auth_service import has_any_permission, is_admin
+from .auth import (
+    CurrentAdmin,
+    CurrentUser,
+    require_admin,
+    require_member,
+    require_permission,
+)
 
 router = APIRouter(prefix="/posts", tags=["posts"])
+
+_require_post_admin = require_permission("admin_posts", allow_admin_fallback=False)
 
 
 # 멤버 게시글 작성 레이트리밋 (in-memory)
@@ -159,16 +167,9 @@ async def create_post(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> schemas.PostRead:
+    admin: CurrentAdmin | None = None
     try:
         admin = await require_admin(request, db)
-        # 보안: 클라이언트가 보낸 author_id를 무시하고 서버에서 강제 주입
-        # student_id로 member를 조회하여 author_id 결정 (레거시 세션 호환)
-        # 관리자는 pinned, published_at 등 관리자 권한 필드 설정 가능
-        post = await posts_service.create_admin_post(
-            db,
-            payload,
-            admin_student_id=admin.student_id,
-        )
     except HTTPException as exc_admin:
         if exc_admin.status_code not in (
             HTTPStatus.UNAUTHORIZED,
@@ -190,6 +191,21 @@ async def create_post(
             member_student_id=member.student_id,
             member_id=member.id,
         )
+    else:
+        # generic admin은 게시물 관리 권한을 자동 상속하지 않는다.
+        # 일반 회원 작성 fallback과 분리해 admin_hero 같은 제한 관리자가
+        # 게시물 mutation API를 우회하지 못하게 한다.
+        if not await has_any_permission(db, request, ("admin_posts",)):
+            raise HTTPException(status_code=403, detail="admin_permission_required")
+
+        # 보안: 클라이언트가 보낸 author_id를 무시하고 서버에서 강제 주입
+        # student_id로 member를 조회하여 author_id 결정 (레거시 세션 호환)
+        # 관리자는 pinned, published_at 등 관리자 권한 필드 설정 가능
+        post = await posts_service.create_admin_post(
+            db,
+            payload,
+            admin_student_id=admin.student_id,
+        )
 
     return schemas.PostRead.model_validate(post)
 
@@ -198,11 +214,10 @@ async def create_post(
 async def update_post(
     post_id: int,
     payload: schemas.PostUpdate,
-    request: Request,
     db: AsyncSession = Depends(get_db),
+    _admin: CurrentUser = Depends(_require_post_admin),
 ) -> schemas.PostRead:
     """게시물 수정 (관리자 전용)."""
-    await require_admin(request, db)
     post = await posts_service.update_admin_post(db, post_id, payload)
     post_read = schemas.PostRead.model_validate(post)
     post_read.author_name = post.author.name if post.author else None
@@ -213,10 +228,9 @@ async def update_post(
 @router.delete("/{post_id}")
 async def delete_post(
     post_id: int,
-    request: Request,
     db: AsyncSession = Depends(get_db),
+    _admin: CurrentUser = Depends(_require_post_admin),
 ) -> dict[str, bool | int]:
     """게시물 삭제 (관리자 전용)."""
-    await require_admin(request, db)
     deleted_id = await posts_service.delete_admin_post(db, post_id)
     return {"ok": True, "deleted_id": deleted_id}

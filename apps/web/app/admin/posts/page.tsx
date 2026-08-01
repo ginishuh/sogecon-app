@@ -16,7 +16,7 @@ import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
 import { adminPostKeys, postKeys } from '../../../lib/query-keys';
-import { getPostDetailHref } from '../../../lib/post-links';
+import { getAdminPostPreviewHref } from '../../../lib/post-links';
 import { hasPermissionSession } from '../../../lib/rbac';
 import type { HeroTargetLookupItem } from '../../../services/hero';
 import {
@@ -34,9 +34,9 @@ function adminPostsDescription(canManageHero: boolean) {
     : '공지와 동문 소식을 작성하고 관리합니다.';
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Sub-components (complexity isolation)
-───────────────────────────────────────────────────────────────────────── */
+// ─────────────────────────────────────────────────────────────────────────
+// Sub-components (complexity isolation)
+// ─────────────────────────────────────────────────────────────────────────
 
 function StatusBadge({ published }: { published: boolean }) {
   if (published) {
@@ -174,7 +174,7 @@ function PostTableRow({
         <div className="flex items-center gap-2">
           {post.pinned && <span title="고정됨">📌</span>}
           <Link
-            href={getPostDetailHref(post)}
+            href={getAdminPostPreviewHref(post.id)}
             className="font-medium text-text-primary hover:underline"
           >
             {post.title}
@@ -356,9 +356,9 @@ function PostTableContent({
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Custom Hooks (complexity isolation)
-───────────────────────────────────────────────────────────────────────── */
+// ─────────────────────────────────────────────────────────────────────────
+// Custom Hooks (complexity isolation)
+// ─────────────────────────────────────────────────────────────────────────
 
 function useDeleteMutation(
   onSuccessCallback: () => void,
@@ -430,9 +430,9 @@ function useFilters() {
   };
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Main Page Component
-───────────────────────────────────────────────────────────────────────── */
+// ─────────────────────────────────────────────────────────────────────────
+// Main Page Component
+// ─────────────────────────────────────────────────────────────────────────
 
 export default function AdminPostsPage() {
   const { status, data: session } = useAuth();

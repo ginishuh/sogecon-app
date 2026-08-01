@@ -77,7 +77,11 @@ export function PostDetailContent({
           {backLabel}
         </Link>
         {showAdminActions ? (
-          <PostAdminActions postId={post.id} postTitle={post.title} />
+          <PostAdminActions
+            postId={post.id}
+            postTitle={post.title}
+            redirectTo={backHref}
+          />
         ) : null}
       </div>
 

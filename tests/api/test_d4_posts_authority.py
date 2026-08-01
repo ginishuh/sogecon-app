@@ -6,6 +6,8 @@ from http import HTTPStatus
 import pytest
 from fastapi.testclient import TestClient
 
+from apps.api.post_visibility import BOARD_POST_CATEGORIES
+
 
 def test_public_hides_notice_draft_and_future(admin_login: TestClient) -> None:
     past = (datetime.now(tz=UTC) - timedelta(days=1)).isoformat()
@@ -282,11 +284,38 @@ def test_update_category_is_optional_but_non_null_when_present(
     )
     assert unknown_category.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
+    published_draft = admin_login.post(
+        "/posts/",
+        json={
+            "title": "발행형 초안",
+            "content": "board 전환 금지",
+            "category": "notice",
+            "published_at": None,
+        },
+    )
+    assert published_draft.status_code == HTTPStatus.CREATED
+    draft_id = published_draft.json()["id"]
+    board_attempt = admin_login.patch(
+        f"/posts/{draft_id}", json={"category": "discussion"}
+    )
+    assert board_attempt.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert board_attempt.json()["code"] == "board_category_immutable"
+
+
+def test_board_category_set_is_explicit() -> None:
+    assert BOARD_POST_CATEGORIES == {
+        "discussion",
+        "question",
+        "share",
+        "congrats",
+    }
+
 
 def test_admin_hero_can_read_preview_without_post_management(
-    admin_hero_login: TestClient,
+    admin_login: TestClient,
+    set_seed_admin_roles,
 ) -> None:
-    created = admin_hero_login.post(
+    created = admin_login.post(
         "/posts/",
         json={
             "title": "hero 제한 관리자 초안",
@@ -297,8 +326,35 @@ def test_admin_hero_can_read_preview_without_post_management(
     assert created.status_code == HTTPStatus.CREATED
     post_id = created.json()["id"]
 
-    preview = admin_hero_login.get(f"/admin/posts/{post_id}/preview")
+    set_seed_admin_roles("member,admin,admin_hero")
+    relogin = admin_login.post(
+        "/auth/login", json={"student_id": "__seed__admin", "password": "__seed__"}
+    )
+    assert relogin.status_code == HTTPStatus.OK
+
+    preview = admin_login.get(f"/admin/posts/{post_id}/preview")
     assert preview.status_code == HTTPStatus.OK
     assert preview.json()["id"] == post_id
-    assert admin_hero_login.get("/admin/posts/").status_code == HTTPStatus.FORBIDDEN
-    assert admin_hero_login.get(f"/posts/{post_id}").status_code == HTTPStatus.NOT_FOUND
+    assert admin_login.get("/admin/posts/").status_code == HTTPStatus.FORBIDDEN
+    assert admin_login.get(f"/posts/{post_id}").status_code == HTTPStatus.NOT_FOUND
+
+    create_attempt = admin_login.post(
+        "/posts/",
+        json={
+            "title": "hero 제한 관리자 추가 시도",
+            "content": "생성 거부",
+            "category": "notice",
+        },
+    )
+    assert create_attempt.status_code == HTTPStatus.FORBIDDEN
+    assert create_attempt.json()["detail"] == "admin_permission_required"
+
+    update_attempt = admin_login.patch(
+        f"/posts/{post_id}", json={"title": "수정 거부"}
+    )
+    assert update_attempt.status_code == HTTPStatus.FORBIDDEN
+    assert update_attempt.json()["detail"] == "admin_permission_required"
+
+    delete_attempt = admin_login.delete(f"/posts/{post_id}")
+    assert delete_attempt.status_code == HTTPStatus.FORBIDDEN
+    assert delete_attempt.json()["detail"] == "admin_permission_required"

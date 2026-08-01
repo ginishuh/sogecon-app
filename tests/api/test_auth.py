@@ -27,7 +27,8 @@ def _seed_admin(client: TestClient, student_id: str, password: str) -> int:
                 email=f"{student_id}@test.example.com",
                 name="Admin",
                 cohort=1,
-                roles="admin,member",
+                # 게시글 mutation은 이제 admin_posts 권한을 명시적으로 요구한다.
+                roles="admin,admin_posts,member",
                 status="active",
             )
             db.add(member)

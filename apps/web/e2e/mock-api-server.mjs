@@ -246,8 +246,20 @@ const server = createServer(async (request, response) => {
         view_count: 0,
         author_name: 'Admin',
         comment_count: 0,
+      }, {
+        id: 43,
+        title: 'E2E 관리자 공개 글',
+        content: 'E2E 관리자 공개 본문',
+        category: 'notice',
+        published_at: '2026-07-31T00:00:00Z',
+        pinned: false,
+        cover_image: null,
+        images: null,
+        view_count: 7,
+        author_name: 'Admin',
+        comment_count: 0,
       }],
-      total: 1,
+      total: 2,
     }, origin);
     return;
   }
@@ -255,13 +267,16 @@ const server = createServer(async (request, response) => {
     sendJson(response, 200, { items: [] }, origin);
     return;
   }
-  if (method === 'GET' && url.pathname === '/admin/posts/42/preview') {
+  const previewMatch = url.pathname.match(/^\/admin\/posts\/(42|43)\/preview$/);
+  if (method === 'GET' && previewMatch) {
+    const postId = Number(previewMatch[1]);
+    const isPublished = postId === 43;
     sendJson(response, 200, {
-      id: 42,
-      title: 'E2E 관리자 초안',
-      content: 'E2E 관리자 preview 본문',
+      id: postId,
+      title: isPublished ? 'E2E 관리자 공개 글' : 'E2E 관리자 초안',
+      content: isPublished ? 'E2E 관리자 공개 preview 본문' : 'E2E 관리자 preview 본문',
       category: 'notice',
-      published_at: null,
+      published_at: isPublished ? '2026-07-31T00:00:00Z' : null,
       pinned: false,
       cover_image: null,
       images: null,

@@ -90,6 +90,24 @@ describe('Admin post preview (CDP E2E)', () => {
     ).toBe('E2E 관리자 preview 본문');
   });
 
+  it('관리자 목록의 발행 글도 조회수 비집계 preview로 실제 이동한다', async () => {
+    if (!page) throw new Error('Puppeteer page not initialized');
+    await configureMockServer('admin');
+    if (!process.env.E2E_MOCK_API_CONTROL_URL) {
+      setLocalMockSession('admin');
+      await setupDirectoryMocks(page);
+    }
+
+    await page.goto(`${WEB_BASE_URL}/admin/posts`, { waitUntil: 'networkidle0' });
+    const previewLink = 'a[href="/admin/posts/43/preview"]';
+    await page.waitForSelector(previewLink);
+    await page.click(previewLink);
+    await page.waitForFunction(() => window.location.pathname === '/admin/posts/43/preview');
+    await page.waitForFunction(() =>
+      document.body.innerText.includes('E2E 관리자 공개 preview 본문'),
+    );
+  });
+
   it('익명 사용자는 같은 draft의 공개 상세에서 404를 받는다', async () => {
     if (!browser) throw new Error('Puppeteer browser not initialized');
     await configureMockServer('anonymous');

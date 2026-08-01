@@ -128,17 +128,20 @@ async function respondAnonymousSessionApi(request: HTTPRequest, url: URL): Promi
 }
 
 async function respondAdminPostPreviewApi(request: HTTPRequest, url: URL): Promise<boolean> {
-  if (request.method() !== 'GET' || url.pathname !== '/admin/posts/42/preview') return false;
+  const match = url.pathname.match(/^\/admin\/posts\/(42|43)\/preview$/);
+  if (request.method() !== 'GET' || !match) return false;
+  const postId = Number(match[1]);
+  const isPublished = postId === 43;
   await request.respond({
     status: 200,
     contentType: 'application/json',
     headers: corsHeaders,
     body: JSON.stringify({
-      id: 42,
-      title: 'E2E 관리자 초안',
-      content: 'E2E 관리자 preview 본문',
+      id: postId,
+      title: isPublished ? 'E2E 관리자 공개 글' : 'E2E 관리자 초안',
+      content: isPublished ? 'E2E 관리자 공개 preview 본문' : 'E2E 관리자 preview 본문',
       category: 'notice',
-      published_at: null,
+      published_at: isPublished ? '2026-07-31T00:00:00Z' : null,
       pinned: false,
       cover_image: null,
       images: null,
@@ -169,8 +172,20 @@ async function respondAdminPostsApi(request: HTTPRequest, url: URL): Promise<boo
         view_count: 0,
         author_name: 'Admin',
         comment_count: 0,
+      }, {
+        id: 43,
+        title: 'E2E 관리자 공개 글',
+        content: 'E2E 관리자 공개 본문',
+        category: 'notice',
+        published_at: '2026-07-31T00:00:00Z',
+        pinned: false,
+        cover_image: null,
+        images: null,
+        view_count: 7,
+        author_name: 'Admin',
+        comment_count: 0,
       }],
-      total: 1,
+      total: 2,
     }),
   });
   return true;

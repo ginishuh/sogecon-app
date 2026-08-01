@@ -107,13 +107,15 @@ async def update_admin_post(
     """관리자가 게시물을 수정할 때 사용."""
     if "category" in payload.model_fields_set:
         current = await posts_repo.get_post(db, post_id)
-        if (
-            current.category in BOARD_POST_CATEGORIES
-            and payload.category != current.category
-        ):
+        current_is_board = current.category in BOARD_POST_CATEGORIES
+        next_is_board = payload.category in BOARD_POST_CATEGORIES
+        if current_is_board != next_is_board:
             raise ApiError(
                 code="board_category_immutable",
-                detail="board post category cannot be changed",
+                detail=(
+                    "post category cannot cross board and published visibility "
+                    "boundaries"
+                ),
                 status=422,
             )
     return await posts_repo.update_post(db, post_id, payload)
