@@ -210,7 +210,7 @@ class Settings(BaseSettings):
         # PUSH_ENCRYPT_AT_REST=true 이면 KEK는 기동 시 반드시 유효해야 한다.
         if self.push_encrypt_at_rest:
             try:
-                key = base64.b64decode((self.push_kek or "").strip())
+                key = base64.b64decode((self.push_kek or "").strip(), validate=True)
             except (binascii.Error, ValueError) as exc:
                 raise ValueError(
                     "PUSH_KEK must be valid base64 AES key "
