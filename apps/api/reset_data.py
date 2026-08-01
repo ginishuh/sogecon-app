@@ -56,6 +56,7 @@ ALLOWED_DELETE_TABLES: Final[frozenset[str]] = frozenset(
 
 PRESERVED_TABLES: Final[tuple[str, ...]] = (
     "notification_send_logs",
+    "scheduled_notification_deliveries",
     "scheduled_notification_logs",
     "support_tickets",
     "events",

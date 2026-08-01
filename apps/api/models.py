@@ -14,6 +14,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -492,6 +493,9 @@ class ScheduledNotificationLog(Base):
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+    updated_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
 
     __table_args__ = (
         Index(
@@ -499,6 +503,49 @@ class ScheduledNotificationLog(Base):
             "event_id",
             "d_type",
             unique=True,
+        ),
+    )
+
+
+class ScheduledNotificationDelivery(Base):
+    """예약 발송의 구독별 영속 상태.
+
+    ``in_progress``는 외부 Push 호출 직전에 커밋되는 claim이다. 프로세스가
+    외부 호출 뒤 중단되면 결과를 알 수 없으므로 자동 재전송하지 않고
+    ``unknown``으로 보존해 중복 발송을 막는다.
+    """
+
+    __tablename__ = "scheduled_notification_deliveries"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    scheduled_log_id = Column(
+        Integer,
+        ForeignKey("scheduled_notification_logs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    endpoint_hash = Column(String(64), nullable=False)
+    status = Column(
+        String(16), nullable=False, default="pending", server_default="pending"
+    )  # pending | in_progress | completed | failed | unknown
+    status_code = Column(Integer, nullable=True)
+    attempts = Column(Integer, nullable=False, default=0, server_default="0")
+    claimed_at = Column(DateTime(timezone=True), nullable=True)
+    finished_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "scheduled_log_id",
+            "endpoint_hash",
+            name="uq_scheduled_notification_delivery_log_endpoint",
+        ),
+        Index(
+            "ix_scheduled_notification_delivery_log_status",
+            "scheduled_log_id",
+            "status",
         ),
     )
 
@@ -516,4 +563,3 @@ class MemberAuth(Base):
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
-    

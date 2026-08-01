@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Literal, cast
 
 from requests.exceptions import RequestException
@@ -14,12 +14,12 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crypto_utils import CryptoError, decrypt_str
 from ..models import Event, PushSubscription, ScheduledNotificationLog
 from ..repositories import notification_preferences as pref_repo
 from ..repositories import notifications as subs_repo
-from ..repositories import send_logs
+from ..repositories import scheduled_notifications as scheduled_repo
 from .notifications_service import PushProvider, SendResult
+from .scheduled_delivery_service import DeliveryBatchConfig, send_batch_chunk
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 KST = timezone(timedelta(hours=9))
 
 DType = Literal["d-3", "d-1"]
+SCHEDULED_LOG_STALE_AFTER = timedelta(minutes=15)
 
 
 @dataclass
@@ -38,6 +39,7 @@ class BatchConfig:
     batch_size: int = 50
     batch_delay_seconds: float = 1.0
     max_retries: int = 3
+    scheduled_log_id: int | None = None
 
 
 async def find_events_due_for_notification(
@@ -118,79 +120,50 @@ async def send_batch_notifications(
     payload: dict[str, str],
     config: BatchConfig | None = None,
 ) -> SendResult:
-    """배치 단위로 알림 발송 (레이트리밋 준수)."""
+    """배치 단위로 알림 발송 (레이트리밋 준수).
+
+    예약 발송은 구독별 claim을 외부 호출 전에 커밋한다. 외부 호출 뒤
+    프로세스가 중단되어 결과가 불확실해져도 다음 실행에서 해당 endpoint를
+    다시 보내지 않도록 하는 at-most-once 경계다.
+    """
     cfg = config or BatchConfig()
     accepted = 0
     failed = 0
+    scheduled_log_id = cfg.scheduled_log_id
 
     subs_list = list(subscriptions)
+    if scheduled_log_id is not None:
+        await scheduled_repo.ensure_deliveries(
+            db,
+            scheduled_log_id=scheduled_log_id,
+            endpoint_hashes=[cast(str, sub.endpoint_hash) for sub in subs_list],
+        )
+
     for i in range(0, len(subs_list), cfg.batch_size):
         batch = subs_list[i : i + cfg.batch_size]
-        log_items: list[send_logs.SendLogItem] = []
-        expired_hashes: list[str] = []
-
-        for sub in batch:
-            try:
-                endpoint_plain = decrypt_str(cast(str, sub.endpoint))
-            except CryptoError:
-                failed += 1
-                log_items.append(
-                    send_logs.SendLogItem(
-                        ok=False,
-                        status_code=None,
-                        stored_endpoint_hash=cast(str, sub.endpoint_hash),
-                    )
-                )
-                continue
-
-            ok, status = await _send_with_retry(
-                provider, sub, payload, max_retries=cfg.max_retries
-            )
-
-            if ok:
-                accepted += 1
-            else:
-                failed += 1
-                if status in (404, 410):
-                    expired_hashes.append(subs_repo.hash_endpoint(endpoint_plain))
-
-            log_items.append(
-                send_logs.SendLogItem(
-                    endpoint=endpoint_plain, ok=ok, status_code=status
-                )
-            )
-
-        await send_logs.create_logs_batch(db, log_items)
-        await subs_repo.remove_by_endpoint_hashes(db, expired_hashes)
+        chunk_accepted, chunk_failed = await send_batch_chunk(
+            db,
+            provider,
+            batch,
+            payload,
+            DeliveryBatchConfig(
+                max_retries=cfg.max_retries,
+                scheduled_log_id=scheduled_log_id,
+            ),
+        )
+        accepted += chunk_accepted
+        failed += chunk_failed
 
         # 배치 간 딜레이 (레이트리밋 준수)
         if i + cfg.batch_size < len(subs_list):
             await asyncio.sleep(cfg.batch_delay_seconds)
 
+    if scheduled_log_id is not None:
+        counts = await scheduled_repo.get_delivery_counts(
+            db, scheduled_log_id=scheduled_log_id
+        )
+        return SendResult(accepted=counts.accepted, failed=counts.failed)
     return SendResult(accepted=accepted, failed=failed)
-
-
-async def _send_with_retry(
-    provider: PushProvider,
-    sub: PushSubscription,
-    payload: dict[str, str],
-    *,
-    max_retries: int = 3,
-) -> tuple[bool, int | None]:
-    """지수 백오프로 재시도."""
-    status: int | None = None
-    for attempt in range(max_retries + 1):
-        ok, status = await provider.send_async(sub, payload)
-
-        if ok or status in (400, 404, 410):
-            # 성공 또는 복구 불가능한 에러
-            return ok, status
-
-        if attempt < max_retries:
-            delay = (2**attempt) * 0.5  # 0.5s, 1s, 2s
-            await asyncio.sleep(delay)
-
-    return False, status
 
 
 async def create_notification_log(
@@ -223,6 +196,7 @@ async def create_notification_log(
                 "accepted_count": 0,
                 "failed_count": 0,
                 "sent_at": None,
+                "updated_at": func.now(),
             },
             where=(ScheduledNotificationLog.status == "failed"),
         )
@@ -254,7 +228,30 @@ async def update_notification_log(
         setattr(log, "failed_count", failed_count)
         if status == "completed":
             setattr(log, "sent_at", func.now())
+        setattr(log, "updated_at", func.now())
         await db.commit()
+
+
+async def _finalize_failed_notification(
+    db: AsyncSession,
+    *,
+    log_id: int,
+    fallback_failed: int,
+) -> scheduled_repo.DeliveryCounts:
+    """실패 세션을 rollback한 뒤 예약 로그를 실패로 마감한다."""
+    await db.rollback()
+    try:
+        return await scheduled_repo.mark_log_failed(
+            db,
+            log_id=log_id,
+            fallback_failed=fallback_failed,
+        )
+    except SQLAlchemyError:
+        # 원래 예외를 가리지 않으면서, 다음 스케줄 실행의 stale 회수에
+        # 맡길 수 있도록 세션을 다시 깨끗한 상태로 돌린다.
+        await db.rollback()
+        logger.exception("예약 발송 실패 로그 마감도 실패: log_id=%s", log_id)
+        return scheduled_repo.DeliveryCounts(accepted=0, failed=max(fallback_failed, 0))
 
 
 async def list_scheduled_logs(
@@ -291,6 +288,16 @@ async def process_single_event(
 ) -> ProcessResult:
     """단일 이벤트 알림 처리 (스케줄러/수동 트리거 공용)."""
     event_id = cast(int, event.id)
+    event_title = cast(str, event.title)
+    raw_location = cast("str | None", event.location)
+    event_location = raw_location if raw_location else ""
+
+    await scheduled_repo.reclaim_stale_log(
+        db,
+        event_id=event_id,
+        d_type=d_type,
+        cutoff=datetime.now(UTC) - SCHEDULED_LOG_STALE_AFTER,
+    )
 
     # 중복 발송 확인
     if await is_already_sent(db, event_id=event_id, d_type=d_type):
@@ -300,7 +307,7 @@ async def process_single_event(
         )
 
     # 발송 로그 생성 (in_progress 상태)
-    # ON CONFLICT DO NOTHING으로 동시 삽입 시 None 반환 (다른 워커가 처리 중)
+    # 신규 삽입 또는 failed stale 행 회수. pending/in_progress 충돌은 None이다.
     log = await create_notification_log(
         db,
         event_id=event_id,
@@ -313,34 +320,44 @@ async def process_single_event(
             event_id=event_id, d_type=d_type, skipped=True, accepted=0, failed=0
         )
     log_id = cast(int, log.id)
-    await update_notification_log(db, log_id, status="in_progress")
+    subs: Sequence[PushSubscription] = []
 
-    # 대상 구독자 조회
-    subs = await get_eligible_subscriptions(db, topic="event")
-
-    if not subs:
-        logger.info(f"발송 대상 없음: event_id={event_id}")
-        await update_notification_log(db, log_id, status="completed")
-        return ProcessResult(
-            event_id=event_id, d_type=d_type, skipped=False, accepted=0, failed=0
-        )
-
-    # 알림 페이로드 생성
-    days_label = "3일" if d_type == "d-3" else "1일"
-    event_title = cast(str, event.title)
-    raw_location = cast("str | None", event.location)
-    event_location = raw_location if raw_location else ""
-    payload = {
-        "title": f"[행사 알림] {event_title}",
-        "body": f"{days_label} 후 행사가 있습니다. {event_location}",
-        "url": f"/events/{event_id}",
-    }
-
-    # 배치 발송 — 예외 시 failed로 마감해 in_progress 고착·재시도 불가 방지
     try:
+        await update_notification_log(db, log_id, status="in_progress")
+
+        # 대상 구독자 조회
+        subs = await get_eligible_subscriptions(db, topic="event")
+
+        if not subs:
+            logger.info(f"발송 대상 없음: event_id={event_id}")
+            await update_notification_log(db, log_id, status="completed")
+            return ProcessResult(
+                event_id=event_id, d_type=d_type, skipped=False, accepted=0, failed=0
+            )
+
+        # 알림 페이로드 생성
+        days_label = "3일" if d_type == "d-3" else "1일"
+        payload = {
+            "title": f"[행사 알림] {event_title}",
+            "body": f"{days_label} 후 행사가 있습니다. {event_location}",
+            "url": f"/events/{event_id}",
+        }
+
+        # 예약 delivery claim은 외부 호출 전에 영속화된다. DB/provider 예외가
+        # 나도 아래 실패 마감 경로에서 in_progress를 unknown으로 고정한다.
         result = await send_batch_notifications(
-            db, provider, subscriptions=subs, payload=payload
+            db,
+            provider,
+            subscriptions=subs,
+            payload=payload,
+            config=BatchConfig(scheduled_log_id=log_id),
         )
+    except asyncio.CancelledError:
+        logger.exception("예약 발송 실패: event_id=%s, d_type=%s", event_id, d_type)
+        await asyncio.shield(
+            _finalize_failed_notification(db, log_id=log_id, fallback_failed=len(subs))
+        )
+        raise
     except (
         RuntimeError,
         TypeError,
@@ -349,34 +366,29 @@ async def process_single_event(
         RequestException,
         SQLAlchemyError,
     ):
-        logger.exception(
-            "예약 발송 실패: event_id=%s, d_type=%s", event_id, d_type
-        )
-        await update_notification_log(
-            db,
-            log_id,
-            status="failed",
-            accepted_count=0,
-            failed_count=len(subs),
+        logger.exception("예약 발송 실패: event_id=%s, d_type=%s", event_id, d_type)
+        counts = await _finalize_failed_notification(
+            db, log_id=log_id, fallback_failed=len(subs)
         )
         return ProcessResult(
             event_id=event_id,
             d_type=d_type,
             skipped=False,
-            accepted=0,
-            failed=len(subs),
+            accepted=counts.accepted,
+            failed=counts.failed,
         )
 
+    final_status = "failed" if result.failed else "completed"
     await update_notification_log(
         db,
         log_id,
-        status="completed",
+        status=final_status,
         accepted_count=result.accepted,
         failed_count=result.failed,
     )
 
     logger.info(
-        f"발송 완료: event_id={event_id}, d_type={d_type}, "
+        f"발송 종료: event_id={event_id}, d_type={d_type}, status={final_status}, "
         f"accepted={result.accepted}, failed={result.failed}"
     )
 

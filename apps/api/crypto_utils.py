@@ -28,13 +28,12 @@ class CryptoConfig:
 def decode_push_kek(raw: str) -> bytes:
     """PUSH_KEK base64 → AES 키 바이트. 형식이 틀리면 ValueError."""
     try:
-        key = base64.b64decode((raw or "").strip())
+        key = base64.b64decode((raw or "").strip(), validate=True)
     except (binascii.Error, ValueError) as exc:
         raise ValueError("PUSH_KEK must be valid base64") from exc
     if len(key) not in _AES_KEY_LENS:
         raise ValueError(
-            "PUSH_KEK decoded length must be 16, 24, or 32 bytes "
-            f"(got {len(key)})"
+            f"PUSH_KEK decoded length must be 16, 24, or 32 bytes (got {len(key)})"
         )
     return key
 

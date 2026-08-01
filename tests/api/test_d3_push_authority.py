@@ -10,6 +10,7 @@ import bcrypt
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api import models
@@ -21,6 +22,7 @@ from apps.api.repositories import notifications as subs_repo
 from apps.api.repositories import send_logs as logs_repo
 from apps.api.routers import notifications as router_mod
 from apps.api.services import notifications_service as notif_svc
+from apps.api.services import scheduled_delivery_service as delivery_svc
 from apps.api.services import scheduled_notifications_service as sched
 from apps.api.services.notifications_service import PushProvider
 
@@ -84,6 +86,40 @@ def _login_member(
         json={"student_id": student_id, "password": password},
     )
     assert response.status_code == HTTPStatus.OK
+
+
+class _PartialBoomProvider(PushProvider):
+    def __init__(self) -> None:
+        self.calls: list[str] = []
+
+    def send(
+        self, sub: models.PushSubscription, payload: dict[str, object]
+    ) -> tuple[bool, int | None]:
+        self.calls.append(str(sub.endpoint_hash))
+        if len(self.calls) == 1:
+            return (True, 201)
+        raise RuntimeError("provider stopped after first send")
+
+    async def send_async(
+        self, sub: models.PushSubscription, payload: dict[str, object]
+    ) -> tuple[bool, int | None]:
+        return self.send(sub, payload)
+
+
+class _NoCallProvider(PushProvider):
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def send(
+        self, sub: models.PushSubscription, payload: dict[str, object]
+    ) -> tuple[bool, int | None]:
+        self.calls += 1
+        return (True, 201)
+
+    async def send_async(
+        self, sub: models.PushSubscription, payload: dict[str, object]
+    ) -> tuple[bool, int | None]:
+        return self.send(sub, payload)
 
 
 def test_subscription_ownership_upsert_and_delete(client: TestClient) -> None:
@@ -232,9 +268,7 @@ def test_stats_aggregate_matches_list_counts(admin_login: TestClient) -> None:
             if int(r.ok) == 0 and r.status_code == int(HTTPStatus.NOT_FOUND)
         )
         f410 = sum(
-            1
-            for r in logs
-            if int(r.ok) == 0 and r.status_code == int(HTTPStatus.GONE)
+            1 for r in logs if int(r.ok) == 0 and r.status_code == int(HTTPStatus.GONE)
         )
         assert agg.accepted == accepted
         assert agg.failed == failed
@@ -463,14 +497,15 @@ def test_process_single_event_marks_failed_on_batch_exception(
     async def _run(session: AsyncSession) -> None:
         event = await session.get(models.Event, event_holder["id"])
         assert event is not None
-        result = await sched.process_single_event(
-            session, _Boom(), event, "d-3"
-        )
+        result = await sched.process_single_event(session, _Boom(), event, "d-3")
         assert result.skipped is False
         assert result.failed >= 1
-        assert await sched.is_already_sent(
-            session, event_id=event_holder["id"], d_type="d-3"
-        ) is False
+        assert (
+            await sched.is_already_sent(
+                session, event_id=event_holder["id"], d_type="d-3"
+            )
+            is False
+        )
         logs = await sched.list_scheduled_logs(session, limit=10)
         match = [
             log
@@ -516,5 +551,273 @@ def test_upsert_same_actor_idempotent_other_forbidden(client: TestClient) -> Non
                 {"endpoint": endpoint, "p256dh": "p3", "auth": "a3"},
                 actor_member_id=other_id,
             )
+
+    _run_in_test_session(_run)
+
+
+@pytest.mark.parametrize("stale_status", ["pending", "in_progress"])
+def test_stale_scheduled_log_is_reclaimed(
+    client: TestClient, stale_status: str
+) -> None:
+    event_holder = {"id": 0}
+
+    async def _seed(session: AsyncSession) -> None:
+        starts = datetime.now(tz=UTC) + timedelta(days=3)
+        event = models.Event(
+            title=f"stale-{stale_status}",
+            starts_at=starts,
+            ends_at=starts + timedelta(hours=2),
+            location="Seoul",
+            capacity=10,
+        )
+        session.add(event)
+        await session.commit()
+        await session.refresh(event)
+        event_holder["id"] = int(event.id)
+
+    _run_in_test_session(_seed)
+
+    async def _create_stale(session: AsyncSession) -> None:
+        log = await sched.create_notification_log(
+            session,
+            event_id=event_holder["id"],
+            d_type="d-3",
+            scheduled_at=datetime.now(tz=UTC),
+        )
+        assert log is not None
+        setattr(log, "status", stale_status)
+        setattr(
+            log,
+            "updated_at",
+            datetime.now(tz=UTC)
+            - sched.SCHEDULED_LOG_STALE_AFTER
+            - timedelta(minutes=1),
+        )
+        await session.commit()
+
+    _run_in_test_session(_create_stale)
+
+    class _Noop(PushProvider):
+        def send(
+            self, sub: models.PushSubscription, payload: dict[str, object]
+        ) -> tuple[bool, int | None]:
+            return (True, 201)
+
+        async def send_async(
+            self, sub: models.PushSubscription, payload: dict[str, object]
+        ) -> tuple[bool, int | None]:
+            return self.send(sub, payload)
+
+    async def _run(session: AsyncSession) -> None:
+        event = await session.get(models.Event, event_holder["id"])
+        assert event is not None
+        result = await sched.process_single_event(session, _Noop(), event, "d-3")
+        assert result.skipped is False
+        logs = await sched.list_scheduled_logs(session, limit=10)
+        match = [
+            log
+            for log in logs
+            if int(log.event_id) == event_holder["id"] and str(log.d_type) == "d-3"
+        ]
+        assert match
+        assert str(match[0].status) == "completed"
+
+    _run_in_test_session(_run)
+
+
+def test_scheduled_trigger_entrypoint_persists_delivery_state(
+    admin_login: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    owner_id = _seed_member(student_id="d3-trigger-owner")
+    target_date = datetime.now(tz=sched.KST).date()
+    event_holder = {"id": 0}
+
+    async def _seed(session: AsyncSession) -> None:
+        starts = datetime.combine(
+            target_date + timedelta(days=3),
+            datetime.min.time(),
+            tzinfo=sched.KST,
+        ) + timedelta(hours=10)
+        event = models.Event(
+            title="scheduled-entrypoint",
+            starts_at=starts,
+            ends_at=starts + timedelta(hours=2),
+            location="Seoul",
+            capacity=10,
+        )
+        session.add(event)
+        await session.commit()
+        await session.refresh(event)
+        event_holder["id"] = int(event.id)
+        await subs_repo.upsert_subscription(
+            session,
+            {
+                "endpoint": "https://example.com/push/trigger-entrypoint",
+                "p256dh": "p",
+                "auth": "a",
+            },
+            actor_member_id=owner_id,
+        )
+
+    _run_in_test_session(_seed)
+
+    provider = _NoCallProvider()
+    app.dependency_overrides[router_mod.get_push_provider] = lambda: provider
+    try:
+        response = admin_login.post(
+            "/notifications/admin/notifications/trigger-scheduled",
+            json={"target_date": target_date.isoformat()},
+        )
+        assert response.status_code == HTTPStatus.ACCEPTED
+        body = response.json()
+        assert body["processed"] == 1
+        assert body["accepted"] == 1
+        assert body["failed"] == 0
+        assert provider.calls == 1
+    finally:
+        app.dependency_overrides.pop(router_mod.get_push_provider, None)
+
+    async def _verify(session: AsyncSession) -> None:
+        result = await session.execute(
+            select(models.ScheduledNotificationDelivery)
+            .join(
+                models.ScheduledNotificationLog,
+                models.ScheduledNotificationDelivery.scheduled_log_id
+                == models.ScheduledNotificationLog.id,
+            )
+            .where(models.ScheduledNotificationLog.event_id == event_holder["id"])
+        )
+        deliveries = result.scalars().all()
+        assert len(deliveries) == 1
+        assert str(deliveries[0].status) == "completed"
+
+    _run_in_test_session(_verify)
+
+
+def test_scheduled_retry_does_not_resend_uncertain_delivery(
+    client: TestClient,
+) -> None:
+    owner_id = _seed_member(student_id="d3-delivery-owner")
+    event_holder = {"id": 0}
+
+    async def _seed(session: AsyncSession) -> None:
+        starts = datetime.now(tz=UTC) + timedelta(days=3)
+        event = models.Event(
+            title="delivery-idempotency",
+            starts_at=starts,
+            ends_at=starts + timedelta(hours=2),
+            location="Seoul",
+            capacity=10,
+        )
+        session.add(event)
+        await session.commit()
+        await session.refresh(event)
+        event_holder["id"] = int(event.id)
+        for suffix in ("first", "second"):
+            await subs_repo.upsert_subscription(
+                session,
+                {
+                    "endpoint": f"https://example.com/push/{suffix}",
+                    "p256dh": "p",
+                    "auth": "a",
+                },
+                actor_member_id=owner_id,
+            )
+
+    _run_in_test_session(_seed)
+
+    first_provider = _PartialBoomProvider()
+
+    async def _first_attempt(session: AsyncSession) -> None:
+        event = await session.get(models.Event, event_holder["id"])
+        assert event is not None
+        result = await sched.process_single_event(session, first_provider, event, "d-3")
+        assert result.skipped is False
+        assert result.failed == 2
+        assert len(first_provider.calls) == 2
+
+    _run_in_test_session(_first_attempt)
+
+    retry_provider = _NoCallProvider()
+
+    async def _retry(session: AsyncSession) -> None:
+        event = await session.get(models.Event, event_holder["id"])
+        assert event is not None
+        result = await sched.process_single_event(session, retry_provider, event, "d-3")
+        assert result.skipped is False
+        assert result.failed == 2
+        assert retry_provider.calls == 0
+        delivery_result = await session.execute(
+            select(models.ScheduledNotificationDelivery).order_by(
+                models.ScheduledNotificationDelivery.id
+            )
+        )
+        deliveries = delivery_result.scalars().all()
+        assert len(deliveries) == 2
+        assert {str(row.status) for row in deliveries} == {"unknown"}
+
+    _run_in_test_session(_retry)
+
+
+def test_scheduled_db_failure_rolls_back_before_failed_readback(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    owner_id = _seed_member(student_id="d3-db-fail")
+    event_holder = {"id": 0}
+
+    async def _seed(session: AsyncSession) -> None:
+        starts = datetime.now(tz=UTC) + timedelta(days=3)
+        event = models.Event(
+            title="db-fail",
+            starts_at=starts,
+            ends_at=starts + timedelta(hours=2),
+            location="Seoul",
+            capacity=10,
+        )
+        session.add(event)
+        await session.commit()
+        await session.refresh(event)
+        event_holder["id"] = int(event.id)
+        await subs_repo.upsert_subscription(
+            session,
+            {
+                "endpoint": "https://example.com/push/db-fail",
+                "p256dh": "p",
+                "auth": "a",
+            },
+            actor_member_id=owner_id,
+        )
+
+    _run_in_test_session(_seed)
+
+    async def _raise_db_error(_db: AsyncSession, _items: Any) -> int:
+        raise SQLAlchemyError("notification log commit failed")
+
+    monkeypatch.setattr(delivery_svc.send_logs, "create_logs_batch", _raise_db_error)
+
+    class _Good(PushProvider):
+        def send(
+            self, sub: models.PushSubscription, payload: dict[str, object]
+        ) -> tuple[bool, int | None]:
+            return (True, 201)
+
+        async def send_async(
+            self, sub: models.PushSubscription, payload: dict[str, object]
+        ) -> tuple[bool, int | None]:
+            return self.send(sub, payload)
+
+    async def _run(session: AsyncSession) -> None:
+        event = await session.get(models.Event, event_holder["id"])
+        assert event is not None
+        result = await sched.process_single_event(session, _Good(), event, "d-3")
+        assert result.skipped is False
+        logs = await sched.list_scheduled_logs(session, limit=10)
+        match = [
+            log
+            for log in logs
+            if int(log.event_id) == event_holder["id"] and str(log.d_type) == "d-3"
+        ]
+        assert match
+        assert str(match[0].status) == "failed"
 
     _run_in_test_session(_run)

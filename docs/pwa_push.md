@@ -113,6 +113,8 @@ at-rest 암호화용 `PUSH_KEK`가 필요한 경우: `openssl rand -base64 32`
    - `enc:v1:` 접두 값의 복호화 실패는 예외(평문처럼 반환하지 않음). 접두 없는 값은 평문 호환.
    - stats의 `encryption_enabled`는 플래그만이 아니라 유효 KEK까지 포함한 effective 상태.
    - 기존 평문 구독의 자동 일괄 재암호화는 하지 않는다. KEK 교체는 `ops/rekey_push_kek.py` 운영 절차를 사용한다.
+   - 예약 발송은 `scheduled_notification_deliveries`에 endpoint hash별 claim/result를 저장한다. 외부 Push 호출 전에 `in_progress`를 커밋하고, 완료된 대상은 재시도에서 건너뛴다.
+   - 프로세스 중단으로 결과가 불확실한 `in_progress`는 stale 회수 시 `unknown`으로 고정해 자동 중복 발송하지 않는다. 이는 외부 Push를 롤백할 수 없는 at-most-once 복구 경계다.
 7. 발송/통계 성능: stats는 DB aggregate(`COUNT`/`FILTER`), `send_to_all`은 로그 batch insert + 만료 endpoint_hash bounded batch DELETE(커밋 수 bounded). 푸시 자체는 롤백 불가.
 
 ## 권한·UX 원칙

@@ -65,6 +65,11 @@ def test_settings_reject_encrypt_without_valid_kek(
     with pytest.raises(ValidationError):
         Settings()
 
+    valid_key_with_invalid_character = base64.b64encode(os.urandom(32)).decode() + "!"
+    monkeypatch.setenv("PUSH_KEK", valid_key_with_invalid_character)
+    with pytest.raises(ValidationError):
+        Settings()
+
     monkeypatch.setenv("PUSH_KEK", "")
     with pytest.raises(ValidationError):
         Settings()
