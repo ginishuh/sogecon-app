@@ -124,6 +124,8 @@ async def send_batch_notifications(
     subs_list = list(subscriptions)
     for i in range(0, len(subs_list), cfg.batch_size):
         batch = subs_list[i : i + cfg.batch_size]
+        log_items: list[send_logs.SendLogItem] = []
+        expired_hashes: list[str] = []
 
         for sub in batch:
             endpoint_plain = decrypt_str(cast(str, sub.endpoint))
@@ -136,11 +138,16 @@ async def send_batch_notifications(
             else:
                 failed += 1
                 if status in (404, 410):
-                    await subs_repo.remove_by_endpoint(db, endpoint=endpoint_plain)
+                    expired_hashes.append(subs_repo.hash_endpoint(endpoint_plain))
 
-            await send_logs.create_log(
-                db, endpoint=endpoint_plain, ok=ok, status_code=status
+            log_items.append(
+                send_logs.SendLogItem(
+                    endpoint=endpoint_plain, ok=ok, status_code=status
+                )
             )
+
+        await send_logs.create_logs_batch(db, log_items)
+        await subs_repo.remove_by_endpoint_hashes(db, expired_hashes)
 
         # 배치 간 딜레이 (레이트리밋 준수)
         if i + cfg.batch_size < len(subs_list):

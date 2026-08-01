@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Sequence
-from typing import TypedDict
+from typing import TypedDict, cast
 
-from sqlalchemy import select
+from sqlalchemy import CursorResult, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models
@@ -19,12 +19,24 @@ class SubscriptionData(TypedDict, total=False):
     member_id: int | None
 
 
+class SubscriptionOwnershipError(Exception):
+    """구독 행이 다른 회원 소유일 때 발생."""
+
+
 def _hash_endpoint(endpoint: str) -> str:
     return hashlib.sha256(endpoint.encode()).hexdigest()
 
 
+def hash_endpoint(endpoint: str) -> str:
+    """공개 해시 헬퍼 (배치 삭제 등)."""
+    return _hash_endpoint(endpoint)
+
+
 async def upsert_subscription(
-    db: AsyncSession, data: SubscriptionData
+    db: AsyncSession,
+    data: SubscriptionData,
+    *,
+    actor_member_id: int,
 ) -> models.PushSubscription:
     endpoint_plain = str(data.get("endpoint"))
     endpoint_hash = _hash_endpoint(endpoint_plain)
@@ -39,13 +51,12 @@ async def upsert_subscription(
     sub = result.scalars().first()
 
     if sub is None:
-        member_val = data.get("member_id")
         sub = models.PushSubscription(
             endpoint=endpoint,
             p256dh=p256dh,
             auth=auth,
             ua=(data.get("ua") if data.get("ua") is not None else None),
-            member_id=(int(member_val) if member_val is not None else None),
+            member_id=int(actor_member_id),
             endpoint_hash=endpoint_hash,
         )
         db.add(sub)
@@ -53,13 +64,14 @@ async def upsert_subscription(
         await db.refresh(sub)
         return sub
 
-    # update
+    owner = _as_member_id(sub.member_id)
+    if owner is not None and owner != int(actor_member_id):
+        raise SubscriptionOwnershipError()
+
     setattr(sub, "p256dh", p256dh)
     setattr(sub, "auth", auth)
     setattr(sub, "ua", (data.get("ua") if data.get("ua") is not None else None))
-    member_val2 = data.get("member_id")
-    if member_val2 is not None:
-        setattr(sub, "member_id", int(member_val2))
+    setattr(sub, "member_id", int(actor_member_id))
     setattr(sub, "endpoint", endpoint)
     setattr(sub, "endpoint_hash", endpoint_hash)
     await db.commit()
@@ -67,7 +79,17 @@ async def upsert_subscription(
     return sub
 
 
-async def delete_subscription(db: AsyncSession, *, endpoint: str) -> None:
+def _as_member_id(raw: object) -> int | None:
+    if raw is None:
+        return None
+    if isinstance(raw, int):
+        return raw
+    return int(str(raw))
+
+
+async def delete_subscription(
+    db: AsyncSession, *, endpoint: str, actor_member_id: int
+) -> None:
     h = _hash_endpoint(endpoint)
     stmt = select(models.PushSubscription).where(
         models.PushSubscription.endpoint_hash == h
@@ -76,6 +98,9 @@ async def delete_subscription(db: AsyncSession, *, endpoint: str) -> None:
     sub = result.scalars().first()
     if sub is None:
         return
+    owner = _as_member_id(sub.member_id)
+    if owner is not None and owner != int(actor_member_id):
+        raise SubscriptionOwnershipError()
     await db.delete(sub)
     await db.commit()
 
@@ -90,13 +115,37 @@ async def list_active_subscriptions(
     return result.scalars().all()
 
 
-async def remove_by_endpoint(db: AsyncSession, *, endpoint: str) -> None:
-    h = _hash_endpoint(endpoint)
-    stmt = select(models.PushSubscription).where(
-        models.PushSubscription.endpoint_hash == h
+async def count_active_subscriptions(db: AsyncSession) -> int:
+    stmt = (
+        select(func.count())
+        .select_from(models.PushSubscription)
+        .where(models.PushSubscription.revoked_at.is_(None))
     )
     result = await db.execute(stmt)
-    sub = result.scalars().first()
-    if sub:
-        await db.delete(sub)
+    return int(result.scalar() or 0)
+
+
+async def remove_by_endpoint(db: AsyncSession, *, endpoint: str) -> None:
+    """시스템(404/410) 정리용 — 소유권 검사 없음."""
+    h = _hash_endpoint(endpoint)
+    await remove_by_endpoint_hashes(db, [h])
+
+
+async def remove_by_endpoint_hashes(
+    db: AsyncSession, hashes: Sequence[str], *, batch_size: int = 100
+) -> int:
+    """endpoint_hash 목록으로 구독 행을 bounded batch DELETE."""
+    cleaned = [h for h in hashes if h]
+    if not cleaned:
+        return 0
+    total = 0
+    for i in range(0, len(cleaned), batch_size):
+        chunk = list(cleaned[i : i + batch_size])
+        stmt = delete(models.PushSubscription).where(
+            models.PushSubscription.endpoint_hash.in_(chunk)
+        )
+        result = await db.execute(stmt)
+        cursor = cast(CursorResult[object], result)
+        total += int(cursor.rowcount or 0)
         await db.commit()
+    return total

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
-from http import HTTPStatus
 from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -10,6 +9,7 @@ from slowapi import Limiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.config import get_settings
+from apps.api.crypto_utils import is_push_encryption_effective
 from apps.api.db import get_db
 from apps.api.ratelimit import consume_limit, get_client_ip_for_rate_limit
 from apps.api.repositories import notifications as subs_repo
@@ -65,8 +65,9 @@ async def save_subscription(
             "p256dh": payload.p256dh,
             "auth": payload.auth,
             "ua": payload.ua,
-            "member_id": _member.id,
+            "member_id": cast(int, _member.id),
         },
+        actor_member_id=cast(int, _member.id),
     )
 
 
@@ -87,7 +88,9 @@ async def delete_subscription(
         request,
         settings.rate_limit_subscribe,
     )
-    await notif_svc.delete_subscription(db, endpoint=str(payload.endpoint))
+    await notif_svc.delete_subscription(
+        db, endpoint=str(payload.endpoint), actor_member_id=cast(int, _member.id)
+    )
 
 
 class SendPushPayload(BaseModel):
@@ -181,34 +184,19 @@ async def get_stats(
     )
     cutoff = datetime.now(UTC_TZ) - delta
 
-    subs = await subs_repo.list_active_subscriptions(db)
-    logs = await logs_repo.list_since(db, cutoff=cutoff)
-    accepted = 0
-    failed = 0
-    f404 = 0
-    f410 = 0
-    for rlog in logs:
-        ok_v = int(cast(int, getattr(rlog, "ok", 0)))
-        sc = cast(int | None, getattr(rlog, "status_code", None))
-        if ok_v != 0:
-            accepted += 1
-        else:
-            failed += 1
-            if sc == int(HTTPStatus.NOT_FOUND):
-                f404 += 1
-            elif sc == int(HTTPStatus.GONE):
-                f410 += 1
-    fother = failed - (f404 + f410)
+    active = await subs_repo.count_active_subscriptions(db)
+    agg = await logs_repo.aggregate_since(db, cutoff=cutoff)
     settings = get_settings()
+
     return NotificationStats(
-        active_subscriptions=len(subs),
-        recent_accepted=accepted,
-        recent_failed=failed,
-        encryption_enabled=bool(settings.push_encrypt_at_rest),
+        active_subscriptions=active,
+        recent_accepted=agg.accepted,
+        recent_failed=agg.failed,
+        encryption_enabled=is_push_encryption_effective(settings),
         range=r,
-        failed_404=f404,
-        failed_410=f410,
-        failed_other=fother,
+        failed_404=agg.failed_404,
+        failed_410=agg.failed_410,
+        failed_other=agg.failed_other,
     )
 
 
