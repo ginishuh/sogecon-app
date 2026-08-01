@@ -232,6 +232,29 @@ const server = createServer(async (request, response) => {
     sendJson(response, 200, heroSlides(url.searchParams.get('include_unpublished') === 'true'), origin);
     return;
   }
+  if (method === 'GET' && url.pathname === '/admin/posts/') {
+    sendJson(response, 200, {
+      items: [{
+        id: 42,
+        title: 'E2E 관리자 초안',
+        content: 'E2E 관리자 preview 본문',
+        category: 'notice',
+        published_at: null,
+        pinned: false,
+        cover_image: null,
+        images: null,
+        view_count: 0,
+        author_name: 'Admin',
+        comment_count: 0,
+      }],
+      total: 1,
+    }, origin);
+    return;
+  }
+  if (method === 'POST' && url.pathname === '/admin/hero/lookup') {
+    sendJson(response, 200, { items: [] }, origin);
+    return;
+  }
   if (method === 'GET' && url.pathname === '/admin/posts/42/preview') {
     sendJson(response, 200, {
       id: 42,

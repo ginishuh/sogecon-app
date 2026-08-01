@@ -16,6 +16,7 @@ from ..errors import ApiError
 from ..ratelimit import get_client_ip_for_rate_limit, should_skip_rate_limit
 from ..repositories import posts as posts_repo
 from ..services import posts_service
+from ..services.auth_service import is_admin
 from .auth import require_admin, require_member
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -137,12 +138,15 @@ async def list_posts(
 
 @router.get("/{post_id}", response_model=schemas.PostRead)
 async def get_post(
+    request: Request,
     post_id: int,
     db: AsyncSession = Depends(get_db),
 ) -> schemas.PostRead:
     post = await posts_service.get_public_post(db, post_id)
-    await posts_repo.increment_view_count(db, post_id)
-    await db.refresh(post)
+    # 관리자 확인은 사용자 조회수 통계를 왜곡하지 않도록 집계하지 않는다.
+    if not await is_admin(db, request):
+        await posts_repo.increment_view_count(db, post_id)
+        await db.refresh(post)
     post_read = schemas.PostRead.model_validate(post)
     post_read.author_name = post.author.name if post.author else None
     post_read.comment_count = await posts_repo.get_comment_count(db, cast(int, post.id))

@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAuth } from '../../hooks/useAuth';
 import { getAdminHeroTargetHref } from '../../lib/post-links';
-import { isAdminSession } from '../../lib/rbac';
+import { hasPermissionSession } from '../../lib/rbac';
 import { listHeroSlides, type HeroSlide } from '../../services/hero';
 import { HeroSkeleton } from '../ui/skeleton';
 
@@ -30,7 +30,10 @@ function truncateAtWordBoundary(text: string, maxLength: number): string {
   return lastSpace === -1 ? truncated : truncated.substring(0, lastSpace);
 }
 
-function buildSlides(data: HeroSlide[], opts: { max: number; isAdmin: boolean }): Slide[] {
+function buildSlides(
+  data: HeroSlide[],
+  opts: { max: number; canPreviewUnpublished: boolean },
+): Slide[] {
   const slides = data.slice(0, opts.max).map((slide) => ({
     id: `hero-${slide.id}`,
     image: slide.image || FALLBACK_HERO_IMAGE,
@@ -39,7 +42,7 @@ function buildSlides(data: HeroSlide[], opts: { max: number; isAdmin: boolean })
       ? truncateAtWordBoundary(slide.description, 100)
       : '전문성과 경험을 나누는 따뜻한 커뮤니티',
     href:
-      opts.isAdmin && slide.unpublished
+      opts.canPreviewUnpublished && slide.unpublished
         ? getAdminHeroTargetHref(slide.target_type, slide.target_id)
         : slide.href,
     unpublished: !!slide.unpublished,
@@ -87,15 +90,18 @@ function HeroTitle({ title }: { title: string }) {
 
 export default function HomeHeroCarousel() {
   const auth = useAuth();
-  const isAdmin = auth.status === 'authorized' && isAdminSession(auth.data);
+  const canPreviewUnpublished =
+    auth.status === 'authorized'
+    && (hasPermissionSession(auth.data, 'admin_posts')
+      || hasPermissionSession(auth.data, 'admin_hero'));
   const query = useQuery<HeroSlide[]>({
-    queryKey: ['hero', 'slides', 8, isAdmin],
-    queryFn: () => listHeroSlides({ limit: 8, include_unpublished: !!isAdmin }),
+    queryKey: ['hero', 'slides', 8, canPreviewUnpublished],
+    queryFn: () => listHeroSlides({ limit: 8, include_unpublished: canPreviewUnpublished }),
     retry: false,
   });
   const slides = useMemo(
-    () => buildSlides(query.data ?? [], { max: 5, isAdmin }),
-    [query.data, isAdmin],
+    () => buildSlides(query.data ?? [], { max: 5, canPreviewUnpublished }),
+    [query.data, canPreviewUnpublished],
   );
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
@@ -197,7 +203,7 @@ export default function HomeHeroCarousel() {
                 SOGANG ECONOMICS ALUMNI
               </p>
               <HeroTitle title={slide.title} />
-              {slide.unpublished && isAdmin ? (
+              {slide.unpublished && canPreviewUnpublished ? (
                 <span className="mt-3 w-fit rounded-md bg-state-warning px-2 py-1 text-caption font-semibold text-black">
                   관리자 미리보기
                 </span>

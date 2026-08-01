@@ -61,6 +61,35 @@ describe('Admin post preview (CDP E2E)', () => {
     expect(await page.$('a[href="/admin/posts/42/edit"]')).toBeNull();
   });
 
+  it('관리자 목록에서 draft 수정 화면까지 실제 클릭으로 진입해 본문을 읽는다', async () => {
+    if (!page) throw new Error('Puppeteer page not initialized');
+    await configureMockServer('admin');
+    if (!process.env.E2E_MOCK_API_CONTROL_URL) {
+      setLocalMockSession('admin');
+      await setupDirectoryMocks(page);
+    }
+
+    await page.goto(`${WEB_BASE_URL}/admin/posts`, { waitUntil: 'networkidle0' });
+    const editLink = 'a[href="/admin/posts/42/edit"]';
+    await page.waitForSelector(editLink);
+    await page.click(editLink);
+    await page.waitForFunction(() => window.location.pathname === '/admin/posts/42/edit');
+    await page.waitForSelector('input[placeholder="글 제목을 입력하세요"]');
+
+    expect(
+      await page.$eval(
+        'input[placeholder="글 제목을 입력하세요"]',
+        (input) => (input as HTMLInputElement).value,
+      ),
+    ).toBe('E2E 관리자 초안');
+    expect(
+      await page.$eval(
+        'textarea[placeholder="내용을 입력하세요"]',
+        (textarea) => (textarea as HTMLTextAreaElement).value,
+      ),
+    ).toBe('E2E 관리자 preview 본문');
+  });
+
   it('익명 사용자는 같은 draft의 공개 상세에서 404를 받는다', async () => {
     if (!browser) throw new Error('Puppeteer browser not initialized');
     await configureMockServer('anonymous');

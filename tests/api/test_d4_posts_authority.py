@@ -115,6 +115,33 @@ def test_create_ignores_client_view_count(admin_login: TestClient) -> None:
     assert res.json()["view_count"] == 0
 
 
+def test_admin_public_detail_does_not_increment_view_count(
+    admin_login: TestClient,
+) -> None:
+    published_at = (datetime.now(tz=UTC) - timedelta(hours=1)).isoformat()
+    created = admin_login.post(
+        "/posts/",
+        json={
+            "title": "관리자 조회수 제외",
+            "content": "관리자 상세 확인",
+            "category": "notice",
+            "published_at": published_at,
+        },
+    )
+    assert created.status_code == HTTPStatus.CREATED
+    post_id = created.json()["id"]
+
+    admin_detail = admin_login.get(f"/posts/{post_id}")
+    assert admin_detail.status_code == HTTPStatus.OK
+    assert admin_detail.json()["view_count"] == 0
+
+    # 동일한 공개 상세를 익명 사용자가 열면 조회수는 정상 증가한다.
+    admin_login.cookies.clear()
+    public_detail = admin_login.get(f"/posts/{post_id}")
+    assert public_detail.status_code == HTTPStatus.OK
+    assert public_detail.json()["view_count"] == 1
+
+
 def test_public_search_q_with_literal_wildcards(admin_login: TestClient) -> None:
     past = (datetime.now(tz=UTC) - timedelta(hours=1)).isoformat()
     target = admin_login.post(

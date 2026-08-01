@@ -18,7 +18,7 @@ import { isBoardCategory } from '../../../../../lib/community';
 import { buildPostUpdatePayload } from '../../../../../lib/post-edit';
 import { adminPostKeys, postKeys } from '../../../../../lib/query-keys';
 import { hasPermissionSession } from '../../../../../lib/rbac';
-import { getPost, updatePost } from '../../../../../services/posts';
+import { getAdminPostPreview, updatePost } from '../../../../../services/posts';
 
 function canLoadPost(canManagePosts: boolean, postId: number) {
   return canManagePosts && !Number.isNaN(postId);
@@ -44,7 +44,7 @@ export default function EditPostPage() {
 
   const { data: post, isLoading, isError } = useQuery({
     queryKey: postKeys.detail(postId),
-    queryFn: () => getPost(postId),
+    queryFn: () => getAdminPostPreview(postId),
     enabled: canLoadPost(canManagePosts, postId),
   });
 

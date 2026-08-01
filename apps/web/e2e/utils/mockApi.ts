@@ -150,6 +150,43 @@ async function respondAdminPostPreviewApi(request: HTTPRequest, url: URL): Promi
   return true;
 }
 
+async function respondAdminPostsApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  if (request.method() !== 'GET' || url.pathname !== '/admin/posts/') return false;
+  await request.respond({
+    status: 200,
+    contentType: 'application/json',
+    headers: corsHeaders,
+    body: JSON.stringify({
+      items: [{
+        id: 42,
+        title: 'E2E 관리자 초안',
+        content: 'E2E 관리자 preview 본문',
+        category: 'notice',
+        published_at: null,
+        pinned: false,
+        cover_image: null,
+        images: null,
+        view_count: 0,
+        author_name: 'Admin',
+        comment_count: 0,
+      }],
+      total: 1,
+    }),
+  });
+  return true;
+}
+
+async function respondAdminHeroLookupApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  if (request.method() !== 'POST' || url.pathname !== '/admin/hero/lookup') return false;
+  await request.respond({
+    status: 200,
+    contentType: 'application/json',
+    headers: corsHeaders,
+    body: JSON.stringify({ items: [] }),
+  });
+  return true;
+}
+
 async function respondDirectoryApi(request: HTTPRequest, url: URL): Promise<boolean> {
   const method = request.method();
   const path = url.pathname;
@@ -208,6 +245,8 @@ export async function setupDirectoryMocks(page: Page): Promise<void> {
     try {
       const url = new URL(request.url());
       if (await respondHeroApi(request, url)) return;
+      if (await respondAdminPostsApi(request, url)) return;
+      if (await respondAdminHeroLookupApi(request, url)) return;
       if (await respondAdminPostPreviewApi(request, url)) return;
       if (await respondAnonymousSessionApi(request, url)) return;
       if (await respondDirectoryApi(request, url)) return;
