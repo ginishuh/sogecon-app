@@ -5,7 +5,7 @@
 """
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from http import HTTPStatus
@@ -171,12 +171,26 @@ def require_permission(
     *,
     allow_admin_fallback: bool = True,
 ) -> Callable[..., Awaitable[CurrentUser]]:
+    return require_any_permission(
+        (permission,), allow_admin_fallback=allow_admin_fallback
+    )
+
+
+def require_any_permission(
+    permissions: Sequence[str],
+    *,
+    allow_admin_fallback: bool = True,
+) -> Callable[..., Awaitable[CurrentUser]]:
     """기능권한 의존성 팩토리.
 
     - `super_admin`은 항상 통과.
-    - roles에 해당 permission이 있으면 통과.
+    - roles에 지정된 permission 중 하나가 있으면 통과.
     - `allow_admin_fallback=True`이면 기존 `admin` 등급도 임시 통과.
     """
+
+    required_permissions = tuple(permissions)
+    if not required_permissions:
+        raise ValueError("at least one permission is required")
 
     async def _dependency(
         req: Request,
@@ -185,10 +199,13 @@ def require_permission(
         user = _get_user_session(req)
         if user is not None:
             user, _member = await _refresh_user_session(db, req, user)
-            if has_permission(
-                user.roles,
-                permission,
-                allow_admin_fallback=allow_admin_fallback,
+            if any(
+                has_permission(
+                    user.roles,
+                    permission,
+                    allow_admin_fallback=allow_admin_fallback,
+                )
+                for permission in required_permissions
             ):
                 return user
             raise HTTPException(status_code=403, detail="admin_permission_required")

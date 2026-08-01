@@ -19,8 +19,20 @@ export function getAdminHeroTargetHref(
     : `/events/${targetId}`;
 }
 
-export function getPostDetailHref(post: PostLinkInfo): PostDetailHref {
+export function isPublishedPostAt(
+  publishedAt: string | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!publishedAt) return false;
+  const timestamp = Date.parse(publishedAt);
+  return Number.isFinite(timestamp) && timestamp <= now.getTime();
+}
+
+export function getPostDetailHref(
+  post: PostLinkInfo,
+  now: Date = new Date(),
+): PostDetailHref {
   if (isBoardCategory(post.category)) return `/board/${post.id}`;
-  if (post.published_at) return `/posts/${post.id}`;
+  if (isPublishedPostAt(post.published_at, now)) return `/posts/${post.id}`;
   return getAdminPostPreviewHref(post.id);
 }

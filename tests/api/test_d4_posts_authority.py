@@ -47,10 +47,12 @@ def test_public_hides_notice_draft_and_future(admin_login: TestClient) -> None:
     assert scheduled.status_code == HTTPStatus.CREATED
     scheduled_id = scheduled.json()["id"]
 
-    # 관리자는 draft 상세 조회 가능
-    admin_detail = admin_login.get(f"/posts/{draft_id}")
+    # 관리자는 전용 preview API로 draft 상세 조회 가능
+    admin_detail = admin_login.get(f"/admin/posts/{draft_id}/preview")
     assert admin_detail.status_code == HTTPStatus.OK
     assert admin_detail.json()["id"] == draft_id
+    scheduled_preview = admin_login.get(f"/admin/posts/{scheduled_id}/preview")
+    assert scheduled_preview.status_code == HTTPStatus.OK
 
     admin_list = admin_login.get("/admin/posts/?status=draft&limit=50")
     assert admin_list.status_code == HTTPStatus.OK
@@ -240,9 +242,8 @@ def test_update_category_is_optional_but_non_null_when_present(
     category_attempt = admin_login.patch(
         f"/posts/{post_id}", json={"category": "notice"}
     )
-    assert category_attempt.status_code == HTTPStatus.OK
-    assert category_attempt.json()["category"] == "discussion"
-    assert category_attempt.json()["published_at"] is None
+    assert category_attempt.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert category_attempt.json()["code"] == "board_category_immutable"
 
     null_category = admin_login.patch(
         f"/posts/{post_id}", json={"category": None}
@@ -253,3 +254,24 @@ def test_update_category_is_optional_but_non_null_when_present(
         f"/posts/{post_id}", json={"category": "discusion"}
     )
     assert unknown_category.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+def test_admin_hero_can_read_preview_without_post_management(
+    admin_hero_login: TestClient,
+) -> None:
+    created = admin_hero_login.post(
+        "/posts/",
+        json={
+            "title": "hero 제한 관리자 초안",
+            "content": "preview 본문",
+            "category": "notice",
+        },
+    )
+    assert created.status_code == HTTPStatus.CREATED
+    post_id = created.json()["id"]
+
+    preview = admin_hero_login.get(f"/admin/posts/{post_id}/preview")
+    assert preview.status_code == HTTPStatus.OK
+    assert preview.json()["id"] == post_id
+    assert admin_hero_login.get("/admin/posts/").status_code == HTTPStatus.FORBIDDEN
+    assert admin_hero_login.get(f"/posts/{post_id}").status_code == HTTPStatus.NOT_FOUND

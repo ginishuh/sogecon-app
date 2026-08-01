@@ -7,6 +7,7 @@ import Link from 'next/link';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuth } from '../../hooks/useAuth';
+import { getAdminHeroTargetHref } from '../../lib/post-links';
 import { isAdminSession } from '../../lib/rbac';
 import { listHeroSlides, type HeroSlide } from '../../services/hero';
 import { HeroSkeleton } from '../ui/skeleton';
@@ -29,7 +30,7 @@ function truncateAtWordBoundary(text: string, maxLength: number): string {
   return lastSpace === -1 ? truncated : truncated.substring(0, lastSpace);
 }
 
-function buildSlides(data: HeroSlide[], opts: { max: number }): Slide[] {
+function buildSlides(data: HeroSlide[], opts: { max: number; isAdmin: boolean }): Slide[] {
   const slides = data.slice(0, opts.max).map((slide) => ({
     id: `hero-${slide.id}`,
     image: slide.image || FALLBACK_HERO_IMAGE,
@@ -37,7 +38,10 @@ function buildSlides(data: HeroSlide[], opts: { max: number }): Slide[] {
     description: slide.description
       ? truncateAtWordBoundary(slide.description, 100)
       : '전문성과 경험을 나누는 따뜻한 커뮤니티',
-    href: slide.href,
+    href:
+      opts.isAdmin && slide.unpublished
+        ? getAdminHeroTargetHref(slide.target_type, slide.target_id)
+        : slide.href,
     unpublished: !!slide.unpublished,
   }));
 
@@ -89,7 +93,10 @@ export default function HomeHeroCarousel() {
     queryFn: () => listHeroSlides({ limit: 8, include_unpublished: !!isAdmin }),
     retry: false,
   });
-  const slides = useMemo(() => buildSlides(query.data ?? [], { max: 5 }), [query.data]);
+  const slides = useMemo(
+    () => buildSlides(query.data ?? [], { max: 5, isAdmin }),
+    [query.data, isAdmin],
+  );
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);

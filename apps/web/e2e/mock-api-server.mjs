@@ -34,6 +34,16 @@ async function readJson(request) {
 }
 
 function sessionPayload() {
+  if (sessionKind === 'admin_hero') {
+    return {
+      kind: 'admin',
+      id: 1,
+      student_id: '__seed__hero__admin',
+      email: 'hero-admin@test.example.com',
+      name: 'Hero Admin',
+      roles: ['member', 'admin', 'admin_hero'],
+    };
+  }
   if (sessionKind === 'admin') {
     return {
       kind: 'admin',
@@ -95,8 +105,8 @@ function activationIssuePayload() {
   };
 }
 
-function heroSlides() {
-  return [
+function heroSlides(includeUnpublished) {
+  const slides = [
     {
       id: 1,
       target_type: 'post',
@@ -118,6 +128,19 @@ function heroSlides() {
       unpublished: false,
     },
   ];
+  if (includeUnpublished) {
+    slides.unshift({
+      id: 3,
+      target_type: 'post',
+      target_id: 42,
+      title: 'E2E 관리자 초안',
+      description: '관리자 hero preview 본문으로 이동하는지 확인',
+      image: '/images/home/hero.svg',
+      href: '/posts/42',
+      unpublished: true,
+    });
+  }
+  return slides;
 }
 
 function directoryMembers(url) {
@@ -155,7 +178,7 @@ const server = createServer(async (request, response) => {
   }
   if (method === 'POST' && url.pathname === '/__e2e/config') {
     const body = await readJson(request);
-    sessionKind = body.session === 'admin' ? 'admin' : 'member';
+    sessionKind = body.session === 'admin_hero' ? 'admin_hero' : body.session === 'admin' ? 'admin' : 'member';
     signupStatus = 'pending';
     sendJson(response, 200, { ok: true, session: sessionKind }, origin);
     return;
@@ -200,7 +223,23 @@ const server = createServer(async (request, response) => {
     return;
   }
   if (method === 'GET' && url.pathname === '/hero/') {
-    sendJson(response, 200, heroSlides(), origin);
+    sendJson(response, 200, heroSlides(url.searchParams.get('include_unpublished') === 'true'), origin);
+    return;
+  }
+  if (method === 'GET' && url.pathname === '/admin/posts/42/preview') {
+    sendJson(response, 200, {
+      id: 42,
+      title: 'E2E 관리자 초안',
+      content: 'E2E 관리자 preview 본문',
+      category: 'notice',
+      published_at: null,
+      pinned: false,
+      cover_image: null,
+      images: null,
+      view_count: 0,
+      author_name: 'Hero Admin',
+      comment_count: 0,
+    }, origin);
     return;
   }
   if (method === 'GET' && url.pathname === '/members/') {

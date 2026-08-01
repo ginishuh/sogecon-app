@@ -221,6 +221,27 @@ def admin_login(client: TestClient) -> TestClient:
 
 
 @pytest.fixture()
+def admin_hero_login(admin_login: TestClient) -> TestClient:
+    """게시물 권한 없이 hero와 게시물 preview만 가진 제한 관리자."""
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found for admin hero seeding")
+
+    async def _restrict_roles() -> None:
+        async for session in override():
+            stmt = select(models.Member).where(
+                models.Member.student_id == "__seed__admin"
+            )
+            member = (await session.execute(stmt)).scalar_one()
+            member.roles = "member,admin,admin_hero"
+            await session.commit()
+            break
+
+    asyncio.run(_restrict_roles())
+    return admin_login
+
+
+@pytest.fixture()
 def member_login(client: TestClient) -> TestClient:
     """일반 멤버 계정 시드 후 로그인한 클라이언트를 반환."""
     # 시도: 기존 세션으로 바로 로그인

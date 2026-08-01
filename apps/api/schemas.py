@@ -329,6 +329,7 @@ class PostUpdate(BaseModel):
 
     title: str | None = None
     content: str | None = None
+    # Unset -> None; null rejected; non-null annotation preserves the DTO enum.
     category: Annotated[PostCategoryLiteral, Field(default=None)]
     pinned: bool | None = None
     published_at: datetime | None = Field(

@@ -11,6 +11,7 @@ type PostDetailContentProps = {
   post: Post;
   backHref?: '/posts' | '/admin/posts';
   backLabel?: string;
+  showAdminActions?: boolean;
 };
 
 type PostHeaderProps = {
@@ -67,6 +68,7 @@ export function PostDetailContent({
   post,
   backHref = '/posts',
   backLabel = '← 목록으로 돌아가기',
+  showAdminActions = true,
 }: PostDetailContentProps) {
   return (
     <article className="mx-auto max-w-3xl space-y-6 px-4 py-6">
@@ -74,7 +76,9 @@ export function PostDetailContent({
         <Link href={backHref} className="text-sm text-text-secondary hover:underline">
           {backLabel}
         </Link>
-        <PostAdminActions postId={post.id} postTitle={post.title} />
+        {showAdminActions ? (
+          <PostAdminActions postId={post.id} postTitle={post.title} />
+        ) : null}
       </div>
 
       <PostHeader

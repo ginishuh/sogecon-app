@@ -13,7 +13,7 @@ from .. import schemas
 from ..db import get_db
 from ..repositories import posts as posts_repo
 from ..services import posts_service
-from .auth import CurrentUser, require_permission
+from .auth import CurrentUser, require_any_permission, require_permission
 
 router = APIRouter(prefix="/admin/posts", tags=["admin-posts"])
 
@@ -76,3 +76,21 @@ async def list_admin_posts(
         post_read.comment_count = comment_counts.get(cast(int, post.id), 0)
         items.append(post_read)
     return AdminPostListResponse(items=items, total=total)
+
+
+@router.get("/{post_id}/preview", response_model=schemas.PostRead)
+async def preview_admin_post(
+    post_id: int,
+    db: AsyncSession = Depends(get_db),
+    _admin: CurrentUser = Depends(
+        require_any_permission(
+            ("admin_posts", "admin_hero"), allow_admin_fallback=False
+        )
+    ),
+) -> schemas.PostRead:
+    """관리자 게시물 미리보기 (게시물 또는 hero 읽기 권한)."""
+    post = await posts_service.get_post(db, post_id)
+    post_read = schemas.PostRead.model_validate(post)
+    post_read.author_name = post.author.name if post.author else None
+    post_read.comment_count = await posts_repo.get_comment_count(db, cast(int, post.id))
+    return post_read

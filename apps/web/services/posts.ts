@@ -60,6 +60,10 @@ export async function getPost(id: number): Promise<Post> {
   return apiFetch<Post>(`/posts/${id}`);
 }
 
+export async function getAdminPostPreview(id: number): Promise<Post> {
+  return apiFetch<Post>(`/admin/posts/${id}/preview`);
+}
+
 // pinned는 서버 기본값이 있어 클라이언트에서 생략 가능
 export type CreatePostPayload =
   Omit<Schema<'PostCreate'>, 'pinned'> & {

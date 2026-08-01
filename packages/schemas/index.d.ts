@@ -749,6 +749,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/posts/{post_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview Admin Post
+         * @description 관리자 게시물 미리보기 (게시물 또는 hero 읽기 권한).
+         */
+        get: operations["preview_admin_post_admin_posts__post_id__preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/events/": {
         parameters: {
             query?: never;
@@ -3648,6 +3668,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminPostListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_admin_post_admin_posts__post_id__preview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostRead"];
                 };
             };
             /** @description Validation Error */

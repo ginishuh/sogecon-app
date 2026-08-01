@@ -2,6 +2,13 @@ import type { Page, HTTPRequest } from 'puppeteer';
 
 import { WEB_BASE_URL } from './env';
 
+type LocalMockSession = 'member' | 'admin' | 'admin_hero';
+let localMockSession: LocalMockSession = 'member';
+
+export function setLocalMockSession(session: LocalMockSession): void {
+  localMockSession = session;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': WEB_BASE_URL,
   'Access-Control-Allow-Credentials': 'true',
@@ -28,6 +35,18 @@ async function respondHeroApi(request: HTTPRequest, url: URL): Promise<boolean> 
     contentType: 'application/json',
     headers: corsHeaders,
     body: JSON.stringify([
+      ...(url.searchParams.get('include_unpublished') === 'true'
+        ? [{
+            id: 3,
+            target_type: 'post',
+            target_id: 42,
+            title: 'E2E 관리자 초안',
+            description: '관리자 hero preview 본문으로 이동하는지 확인',
+            image: '/images/home/hero.svg',
+            href: '/posts/42',
+            unpublished: true,
+          }]
+        : []),
       {
         id: 1,
         target_type: 'post',
@@ -53,6 +72,67 @@ async function respondHeroApi(request: HTTPRequest, url: URL): Promise<boolean> 
   return true;
 }
 
+function localSessionPayload(): {
+  kind: 'admin' | 'member';
+  id: number;
+  student_id: string;
+  email: string;
+  name: string;
+  roles: string[];
+} {
+  if (localMockSession === 'admin_hero') {
+    return {
+      kind: 'admin',
+      id: 1,
+      student_id: 'hero-admin001',
+      email: 'hero-admin@example.com',
+      name: 'Hero 관리자',
+      roles: ['member', 'admin', 'admin_hero'],
+    };
+  }
+  if (localMockSession === 'admin') {
+    return {
+      kind: 'admin',
+      id: 1,
+      student_id: 'admin001',
+      email: 'admin@example.com',
+      name: '관리자',
+      roles: ['member', 'admin', 'super_admin', 'admin_signup', 'admin_roles'],
+    };
+  }
+  return {
+    kind: 'member',
+    id: 1,
+    student_id: '20250001',
+    email: 'member@example.com',
+    name: '테스트 회원',
+    roles: ['member'],
+  };
+}
+
+async function respondAdminPostPreviewApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  if (request.method() !== 'GET' || url.pathname !== '/admin/posts/42/preview') return false;
+  await request.respond({
+    status: 200,
+    contentType: 'application/json',
+    headers: corsHeaders,
+    body: JSON.stringify({
+      id: 42,
+      title: 'E2E 관리자 초안',
+      content: 'E2E 관리자 preview 본문',
+      category: 'notice',
+      published_at: null,
+      pinned: false,
+      cover_image: null,
+      images: null,
+      view_count: 0,
+      author_name: 'Hero Admin',
+      comment_count: 0,
+    }),
+  });
+  return true;
+}
+
 async function respondDirectoryApi(request: HTTPRequest, url: URL): Promise<boolean> {
   const method = request.method();
   const path = url.pathname;
@@ -62,14 +142,7 @@ async function respondDirectoryApi(request: HTTPRequest, url: URL): Promise<bool
       status: 200,
       contentType: 'application/json',
       headers: corsHeaders,
-      body: JSON.stringify({
-        kind: 'member',
-        id: 1,
-        student_id: '20250001',
-        email: 'member@example.com',
-        name: '테스트 회원',
-        roles: ['member'],
-      }),
+      body: JSON.stringify(localSessionPayload()),
     });
     return true;
   }
@@ -118,6 +191,7 @@ export async function setupDirectoryMocks(page: Page): Promise<void> {
     try {
       const url = new URL(request.url());
       if (await respondHeroApi(request, url)) return;
+      if (await respondAdminPostPreviewApi(request, url)) return;
       if (await respondDirectoryApi(request, url)) return;
       await request.continue();
     } catch {

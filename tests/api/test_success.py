@@ -53,7 +53,7 @@ def test_create_post_and_get(admin_login: TestClient) -> None:
             "published_at": None,
         },
     ).json()
-    res = client.get(f"/posts/{p['id']}")
+    res = client.get(f"/admin/posts/{p['id']}/preview")
     assert res.status_code == HTTPStatus.OK
     data = res.json()
     assert data["id"] == p["id"]

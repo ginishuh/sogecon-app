@@ -5,16 +5,16 @@ import { useParams } from 'next/navigation';
 
 import { AdminAuthState } from '../../../../../components/admin-auth-state';
 import { PostDetailContent } from '../../../../../components/post-detail-content';
-import { RequirePermission } from '../../../../../components/require-permission';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { ApiError } from '../../../../../lib/api';
 import { postKeys } from '../../../../../lib/query-keys';
-import { getPost } from '../../../../../services/posts';
+import { hasPermissionSession } from '../../../../../lib/rbac';
+import { getAdminPostPreview } from '../../../../../services/posts';
 
-function PreviewBody({ postId }: { postId: number }) {
+function PreviewBody({ postId, showAdminActions }: { postId: number; showAdminActions: boolean }) {
   const query = useQuery({
     queryKey: postKeys.detail(postId),
-    queryFn: () => getPost(postId),
+    queryFn: () => getAdminPostPreview(postId),
     enabled: Number.isFinite(postId),
     retry: false,
   });
@@ -40,12 +40,13 @@ function PreviewBody({ postId }: { postId: number }) {
       post={query.data}
       backHref="/admin/posts"
       backLabel="← 게시물 관리로 돌아가기"
+      showAdminActions={showAdminActions}
     />
   );
 }
 
 export default function AdminPostPreviewPage() {
-  const { status } = useAuth();
+  const { status, data } = useAuth();
   const params = useParams<{ id: string }>();
   const postId = Number(params.id);
 
@@ -57,12 +58,11 @@ export default function AdminPostPreviewPage() {
     return <div className="p-6 text-sm text-state-error">잘못된 게시물입니다.</div>;
   }
 
-  return (
-    <RequirePermission
-      permission="admin_posts"
-      fallback={<div className="p-6 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>}
-    >
-      <PreviewBody postId={postId} />
-    </RequirePermission>
-  );
+  const canManagePosts = hasPermissionSession(data, 'admin_posts');
+  const canPreview = canManagePosts || hasPermissionSession(data, 'admin_hero');
+  if (!canPreview) {
+    return <div className="p-6 text-sm text-text-secondary">해당 화면 접근 권한이 없습니다.</div>;
+  }
+
+  return <PreviewBody postId={postId} showAdminActions={canManagePosts} />;
 }

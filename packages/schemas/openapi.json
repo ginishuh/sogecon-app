@@ -2410,6 +2410,49 @@
         }
       }
     },
+    "/admin/posts/{post_id}/preview": {
+      "get": {
+        "tags": [
+          "admin-posts"
+        ],
+        "summary": "Preview Admin Post",
+        "description": "\uad00\ub9ac\uc790 \uac8c\uc2dc\ubb3c \ubbf8\ub9ac\ubcf4\uae30 (\uac8c\uc2dc\ubb3c \ub610\ub294 hero \uc77d\uae30 \uad8c\ud55c).",
+        "operationId": "preview_admin_post_admin_posts__post_id__preview_get",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Post Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/events/": {
       "get": {
         "tags": [

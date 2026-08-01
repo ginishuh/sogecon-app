@@ -107,10 +107,15 @@ async def update_admin_post(
     """관리자가 게시물을 수정할 때 사용."""
     if "category" in payload.model_fields_set:
         current = await posts_repo.get_post(db, post_id)
-        if current.category in BOARD_POST_CATEGORIES:
-            # board 글은 관리자 전용 notice/news 폼 값으로도 공개성을 잃지 않는다.
-            update_data = payload.model_dump(exclude_unset=True, exclude={"category"})
-            payload = schemas.PostUpdate.model_validate(update_data)
+        if (
+            current.category in BOARD_POST_CATEGORIES
+            and payload.category != current.category
+        ):
+            raise ApiError(
+                code="board_category_immutable",
+                detail="board post category cannot be changed",
+                status=422,
+            )
     return await posts_repo.update_post(db, post_id, payload)
 
 
