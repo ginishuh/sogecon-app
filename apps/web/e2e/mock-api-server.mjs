@@ -15,6 +15,8 @@ let ownerPostImages = [];
 let adminBoardPostTitle = 'E2E board 공개 글';
 let adminBoardPostContent = 'published_at 없이도 공개되는 board 글';
 let adminBoardPostPinned = false;
+let adminBoardPostCoverImage = 'https://example.com/e2e-admin-cover.png';
+let adminBoardPostImages = [adminBoardPostCoverImage];
 
 function corsHeaders(origin) {
   return {
@@ -138,8 +140,8 @@ function adminBoardPostPayload() {
     category: 'discussion',
     published_at: null,
     pinned: adminBoardPostPinned,
-    cover_image: null,
-    images: null,
+    cover_image: adminBoardPostCoverImage,
+    images: adminBoardPostImages,
     view_count: 2,
     author_name: 'Member',
     comment_count: 1,
@@ -236,6 +238,8 @@ const server = createServer(async (request, response) => {
     adminBoardPostTitle = 'E2E board 공개 글';
     adminBoardPostContent = 'published_at 없이도 공개되는 board 글';
     adminBoardPostPinned = false;
+    adminBoardPostCoverImage = 'https://example.com/e2e-admin-cover.png';
+    adminBoardPostImages = [adminBoardPostCoverImage];
     sendJson(response, 200, { ok: true, session: sessionKind }, origin);
     return;
   }
@@ -379,6 +383,8 @@ const server = createServer(async (request, response) => {
     if (typeof body.title === 'string') adminBoardPostTitle = body.title;
     if (typeof body.content === 'string') adminBoardPostContent = body.content;
     if (typeof body.pinned === 'boolean') adminBoardPostPinned = body.pinned;
+    if (Object.hasOwn(body, 'cover_image')) adminBoardPostCoverImage = body.cover_image;
+    if (Object.hasOwn(body, 'images')) adminBoardPostImages = body.images;
     sendJson(response, 200, adminBoardPostPayload(), origin);
     return;
   }

@@ -139,6 +139,8 @@ describe('관리자 게시글 수정 진입점', () => {
     expect(payload).not.toHaveProperty('category');
     expect(payload).not.toHaveProperty('published_at');
     expect(payload).not.toHaveProperty('unpublish');
+    expect(payload.cover_image).toBeNull();
+    expect(payload.images).toEqual([]);
     expect(payload.pinned).toBe(true);
   });
 });

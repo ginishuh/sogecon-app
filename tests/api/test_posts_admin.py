@@ -42,6 +42,36 @@ class TestPostUpdate:
         assert body["content"] == "수정된 본문"
         assert body["pinned"] is True
 
+    def test_admin_can_clear_images_with_explicit_empty_values(
+        self, admin_login: TestClient
+    ) -> None:
+        """관리자는 명시적 null/빈 배열로 기존 이미지를 삭제할 수 있다."""
+        created = admin_login.post(
+            "/posts/",
+            json={
+                "title": "이미지 삭제 테스트",
+                "content": "본문",
+                "category": "notice",
+                "cover_image": "https://example.com/cover.png",
+                "images": ["https://example.com/cover.png"],
+            },
+        )
+        assert created.status_code == HTTPStatus.CREATED
+        post_id = created.json()["id"]
+
+        updated = admin_login.patch(
+            f"/posts/{post_id}",
+            json={"cover_image": None, "images": []},
+        )
+        assert updated.status_code == HTTPStatus.OK
+        assert updated.json()["cover_image"] is None
+        assert updated.json()["images"] == []
+
+        readback = admin_login.get(f"/admin/posts/{post_id}/preview")
+        assert readback.status_code == HTTPStatus.OK
+        assert readback.json()["cover_image"] is None
+        assert readback.json()["images"] == []
+
     def test_admin_can_unpublish_post(self, admin_login: TestClient) -> None:
         """관리자는 게시물을 비공개로 전환할 수 있다."""
         # 먼저 공개 게시물 생성

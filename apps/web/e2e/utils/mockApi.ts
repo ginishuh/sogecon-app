@@ -170,6 +170,8 @@ let localOwnerPostImages: string[] = [];
 let localAdminBoardPostTitle = 'E2E board 공개 글';
 let localAdminBoardPostContent = 'published_at 없이도 공개되는 board 글';
 let localAdminBoardPostPinned = false;
+let localAdminBoardPostCoverImage: string | null = 'https://example.com/e2e-admin-cover.png';
+let localAdminBoardPostImages: string[] = ['https://example.com/e2e-admin-cover.png'];
 
 function localOwnerPostPayload() {
   return {
@@ -196,8 +198,8 @@ function localAdminBoardPostPayload() {
     category: 'discussion',
     published_at: null,
     pinned: localAdminBoardPostPinned,
-    cover_image: null,
-    images: null,
+    cover_image: localAdminBoardPostCoverImage,
+    images: localAdminBoardPostImages,
     view_count: 2,
     author_name: 'Member',
     comment_count: 1,
@@ -213,6 +215,8 @@ function resetLocalOwnerPost(): void {
   localAdminBoardPostTitle = 'E2E board 공개 글';
   localAdminBoardPostContent = 'published_at 없이도 공개되는 board 글';
   localAdminBoardPostPinned = false;
+  localAdminBoardPostCoverImage = 'https://example.com/e2e-admin-cover.png';
+  localAdminBoardPostImages = ['https://example.com/e2e-admin-cover.png'];
 }
 
 function isLocalBoardPostsList(url: URL): boolean {
@@ -297,6 +301,18 @@ async function respondOwnerPostMutationApi(request: HTTPRequest, url: URL): Prom
     || (await respondOwnerPostDeleteApi(request, url));
 }
 
+function applyAdminBoardPostPatchBody(body: Record<string, unknown>): void {
+  if (typeof body.title === 'string') localAdminBoardPostTitle = body.title;
+  if (typeof body.content === 'string') localAdminBoardPostContent = body.content;
+  if (typeof body.pinned === 'boolean') localAdminBoardPostPinned = body.pinned;
+  if (Object.prototype.hasOwnProperty.call(body, 'cover_image')) {
+    localAdminBoardPostCoverImage = body.cover_image as string | null;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, 'images')) {
+    localAdminBoardPostImages = body.images as string[];
+  }
+}
+
 async function respondAdminBoardPostPatchApi(request: HTTPRequest, url: URL): Promise<boolean> {
   if (url.port !== '3001' || request.method() !== 'PATCH' || url.pathname !== '/posts/44') {
     return false;
@@ -311,9 +327,7 @@ async function respondAdminBoardPostPatchApi(request: HTTPRequest, url: URL): Pr
     });
     return true;
   }
-  if (typeof body.title === 'string') localAdminBoardPostTitle = body.title;
-  if (typeof body.content === 'string') localAdminBoardPostContent = body.content;
-  if (typeof body.pinned === 'boolean') localAdminBoardPostPinned = body.pinned;
+  applyAdminBoardPostPatchBody(body);
   await request.respond({
     status: 200,
     contentType: 'application/json',

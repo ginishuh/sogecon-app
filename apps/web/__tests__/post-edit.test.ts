@@ -49,6 +49,17 @@ describe('게시글 수정 payload', () => {
     expect(payload.unpublish).toBe(true);
   });
 
+  it('관리자 payload는 이미지 전체 삭제의 null과 빈 배열을 보존한다', () => {
+    const payload = buildPostUpdatePayload(
+      { ...formData, cover_image: null, images: [] },
+      { category: 'notice', published_at: null },
+      true,
+    );
+
+    expect(payload.cover_image).toBeNull();
+    expect(payload.images).toEqual([]);
+  });
+
   it('owner payload는 관리자 필드를 만들지 않고 이미지 제거 값을 보존한다', () => {
     const payload = buildBoardPostOwnerUpdatePayload({
       ...formData,

@@ -45,8 +45,8 @@ export function buildPostUpdatePayload(
   const payload: UpdatePostPayload = {
     title: data.title,
     content: data.content,
-    cover_image: data.cover_image ?? undefined,
-    images: data.images.length > 0 ? data.images : undefined,
+    cover_image: data.cover_image,
+    images: data.images,
   };
   if (isAdmin) {
     Object.assign(payload, buildAdminPostFields(data, post));

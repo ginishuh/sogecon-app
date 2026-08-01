@@ -130,6 +130,8 @@ describe('게시판 글 수정 권한 경계', () => {
     expect(payload).not.toHaveProperty('category');
     expect(payload).not.toHaveProperty('published_at');
     expect(payload).not.toHaveProperty('unpublish');
+    expect(payload.cover_image).toBeNull();
+    expect(payload.images).toEqual([]);
     expect(payload.pinned).toBe(true);
   });
 

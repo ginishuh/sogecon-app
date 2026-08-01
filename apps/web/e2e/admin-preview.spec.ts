@@ -201,6 +201,63 @@ describe('Admin post preview (CDP E2E)', () => {
     expect(preview.published_at).toBeNull();
   });
 
+  it('관리자 board 편집에서 마지막 이미지를 삭제하면 null/빈 배열을 저장한다', async () => {
+    if (!page) throw new Error('Puppeteer page not initialized');
+    await configureMockServer('admin');
+    if (!process.env.E2E_MOCK_API_CONTROL_URL) {
+      setLocalMockSession('admin');
+      await setupDirectoryMocks(page);
+    }
+
+    let patchBody: Record<string, unknown> | null = null;
+    const recordRequest = (request: HTTPRequest) => {
+      const url = new URL(request.url());
+      if (url.port === '3001' && request.method() === 'PATCH' && url.pathname === '/posts/44') {
+        patchBody = JSON.parse(request.postData() ?? '{}') as Record<string, unknown>;
+      }
+    };
+    page.on('request', recordRequest);
+
+    try {
+      await page.goto(`${WEB_BASE_URL}/admin/posts`, { waitUntil: 'networkidle0' });
+      await page.click('a[href="/admin/posts/44/edit"]');
+      await page.waitForFunction(() => window.location.pathname === '/admin/posts/44/edit');
+      await page.waitForSelector('button[aria-label="이미지 삭제"]');
+
+      await page.hover('[role="img"][aria-label="메인 이미지"]');
+      await page.click('button[aria-label="이미지 삭제"]');
+      expect(await page.$('button[aria-label="이미지 삭제"]')).toBeNull();
+
+      await clickButtonByText(page, '수정');
+      await page.waitForFunction(() => window.location.pathname === '/admin/posts');
+      await waitForBodyText(page, 'E2E board 공개 글');
+
+      expect(patchBody).toEqual(expect.objectContaining({
+        cover_image: null,
+        images: [],
+      }));
+      expect(patchBody).not.toHaveProperty('category');
+      expect(patchBody).not.toHaveProperty('published_at');
+      expect(patchBody).not.toHaveProperty('unpublish');
+
+      const previewResponse = page.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return url.port === '3001'
+          && url.pathname === '/admin/posts/44/preview'
+          && response.request().method() === 'GET';
+      });
+      await page.goto(`${WEB_BASE_URL}/admin/posts/44/preview`, { waitUntil: 'networkidle0' });
+      const preview = await (await previewResponse).json() as {
+        cover_image: string | null;
+        images: string[];
+      };
+      expect(preview.cover_image).toBeNull();
+      expect(preview.images).toEqual([]);
+    } finally {
+      page.off('request', recordRequest);
+    }
+  });
+
   it('익명 사용자는 같은 draft의 공개 상세에서 404를 받는다', async () => {
     if (!browser) throw new Error('Puppeteer browser not initialized');
     await configureMockServer('anonymous');
