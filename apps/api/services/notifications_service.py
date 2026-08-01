@@ -11,7 +11,7 @@ from requests.exceptions import RequestException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
-from ..crypto_utils import decrypt_str
+from ..crypto_utils import CryptoError, decrypt_str
 from ..errors import ApiError
 from ..models import PushSubscription
 from ..repositories import notifications as repo
@@ -42,9 +42,13 @@ class PyWebPushProvider:
     def send(
         self, sub: PushSubscription, payload: dict[str, Any]
     ) -> tuple[bool, int | None]:
-        endpoint = decrypt_str(cast(str, sub.endpoint))
-        p256dh = decrypt_str(cast(str, sub.p256dh))
-        auth = decrypt_str(cast(str, sub.auth))
+        try:
+            endpoint = decrypt_str(cast(str, sub.endpoint))
+            p256dh = decrypt_str(cast(str, sub.p256dh))
+            auth = decrypt_str(cast(str, sub.auth))
+        except CryptoError:
+            # 손상·키불일치 구독은 평문 전송 없이 실패 처리
+            return (False, None)
         subscription_info = {
             "endpoint": endpoint,
             "keys": {"p256dh": p256dh, "auth": auth},
@@ -125,11 +129,22 @@ async def send_to_all(
     failed = 0
     log_items: list[SendLogItem] = []
     expired_hashes: list[str] = []
+    payload = {"title": title, "body": body, **({"url": url} if url else {})}
     for sub in subs:
-        endpoint_plain = decrypt_str(cast(str, sub.endpoint))
-        ok, status = await provider.send_async(
-            sub, {"title": title, "body": body, **({"url": url} if url else {})}
-        )
+        try:
+            endpoint_plain = decrypt_str(cast(str, sub.endpoint))
+        except CryptoError:
+            failed += 1
+            log_items.append(
+                SendLogItem(
+                    ok=False,
+                    status_code=None,
+                    stored_endpoint_hash=cast(str, sub.endpoint_hash),
+                )
+            )
+            continue
+
+        ok, status = await provider.send_async(sub, payload)
         if ok:
             accepted += 1
         else:

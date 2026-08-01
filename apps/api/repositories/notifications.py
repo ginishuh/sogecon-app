@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from typing import TypedDict, cast
 
 from sqlalchemy import CursorResult, delete, func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models
@@ -32,59 +33,66 @@ def hash_endpoint(endpoint: str) -> str:
     return _hash_endpoint(endpoint)
 
 
-async def upsert_subscription(
-    db: AsyncSession,
-    data: SubscriptionData,
-    *,
-    actor_member_id: int,
-) -> models.PushSubscription:
-    endpoint_plain = str(data.get("endpoint"))
-    endpoint_hash = _hash_endpoint(endpoint_plain)
-    endpoint = encrypt_str(endpoint_plain)
-    p256dh = encrypt_str(str(data.get("p256dh")))
-    auth = encrypt_str(str(data.get("auth")))
-
-    stmt = select(models.PushSubscription).where(
-        models.PushSubscription.endpoint_hash == endpoint_hash
-    )
-    result = await db.execute(stmt)
-    sub = result.scalars().first()
-
-    if sub is None:
-        sub = models.PushSubscription(
-            endpoint=endpoint,
-            p256dh=p256dh,
-            auth=auth,
-            ua=(data.get("ua") if data.get("ua") is not None else None),
-            member_id=int(actor_member_id),
-            endpoint_hash=endpoint_hash,
-        )
-        db.add(sub)
-        await db.commit()
-        await db.refresh(sub)
-        return sub
-
-    owner = _as_member_id(sub.member_id)
-    if owner is not None and owner != int(actor_member_id):
-        raise SubscriptionOwnershipError()
-
-    setattr(sub, "p256dh", p256dh)
-    setattr(sub, "auth", auth)
-    setattr(sub, "ua", (data.get("ua") if data.get("ua") is not None else None))
-    setattr(sub, "member_id", int(actor_member_id))
-    setattr(sub, "endpoint", endpoint)
-    setattr(sub, "endpoint_hash", endpoint_hash)
-    await db.commit()
-    await db.refresh(sub)
-    return sub
-
-
 def _as_member_id(raw: object) -> int | None:
     if raw is None:
         return None
     if isinstance(raw, int):
         return raw
     return int(str(raw))
+
+
+async def upsert_subscription(
+    db: AsyncSession,
+    data: SubscriptionData,
+    *,
+    actor_member_id: int,
+) -> models.PushSubscription:
+    """endpoint_hash 기준 원자적 upsert.
+
+    동시 INSERT는 ON CONFLICT로 직렬화한다. 충돌 후 WHERE로
+    NULL/본인 소유만 갱신하고, 타인 소유면 OwnershipError.
+    """
+    endpoint_plain = str(data.get("endpoint"))
+    endpoint_hash = _hash_endpoint(endpoint_plain)
+    endpoint = encrypt_str(endpoint_plain)
+    p256dh = encrypt_str(str(data.get("p256dh")))
+    auth = encrypt_str(str(data.get("auth")))
+    ua_val = data.get("ua") if data.get("ua") is not None else None
+    actor = int(actor_member_id)
+
+    insert_stmt = pg_insert(models.PushSubscription).values(
+        endpoint=endpoint,
+        p256dh=p256dh,
+        auth=auth,
+        ua=ua_val,
+        member_id=actor,
+        endpoint_hash=endpoint_hash,
+    )
+    stmt = insert_stmt.on_conflict_do_update(
+        index_elements=["endpoint_hash"],
+        set_={
+            "endpoint": insert_stmt.excluded.endpoint,
+            "p256dh": insert_stmt.excluded.p256dh,
+            "auth": insert_stmt.excluded.auth,
+            "ua": insert_stmt.excluded.ua,
+            "member_id": insert_stmt.excluded.member_id,
+        },
+        where=(
+            (models.PushSubscription.member_id.is_(None))
+            | (models.PushSubscription.member_id == actor)
+        ),
+    ).returning(models.PushSubscription)
+
+    result = await db.execute(stmt)
+    sub = result.scalars().first()
+    if sub is None:
+        # 타인 소유로 UPDATE WHERE가 매칭되지 않음
+        await db.rollback()
+        raise SubscriptionOwnershipError()
+
+    await db.commit()
+    await db.refresh(sub)
+    return sub
 
 
 async def delete_subscription(

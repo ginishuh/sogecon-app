@@ -21,6 +21,7 @@ from apps.api.repositories import notifications as subs_repo
 from apps.api.repositories import send_logs as logs_repo
 from apps.api.routers import notifications as router_mod
 from apps.api.services import notifications_service as notif_svc
+from apps.api.services import scheduled_notifications_service as sched
 from apps.api.services.notifications_service import PushProvider
 
 
@@ -362,3 +363,158 @@ def test_create_logs_batch_single_commit(monkeypatch: pytest.MonkeyPatch) -> Non
     n = asyncio.run(logs_repo.create_logs_batch(_FakeSession(), items))
     assert n == 5
     assert commits["n"] == 1
+
+
+def test_send_to_all_isolates_crypto_failure_per_subscription(
+    admin_login: TestClient,
+) -> None:
+    owner_id = _seed_member(student_id="d3-crypto-iso")
+    good_ep = "https://example.com/push/crypto-good"
+    bad_hash = subs_repo.hash_endpoint("https://example.com/push/crypto-bad")
+
+    async def _seed(session: AsyncSession) -> None:
+        await subs_repo.upsert_subscription(
+            session,
+            {"endpoint": good_ep, "p256dh": "p", "auth": "a"},
+            actor_member_id=owner_id,
+        )
+        session.add(
+            models.PushSubscription(
+                endpoint="enc:v1:not-a-real-ciphertext",
+                p256dh="enc:v1:bad",
+                auth="enc:v1:bad",
+                endpoint_hash=bad_hash,
+                member_id=owner_id,
+            )
+        )
+        await session.commit()
+
+    _run_in_test_session(_seed)
+
+    class _Dummy(PushProvider):
+        def send(
+            self, sub: models.PushSubscription, payload: dict[str, object]
+        ) -> tuple[bool, int | None]:
+            return (True, 201)
+
+        async def send_async(
+            self, sub: models.PushSubscription, payload: dict[str, object]
+        ) -> tuple[bool, int | None]:
+            return self.send(sub, payload)
+
+    provider = _Dummy()
+    app.dependency_overrides[router_mod.get_push_provider] = lambda: provider
+    try:
+        res = admin_login.post(
+            "/notifications/admin/notifications/send",
+            json={"title": "t", "body": "b"},
+        )
+        assert res.status_code == HTTPStatus.ACCEPTED
+        body = res.json()
+        assert body["accepted"] >= 1
+        assert body["failed"] >= 1
+        assert body["accepted"] + body["failed"] >= 2
+    finally:
+        app.dependency_overrides.pop(router_mod.get_push_provider, None)
+
+
+def test_process_single_event_marks_failed_on_batch_exception(
+    client: TestClient,
+) -> None:
+    owner_id = _seed_member(student_id="d3-sched-fail")
+    event_holder = {"id": 0}
+
+    async def _seed(session: AsyncSession) -> None:
+        starts = datetime.now(tz=UTC) + timedelta(days=3)
+        event = models.Event(
+            title="d3-sched",
+            starts_at=starts,
+            ends_at=starts + timedelta(hours=2),
+            location="Seoul",
+            capacity=10,
+        )
+        session.add(event)
+        await session.commit()
+        await session.refresh(event)
+        event_holder["id"] = int(event.id)
+        await subs_repo.upsert_subscription(
+            session,
+            {
+                "endpoint": "https://example.com/push/sched-fail",
+                "p256dh": "p",
+                "auth": "a",
+            },
+            actor_member_id=owner_id,
+        )
+
+    _run_in_test_session(_seed)
+
+    class _Boom(PushProvider):
+        def send(
+            self, sub: models.PushSubscription, payload: dict[str, object]
+        ) -> tuple[bool, int | None]:
+            raise RuntimeError("provider boom")
+
+        async def send_async(
+            self, sub: models.PushSubscription, payload: dict[str, object]
+        ) -> tuple[bool, int | None]:
+            return self.send(sub, payload)
+
+    async def _run(session: AsyncSession) -> None:
+        event = await session.get(models.Event, event_holder["id"])
+        assert event is not None
+        result = await sched.process_single_event(
+            session, _Boom(), event, "d-3"
+        )
+        assert result.skipped is False
+        assert result.failed >= 1
+        assert await sched.is_already_sent(
+            session, event_id=event_holder["id"], d_type="d-3"
+        ) is False
+        logs = await sched.list_scheduled_logs(session, limit=10)
+        match = [
+            log
+            for log in logs
+            if int(log.event_id) == event_holder["id"] and str(log.d_type) == "d-3"
+        ]
+        assert match
+        assert str(match[0].status) == "failed"
+
+        # failed 행은 재시도 시 회수 가능해야 함
+        reclaim = await sched.create_notification_log(
+            session,
+            event_id=event_holder["id"],
+            d_type="d-3",
+            scheduled_at=datetime.now(tz=UTC),
+        )
+        assert reclaim is not None
+        assert str(reclaim.status) == "pending"
+
+    _run_in_test_session(_run)
+
+
+def test_upsert_same_actor_idempotent_other_forbidden(client: TestClient) -> None:
+    owner_id = _seed_member(student_id="d3-upsert-a")
+    other_id = _seed_member(student_id="d3-upsert-b")
+    endpoint = "https://example.com/push/upsert-race"
+
+    async def _run(session: AsyncSession) -> None:
+        await subs_repo.upsert_subscription(
+            session,
+            {"endpoint": endpoint, "p256dh": "p1", "auth": "a1"},
+            actor_member_id=owner_id,
+        )
+        again = await subs_repo.upsert_subscription(
+            session,
+            {"endpoint": endpoint, "p256dh": "p2", "auth": "a2"},
+            actor_member_id=owner_id,
+        )
+        assert int(again.member_id) == owner_id
+        with pytest.raises(subs_repo.SubscriptionOwnershipError):
+            await subs_repo.upsert_subscription(
+                session,
+                {"endpoint": endpoint, "p256dh": "p3", "auth": "a3"},
+                actor_member_id=other_id,
+            )
+
+    _run_in_test_session(_run)

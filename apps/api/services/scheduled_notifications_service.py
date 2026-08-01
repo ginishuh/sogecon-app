@@ -8,11 +8,13 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Literal, cast
 
+from requests.exceptions import RequestException
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crypto_utils import decrypt_str
+from ..crypto_utils import CryptoError, decrypt_str
 from ..models import Event, PushSubscription, ScheduledNotificationLog
 from ..repositories import notification_preferences as pref_repo
 from ..repositories import notifications as subs_repo
@@ -128,7 +130,19 @@ async def send_batch_notifications(
         expired_hashes: list[str] = []
 
         for sub in batch:
-            endpoint_plain = decrypt_str(cast(str, sub.endpoint))
+            try:
+                endpoint_plain = decrypt_str(cast(str, sub.endpoint))
+            except CryptoError:
+                failed += 1
+                log_items.append(
+                    send_logs.SendLogItem(
+                        ok=False,
+                        status_code=None,
+                        stored_endpoint_hash=cast(str, sub.endpoint_hash),
+                    )
+                )
+                continue
+
             ok, status = await _send_with_retry(
                 provider, sub, payload, max_retries=cfg.max_retries
             )
@@ -188,8 +202,8 @@ async def create_notification_log(
 ) -> ScheduledNotificationLog | None:
     """발송 로그 생성 (중복 방지용).
 
-    ON CONFLICT DO NOTHING 사용으로 동시 삽입 시 레이스 컨디션 방지.
-    이미 존재하는 경우 None 반환.
+    신규 INSERT. 이미 completed/in_progress면 None.
+    failed 행은 재시도 가능하도록 pending으로 회수한다.
     """
     stmt = (
         pg_insert(ScheduledNotificationLog)
@@ -198,13 +212,29 @@ async def create_notification_log(
             d_type=d_type,
             scheduled_at=scheduled_at,
             status="pending",
+            accepted_count=0,
+            failed_count=0,
         )
-        .on_conflict_do_nothing(index_elements=["event_id", "d_type"])
+        .on_conflict_do_update(
+            index_elements=["event_id", "d_type"],
+            set_={
+                "status": "pending",
+                "scheduled_at": scheduled_at,
+                "accepted_count": 0,
+                "failed_count": 0,
+                "sent_at": None,
+            },
+            where=(ScheduledNotificationLog.status == "failed"),
+        )
         .returning(ScheduledNotificationLog)
     )
     result = await db.execute(stmt)
+    row = result.scalars().first()
     await db.commit()
-    return result.scalars().first()  # None if conflict
+    if row is not None:
+        # ON CONFLICT UPDATE 시 identity map에 남은 이전 status를 갱신
+        await db.refresh(row)
+    return row
 
 
 async def update_notification_log(
@@ -306,10 +336,36 @@ async def process_single_event(
         "url": f"/events/{event_id}",
     }
 
-    # 배치 발송
-    result = await send_batch_notifications(
-        db, provider, subscriptions=subs, payload=payload
-    )
+    # 배치 발송 — 예외 시 failed로 마감해 in_progress 고착·재시도 불가 방지
+    try:
+        result = await send_batch_notifications(
+            db, provider, subscriptions=subs, payload=payload
+        )
+    except (
+        RuntimeError,
+        TypeError,
+        ValueError,
+        OSError,
+        RequestException,
+        SQLAlchemyError,
+    ):
+        logger.exception(
+            "예약 발송 실패: event_id=%s, d_type=%s", event_id, d_type
+        )
+        await update_notification_log(
+            db,
+            log_id,
+            status="failed",
+            accepted_count=0,
+            failed_count=len(subs),
+        )
+        return ProcessResult(
+            event_id=event_id,
+            d_type=d_type,
+            skipped=False,
+            accepted=0,
+            failed=len(subs),
+        )
 
     await update_notification_log(
         db,

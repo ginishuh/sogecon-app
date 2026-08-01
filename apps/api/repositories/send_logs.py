@@ -33,9 +33,12 @@ class LogAggregates:
 
 @dataclass(frozen=True)
 class SendLogItem:
-    endpoint: str
     ok: bool
     status_code: int | None
+    # 평문 endpoint. 복호화 실패 시 None이고 stored_endpoint_hash를 쓴다.
+    endpoint: str | None = None
+    # 복호화 불가 시 DB에 저장된 endpoint_hash로 로그.
+    stored_endpoint_hash: str | None = None
 
 
 async def create_log(
@@ -62,7 +65,13 @@ async def create_logs_batch(
         return 0
     rows: list[models.NotificationSendLog] = []
     for item in items:
-        endpoint_hash, endpoint_tail = hash_endpoint(item.endpoint)
+        if item.stored_endpoint_hash:
+            endpoint_hash = item.stored_endpoint_hash
+            endpoint_tail = endpoint_hash[-16:]
+        elif item.endpoint:
+            endpoint_hash, endpoint_tail = hash_endpoint(item.endpoint)
+        else:
+            continue
         rows.append(
             models.NotificationSendLog(
                 ok=1 if item.ok else 0,
@@ -71,6 +80,8 @@ async def create_logs_batch(
                 endpoint_tail=endpoint_tail,
             )
         )
+    if not rows:
+        return 0
     db.add_all(rows)
     await db.commit()
     return len(rows)
