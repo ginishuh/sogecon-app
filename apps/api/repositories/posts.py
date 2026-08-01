@@ -3,12 +3,17 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TypedDict
 
-from sqlalchemy import desc, func, select, update
+from sqlalchemy import ColumnElement, and_, desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from .. import models, schemas
 from ..errors import NotFoundError
+from ..post_visibility import (
+    BOARD_POST_CATEGORIES,
+    is_post_public,
+    public_visibility_clause,
+)
 from . import escape_like
 
 
@@ -16,8 +21,43 @@ class AdminPostFilters(TypedDict, total=False):
     """관리자 게시물 목록 필터."""
 
     category: str | None
-    status: str | None  # 'published' | 'draft' | None (all)
+    status: str | None  # 'published' | 'scheduled' | 'draft' | None (all)
     q: str | None
+
+
+class PublicPostFilters(TypedDict, total=False):
+    """공개 게시물 목록 필터."""
+
+    category: str | None
+    categories: Sequence[str] | None
+    q: str | None
+
+
+def _admin_non_board_category_clause() -> ColumnElement[bool]:
+    """발행 시각으로 상태를 계산할 legacy/발행형 카테고리 조건."""
+    return or_(
+        models.Post.category.is_(None),
+        models.Post.category.notin_(list(BOARD_POST_CATEGORIES)),
+    )
+
+
+def _admin_status_clause(status: str | None) -> ColumnElement[bool] | None:
+    """관리자 목록 상태를 공개성 SSOT와 같은 규칙으로 계산한다."""
+    non_board = _admin_non_board_category_clause()
+    if status == "published":
+        return or_(
+            models.Post.category.in_(list(BOARD_POST_CATEGORIES)),
+            and_(
+                non_board,
+                models.Post.published_at.isnot(None),
+                models.Post.published_at <= func.now(),
+            ),
+        )
+    if status == "scheduled":
+        return and_(non_board, models.Post.published_at > func.now())
+    if status == "draft":
+        return and_(non_board, models.Post.published_at.is_(None))
+    return None
 
 
 async def list_posts(
@@ -25,14 +65,24 @@ async def list_posts(
     *,
     limit: int,
     offset: int,
-    category: str | None = None,
-    categories: Sequence[str] | None = None,
+    filters: PublicPostFilters | None = None,
 ) -> Sequence[models.Post]:
     stmt = select(models.Post).options(selectinload(models.Post.author))
-    if categories:
-        stmt = stmt.where(models.Post.category.in_(categories))
-    elif category:
-        stmt = stmt.where(models.Post.category == category)
+    stmt = stmt.where(public_visibility_clause())
+    if filters:
+        categories = filters.get("categories")
+        category = filters.get("category")
+        q = filters.get("q")
+        if categories:
+            stmt = stmt.where(models.Post.category.in_(categories))
+        elif category:
+            stmt = stmt.where(models.Post.category == category)
+        if q:
+            pattern = f"%{escape_like(q)}%"
+            stmt = stmt.where(
+                models.Post.title.ilike(pattern, escape="\\")
+                | models.Post.content.ilike(pattern, escape="\\")
+            )
     stmt = (
         stmt.order_by(
             desc(models.Post.pinned),
@@ -61,8 +111,34 @@ async def get_post(db: AsyncSession, post_id: int) -> models.Post:
     return post
 
 
+async def get_board_post(db: AsyncSession, post_id: int) -> models.Post:
+    """board mutation 대상만 조회한다. non-board 글은 존재하지 않는 것으로 처리."""
+    stmt = (
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .where(
+            models.Post.id == post_id,
+            models.Post.category.in_(list(BOARD_POST_CATEGORIES)),
+        )
+    )
+    result = await db.execute(stmt)
+    post = result.scalar_one_or_none()
+    if post is None:
+        raise NotFoundError(code="post_not_found", detail="Post not found")
+    return post
+
+
+async def get_public_post(db: AsyncSession, post_id: int) -> models.Post:
+    """공개 상세용. 비공개면 존재 비노출로 post_not_found."""
+    post = await get_post(db, post_id)
+    if not is_post_public(post):
+        raise NotFoundError(code="post_not_found", detail="Post not found")
+    return post
+
+
 async def create_post(db: AsyncSession, payload: schemas.PostCreate) -> models.Post:
     data = payload.model_dump()
+    data["view_count"] = 0
     post = models.Post(**data)
     db.add(post)
     await db.commit()
@@ -145,10 +221,9 @@ async def list_admin_posts(
         q = filters.get("q")
         if category:
             stmt = stmt.where(models.Post.category == category)
-        if status == "published":
-            stmt = stmt.where(models.Post.published_at.isnot(None))
-        elif status == "draft":
-            stmt = stmt.where(models.Post.published_at.is_(None))
+        status_clause = _admin_status_clause(status)
+        if status_clause is not None:
+            stmt = stmt.where(status_clause)
         if q:
             pattern = f"%{escape_like(q)}%"
             stmt = stmt.where(
@@ -177,10 +252,9 @@ async def count_posts(
         q = filters.get("q")
         if category:
             stmt = stmt.where(models.Post.category == category)
-        if status == "published":
-            stmt = stmt.where(models.Post.published_at.isnot(None))
-        elif status == "draft":
-            stmt = stmt.where(models.Post.published_at.is_(None))
+        status_clause = _admin_status_clause(status)
+        if status_clause is not None:
+            stmt = stmt.where(status_clause)
         if q:
             pattern = f"%{escape_like(q)}%"
             stmt = stmt.where(

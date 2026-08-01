@@ -8,6 +8,7 @@ import Link from 'next/link';
 import React, { useMemo } from 'react';
 
 import { resolveApiAssetUrl } from '../../lib/api';
+import { postKeys } from '../../lib/query-keys';
 import { listEvents, type Event } from '../../services/events';
 import { listPosts, type Post } from '../../services/posts';
 
@@ -201,14 +202,14 @@ function NewsColumn({ query }: { query: ReturnType<typeof useNewsQuery> }) {
 
 function useNoticeQuery() {
   return useQuery<Post[]>({
-    queryKey: ['posts', 'notice', NOTICE_LIMIT, 'home-refined'],
+    queryKey: postKeys.list('home', { category: 'notice', limit: NOTICE_LIMIT }),
     queryFn: () => listPosts({ category: 'notice', limit: NOTICE_LIMIT }),
   });
 }
 
 function useNewsQuery() {
   return useQuery<Post[]>({
-    queryKey: ['posts', 'news', NEWS_LIMIT, 'home-refined'],
+    queryKey: postKeys.list('home', { category: 'news', limit: NEWS_LIMIT }),
     queryFn: () => listPosts({ category: 'news', limit: NEWS_LIMIT }),
   });
 }

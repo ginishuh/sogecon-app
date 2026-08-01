@@ -30,6 +30,49 @@ sudo chown 1000:1000 /var/lib/sogecon/uploads
 - [ ] `.env.api`에 `DATABASE_URL=postgresql+psycopg://…@sogecon-db:5432/…`
 - [ ] `git pull` → 로컬 빌드 → 마이그레이션 → 재기동 순서
 - [ ] 헬스체크 200(워밍업 ≤90s 허용)
+
+### 2.1 D4 게시글 공개성 배포 전 read-only audit
+
+D4의 공개성 계약은 board 4종은 `published_at`과 무관하게 공개하고,
+`notice`/`news` 및 레거시·미지 카테고리는 발행일시가 현재 시각 이하일 때만
+공개한다. 배포 전에 운영 DB에서 아래 조회만 실행해 자동 수정 없이 결과를
+확인한다.
+
+```sql
+SELECT category,
+       count(*) AS total,
+       count(*) FILTER (WHERE published_at IS NULL) AS unpublished_count,
+       count(*) FILTER (WHERE published_at IS NOT NULL) AS dated_count,
+       count(*) FILTER (
+           WHERE category IN ('notice', 'news')
+             AND published_at > NOW()
+       ) AS scheduled_count,
+       min(created_at) AS first_created_at,
+       max(created_at) AS last_created_at
+FROM posts
+WHERE category IS NULL
+   OR category NOT IN (
+       'discussion', 'question', 'share', 'congrats', 'notice', 'news'
+   )
+   OR (category IN ('notice', 'news') AND published_at IS NULL)
+   OR (category IN ('notice', 'news') AND published_at > NOW())
+GROUP BY category
+ORDER BY category NULLS FIRST;
+```
+
+판정 기준:
+
+- 결과가 없으면 공개성 계약 전환으로 사라질 후보가 없는 것으로 기록하고 계속한다.
+- `unpublished_count > 0`인 행이 하나라도 있으면 배포를 멈추고 category·게시글 ID를
+  별도 데이터 정리 작업으로 이관한다. 이 PR이나 배포 절차에서 자동 backfill하지 않는다.
+- `dated_count > 0`인 NULL/미지 카테고리도 레거시 데이터로 기록하고 별도 정리 여부를
+  결정한다. 기존 글의 의미를 추측해 category를 변환하지 않는다.
+- `scheduled_count > 0`인 `notice`/`news`는 정상적인 예약 발행 건이다. 발행 시각 전에는
+  공개 목록·상세에서 숨겨지는 것이 의도된 동작이므로, 건수와 게시글 ID를 배포 기록에
+  남기고 데이터 변환 없이 계속한다.
+
+조회 결과와 판단을 배포 기록에 남긴 뒤 기존 릴리스 태그를 롤백 대상으로 보존한다.
+
 ```bash
 cd /srv/sogecon-app
 git pull --ff-only origin main

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, Callable, Generator
 from http import HTTPStatus
 from pathlib import Path
 
@@ -218,6 +218,50 @@ def admin_login(client: TestClient) -> TestClient:
         "/auth/login", json={"student_id": "__seed__admin", "password": "__seed__"}
     )
     return client
+
+
+@pytest.fixture()
+def admin_hero_login(admin_login: TestClient) -> TestClient:
+    """게시물 권한 없이 hero와 게시물 preview만 가진 제한 관리자."""
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found for admin hero seeding")
+
+    async def _restrict_roles() -> None:
+        async for session in override():
+            stmt = select(models.Member).where(
+                models.Member.student_id == "__seed__admin"
+            )
+            member = (await session.execute(stmt)).scalar_one()
+            member.roles = "member,admin,admin_hero"
+            await session.commit()
+            break
+
+    asyncio.run(_restrict_roles())
+    return admin_login
+
+
+@pytest.fixture()
+def set_seed_admin_roles(client: TestClient) -> Callable[[str], None]:
+    """시드 관리자 역할을 바꾸어 역할 경계 테스트를 준비한다."""
+    def _set_roles(roles: str) -> None:
+        override = app.dependency_overrides.get(get_db)
+        if override is None:
+            raise RuntimeError("get_db override not found for role setup")
+
+        async def _update_roles() -> None:
+            async for session in override():
+                stmt = select(models.Member).where(
+                    models.Member.student_id == "__seed__admin"
+                )
+                member = (await session.execute(stmt)).scalar_one()
+                member.roles = roles
+                await session.commit()
+                break
+
+        asyncio.run(_update_roles())
+
+    return _set_roles
 
 
 @pytest.fixture()

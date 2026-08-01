@@ -8,9 +8,15 @@ import { PostForm, type PostFormData } from '../../../../components/post-form';
 import { useToast } from '../../../../components/toast';
 import { useAuth } from '../../../../hooks/useAuth';
 import { ApiError } from '../../../../lib/api';
+import { isBoardCategory } from '../../../../lib/community';
 import { memberApiErrorToMessage } from '../../../../lib/error-map';
-import { isAdminSession } from '../../../../lib/rbac';
-import { getPost, updatePost, type Post } from '../../../../services/posts';
+import {
+  buildBoardPostOwnerUpdatePayload,
+  buildPostUpdatePayload,
+} from '../../../../lib/post-edit';
+import { adminPostKeys, postKeys } from '../../../../lib/query-keys';
+import { hasPermissionSession } from '../../../../lib/rbac';
+import { getPost, updateBoardPost, updatePost } from '../../../../services/posts';
 
 /** 상태 메시지 컴포넌트 */
 function StatusMessage({ text, error = false }: { text: string; error?: boolean }) {
@@ -36,33 +42,6 @@ function getErrorMessage(error: unknown): string | null {
   return error ? '수정 중 오류가 발생했습니다.' : null;
 }
 
-/** 수정 요청 payload 생성 (복잡도 분리) */
-function buildUpdatePayload(
-  data: PostFormData,
-  post: Post | undefined,
-  isAdmin: boolean
-): Parameters<typeof updatePost>[1] {
-  const payload: Parameters<typeof updatePost>[1] = {
-    title: data.title,
-    content: data.content,
-    cover_image: data.cover_image ?? undefined,
-    images: data.images.length > 0 ? data.images : undefined,
-  };
-  if (!isAdmin) return payload;
-
-  // 관리자만 카테고리/공개/핀 수정 가능
-  payload.category = data.category;
-  payload.pinned = data.pinned;
-  // 공개 상태 변경 로직
-  const wasPublished = !!post?.published_at;
-  if (wasPublished && !data.published) {
-    payload.unpublish = true;
-  } else if (!wasPublished && data.published) {
-    payload.published_at = new Date().toISOString();
-  }
-  return payload;
-}
-
 export default function BoardEditPage() {
   const { data: auth, status } = useAuth();
   const params = useParams();
@@ -73,20 +52,25 @@ export default function BoardEditPage() {
   const postId = Number(params.id);
 
   const { data: post, isLoading, isError } = useQuery({
-    queryKey: ['post', postId],
+    queryKey: postKeys.detail(postId),
     queryFn: () => getPost(postId),
     enabled: !Number.isNaN(postId),
   });
 
   // 권한 체크용 (mutation 내에서 사용)
-  const isAdmin = isAdminSession(auth);
+  const canManagePosts = hasPermissionSession(auth, 'admin_posts');
 
   const mutation = useMutation({
-    mutationFn: (data: PostFormData) => updatePost(postId, buildUpdatePayload(data, post, isAdmin)),
+    mutationFn: (data: PostFormData) => {
+      if (canManagePosts) {
+        return updatePost(postId, buildPostUpdatePayload(data, post, true));
+      }
+      return updateBoardPost(postId, buildBoardPostOwnerUpdatePayload(data));
+    },
     onSuccess: () => {
       show('게시글이 수정되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      void queryClient.invalidateQueries({ queryKey: ['board'] });
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
       router.push(`/board/${postId}`);
     },
     onError: createErrorHandler(show),
@@ -101,7 +85,9 @@ export default function BoardEditPage() {
   // 에러 또는 게시글 없음
   if (isError || !post) return <StatusMessage text="게시글을 불러올 수 없습니다." error />;
   // 권한 체크: 작성자 본인 또는 관리자만
-  const canEdit = auth?.id === post.author_id || isAdmin;
+  const canEdit = canManagePosts || (
+    auth?.id === post.author_id && isBoardCategory(post.category)
+  );
   if (!canEdit) return <StatusMessage text="수정 권한이 없습니다." error />;
 
   return (
@@ -129,7 +115,9 @@ export default function BoardEditPage() {
         error={getErrorMessage(mutation.error)}
         onSubmit={(data) => mutation.mutate(data)}
         onCancel={() => router.push(`/board/${postId}`)}
-        hideAdminOptions={!isAdmin}
+        hideCategory={isBoardCategory(post.category)}
+        hidePublication={isBoardCategory(post.category)}
+        hideAdminOptions={!canManagePosts}
       />
     </div>
   );

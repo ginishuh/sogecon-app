@@ -115,6 +115,30 @@ export interface paths {
         patch: operations["update_post_posts__post_id__patch"];
         trace?: never;
     };
+    "/board/posts/{post_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Board Post
+         * @description 작성자 본인의 board 게시글을 삭제한다.
+         */
+        delete: operations["delete_board_post_board_posts__post_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Board Post
+         * @description 작성자 본인의 board 게시글을 수정한다.
+         */
+        patch: operations["update_board_post_board_posts__post_id__patch"];
+        trace?: never;
+    };
     "/comments/": {
         parameters: {
             query?: never;
@@ -741,6 +765,26 @@ export interface paths {
          * @description 관리자용 게시물 목록 (비공개 포함).
          */
         get: operations["list_admin_posts_admin_posts__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/posts/{post_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview Admin Post
+         * @description 관리자 게시물 미리보기 (게시물 또는 hero 읽기 권한).
+         */
+        get: operations["preview_admin_post_admin_posts__post_id__preview_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1679,8 +1723,6 @@ export interface components {
             content: string;
             /** Published At */
             published_at?: string | null;
-            /** Category */
-            category?: string | null;
             /**
              * Pinned
              * @default false
@@ -1691,12 +1733,26 @@ export interface components {
             /** Images */
             images?: string[] | null;
             /**
-             * View Count
-             * @default 0
+             * Category
+             * @enum {string}
              */
-            view_count: number;
+            category: "discussion" | "question" | "share" | "congrats" | "notice" | "news";
             /** Author Id */
             author_id?: number | null;
+        };
+        /**
+         * PostOwnerUpdate
+         * @description 일반 회원이 자기 board 게시글을 수정할 때 사용하는 계약.
+         */
+        PostOwnerUpdate: {
+            /** Title */
+            title?: string;
+            /** Content */
+            content?: string;
+            /** Cover Image */
+            cover_image?: string | null;
+            /** Images */
+            images?: string[] | null;
         };
         /** PostRead */
         PostRead: {
@@ -1706,8 +1762,6 @@ export interface components {
             content: string;
             /** Published At */
             published_at?: string | null;
-            /** Category */
-            category?: string | null;
             /**
              * Pinned
              * @default false
@@ -1717,11 +1771,8 @@ export interface components {
             cover_image?: string | null;
             /** Images */
             images?: string[] | null;
-            /**
-             * View Count
-             * @default 0
-             */
-            view_count: number;
+            /** Category */
+            category?: string | null;
             /** Id */
             id: number;
             /** Author Id */
@@ -1730,6 +1781,11 @@ export interface components {
             author_name?: string | null;
             /** Created At */
             created_at: string | null;
+            /**
+             * View Count
+             * @default 0
+             */
+            view_count: number;
             /**
              * Comment Count
              * @default 0
@@ -1748,8 +1804,11 @@ export interface components {
             title?: string | null;
             /** Content */
             content?: string | null;
-            /** Category */
-            category?: string | null;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category?: "discussion" | "question" | "share" | "congrats" | "notice" | "news";
             /** Pinned */
             pinned?: boolean | null;
             /**
@@ -2304,6 +2363,7 @@ export interface operations {
                 offset?: number;
                 category?: string | null;
                 categories?: string[] | null;
+                q?: string | null;
             };
             header?: never;
             path?: never;
@@ -2440,6 +2500,74 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PostUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_board_post_board_posts__post_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean | number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_board_post_board_posts__post_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostOwnerUpdate"];
             };
         };
         responses: {
@@ -3646,6 +3774,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminPostListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_admin_post_admin_posts__post_id__preview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostRead"];
                 };
             };
             /** @description Validation Error */

@@ -8,16 +8,20 @@
   - SSOT(목적/IA): `docs/Project_overview.md` — 본 아키텍처는 해당 문서의 범위를 단계적으로 구현한다.
 - **프런트엔드 (`apps/web`)**: Next.js(App Router) 기반의 SSR/SSG 혼합 아키텍처. Tailwind CSS, PWA 설정을 포함하며 한국어 UI를 기본값으로 제공한다. 모바일 웹 우선(모바일 퍼스트)로 반응형을 설계한다. UI 일관성/접근성/성능 기준은 `docs/design_system.md`(디자인 시스템 v1)를 따른다.
 - **백엔드 API (`apps/api`)**: FastAPI + SQLAlchemy 조합으로 RESTful API를 제공한다. Pydantic 스키마(`schemas.py`)가 요청/응답 검증과 문서화를 담당한다.
-- **인증/권한(개발 단계)**: 학번 기반 세션 쿠키 인증. 관리자(/auth) + 멤버(/auth/member) 로그인 제공. `MemberAuth` 모델에서 `student_id`/`password`로 인증. 작성/관리 라우트는 `require_admin`, 구독 저장/삭제는 `require_member`로 보호. 쿠키는 HttpOnly + SameSite=Lax(개발), 운영에서는 Secure 적용.
+- **인증/권한(개발 단계)**: 학번 기반 세션 쿠키 인증. 관리자(/auth) + 멤버(/auth/member) 로그인 제공. `MemberAuth` 모델에서 `student_id`/`password`로 인증. 관리자 게시물 mutation은 `require_admin`과 `admin_posts`/`super_admin` 권한으로 보호하고, 일반 회원의 본인 board mutation은 별도 `require_member` 경로에서 작성자·board category를 함께 확인한다. 구독 저장/삭제도 `require_member`로 보호한다. 쿠키는 HttpOnly + SameSite=Lax(개발), 운영에서는 Secure 적용.
 - **데이터 스토어**: PostgreSQL 16만 사용한다(루트 `compose.yaml` dev 프로필 참조). 모든 환경에서 `postgresql+psycopg://` 스킴을 강제한다.
 - **스키마 공유 (`packages/schemas`)**: FastAPI에서 생성한 `openapi.json`을 TypeScript DTO로 변환하여 프런트엔드에서 타입 안정성을 확보한다.
+
+관리자 게시물 목록의 상태도 게시글 공개성 SSOT를 따른다. board 4종은
+`published_at`이 없어도 `published`로 분류하고, notice/news 및 legacy/알 수 없는
+카테고리는 `published_at`으로 `published`/`scheduled`/`draft`를 계산한다.
 
 ## 도메인 모델
 | 엔터티 | 주요 속성 | 설명 |
 | --- | --- | --- |
 | `Member` | `student_id`, `email`, `name`, `cohort`, `roles`, `visibility` | 회원 기본 정보와 노출 범위 설정. `student_id`는 고유 식별자이자 인증용 ID. 역할 문자열(`member`, `admin` 등)로 권한 제어 예정. |
 | `MemberAuth` | `student_id`, `password_hash` | 회원 인증 정보. `student_id`를 외래 키로 Member와 연동하며, 비밀번호는 해시 저장. 이메일 기반 인증에서 학번 기반으로 전환 완료. |
-| `Post` | `author_id`, `title`, `content`, `published_at` | 공지/게시글. `published_at` 내림차순 인덱스로 최신 게시물 조회 최적화. |
+| `Post` | `author_id`, `title`, `content`, `published_at`, `category`, `view_count` | 공지/게시글. 공개 API는 board 카테고리(`discussion`/`question`/`share`/`congrats`)는 `published_at` 무관 공개, `notice`/`news` 등은 `published_at <= now`만 공개. 생성·수정 `category`는 위 6종만 허용하고 회원 생성은 board 4종으로 제한한다. board와 발행형 카테고리 사이의 변경은 공개 범위가 바뀌므로 거부한다. `view_count`는 서버 전용(생성 입력 불가)이며 관리자 목록의 게시글 상세는 `/admin/posts/{id}/preview`에서 조회해 집계하지 않는다. 공개 목록은 `q` 서버 검색을 지원한다. 운영의 host-only API 세션 쿠키를 유지하기 위해 관리자 draft와 관리자 상세는 브라우저 preview 경로에서 확인한다. 관리자 게시물 생성·수정·삭제는 `admin_posts` 권한(또는 `super_admin`)의 기존 `/posts/{id}` mutation을 사용한다. 일반 회원은 별도 `PATCH/DELETE /board/posts/{id}`에서 자기 board 글만 수정·삭제할 수 있고, payload는 제목·본문·커버 이미지·이미지로 제한한다. 이 경로에서는 `author_id`, `category`, `published_at`, `pinned`, `view_count`를 서버가 보존한다. owner mutation의 대상 공간은 board 4종뿐이므로 notice/news와 legacy non-board는 공개 여부와 무관하게 `404 post_not_found`로 숨기며, 공개 board라도 타인 글이면 `403 post_owner_required`를 반환한다. |
 | `Event` | `title`, `starts_at`, `ends_at`, `location`, `capacity` | 모임 일정. 시작 일시 인덱스로 일정 정렬 제공. |
 | `RSVP` | `member_id`, `event_id`, `status` | 회원과 이벤트 간 다대다 관계. 기본 상태는 `going`, 취소·대기열 상태를 Enum으로 제한한다. |
 
@@ -28,7 +32,7 @@
 - **레이어드 아키텍처(강제)**: Routers → Services → Repositories/DB. 라우터는 ORM을 직접 사용하지 않는다(SSOT 규칙 준수).
   - `apps/api/services/`: 도메인 규칙·상태 전이·예외를 담당. HTTP 의존성 금지, `apps/api/errors.py`의 도메인 예외를 발생.
   - `apps/api/repositories/`: SQLAlchemy를 통한 영속성 접근. 쿼리/정렬/페이징 책임을 가짐.
-- **라우터 구성**: `routers/` 하위 `members.py`, `posts.py`, `events.py`, `rsvps.py`가 서비스만 호출하도록 리팩터링 완료(초판).
+- **라우터 구성**: `routers/` 하위 `members.py`, `posts.py`, `board_posts.py`, `events.py`, `rsvps.py`가 서비스만 호출하도록 리팩터링 완료(초판). `posts.py`의 관리자 mutation과 `board_posts.py`의 회원 owner mutation은 권한 경계를 공유하지 않는다.
 - **DB 세션 관리**: `db.py`의 `get_db()` 의존성을 통해 요청 단위 세션 생성/정리.
 - **마이그레이션**: `migrations/` 하위 Alembic 스크립트로 버전 관리. 새로운 모델 변경 시 `alembic revision --autogenerate` 사용 후 코드 검토.
 - **예정 기능**: 인증(예: OAuth2, SSO), 권한 레이어, 감사 로깅, 웹훅 등은 추후 설계 항목으로 남겨둔다.
@@ -43,7 +47,7 @@
 - **PWA**: `public/manifest.json`, 서비스 워커. 모바일 웹 우선 UX 전제로 오프라인 스켈레톤, 설치 가능한 PWA 제공. Web Push 1차 채널, SMS 보류.
 
 ## 통신 및 계약
-- **REST 규약**: `/members`, `/posts`, `/events`, `/rsvps` 네임스페이스. JSON 응답, ISO 8601 타임스탬프 사용.
+- **REST 규약**: `/members`, `/posts`, `/board/posts`, `/events`, `/rsvps` 네임스페이스. JSON 응답, ISO 8601 타임스탬프 사용. `/posts/{id}`의 수정·삭제는 관리자 전용이고, `/board/posts/{id}`의 수정·삭제는 활성 회원이 자기 board 글에만 사용할 수 있다. 이 owner 공간에서 없는 ID와 notice/news·legacy non-board는 모두 `404 post_not_found`, 타인 board 글은 `403 post_owner_required`다.
 - **오류 포맷**: API 오류 응답은 축약된 Problem Details(`type`, `status`, `detail`, `code`, `request_id`)를 반환하며 모든 오류 헤더에 `X-Request-Id`를 포함한다. 내부 오류(500)는 `code="internal_error"` 로 통일한다.
   - 인증 에러 코드: `login_failed`, `unauthorized` 등은 Problem Details `detail`/`code`로 제공하여 프런트 매핑이 가능하도록 한다.
 - **스키마 동기화**: `make schema-gen` 실행 → `packages/schemas`에서 TypeScript DTO 갱신 → `apps/web`에서 import. 프런트 작업 전 항상 API 변경분을 반영한다.

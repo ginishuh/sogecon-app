@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
 
 from fastapi.testclient import TestClient
@@ -34,15 +35,16 @@ def _seed_author() -> int:
 def test_posts_category_pinned_cover_image(admin_login: TestClient) -> None:
     client = admin_login
     author_id = _seed_author()
+    past = (datetime.now(tz=UTC) - timedelta(days=1)).isoformat()
 
-    # create posts: notice (pinned), notice, news
+    # create posts: notice (pinned), notice, news — 공개 목록용으로 발행
     p1 = client.post(
         "/posts/",
         json={
             "author_id": author_id,
             "title": "Notice Pinned",
             "content": "Body1",
-            "published_at": None,
+            "published_at": past,
             "category": "notice",
             "pinned": True,
             "cover_image": "https://example.com/cover1.png",
@@ -59,7 +61,7 @@ def test_posts_category_pinned_cover_image(admin_login: TestClient) -> None:
             "author_id": author_id,
             "title": "Notice",
             "content": "Body2",
-            "published_at": None,
+            "published_at": past,
             "category": "notice",
             "pinned": False,
         },
@@ -72,7 +74,7 @@ def test_posts_category_pinned_cover_image(admin_login: TestClient) -> None:
             "author_id": author_id,
             "title": "News",
             "content": "Body3",
-            "published_at": None,
+            "published_at": past,
             "category": "news",
         },
     )

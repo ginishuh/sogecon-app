@@ -8,7 +8,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../lib/api';
 import { apiErrorToMessage } from '../lib/error-map';
-import { isAdminSession } from '../lib/rbac';
+import { adminPostKeys, postKeys } from '../lib/query-keys';
+import { hasPermissionSession } from '../lib/rbac';
 import { deletePost } from '../services/posts';
 import { ConfirmDialog } from './confirm-dialog';
 import { useToast } from './toast';
@@ -16,9 +17,14 @@ import { useToast } from './toast';
 type PostAdminActionsProps = {
   postId: number;
   postTitle: string;
+  redirectTo?: '/posts' | '/admin/posts';
 };
 
-export function PostAdminActions({ postId, postTitle }: PostAdminActionsProps) {
+export function PostAdminActions({
+  postId,
+  postTitle,
+  redirectTo = '/posts',
+}: PostAdminActionsProps) {
   const { data: auth } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -29,8 +35,9 @@ export function PostAdminActions({ postId, postTitle }: PostAdminActionsProps) {
     mutationFn: () => deletePost(postId),
     onSuccess: () => {
       show('게시물이 삭제되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
-      router.push('/posts');
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
+      router.push(redirectTo);
     },
     onError: (e: unknown) => {
       if (e instanceof ApiError) {
@@ -42,7 +49,7 @@ export function PostAdminActions({ postId, postTitle }: PostAdminActionsProps) {
   });
 
   // 관리자가 아니면 렌더링하지 않음
-  if (!isAdminSession(auth)) {
+  if (!hasPermissionSession(auth, 'admin_posts')) {
     return null;
   }
 

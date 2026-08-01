@@ -2,23 +2,32 @@ from __future__ import annotations
 
 import time
 from collections import defaultdict, deque
+from dataclasses import dataclass
 from http import HTTPStatus
 from typing import cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import schemas
+from .. import models, schemas
 from ..config import get_settings
 from ..db import get_db
 from ..errors import ApiError
 from ..ratelimit import get_client_ip_for_rate_limit, should_skip_rate_limit
 from ..repositories import posts as posts_repo
 from ..services import posts_service
-from ..services.auth_service import is_admin
-from .auth import require_admin, require_member
+from ..services.auth_service import has_any_permission, is_admin
+from .auth import (
+    CurrentAdmin,
+    CurrentUser,
+    require_admin,
+    require_member,
+    require_permission,
+)
 
 router = APIRouter(prefix="/posts", tags=["posts"])
+
+_require_post_admin = require_permission("admin_posts", allow_admin_fallback=False)
 
 
 # 멤버 게시글 작성 레이트리밋 (in-memory)
@@ -75,22 +84,78 @@ def reset_member_post_limit_cache() -> None:
     _MEMBER_RATE_TABLE.clear()
 
 
-@router.get("/", response_model=list[schemas.PostRead])
-async def list_posts(
+async def _create_member_post_for_request(
+    payload: schemas.PostCreate,
+    request: Request,
+    db: AsyncSession,
+) -> models.Post:
+    """현재 세션을 일반 회원 게시판 작성 경로로 처리한다."""
+    try:
+        member = await require_member(request, db)
+    except HTTPException as exc_member:
+        # 기존 비회원 계약을 유지한다. 관리자 검사에서 403이 난 뒤에도
+        # 회원 fallback을 시도하므로, 여기서만 인증 실패를 401로 정규화한다.
+        raise HTTPException(status_code=401, detail="unauthorized") from exc_member
+
+    settings = get_settings()
+    _enforce_member_post_limit(request, settings.rate_limit_post_create)
+
+    sanitized = payload.model_copy(update={"pinned": False, "published_at": None})
+    return await posts_service.create_member_post(
+        db,
+        sanitized,
+        member_student_id=member.student_id,
+        member_id=member.id,
+    )
+
+
+@dataclass
+class PostListQueryParams:
+    """공개 게시글 목록 쿼리 파라미터."""
+
+    limit: int = 10
+    offset: int = 0
+    category: str | None = None
+    categories: list[str] | None = None
+    q: str | None = None
+
+
+def get_post_list_params(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     category: str | None = Query(None),
     categories: list[str] | None = Query(None),
+    q: str | None = Query(None, max_length=100),
+) -> PostListQueryParams:
+    return PostListQueryParams(
+        limit=limit,
+        offset=offset,
+        category=category,
+        categories=categories,
+        q=q,
+    )
+
+
+@router.get("/", response_model=list[schemas.PostRead])
+async def list_posts(
+    params: PostListQueryParams = Depends(get_post_list_params),
     db: AsyncSession = Depends(get_db),
 ) -> list[schemas.PostRead]:
-    if category is not None and categories is not None:
+    if params.category is not None and params.categories is not None:
         raise ApiError(
             code="category_query_conflict",
             detail="category and categories cannot be used together",
             status=400,
         )
     posts = await posts_service.list_posts(
-        db, limit=limit, offset=offset, category=category, categories=categories
+        db,
+        limit=params.limit,
+        offset=params.offset,
+        filters={
+            "category": params.category,
+            "categories": params.categories,
+            "q": params.q,
+        },
     )
     # N+1 쿼리 방지: 배치로 댓글 수 조회
     post_ids = [cast(int, p.id) for p in posts]
@@ -110,10 +175,9 @@ async def get_post(
     post_id: int,
     db: AsyncSession = Depends(get_db),
 ) -> schemas.PostRead:
-    post = await posts_service.get_post(db, post_id)
-    # 관리자 조회는 통계 왜곡을 피하기 위해 조회수 증가 제외
+    post = await posts_service.get_public_post(db, post_id)
+    # 관리자 확인은 사용자 조회수 통계를 왜곡하지 않도록 집계하지 않는다.
     if not await is_admin(db, request):
-        # 조회수 증가 후 refresh로 최신 값 반영 (재조회 대신)
         await posts_repo.increment_view_count(db, post_id)
         await db.refresh(post)
     post_read = schemas.PostRead.model_validate(post)
@@ -128,37 +192,32 @@ async def create_post(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> schemas.PostRead:
+    admin: CurrentAdmin | None = None
     try:
         admin = await require_admin(request, db)
-        # 보안: 클라이언트가 보낸 author_id를 무시하고 서버에서 강제 주입
-        # student_id로 member를 조회하여 author_id 결정 (레거시 세션 호환)
-        # 관리자는 pinned, published_at 등 관리자 권한 필드 설정 가능
-        post = await posts_service.create_admin_post(
-            db,
-            payload,
-            admin_student_id=admin.student_id,
-        )
     except HTTPException as exc_admin:
         if exc_admin.status_code not in (
             HTTPStatus.UNAUTHORIZED,
             HTTPStatus.FORBIDDEN,
         ):
             raise
-        try:
-            member = await require_member(request, db)
-        except HTTPException as exc_member:
-            raise HTTPException(status_code=401, detail="unauthorized") from exc_member
-
-        settings = get_settings()
-        _enforce_member_post_limit(request, settings.rate_limit_post_create)
-
-        sanitized = payload.model_copy(update={"pinned": False, "published_at": None})
-        post = await posts_service.create_member_post(
-            db,
-            sanitized,
-            member_student_id=member.student_id,
-            member_id=member.id,
-        )
+        post = await _create_member_post_for_request(payload, request, db)
+    else:
+        if await has_any_permission(db, request, ("admin_posts",)):
+            # 보안: 클라이언트가 보낸 author_id를 무시하고 서버에서 강제 주입
+            # student_id로 member를 조회하여 author_id 결정 (레거시 세션 호환)
+            # 관리자는 pinned, published_at 등 관리자 권한 필드 설정 가능
+            post = await posts_service.create_admin_post(
+                db,
+                payload,
+                admin_student_id=admin.student_id,
+            )
+        else:
+            # admin 등급은 게시물 관리 권한을 자동 상속하지 않는다. 다만
+            # admin_hero 같은 제한 관리자는 일반 회원으로서 board 글을 쓸 수
+            # 있으므로, notice/news 관리 권한을 부여하지 않은 채 member 경로를
+            # 사용한다. 이 경로는 board 카테고리와 비공개 상태를 강제한다.
+            post = await _create_member_post_for_request(payload, request, db)
 
     return schemas.PostRead.model_validate(post)
 
@@ -167,11 +226,10 @@ async def create_post(
 async def update_post(
     post_id: int,
     payload: schemas.PostUpdate,
-    request: Request,
     db: AsyncSession = Depends(get_db),
+    _admin: CurrentUser = Depends(_require_post_admin),
 ) -> schemas.PostRead:
     """게시물 수정 (관리자 전용)."""
-    await require_admin(request, db)
     post = await posts_service.update_admin_post(db, post_id, payload)
     post_read = schemas.PostRead.model_validate(post)
     post_read.author_name = post.author.name if post.author else None
@@ -182,10 +240,9 @@ async def update_post(
 @router.delete("/{post_id}")
 async def delete_post(
     post_id: int,
-    request: Request,
     db: AsyncSession = Depends(get_db),
+    _admin: CurrentUser = Depends(_require_post_admin),
 ) -> dict[str, bool | int]:
     """게시물 삭제 (관리자 전용)."""
-    await require_admin(request, db)
     deleted_id = await posts_service.delete_admin_post(db, post_id)
     return {"ok": True, "deleted_id": deleted_id}

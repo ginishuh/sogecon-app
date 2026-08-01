@@ -21,6 +21,13 @@ vi.mock('../services/hero', () => ({
   ]),
 }));
 
+vi.mock('../hooks/useAuth', () => ({
+  useAuth: () => ({
+    status: 'unauthorized',
+    data: null,
+  }),
+}));
+
 describe('HomePage hero and cards', () => {
   it('renders hero section with sr-only heading', () => {
     renderWithProviders(<HomePage />);

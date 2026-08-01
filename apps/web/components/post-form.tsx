@@ -26,6 +26,8 @@ type PostFormProps = {
   hideAdminOptions?: boolean;
   /** 레거시/특수 카테고리 등으로 카테고리 변경을 막고 싶을 때 */
   hideCategory?: boolean;
+  /** board 글처럼 published_at으로 공개 여부를 표현하지 않는 경우 공개 상태 숨김 */
+  hidePublication?: boolean;
 };
 
 type CategoryType = 'notice' | 'news';
@@ -157,11 +159,13 @@ function AdminTopFields({
 
 /** 관리자 전용 하단 필드 (공개상태 + 핀) */
 function AdminBottomFields({
+  hidePublication,
   published,
   setPublished,
   pinned,
   setPinned,
 }: {
+  hidePublication: boolean;
   published: boolean;
   setPublished: (v: boolean) => void;
   pinned: boolean;
@@ -169,7 +173,7 @@ function AdminBottomFields({
 }) {
   return (
     <>
-      <PublishField value={published} onChange={setPublished} />
+      {!hidePublication && <PublishField value={published} onChange={setPublished} />}
       <PinnedField value={pinned} onChange={setPinned} />
     </>
   );
@@ -178,6 +182,7 @@ function AdminBottomFields({
 function PostFormAdminFields({
   hideAdminOptions,
   hideCategory,
+  hidePublication,
   category,
   setCategory,
   published,
@@ -187,6 +192,7 @@ function PostFormAdminFields({
 }: {
   hideAdminOptions: boolean;
   hideCategory: boolean;
+  hidePublication: boolean;
   category: CategoryType;
   setCategory: (v: CategoryType) => void;
   published: boolean;
@@ -202,6 +208,7 @@ function PostFormAdminFields({
         <AdminTopFields category={category} setCategory={setCategory} />
       </div>
       <AdminBottomFields
+        hidePublication={hidePublication}
         published={published}
         setPublished={setPublished}
         pinned={pinned}
@@ -230,6 +237,7 @@ export function PostForm({
   onCancel,
   hideAdminOptions = false,
   hideCategory = false,
+  hidePublication = false,
 }: PostFormProps) {
   const state = usePostFormState(initialData);
   const handleSubmit = () => onSubmit(state.getData());
@@ -239,6 +247,7 @@ export function PostForm({
       <PostFormAdminFields
         hideAdminOptions={hideAdminOptions}
         hideCategory={hideCategory}
+        hidePublication={hidePublication}
         category={state.category}
         setCategory={state.setCategory}
         published={state.published}

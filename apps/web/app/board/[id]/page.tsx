@@ -71,7 +71,12 @@ export default async function BoardDetailPage({ params }: PageProps) {
                 </div>
               </div>
               <div className="shrink-0">
-                <BoardPostActions postId={id} postTitle={post.title} authorId={post.author_id} />
+                <BoardPostActions
+                  postId={id}
+                  postTitle={post.title}
+                  authorId={post.author_id}
+                  category={post.category}
+                />
               </div>
             </div>
           </header>

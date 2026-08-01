@@ -14,8 +14,11 @@ import { useAuth } from '../../../../../hooks/useAuth';
 import { useHeroTargetControls } from '../../../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../../../lib/api';
 import { apiErrorToMessage } from '../../../../../lib/error-map';
+import { isBoardCategory } from '../../../../../lib/community';
+import { buildPostUpdatePayload } from '../../../../../lib/post-edit';
+import { adminPostKeys, postKeys } from '../../../../../lib/query-keys';
 import { hasPermissionSession } from '../../../../../lib/rbac';
-import { getPost, updatePost, type UpdatePostPayload } from '../../../../../services/posts';
+import { getAdminPostPreview, updatePost } from '../../../../../services/posts';
 
 function canLoadPost(canManagePosts: boolean, postId: number) {
   return canManagePosts && !Number.isNaN(postId);
@@ -40,44 +43,17 @@ export default function EditPostPage() {
   });
 
   const { data: post, isLoading, isError } = useQuery({
-    queryKey: ['post', postId],
-    queryFn: () => getPost(postId),
+    queryKey: postKeys.detail(postId),
+    queryFn: () => getAdminPostPreview(postId),
     enabled: canLoadPost(canManagePosts, postId),
   });
 
   const mutation = useMutation({
-    mutationFn: (data: PostFormData) => {
-      const wasPublished = !!post?.published_at;
-      const wantPublished = data.published;
-
-      // 공개 상태 변경 로직:
-      // - 공개→공개: published_at 변경 없음 (필드 안 보냄)
-      // - 공개→비공개: unpublish: true
-      // - 비공개→공개: published_at 설정
-      // - 비공개→비공개: 변경 없음
-      let publishPayload: { published_at?: string; unpublish?: boolean } = {};
-      if (wasPublished && !wantPublished) {
-        publishPayload = { unpublish: true };
-      } else if (!wasPublished && wantPublished) {
-        publishPayload = { published_at: new Date().toISOString() };
-      }
-
-      const payload: UpdatePostPayload = {
-        title: data.title,
-        content: data.content,
-        category: post?.category === 'hero' ? undefined : data.category,
-        pinned: data.pinned,
-        cover_image: data.cover_image ?? undefined,
-        images: data.images.length > 0 ? data.images : undefined,
-        ...publishPayload,
-      };
-
-      return updatePost(postId, payload);
-    },
+    mutationFn: (data: PostFormData) => updatePost(postId, buildPostUpdatePayload(data, post, true)),
     onSuccess: () => {
       show('게시물이 수정되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      void queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
       router.push('/admin/posts');
     },
     onError: (e: unknown) => {
@@ -141,7 +117,8 @@ export default function EditPostPage() {
               loadingLabel="수정 중..."
               isPending={mutation.isPending}
               error={mutation.error ? '수정 중 오류가 발생했습니다.' : null}
-              hideCategory={post.category === 'hero'}
+              hideCategory={isBoardCategory(post.category) || post.category === 'hero'}
+              hidePublication={isBoardCategory(post.category)}
               onSubmit={(data) => mutation.mutate(data)}
               onCancel={() => router.push('/admin/posts')}
             />

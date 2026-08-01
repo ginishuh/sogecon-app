@@ -10,6 +10,7 @@ export type ListPostsParams = {
   offset?: number;
   category?: string;
   categories?: string[];
+  q?: string;
 };
 
 function assertListPostsParams(params: ListPostsParams) {
@@ -41,6 +42,9 @@ function buildListPostsQuery(params: ListPostsParams): string {
   const q = new URLSearchParams();
   applyListPostsPagination(q, params);
   applyListPostsCategoryFilter(q, params);
+  if (params.q?.trim()) {
+    q.set('q', params.q.trim());
+  }
 
   const qs = q.toString();
   if (!qs) return '';
@@ -56,10 +60,13 @@ export async function getPost(id: number): Promise<Post> {
   return apiFetch<Post>(`/posts/${id}`);
 }
 
+export async function getAdminPostPreview(id: number): Promise<Post> {
+  return apiFetch<Post>(`/admin/posts/${id}/preview`);
+}
+
 // pinned는 서버 기본값이 있어 클라이언트에서 생략 가능
-// view_count는 클라이언트에서 설정 불가 (서버 전용)
 export type CreatePostPayload =
-  Omit<Schema<'PostCreate'>, 'pinned' | 'view_count'> & {
+  Omit<Schema<'PostCreate'>, 'pinned'> & {
     pinned?: boolean;
   };
 
@@ -81,11 +88,31 @@ export async function deletePost(id: number): Promise<{ ok: boolean; deleted_id:
   return apiFetch<{ ok: boolean; deleted_id: number }>(`/posts/${id}`, { method: 'DELETE' });
 }
 
+export type BoardPostOwnerUpdatePayload = Schema<'PostOwnerUpdate'>;
+
+export async function updateBoardPost(
+  id: number,
+  payload: BoardPostOwnerUpdatePayload,
+): Promise<Post> {
+  return apiFetch<Post>(`/board/posts/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteBoardPost(
+  id: number,
+): Promise<{ ok: boolean; deleted_id: number }> {
+  return apiFetch<{ ok: boolean; deleted_id: number }>(`/board/posts/${id}`, {
+    method: 'DELETE',
+  });
+}
+
 export type AdminPostListParams = {
   limit?: number;
   offset?: number;
   category?: string;
-  status?: 'published' | 'draft';
+  status?: 'published' | 'scheduled' | 'draft';
   q?: string;
 };
 

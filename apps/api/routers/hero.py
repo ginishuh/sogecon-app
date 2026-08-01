@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import schemas
 from ..db import get_db
 from ..services import hero_service
-from ..services.auth_service import is_admin
+from ..services.auth_service import has_any_permission
 
 router = APIRouter(prefix="/hero", tags=["hero"])
 
@@ -18,7 +18,9 @@ async def list_hero_slides(
     include_unpublished: bool = Query(False),
     db: AsyncSession = Depends(get_db),
 ) -> list[schemas.HeroSlide]:
-    allow_unpublished = include_unpublished and await is_admin(db, request)
+    allow_unpublished = include_unpublished and await has_any_permission(
+        db, request, ("admin_posts", "admin_hero")
+    )
     return await hero_service.list_hero_slides(
         db, limit=limit, allow_unpublished=allow_unpublished
     )

@@ -24,6 +24,8 @@ const ERROR_MESSAGES: Record<string, string> = {
 
   // 게시글/행사 관련
   post_not_found: '게시글을 찾을 수 없습니다.',
+  post_owner_required: '작성자 본인의 게시판 글만 수정하거나 삭제할 수 있습니다.',
+  board_category_immutable: '게시글의 공개 범위를 바꾸는 카테고리 변경은 할 수 없습니다.',
   event_not_found: '행사를 찾을 수 없습니다.',
   hero_item_not_found: '배너를 찾을 수 없습니다.',
   rsvp_not_found: '행사 신청 내역이 없습니다.',

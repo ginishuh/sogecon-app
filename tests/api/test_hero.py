@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import UTC, datetime
 from http import HTTPStatus
 
@@ -118,6 +119,40 @@ def test_hero_include_unpublished_requires_admin(admin_login: TestClient) -> Non
     assert len(slides) == 1
     assert slides[0]["target_id"] == post_id
     assert slides[0]["unpublished"] is True
+
+
+def test_hero_include_unpublished_requires_feature_permission(
+    admin_login: TestClient,
+    set_seed_admin_roles: Callable[[str], None],
+) -> None:
+    draft = admin_login.post(
+        "/posts/",
+        json={
+            "title": "세부 권한 없는 관리자 초안",
+            "content": "권한 경계 테스트",
+            "category": "notice",
+            "published_at": None,
+        },
+    )
+    assert draft.status_code == HTTPStatus.CREATED
+    post_id = draft.json()["id"]
+
+    hero_item = admin_login.post(
+        "/admin/hero/",
+        json={"target_type": "post", "target_id": post_id, "enabled": True},
+    )
+    assert hero_item.status_code == HTTPStatus.CREATED
+
+    # 일반 admin 등급은 admin_posts/admin_hero를 자동 상속하지 않는다.
+    set_seed_admin_roles("member,admin")
+
+    hero = admin_login.get("/hero/?limit=10&include_unpublished=true")
+    assert hero.status_code == HTTPStatus.OK
+    assert hero.json() == []
+    assert (
+        admin_login.get(f"/admin/posts/{post_id}/preview").status_code
+        == HTTPStatus.FORBIDDEN
+    )
 
 
 def test_admin_hero_create_update_requires_target_exists(

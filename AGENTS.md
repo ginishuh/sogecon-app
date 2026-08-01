@@ -40,6 +40,16 @@
 - 모바일 레이아웃, 키보드 조작, 포커스 표시, 연결된 label, 오류 후 다음 행동을 함께 검증한다.
 - 인증정보, 연락처, 푸시 구독정보와 업로드 데이터는 민감정보로 취급한다.
 
+### 로컬 브라우저 E2E
+
+- 로컬 Web의 실제 브라우저 검증은 `playwright-cli` Agent CLI를 기본 브라우저 표면으로 사용한다. 저장소에 설치된 `.agents/skills/playwright-cli/SKILL.md`와 그 references를 따른다.
+- `pnpm -C apps/web e2e`는 Puppeteer 기반 자동 회귀 suite이고, visible browser 증거를 대체하지 않는다. 두 결과를 `headless 자동화`와 `Playwright CLI visible browser`로 구분해 보고한다.
+- CLI가 없으면 Node 20+ 환경에서 `npm install -g @playwright/cli@latest`와 `playwright-cli install-browser`를 실행한다. 작업공간 skill은 `playwright-cli install --skills=agents`로 초기화한다.
+- PR CI의 자동 E2E(`pnpm -C apps/web e2e`)는 격리된 deterministic mock API를 사용할 수 있다. 반면 실제 로컬 브라우저 E2E는 mock을 사용하지 않고, 로컬 production Web(`http://127.0.0.1:3000`)과 실제 local dev API·DB를 연결해 검증한다. 운영 URL·운영 계정·운영 데이터는 사용자의 명시적 요청 없이는 접근하지 않는다.
+- `PLAYWRIGHT_CLI_SESSION` 또는 `-s=<semantic-name>`으로 admin/member/anonymous 브라우저 세션을 분리한다. 권한 경계 테스트는 세션 전환만으로 추정하지 말고, `/auth/session` 응답과 실제 화면을 함께 확인한다.
+- 상호작용 테스트는 snapshot의 element ref 또는 접근성 locator를 사용해 실제 `click`·입력·이동을 수행한다. href 확인 후 URL을 직접 입력해 click 성공으로 대체하지 않는다. 뷰포트 밖 요소는 먼저 scroll/resize한 뒤 click한다.
+- draft 공개 차단은 anonymous 세션에서 API status(401/404)와 사용자 화면(404/not found)을 모두 확인한다. 결과는 PASS, FAIL, INCONCLUSIVE로 보고하고, 직접 이동·대체 경로·로그아웃 미검증을 숨기지 않는다.
+
 ### API 계약
 
 - API 계약 변경 시 OpenAPI와 TypeScript DTO를 함께 생성한다.

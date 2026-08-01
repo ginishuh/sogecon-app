@@ -1,38 +1,16 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import UTC, datetime
 from typing import cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models, schemas
+from ..post_visibility import is_post_public, post_public_href
 from ..repositories import events as events_repo
 from ..repositories import hero_items as hero_items_repo
 from ..repositories import posts as posts_repo
-
-_BOARD_POST_CATEGORIES = {"discussion", "question", "share", "congrats"}
-
-
-def _is_post_public(post: models.Post) -> bool:
-    category = cast(str | None, post.category)
-    if category in _BOARD_POST_CATEGORIES:
-        return True
-
-    published_at = cast(datetime | None, post.published_at)
-    if published_at is None:
-        return False
-    now = datetime.now(UTC)
-    return published_at <= now
-
-
-def _post_href(post: models.Post) -> str:
-    post_id = cast(int, post.id)
-    category = cast(str | None, post.category)
-    if category in _BOARD_POST_CATEGORIES:
-        return f"/board/{post_id}"
-    return f"/posts/{post_id}"
 
 
 async def _get_posts_by_ids(
@@ -85,7 +63,7 @@ async def list_hero_slides(
             post = posts.get(target_id)
             if post is None:
                 continue
-            unpublished = not _is_post_public(post)
+            unpublished = not is_post_public(post)
             if unpublished and not allow_unpublished:
                 continue
 
@@ -97,7 +75,7 @@ async def list_hero_slides(
                     title=cast(str, item.title_override or post.title),
                     description=cast(str, item.description_override or post.content),
                     image=cast(str | None, item.image_override or post.cover_image),
-                    href=_post_href(post),
+                    href=post_public_href(post),
                     unpublished=unpublished,
                 )
             )

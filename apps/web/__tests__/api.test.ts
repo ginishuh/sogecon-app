@@ -30,4 +30,23 @@ describe('apiFetch 오류 정규화', () => {
       new ApiError(422, '비밀번호는 UTF-8 기준 72바이트 이하여야 합니다.')
     );
   });
+
+  it('브라우저 요청에서 세션 credentials를 유지한다', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: 1 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await apiFetch('/posts/1');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/posts/1'),
+      expect.objectContaining({
+        credentials: 'include',
+      })
+    );
+  });
 });

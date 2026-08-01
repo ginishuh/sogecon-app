@@ -82,6 +82,9 @@ describe('동문 사용자 언어', () => {
     expect(memberApiErrorToMessage(undefined, '비밀번호를 확인해 주세요.')).toBe(
       '비밀번호를 확인해 주세요.'
     );
+    expect(memberApiErrorToMessage('post_owner_required')).toBe(
+      '작성자 본인의 게시판 글만 수정하거나 삭제할 수 있습니다.'
+    );
   });
 
   it('운영자 오류 매핑은 업무에 필요한 상세 안내를 보존한다', () => {

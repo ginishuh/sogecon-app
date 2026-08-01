@@ -5,7 +5,7 @@
 """
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from http import HTTPStatus
@@ -171,12 +171,26 @@ def require_permission(
     *,
     allow_admin_fallback: bool = True,
 ) -> Callable[..., Awaitable[CurrentUser]]:
+    return require_any_permission(
+        (permission,), allow_admin_fallback=allow_admin_fallback
+    )
+
+
+def require_any_permission(
+    permissions: Sequence[str],
+    *,
+    allow_admin_fallback: bool = True,
+) -> Callable[..., Awaitable[CurrentUser]]:
     """기능권한 의존성 팩토리.
 
     - `super_admin`은 항상 통과.
-    - roles에 해당 permission이 있으면 통과.
+    - roles에 지정된 permission 중 하나가 있으면 통과.
     - `allow_admin_fallback=True`이면 기존 `admin` 등급도 임시 통과.
     """
+
+    required_permissions = tuple(permissions)
+    if not required_permissions:
+        raise ValueError("at least one permission is required")
 
     async def _dependency(
         req: Request,
@@ -185,10 +199,13 @@ def require_permission(
         user = _get_user_session(req)
         if user is not None:
             user, _member = await _refresh_user_session(db, req, user)
-            if has_permission(
-                user.roles,
-                permission,
-                allow_admin_fallback=allow_admin_fallback,
+            if any(
+                has_permission(
+                    user.roles,
+                    permission,
+                    allow_admin_fallback=allow_admin_fallback,
+                )
+                for permission in required_permissions
             ):
                 return user
             raise HTTPException(status_code=403, detail="admin_permission_required")
@@ -227,6 +244,32 @@ async def is_admin(db: AsyncSession, req: Request) -> bool:
             return False
         raise
     return "admin" in user.roles or "super_admin" in user.roles
+
+
+async def has_any_permission(
+    db: AsyncSession,
+    req: Request,
+    permissions: Sequence[str],
+) -> bool:
+    """현재 세션이 지정된 세부 관리자 권한 중 하나를 가졌는지 반환한다.
+
+    공개 경로에서 선택적으로 비공개 데이터를 포함할 때 사용한다. 일반
+    ``admin`` 등급은 세부 권한을 자동 상속하지 않으며, ``super_admin``만
+    모든 세부 권한을 가진 것으로 처리한다.
+    """
+    user = _get_user_session(req)
+    if user is None:
+        return False
+    try:
+        user, _member = await _refresh_user_session(db, req, user)
+    except HTTPException as exc:
+        if exc.status_code == HTTPStatus.UNAUTHORIZED:
+            return False
+        raise
+    return any(
+        has_permission(user.roles, permission, allow_admin_fallback=False)
+        for permission in permissions
+    )
 
 
 async def require_member(

@@ -10,6 +10,7 @@ import { useToast } from '../../../components/toast';
 import { useAuth } from '../../../hooks/useAuth';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
+import { getAdminHeroTargetHref } from '../../../lib/post-links';
 import { hasPermissionSession } from '../../../lib/rbac';
 import {
   deleteAdminHeroItem,
@@ -26,8 +27,7 @@ function targetLabel(item: HeroItem): string {
 }
 
 function targetHref(item: HeroItem): string {
-  if (item.target_type === 'event') return `/events/${item.target_id}`;
-  return `/posts/${item.target_id}`;
+  return getAdminHeroTargetHref(item.target_type, item.target_id);
 }
 
 function shouldShowEmptyState(

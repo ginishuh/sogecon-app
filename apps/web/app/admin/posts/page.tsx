@@ -15,6 +15,9 @@ import { useAuth } from '../../../hooks/useAuth';
 import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
+import { adminPostKeys, postKeys } from '../../../lib/query-keys';
+import { getAdminPostPreviewHref } from '../../../lib/post-links';
+import { getAdminPostPublicationState, type AdminPostPublicationState } from '../../../lib/admin-post-status';
 import { hasPermissionSession } from '../../../lib/rbac';
 import type { HeroTargetLookupItem } from '../../../services/hero';
 import {
@@ -32,15 +35,29 @@ function adminPostsDescription(canManageHero: boolean) {
     : '공지와 동문 소식을 작성하고 관리합니다.';
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Sub-components (complexity isolation)
-───────────────────────────────────────────────────────────────────────── */
+// ─────────────────────────────────────────────────────────────────────────
+// Sub-components (complexity isolation)
+// ─────────────────────────────────────────────────────────────────────────
 
-function StatusBadge({ published }: { published: boolean }) {
-  if (published) {
+function StatusBadge({
+  category,
+  publishedAt,
+}: {
+  category: string | null | undefined;
+  publishedAt: string | null | undefined;
+}) {
+  const status = getAdminPostPublicationState(category, publishedAt);
+  if (status === 'published') {
     return (
       <span className="inline-flex items-center rounded-full bg-state-success-subtle px-2 py-0.5 text-xs font-medium text-state-success ring-1 ring-state-success-ring">
         공개
+      </span>
+    );
+  }
+  if (status === 'scheduled') {
+    return (
+      <span className="inline-flex items-center rounded-full bg-state-warning-subtle px-2 py-0.5 text-xs font-medium text-state-warning ring-1 ring-state-warning-ring">
+        예약
       </span>
     );
   }
@@ -53,6 +70,10 @@ function StatusBadge({ published }: { published: boolean }) {
 
 function CategoryBadge({ category }: { category: string | null | undefined }) {
   const labels: Record<string, string> = {
+    discussion: '자유게시판',
+    question: '묻고 답하기',
+    share: '동문 이야기·행사 후기',
+    congrats: '경조사',
     notice: '공지',
     news: '소식',
     hero: '히어로(구)',
@@ -115,6 +136,7 @@ function FilterBar({
       >
         <option value="">전체 상태</option>
         <option value="published">공개</option>
+        <option value="scheduled">예약</option>
         <option value="draft">비공개</option>
       </select>
 
@@ -172,7 +194,7 @@ function PostTableRow({
         <div className="flex items-center gap-2">
           {post.pinned && <span title="고정됨">📌</span>}
           <Link
-            href={`/posts/${post.id}`}
+            href={getAdminPostPreviewHref(post.id)}
             className="font-medium text-text-primary hover:underline"
           >
             {post.title}
@@ -186,7 +208,7 @@ function PostTableRow({
         <CategoryBadge category={post.category} />
       </td>
       <td className="px-3 py-2">
-        <StatusBadge published={!!post.published_at} />
+        <StatusBadge category={post.category} publishedAt={post.published_at} />
       </td>
       <td className="px-3 py-2 text-text-secondary">{post.view_count ?? 0}</td>
       <td className="px-3 py-2 text-text-secondary">{post.comment_count ?? 0}</td>
@@ -354,9 +376,9 @@ function PostTableContent({
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Custom Hooks (complexity isolation)
-───────────────────────────────────────────────────────────────────────── */
+// ─────────────────────────────────────────────────────────────────────────
+// Custom Hooks (complexity isolation)
+// ─────────────────────────────────────────────────────────────────────────
 
 function useDeleteMutation(
   onSuccessCallback: () => void,
@@ -369,7 +391,8 @@ function useDeleteMutation(
     onSuccess: () => {
       showToast('게시물이 삭제되었습니다.', { type: 'success' });
       onSuccessCallback();
-      void queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
     },
     onError: (e: unknown) => {
       const msg =
@@ -409,7 +432,7 @@ function useFilters() {
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
     category: categoryFilter || undefined,
-    status: (statusFilter as 'published' | 'draft') || undefined,
+    status: (statusFilter as AdminPostPublicationState) || undefined,
     q: searchQuery || undefined,
   };
 
@@ -427,9 +450,9 @@ function useFilters() {
   };
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Main Page Component
-───────────────────────────────────────────────────────────────────────── */
+// ─────────────────────────────────────────────────────────────────────────
+// Main Page Component
+// ─────────────────────────────────────────────────────────────────────────
 
 export default function AdminPostsPage() {
   const { status, data: session } = useAuth();
@@ -443,7 +466,7 @@ export default function AdminPostsPage() {
   const deleteMutation = useDeleteMutation(clearDeleteTarget, show);
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['admin-posts', filters.params],
+    queryKey: adminPostKeys.list(filters.params),
     queryFn: () => listAdminPosts(filters.params),
     enabled: canManagePosts,
     staleTime: 30_000,

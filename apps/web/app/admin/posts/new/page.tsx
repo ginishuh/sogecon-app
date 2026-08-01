@@ -11,6 +11,7 @@ import { useToast } from '../../../../components/toast';
 import { useAuth } from '../../../../hooks/useAuth';
 import { ApiError } from '../../../../lib/api';
 import { apiErrorToMessage } from '../../../../lib/error-map';
+import { adminPostKeys, postKeys } from '../../../../lib/query-keys';
 import { createPost } from '../../../../services/posts';
 
 function toCreatePayload(data: PostFormData) {
@@ -35,8 +36,8 @@ export default function AdminNewPostPage() {
     mutationFn: (data: PostFormData) => createPost(toCreatePayload(data)),
     onSuccess: () => {
       show('게시물이 생성되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
-      void queryClient.invalidateQueries({ queryKey: ['posts'] });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
       router.push('/admin/posts');
     },
     onError: (e: unknown) => {

@@ -1,4 +1,4 @@
-type MockSession = 'member' | 'admin';
+export type MockSession = 'anonymous' | 'member' | 'admin' | 'admin_hero';
 
 export async function configureMockServer(session: MockSession): Promise<void> {
   const controlUrl = process.env.E2E_MOCK_API_CONTROL_URL;

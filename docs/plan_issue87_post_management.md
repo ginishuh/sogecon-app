@@ -14,7 +14,7 @@
 |------|-----|--------|------|
 | 게시물 목록 조회 | ✅ `GET /posts/` | ✅ `/posts` | 카테고리 필터, 고정글 지원 |
 | 게시물 상세 조회 | ✅ `GET /posts/{id}` | ✅ `/posts/[id]` | 조회수 자동 증가 |
-| 게시물 생성 | ✅ `POST /posts/` | ✅ `/posts/new` | 관리자 전용 |
+| 게시물 생성 | ✅ `POST /posts/` | ✅ `/posts/new` | notice/news는 관리자 전용, board 4종은 회원 작성 |
 | 게시물 수정 | ❌ 없음 | ❌ 없음 | **구현 필요** |
 | 게시물 삭제 | ❌ 없음 | ❌ 없음 | **구현 필요** |
 | 관리자 목록 페이지 | - | ❌ 없음 | **구현 필요** |
@@ -97,7 +97,7 @@ class PostUpdate(BaseModel):
 
 ```
 권한: 관리자만 (require_admin)
-쿼리: limit, offset, category, status (all|published|draft), q (검색어)
+쿼리: limit, offset, category, status (all|published|scheduled|draft), q (검색어)
 응답: { items: PostRead[], total: int }
 ```
 
@@ -105,6 +105,28 @@ class PostUpdate(BaseModel):
 - 기존 `/posts/`와 달리 **비공개 게시물 포함**
 - 페이지네이션 + 총 개수 반환 (관리 UI용)
 - 검색어 `q`는 제목/본문 ILIKE 매칭
+
+### 3.4 회원 본인 board 게시물 수정·삭제 — 별도 owner 계약
+
+관리자 게시물 mutation의 권한을 일반 회원에게 확장하지 않는다. 일반 회원이
+제품·UI 계약에 따라 자기 board 글을 관리할 수 있도록 전용 경로를 둔다.
+
+```
+PATCH /board/posts/{post_id}
+DELETE /board/posts/{post_id}
+권한: 활성 회원(require_member) + 현재 회원이 작성한 board 4종 게시물
+```
+
+요청 DTO `PostOwnerUpdate`는 `title`, `content`, `cover_image`, `images`만
+허용한다. 제목·본문은 생략할 수 있지만 명시적 `null`은 거부하며, 이미지
+제거를 위한 `cover_image: null`과 `images: []`는 보존한다. `category`,
+`published_at`, `pinned`, `unpublish`, `author_id`, `view_count` 등 추가 필드는
+`extra="forbid"`로 차단한다. 서비스 계층은 작성자와 category를 다시 확인하고,
+수정 뒤에도 작성자·category·공개 상태·고정·조회수를 유지한다. repository는
+board 4종만 owner mutation 대상에 포함한다. 없는 ID와 notice/news·legacy
+non-board 글은 공개 여부와 무관하게 `404 post_not_found`, 다른 작성자의
+board 글은 `403 post_owner_required`를 반환한다. 삭제는 기존 관리자 삭제와
+같은 hard delete 및 댓글 cascade를 사용한다.
 
 ---
 
@@ -283,10 +305,11 @@ WHERE conrelid = 'comments'::regclass
 
 ## 7. 보안 고려사항
 
-1. **권한 검증**: 모든 수정/삭제 엔드포인트에 `require_admin` 적용
-2. **CSRF 보호**: 기존 세션 기반 인증 활용 (HttpOnly 쿠키)
-3. **입력 검증**: Pydantic 스키마로 타입/길이 검증
-4. **감사 로그**: (선택) 수정/삭제 시 로그 기록 고려
+1. **권한 검증**: 관리자 `/posts/{id}` mutation은 `require_admin`을 유지하고, 회원 `/board/posts/{id}` mutation은 `require_member`와 작성자·board category 검사를 별도로 적용한다.
+2. **필드 경계**: 회원 owner DTO에는 본문 편집 필드만 허용하며 `author_id`, `category`, `published_at`, `pinned`, `view_count` 같은 관리자·권한 필드는 서버가 보존한다.
+3. **CSRF 보호**: 기존 세션 기반 인증 활용 (HttpOnly 쿠키)
+4. **입력 검증**: Pydantic 스키마로 타입/길이 검증
+5. **감사 로그**: (선택) 수정/삭제 시 로그 기록 고려
 
 ---
 
