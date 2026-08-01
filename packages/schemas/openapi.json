@@ -737,6 +737,111 @@
         }
       }
     },
+    "/board/posts/{post_id}": {
+      "patch": {
+        "tags": [
+          "board-posts"
+        ],
+        "summary": "Update Board Post",
+        "description": "\uc791\uc131\uc790 \ubcf8\uc778\uc758 board \uac8c\uc2dc\uae00\uc744 \uc218\uc815\ud55c\ub2e4.",
+        "operationId": "update_board_post_board_posts__post_id__patch",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Post Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostOwnerUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "board-posts"
+        ],
+        "summary": "Delete Board Post",
+        "description": "\uc791\uc131\uc790 \ubcf8\uc778\uc758 board \uac8c\uc2dc\uae00\uc744 \uc0ad\uc81c\ud55c\ub2e4.",
+        "operationId": "delete_board_post_board_posts__post_id__delete",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Post Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "title": "Response Delete Board Post Board Posts  Post Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/comments/": {
       "get": {
         "tags": [
@@ -5776,6 +5881,47 @@
           "category"
         ],
         "title": "PostCreate"
+      },
+      "PostOwnerUpdate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "cover_image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Image"
+          },
+          "images": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Images"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "PostOwnerUpdate",
+        "description": "\uc77c\ubc18 \ud68c\uc6d0\uc774 \uc790\uae30 board \uac8c\uc2dc\uae00\uc744 \uc218\uc815\ud560 \ub54c \uc0ac\uc6a9\ud558\ub294 \uacc4\uc57d."
       },
       "PostRead": {
         "properties": {

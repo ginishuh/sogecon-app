@@ -7,12 +7,17 @@ const activationToken = 'mock-activation-token';
 
 let sessionKind = 'member';
 let signupStatus = 'pending';
+let ownerPostDeleted = false;
+let ownerPostTitle = 'E2E 회원 게시판 글';
+let ownerPostContent = 'E2E 회원 게시판 본문';
+let ownerPostCoverImage = null;
+let ownerPostImages = [];
 
 function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': origin ?? webOrigin,
     'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     Vary: 'Origin',
   };
@@ -105,6 +110,28 @@ function activationIssuePayload() {
   };
 }
 
+function ownerPostPayload() {
+  return {
+    id: 45,
+    title: ownerPostTitle,
+    content: ownerPostContent,
+    category: 'discussion',
+    author_id: 1,
+    author_name: '테스트 회원',
+    published_at: null,
+    pinned: false,
+    cover_image: ownerPostCoverImage,
+    images: ownerPostImages,
+    view_count: 3,
+    comment_count: 0,
+  };
+}
+
+function isBoardPostsList(url) {
+  const categories = [url.searchParams.get('category'), ...url.searchParams.getAll('categories')];
+  return categories.some((category) => ['discussion', 'question', 'share', 'congrats'].includes(category));
+}
+
 function heroSlides(includeUnpublished) {
   const slides = [
     {
@@ -182,6 +209,11 @@ const server = createServer(async (request, response) => {
       ? body.session
       : 'member';
     signupStatus = 'pending';
+    ownerPostDeleted = false;
+    ownerPostTitle = 'E2E 회원 게시판 글';
+    ownerPostContent = 'E2E 회원 게시판 본문';
+    ownerPostCoverImage = null;
+    ownerPostImages = [];
     sendJson(response, 200, { ok: true, session: sessionKind }, origin);
     return;
   }
@@ -288,6 +320,44 @@ const server = createServer(async (request, response) => {
     sendJson(response, 200, { items: [] }, origin);
     return;
   }
+  if (method === 'GET' && url.pathname === '/comments/') {
+    sendJson(response, 200, [], origin);
+    return;
+  }
+  if (method === 'GET' && url.pathname === '/posts/45') {
+    if (ownerPostDeleted) {
+      sendJson(response, 404, { code: 'post_not_found', detail: 'Post not found' }, origin);
+      return;
+    }
+    sendJson(response, 200, ownerPostPayload(), origin);
+    return;
+  }
+  if (method === 'PATCH' && url.pathname === '/board/posts/45') {
+    if (ownerPostDeleted) {
+      sendJson(response, 404, { code: 'post_not_found', detail: 'Post not found' }, origin);
+      return;
+    }
+    const body = await readJson(request);
+    if (typeof body.title === 'string') ownerPostTitle = body.title;
+    if (typeof body.content === 'string') ownerPostContent = body.content;
+    if (Object.prototype.hasOwnProperty.call(body, 'cover_image')) {
+      ownerPostCoverImage = body.cover_image;
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'images')) {
+      ownerPostImages = body.images;
+    }
+    sendJson(response, 200, ownerPostPayload(), origin);
+    return;
+  }
+  if (method === 'DELETE' && url.pathname === '/board/posts/45') {
+    if (ownerPostDeleted) {
+      sendJson(response, 404, { code: 'post_not_found', detail: 'Post not found' }, origin);
+      return;
+    }
+    ownerPostDeleted = true;
+    sendJson(response, 200, { ok: true, deleted_id: 45 }, origin);
+    return;
+  }
   const previewMatch = url.pathname.match(/^\/admin\/posts\/(42|43)\/preview$/);
   if (method === 'GET' && previewMatch) {
     const postId = Number(previewMatch[1]);
@@ -315,7 +385,11 @@ const server = createServer(async (request, response) => {
     sendJson(response, 200, { count: 25 }, origin);
     return;
   }
-  if (method === 'GET' && (url.pathname === '/posts/' || url.pathname === '/events/')) {
+  if (method === 'GET' && url.pathname === '/posts/') {
+    sendJson(response, 200, !ownerPostDeleted && isBoardPostsList(url) ? [ownerPostPayload()] : [], origin);
+    return;
+  }
+  if (method === 'GET' && url.pathname === '/events/') {
     sendJson(response, 200, [], origin);
     return;
   }

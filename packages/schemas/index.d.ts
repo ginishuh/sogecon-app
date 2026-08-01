@@ -115,6 +115,30 @@ export interface paths {
         patch: operations["update_post_posts__post_id__patch"];
         trace?: never;
     };
+    "/board/posts/{post_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Board Post
+         * @description 작성자 본인의 board 게시글을 삭제한다.
+         */
+        delete: operations["delete_board_post_board_posts__post_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Board Post
+         * @description 작성자 본인의 board 게시글을 수정한다.
+         */
+        patch: operations["update_board_post_board_posts__post_id__patch"];
+        trace?: never;
+    };
     "/comments/": {
         parameters: {
             query?: never;
@@ -1716,6 +1740,20 @@ export interface components {
             /** Author Id */
             author_id?: number | null;
         };
+        /**
+         * PostOwnerUpdate
+         * @description 일반 회원이 자기 board 게시글을 수정할 때 사용하는 계약.
+         */
+        PostOwnerUpdate: {
+            /** Title */
+            title?: string;
+            /** Content */
+            content?: string;
+            /** Cover Image */
+            cover_image?: string | null;
+            /** Images */
+            images?: string[] | null;
+        };
         /** PostRead */
         PostRead: {
             /** Title */
@@ -2462,6 +2500,74 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PostUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_board_post_board_posts__post_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean | number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_board_post_board_posts__post_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostOwnerUpdate"];
             };
         };
         responses: {

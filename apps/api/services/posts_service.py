@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models, schemas
 from ..errors import ApiError
+from ..post_owner_schemas import PostOwnerUpdate
 from ..post_visibility import BOARD_POST_CATEGORIES
 from ..repositories import members as members_repo
 from ..repositories import posts as posts_repo
@@ -118,6 +120,46 @@ async def update_admin_post(
                 status=422,
             )
     return await posts_repo.update_post(db, post_id, payload)
+
+
+def _require_member_board_owner(post: models.Post, member_id: int) -> None:
+    """회원 mutation 대상이 본인 소유의 board 글인지 확인한다."""
+    author_id = cast(int, post.author_id)
+    category = cast(str | None, post.category)
+    if author_id != member_id or category not in BOARD_POST_CATEGORIES:
+        raise ApiError(
+            code="post_owner_required",
+            detail="only the author can modify board posts",
+            status=403,
+        )
+
+
+async def update_member_post(
+    db: AsyncSession,
+    post_id: int,
+    payload: PostOwnerUpdate,
+    *,
+    member_id: int,
+) -> models.Post:
+    """회원이 자기 board 게시글의 본문 필드만 수정한다."""
+    post = await posts_repo.get_post(db, post_id)
+    _require_member_board_owner(post, member_id)
+    admin_payload = schemas.PostUpdate(
+        **payload.model_dump(exclude_unset=True),
+    )
+    return await posts_repo.update_post(db, post_id, admin_payload)
+
+
+async def delete_member_post(
+    db: AsyncSession,
+    post_id: int,
+    *,
+    member_id: int,
+) -> int:
+    """회원이 자기 board 게시글만 삭제한다."""
+    post = await posts_repo.get_post(db, post_id)
+    _require_member_board_owner(post, member_id)
+    return await posts_repo.delete_post(db, post_id)
 
 
 async def delete_admin_post(db: AsyncSession, post_id: int) -> int:

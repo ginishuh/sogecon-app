@@ -20,7 +20,7 @@ async function respondCorsPreflight(request: HTTPRequest, url: URL): Promise<boo
     status: 204,
     headers: {
       ...corsHeaders,
-      'Access-Control-Allow-Methods': 'GET,OPTIONS',
+      'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
     body: '',
@@ -153,6 +153,124 @@ async function respondAdminPostPreviewApi(request: HTTPRequest, url: URL): Promi
   return true;
 }
 
+let localOwnerPostDeleted = false;
+let localOwnerPostTitle = 'E2E 회원 게시판 글';
+let localOwnerPostContent = 'E2E 회원 게시판 본문';
+let localOwnerPostCoverImage: string | null = null;
+let localOwnerPostImages: string[] = [];
+
+function localOwnerPostPayload() {
+  return {
+    id: 45,
+    title: localOwnerPostTitle,
+    content: localOwnerPostContent,
+    category: 'discussion',
+    author_id: 1,
+    author_name: '테스트 회원',
+    published_at: null,
+    pinned: false,
+    cover_image: localOwnerPostCoverImage,
+    images: localOwnerPostImages,
+    view_count: 3,
+    comment_count: 0,
+  };
+}
+
+function resetLocalOwnerPost(): void {
+  localOwnerPostDeleted = false;
+  localOwnerPostTitle = 'E2E 회원 게시판 글';
+  localOwnerPostContent = 'E2E 회원 게시판 본문';
+  localOwnerPostCoverImage = null;
+  localOwnerPostImages = [];
+}
+
+function isLocalBoardPostsList(url: URL): boolean {
+  const categories = [url.searchParams.get('category'), ...url.searchParams.getAll('categories')];
+  return categories.some((category) => ['discussion', 'question', 'share', 'congrats'].includes(category ?? ''));
+}
+
+async function respondOwnerPostDetailApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  if (url.port !== '3001' || request.method() !== 'GET' || url.pathname !== '/posts/45') {
+    return false;
+  }
+  await request.respond({
+    status: localOwnerPostDeleted ? 404 : 200,
+    contentType: 'application/json',
+    headers: corsHeaders,
+    body: JSON.stringify(localOwnerPostDeleted
+      ? { code: 'post_not_found', detail: 'Post not found' }
+      : localOwnerPostPayload()),
+  });
+  return true;
+}
+
+async function respondOwnerPostListApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  if (url.port !== '3001' || request.method() !== 'GET' || url.pathname !== '/posts/') {
+    return false;
+  }
+  const body = localOwnerPostDeleted || !isLocalBoardPostsList(url)
+    ? []
+    : [localOwnerPostPayload()];
+  await request.respond({
+    status: 200,
+    contentType: 'application/json',
+    headers: corsHeaders,
+    body: JSON.stringify(body),
+  });
+  return true;
+}
+
+async function respondOwnerPostReadApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  return (await respondOwnerPostDetailApi(request, url))
+    || (await respondOwnerPostListApi(request, url));
+}
+
+async function respondOwnerPostPatchApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  if (url.port !== '3001' || request.method() !== 'PATCH' || url.pathname !== '/board/posts/45') {
+    return false;
+  }
+  const body = JSON.parse(request.postData() ?? '{}') as Record<string, unknown>;
+  if (typeof body.title === 'string') localOwnerPostTitle = body.title;
+  if (typeof body.content === 'string') localOwnerPostContent = body.content;
+  if (Object.prototype.hasOwnProperty.call(body, 'cover_image')) {
+    localOwnerPostCoverImage = body.cover_image as string | null;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, 'images')) {
+    localOwnerPostImages = body.images as string[];
+  }
+  await request.respond({
+    status: 200,
+    contentType: 'application/json',
+    headers: corsHeaders,
+    body: JSON.stringify(localOwnerPostPayload()),
+  });
+  return true;
+}
+
+async function respondOwnerPostDeleteApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  if (url.port !== '3001' || request.method() !== 'DELETE' || url.pathname !== '/board/posts/45') {
+    return false;
+  }
+  localOwnerPostDeleted = true;
+  await request.respond({
+    status: 200,
+    contentType: 'application/json',
+    headers: corsHeaders,
+    body: JSON.stringify({ ok: true, deleted_id: 45 }),
+  });
+  return true;
+}
+
+async function respondOwnerPostMutationApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  return (await respondOwnerPostPatchApi(request, url))
+    || (await respondOwnerPostDeleteApi(request, url));
+}
+
+async function respondOwnerPostApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  return (await respondOwnerPostReadApi(request, url))
+    || (await respondOwnerPostMutationApi(request, url));
+}
+
 async function respondAdminPostsApi(request: HTTPRequest, url: URL): Promise<boolean> {
   if (request.method() !== 'GET' || url.pathname !== '/admin/posts/') return false;
   const posts = [{
@@ -274,8 +392,20 @@ async function respondDirectoryApi(request: HTTPRequest, url: URL): Promise<bool
   return false;
 }
 
+async function respondCommentsApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  if (request.method() !== 'GET' || url.pathname !== '/comments/') return false;
+  await request.respond({
+    status: 200,
+    contentType: 'application/json',
+    headers: corsHeaders,
+    body: JSON.stringify([]),
+  });
+  return true;
+}
+
 export async function setupDirectoryMocks(page: Page): Promise<void> {
   if (process.env.E2E_MOCK_API_CONTROL_URL) return;
+  resetLocalOwnerPost();
   await page.setRequestInterception(true);
   const handler = async (request: HTTPRequest): Promise<void> => {
     try {
@@ -284,6 +414,8 @@ export async function setupDirectoryMocks(page: Page): Promise<void> {
       if (await respondAdminPostsApi(request, url)) return;
       if (await respondAdminHeroLookupApi(request, url)) return;
       if (await respondAdminPostPreviewApi(request, url)) return;
+      if (await respondOwnerPostApi(request, url)) return;
+      if (await respondCommentsApi(request, url)) return;
       if (await respondAnonymousSessionApi(request, url)) return;
       if (await respondDirectoryApi(request, url)) return;
       await request.continue();

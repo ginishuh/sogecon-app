@@ -10,10 +10,13 @@ import { useAuth } from '../../../../hooks/useAuth';
 import { ApiError } from '../../../../lib/api';
 import { isBoardCategory } from '../../../../lib/community';
 import { memberApiErrorToMessage } from '../../../../lib/error-map';
-import { buildPostUpdatePayload } from '../../../../lib/post-edit';
+import {
+  buildBoardPostOwnerUpdatePayload,
+  buildPostUpdatePayload,
+} from '../../../../lib/post-edit';
 import { adminPostKeys, postKeys } from '../../../../lib/query-keys';
 import { hasPermissionSession } from '../../../../lib/rbac';
-import { getPost, updatePost } from '../../../../services/posts';
+import { getPost, updateBoardPost, updatePost } from '../../../../services/posts';
 
 /** 상태 메시지 컴포넌트 */
 function StatusMessage({ text, error = false }: { text: string; error?: boolean }) {
@@ -58,7 +61,12 @@ export default function BoardEditPage() {
   const canManagePosts = hasPermissionSession(auth, 'admin_posts');
 
   const mutation = useMutation({
-    mutationFn: (data: PostFormData) => updatePost(postId, buildPostUpdatePayload(data, post, canManagePosts)),
+    mutationFn: (data: PostFormData) => {
+      if (canManagePosts) {
+        return updatePost(postId, buildPostUpdatePayload(data, post, true));
+      }
+      return updateBoardPost(postId, buildBoardPostOwnerUpdatePayload(data));
+    },
     onSuccess: () => {
       show('게시글이 수정되었습니다.', { type: 'success' });
       void queryClient.invalidateQueries({ queryKey: postKeys.all });
@@ -77,7 +85,9 @@ export default function BoardEditPage() {
   // 에러 또는 게시글 없음
   if (isError || !post) return <StatusMessage text="게시글을 불러올 수 없습니다." error />;
   // 권한 체크: 작성자 본인 또는 관리자만
-  const canEdit = auth?.id === post.author_id || canManagePosts;
+  const canEdit = canManagePosts || (
+    auth?.id === post.author_id && isBoardCategory(post.category)
+  );
   if (!canEdit) return <StatusMessage text="수정 권한이 없습니다." error />;
 
   return (

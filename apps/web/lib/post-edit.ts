@@ -1,6 +1,10 @@
 import type { PostFormData } from '../components/post-form';
 import { isBoardCategory } from './community';
-import type { Post, UpdatePostPayload } from '../services/posts';
+import type {
+  BoardPostOwnerUpdatePayload,
+  Post,
+  UpdatePostPayload,
+} from '../services/posts';
 
 function buildAdminPostFields(
   data: PostFormData,
@@ -37,4 +41,15 @@ export function buildPostUpdatePayload(
     Object.assign(payload, buildAdminPostFields(data, post));
   }
   return payload;
+}
+
+export function buildBoardPostOwnerUpdatePayload(
+  data: PostFormData,
+): BoardPostOwnerUpdatePayload {
+  return {
+    title: data.title,
+    content: data.content,
+    cover_image: data.cover_image,
+    images: data.images,
+  };
 }

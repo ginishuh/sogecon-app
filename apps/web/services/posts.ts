@@ -88,6 +88,26 @@ export async function deletePost(id: number): Promise<{ ok: boolean; deleted_id:
   return apiFetch<{ ok: boolean; deleted_id: number }>(`/posts/${id}`, { method: 'DELETE' });
 }
 
+export type BoardPostOwnerUpdatePayload = Schema<'PostOwnerUpdate'>;
+
+export async function updateBoardPost(
+  id: number,
+  payload: BoardPostOwnerUpdatePayload,
+): Promise<Post> {
+  return apiFetch<Post>(`/board/posts/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteBoardPost(
+  id: number,
+): Promise<{ ok: boolean; deleted_id: number }> {
+  return apiFetch<{ ok: boolean; deleted_id: number }>(`/board/posts/${id}`, {
+    method: 'DELETE',
+  });
+}
+
 export type AdminPostListParams = {
   limit?: number;
   offset?: number;

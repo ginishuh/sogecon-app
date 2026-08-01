@@ -8,10 +8,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../lib/api';
+import { isBoardCategory } from '../lib/community';
 import { memberApiErrorToMessage } from '../lib/error-map';
 import { adminPostKeys, postKeys } from '../lib/query-keys';
 import { hasPermissionSession } from '../lib/rbac';
-import { deletePost } from '../services/posts';
+import { deleteBoardPost, deletePost } from '../services/posts';
 import { ConfirmDialog } from './confirm-dialog';
 import { useToast } from './toast';
 
@@ -19,18 +20,22 @@ type BoardPostActionsProps = {
   postId: number;
   postTitle: string;
   authorId: number;
+  category: string | null | undefined;
 };
 
 /** 게시판 글 수정/삭제 버튼 (작성자 본인 또는 관리자만) */
-export function BoardPostActions({ postId, postTitle, authorId }: BoardPostActionsProps) {
+export function BoardPostActions({ postId, postTitle, authorId, category }: BoardPostActionsProps) {
   const { data: auth } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { show } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const isAuthor = auth?.id === authorId;
+  const canManagePosts = hasPermissionSession(auth, 'admin_posts');
+  const isBoardPost = isBoardCategory(category);
 
   const deleteMutation = useMutation({
-    mutationFn: () => deletePost(postId),
+    mutationFn: () => (canManagePosts ? deletePost(postId) : deleteBoardPost(postId)),
     onSuccess: () => {
       show('게시글이 삭제되었습니다.', { type: 'success' });
       void queryClient.invalidateQueries({ queryKey: postKeys.all });
@@ -47,9 +52,7 @@ export function BoardPostActions({ postId, postTitle, authorId }: BoardPostActio
   });
 
   // 작성자 본인 또는 관리자만 표시
-  const isAuthor = auth?.id === authorId;
-  const canManagePosts = hasPermissionSession(auth, 'admin_posts');
-  if (!isAuthor && !canManagePosts) {
+  if ((!isAuthor || !isBoardPost) && !canManagePosts) {
     return null;
   }
 

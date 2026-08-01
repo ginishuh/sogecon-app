@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildPostUpdatePayload } from '../lib/post-edit';
+import { buildBoardPostOwnerUpdatePayload, buildPostUpdatePayload } from '../lib/post-edit';
 
 const formData = {
   title: '수정 제목',
@@ -34,5 +34,24 @@ describe('게시글 수정 payload', () => {
 
     expect(payload.category).toBe('notice');
     expect(payload.unpublish).toBe(true);
+  });
+
+  it('owner payload는 관리자 필드를 만들지 않고 이미지 제거 값을 보존한다', () => {
+    const payload = buildBoardPostOwnerUpdatePayload({
+      ...formData,
+      cover_image: null,
+      images: [],
+    });
+
+    expect(payload).toEqual({
+      title: '수정 제목',
+      content: '수정 본문',
+      cover_image: null,
+      images: [],
+    });
+    expect(payload).not.toHaveProperty('category');
+    expect(payload).not.toHaveProperty('published_at');
+    expect(payload).not.toHaveProperty('pinned');
+    expect(payload).not.toHaveProperty('unpublish');
   });
 });
