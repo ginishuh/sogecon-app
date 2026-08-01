@@ -37,6 +37,16 @@ def test_subscription_encrypted_at_rest_and_logged_plain_tail(
 
         async def _seed_subscription() -> None:
             async for db in override():
+                member = models.Member(
+                    student_id="enc-seed-member",
+                    email="enc-seed@example.com",
+                    name="Enc Seed",
+                    cohort=1,
+                    roles="member",
+                    status="active",
+                )
+                db.add(member)
+                await db.flush()
                 await subs_repo.upsert_subscription(
                     db,
                     {
@@ -44,6 +54,7 @@ def test_subscription_encrypted_at_rest_and_logged_plain_tail(
                         "p256dh": "p",
                         "auth": "a",
                     },
+                    actor_member_id=int(member.id),
                 )
                 PS = models.PushSubscription
                 stmt = select(PS)

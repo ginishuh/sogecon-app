@@ -11,11 +11,13 @@ from requests.exceptions import RequestException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
-from ..crypto_utils import decrypt_str
+from ..crypto_utils import CryptoError, decrypt_str
+from ..errors import ApiError
 from ..models import PushSubscription
 from ..repositories import notifications as repo
 from ..repositories import send_logs
-from ..repositories.notifications import SubscriptionData
+from ..repositories.notifications import SubscriptionData, SubscriptionOwnershipError
+from ..repositories.send_logs import SendLogItem
 
 
 class PushProvider(Protocol):
@@ -40,9 +42,13 @@ class PyWebPushProvider:
     def send(
         self, sub: PushSubscription, payload: dict[str, Any]
     ) -> tuple[bool, int | None]:
-        endpoint = decrypt_str(cast(str, sub.endpoint))
-        p256dh = decrypt_str(cast(str, sub.p256dh))
-        auth = decrypt_str(cast(str, sub.auth))
+        try:
+            endpoint = decrypt_str(cast(str, sub.endpoint))
+            p256dh = decrypt_str(cast(str, sub.p256dh))
+            auth = decrypt_str(cast(str, sub.auth))
+        except CryptoError:
+            # 손상·키불일치 구독은 평문 전송 없이 실패 처리
+            return (False, None)
         subscription_info = {
             "endpoint": endpoint,
             "keys": {"p256dh": p256dh, "auth": auth},
@@ -82,12 +88,32 @@ class SendResult:
     failed: int
 
 
-async def save_subscription(db: AsyncSession, data: SubscriptionData) -> None:
-    await repo.upsert_subscription(db, data)
+def _ownership_error() -> ApiError:
+    return ApiError(
+        code="subscription_forbidden",
+        detail="subscription_forbidden",
+        status=403,
+    )
 
 
-async def delete_subscription(db: AsyncSession, *, endpoint: str) -> None:
-    await repo.delete_subscription(db, endpoint=endpoint)
+async def save_subscription(
+    db: AsyncSession, data: SubscriptionData, *, actor_member_id: int
+) -> None:
+    try:
+        await repo.upsert_subscription(db, data, actor_member_id=actor_member_id)
+    except SubscriptionOwnershipError as exc:
+        raise _ownership_error() from exc
+
+
+async def delete_subscription(
+    db: AsyncSession, *, endpoint: str, actor_member_id: int
+) -> None:
+    try:
+        await repo.delete_subscription(
+            db, endpoint=endpoint, actor_member_id=actor_member_id
+        )
+    except SubscriptionOwnershipError as exc:
+        raise _ownership_error() from exc
 
 
 async def send_to_all(
@@ -101,19 +127,34 @@ async def send_to_all(
     subs = await repo.list_active_subscriptions(db)
     accepted = 0
     failed = 0
+    log_items: list[SendLogItem] = []
+    expired_hashes: list[str] = []
+    payload = {"title": title, "body": body, **({"url": url} if url else {})}
     for sub in subs:
-        endpoint_plain = decrypt_str(cast(str, sub.endpoint))
-        ok, status = await provider.send_async(
-            sub, {"title": title, "body": body, **({"url": url} if url else {})}
-        )
+        try:
+            endpoint_plain = decrypt_str(cast(str, sub.endpoint))
+        except CryptoError:
+            failed += 1
+            log_items.append(
+                SendLogItem(
+                    ok=False,
+                    status_code=None,
+                    stored_endpoint_hash=cast(str, sub.endpoint_hash),
+                )
+            )
+            continue
+
+        ok, status = await provider.send_async(sub, payload)
         if ok:
             accepted += 1
         else:
             failed += 1
             if status in (404, 410):
-                await repo.remove_by_endpoint(db, endpoint=endpoint_plain)
-        # 발송 로그(민감정보 해시 보관)
-        await send_logs.create_log(
-            db, endpoint=endpoint_plain, ok=ok, status_code=status
+                expired_hashes.append(repo.hash_endpoint(endpoint_plain))
+        log_items.append(
+            SendLogItem(endpoint=endpoint_plain, ok=ok, status_code=status)
         )
+    # DB: 발송 로그·만료 구독 정리는 bounded batch commit
+    await send_logs.create_logs_batch(db, log_items)
+    await repo.remove_by_endpoint_hashes(db, expired_hashes)
     return SendResult(accepted=accepted, failed=failed)

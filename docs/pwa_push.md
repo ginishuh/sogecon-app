@@ -78,9 +78,10 @@ at-rest 암호화용 `PUSH_KEK`가 필요한 경우: `openssl rand -base64 32`
 - `POST /notifications/subscriptions`
   - req: `{ endpoint, keys: { p256dh, auth }, ua? }`
   - res: `204 No Content`
+  - 소유권: 동일 `endpoint_hash`가 다른 회원 소유면 `403` `subscription_forbidden`. `member_id`가 NULL인 레거시 행은 요청자 귀속 허용.
 - `DELETE /notifications/subscriptions`
   - req: `{ endpoint }`
-  - res: `204 No Content`
+  - res: `204 No Content` (행 없음도 idempotent 204). 타인 소유면 `403` `subscription_forbidden`.
 - `POST /notifications/admin/notifications/send` (운영자)
   - req: `{ title, body, url? }`
   - res: `{ accepted: number, failed: number }`
@@ -108,6 +109,11 @@ at-rest 암호화용 `PUSH_KEK`가 필요한 경우: `openssl rand -base64 32`
 4. APScheduler(혹은 워커)로 예약 발송(D-3/D-1) 큐 실행. 배치 크기/재시도/백오프 설정.
 5. 운영자 알림 발송 API 제공.
 6. (선택) at-rest 암호화 활성화: `PUSH_ENCRYPT_AT_REST=true`, `PUSH_KEK` 설정. 저장 시 endpoint/p256dh/auth를 AES-GCM으로 암호화하고, 해시(`endpoint_hash`)로 조회·삭제.
+   - **fail-closed:** `PUSH_ENCRYPT_AT_REST=true`이면 기동 시 `PUSH_KEK`가 base64로 디코드되어 길이 16/24/32여야 한다. 아니면 프로세스 기동 실패.
+   - `enc:v1:` 접두 값의 복호화 실패는 예외(평문처럼 반환하지 않음). 접두 없는 값은 평문 호환.
+   - stats의 `encryption_enabled`는 플래그만이 아니라 유효 KEK까지 포함한 effective 상태.
+   - 기존 평문 구독의 자동 일괄 재암호화는 하지 않는다. KEK 교체는 `ops/rekey_push_kek.py` 운영 절차를 사용한다.
+7. 발송/통계 성능: stats는 DB aggregate(`COUNT`/`FILTER`), `send_to_all`은 로그 batch insert + 만료 endpoint_hash bounded batch DELETE(커밋 수 bounded). 푸시 자체는 롤백 불가.
 
 ## 권한·UX 원칙
 - 옵트인: 기본 비활성. 사용자 의식적 동의 후 구독 저장.

@@ -1,3 +1,5 @@
+import base64
+import binascii
 from functools import lru_cache
 from ipaddress import ip_address, ip_network
 
@@ -200,6 +202,25 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "IMAGE_MAX_PIXELS exceeds cap "
                     f"({_IMAGE_MAX_PIXELS_CAP}) when APP_ENV={self.app_env}"
+                )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_push_encryption(self) -> "Settings":
+        # PUSH_ENCRYPT_AT_REST=true 이면 KEK는 기동 시 반드시 유효해야 한다.
+        if self.push_encrypt_at_rest:
+            try:
+                key = base64.b64decode((self.push_kek or "").strip())
+            except (binascii.Error, ValueError) as exc:
+                raise ValueError(
+                    "PUSH_KEK must be valid base64 AES key "
+                    "(16/24/32 bytes) when PUSH_ENCRYPT_AT_REST=true"
+                ) from exc
+            if len(key) not in (16, 24, 32):
+                raise ValueError(
+                    "PUSH_KEK must be valid base64 AES key "
+                    f"(16/24/32 bytes) when PUSH_ENCRYPT_AT_REST=true "
+                    f"(got {len(key)} bytes)"
                 )
         return self
 
