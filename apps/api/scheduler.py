@@ -17,6 +17,7 @@ from datetime import timedelta, timezone
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 from .config import get_settings
 from .db import AsyncSessionLocal
@@ -44,6 +45,14 @@ async def process_scheduled_notifications() -> None:
             f"processed={result.processed}, skipped={result.skipped}, "
             f"accepted={result.total_accepted}, failed={result.total_failed}"
         )
+
+
+async def reclaim_stale_scheduled_notifications() -> None:
+    """due 날짜와 무관하게 멈춘 예약 로그를 주기적으로 회수한다."""
+    async with AsyncSessionLocal() as db:
+        reclaimed = await sched_svc.reclaim_stale_scheduled_logs(db)
+        if reclaimed:
+            logger.info("stale 예약 로그 sweep 완료: count=%s", reclaimed)
 
 
 def start_scheduler() -> None:
@@ -76,10 +85,17 @@ def start_scheduler() -> None:
         name="D-3/D-1 이벤트 알림 발송",
         replace_existing=True,
     )
+    scheduler.add_job(
+        reclaim_stale_scheduled_notifications,
+        trigger=IntervalTrigger(minutes=5),
+        id="scheduled_notification_stale_sweep",
+        name="예약 알림 stale 로그 sweep",
+        replace_existing=True,
+    )
 
     scheduler.start()
     _state["scheduler"] = scheduler
-    logger.info("스케줄러 시작됨 (매일 09:00 KST)")
+    logger.info("스케줄러 시작됨 (매일 09:00 KST + 5분 stale sweep)")
 
 
 def shutdown_scheduler() -> None:

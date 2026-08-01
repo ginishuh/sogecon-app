@@ -379,13 +379,30 @@ async def process_single_event(
         )
 
     final_status = "failed" if result.failed else "completed"
-    await update_notification_log(
-        db,
-        log_id,
-        status=final_status,
-        accepted_count=result.accepted,
-        failed_count=result.failed,
-    )
+    try:
+        await update_notification_log(
+            db,
+            log_id,
+            status=final_status,
+            accepted_count=result.accepted,
+            failed_count=result.failed,
+        )
+    except SQLAlchemyError:
+        logger.exception(
+            "예약 발송 최종 로그 마감 실패: event_id=%s, d_type=%s",
+            event_id,
+            d_type,
+        )
+        counts = await _finalize_failed_notification(
+            db, log_id=log_id, fallback_failed=result.failed
+        )
+        return ProcessResult(
+            event_id=event_id,
+            d_type=d_type,
+            skipped=False,
+            accepted=counts.accepted,
+            failed=counts.failed,
+        )
 
     logger.info(
         f"발송 종료: event_id={event_id}, d_type={d_type}, status={final_status}, "
@@ -419,6 +436,10 @@ async def trigger_scheduled_notifications(
     target_date: date | None = None,
 ) -> TriggerResult:
     """예약 알림 트리거 (스케줄러/수동 공용)."""
+    reclaimed = await reclaim_stale_scheduled_logs(db)
+    if reclaimed:
+        logger.info("stale 예약 로그 회수: count=%s", reclaimed)
+
     events_by_dtype = await find_events_due_for_notification(
         db, target_date=target_date
     )
@@ -445,4 +466,17 @@ async def trigger_scheduled_notifications(
         skipped=skipped,
         total_accepted=total_accepted,
         total_failed=total_failed,
+    )
+
+
+async def reclaim_stale_scheduled_logs(
+    db: AsyncSession,
+    *,
+    now: datetime | None = None,
+) -> int:
+    """due 이벤트와 무관하게 오래된 예약 로그를 회수한다."""
+    current = now or datetime.now(UTC)
+    return await scheduled_repo.reclaim_stale_logs(
+        db,
+        cutoff=current - SCHEDULED_LOG_STALE_AFTER,
     )

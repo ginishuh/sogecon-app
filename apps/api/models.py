@@ -527,7 +527,7 @@ class ScheduledNotificationDelivery(Base):
     endpoint_hash = Column(String(64), nullable=False)
     status = Column(
         String(16), nullable=False, default="pending", server_default="pending"
-    )  # pending | in_progress | completed | failed | unknown
+    )  # pending | in_progress | completed | failed | unknown | abandoned
     status_code = Column(Integer, nullable=True)
     attempts = Column(Integer, nullable=False, default=0, server_default="0")
     claimed_at = Column(DateTime(timezone=True), nullable=True)

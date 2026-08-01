@@ -27,6 +27,7 @@ class DeliveryResult:
     claim: DeliveryClaim
     ok: bool
     status_code: int | None
+    uncertain: bool = False
 
 
 @dataclass(frozen=True)
@@ -47,7 +48,19 @@ async def ensure_deliveries(
 ) -> None:
     """예약 로그에 구독별 delivery 행을 멱등적으로 준비한다."""
     hashes = _clean_hashes(endpoint_hashes)
+
+    stale_stmt = update(ScheduledNotificationDelivery).where(
+        ScheduledNotificationDelivery.scheduled_log_id == scheduled_log_id,
+        ScheduledNotificationDelivery.status.in_(["pending", "failed"]),
+    )
+    if hashes:
+        stale_stmt = stale_stmt.where(
+            ~ScheduledNotificationDelivery.endpoint_hash.in_(hashes)
+        )
+    await db.execute(stale_stmt.values(status="abandoned", finished_at=func.now()))
+
     if not hashes:
+        await db.commit()
         return
 
     values = [
@@ -145,7 +158,11 @@ async def record_delivery_results(
             update(ScheduledNotificationDelivery)
             .where(ScheduledNotificationDelivery.id == result.claim.id)
             .values(
-                status="completed" if result.ok else "failed",
+                status=(
+                    "unknown"
+                    if result.uncertain
+                    else ("completed" if result.ok else "failed")
+                ),
                 status_code=result.status_code,
                 finished_at=func.now(),
             )
@@ -161,9 +178,10 @@ async def get_delivery_counts(
 ) -> DeliveryCounts:
     """예약 로그의 구독별 결과를 DB에서 집계한다."""
     status = ScheduledNotificationDelivery.status
+    unresolved = status.in_(["pending", "in_progress", "failed", "unknown"])
     stmt = select(
         func.coalesce(func.sum(case((status == "completed", 1), else_=0)), 0),
-        func.coalesce(func.sum(case((status != "completed", 1), else_=0)), 0),
+        func.coalesce(func.sum(case((unresolved, 1), else_=0)), 0),
     ).where(ScheduledNotificationDelivery.scheduled_log_id == scheduled_log_id)
     result = await db.execute(stmt)
     row = result.one()
@@ -171,6 +189,34 @@ async def get_delivery_counts(
         accepted=int(row[0] or 0),
         failed=int(row[1] or 0),
     )
+
+
+async def _finalize_stale_log(
+    db: AsyncSession,
+    *,
+    log_id: int,
+) -> DeliveryCounts:
+    await db.execute(
+        update(ScheduledNotificationDelivery)
+        .where(
+            ScheduledNotificationDelivery.scheduled_log_id == log_id,
+            ScheduledNotificationDelivery.status == "in_progress",
+        )
+        .values(status="unknown", status_code=None, finished_at=func.now())
+    )
+    counts = await get_delivery_counts(db, scheduled_log_id=log_id)
+    await db.execute(
+        update(ScheduledNotificationLog)
+        .where(ScheduledNotificationLog.id == log_id)
+        .values(
+            status="failed",
+            accepted_count=counts.accepted,
+            failed_count=counts.failed,
+            sent_at=None,
+            updated_at=func.now(),
+        )
+    )
+    return counts
 
 
 async def reclaim_stale_log(
@@ -201,22 +247,36 @@ async def reclaim_stale_log(
         return None
 
     resolved_log_id = int(log_id)
-    await db.execute(
-        update(ScheduledNotificationDelivery)
-        .where(
-            ScheduledNotificationDelivery.scheduled_log_id == resolved_log_id,
-            ScheduledNotificationDelivery.status == "in_progress",
-        )
-        .values(status="unknown", status_code=None, finished_at=func.now())
-    )
-    counts = await get_delivery_counts(db, scheduled_log_id=resolved_log_id)
-    await db.execute(
-        update(ScheduledNotificationLog)
-        .where(ScheduledNotificationLog.id == resolved_log_id)
-        .values(accepted_count=counts.accepted, failed_count=counts.failed)
-    )
+    await _finalize_stale_log(db, log_id=resolved_log_id)
     await db.commit()
     return resolved_log_id
+
+
+async def reclaim_stale_logs(
+    db: AsyncSession,
+    *,
+    cutoff: datetime,
+) -> int:
+    """due 이벤트와 무관하게 오래된 예약 로그를 일괄 회수한다."""
+    stmt = (
+        select(ScheduledNotificationLog.id)
+        .where(
+            ScheduledNotificationLog.status.in_(["pending", "in_progress"]),
+            ScheduledNotificationLog.updated_at < cutoff,
+        )
+        .order_by(ScheduledNotificationLog.id)
+        .with_for_update(skip_locked=True)
+    )
+    result = await db.execute(stmt)
+    log_ids = [int(log_id) for log_id in result.scalars().all()]
+    if not log_ids:
+        await db.commit()
+        return 0
+
+    for log_id in log_ids:
+        await _finalize_stale_log(db, log_id=log_id)
+    await db.commit()
+    return len(log_ids)
 
 
 async def mark_log_failed(
