@@ -15,6 +15,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
+import { adminPostKeys, postKeys } from '../../../lib/query-keys';
 import { hasPermissionSession } from '../../../lib/rbac';
 import type { HeroTargetLookupItem } from '../../../services/hero';
 import {
@@ -369,7 +370,8 @@ function useDeleteMutation(
     onSuccess: () => {
       showToast('게시물이 삭제되었습니다.', { type: 'success' });
       onSuccessCallback();
-      void queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
     },
     onError: (e: unknown) => {
       const msg =
@@ -443,7 +445,7 @@ export default function AdminPostsPage() {
   const deleteMutation = useDeleteMutation(clearDeleteTarget, show);
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['admin-posts', filters.params],
+    queryKey: adminPostKeys.list(filters.params),
     queryFn: () => listAdminPosts(filters.params),
     enabled: canManagePosts,
     staleTime: 30_000,

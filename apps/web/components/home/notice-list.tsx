@@ -5,6 +5,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { listPosts, type Post } from '../../services/posts';
 import { NoticeSkeleton } from '../ui/skeleton';
+import { postKeys } from '../../lib/query-keys';
 
 // 날짜 포맷팅 함수 (Intl.DateTimeFormat 사용으로 TZ/포맷 안전성 확보)
 function formatDate(dateStr: string): string {
@@ -28,7 +29,7 @@ function formatDate(dateStr: string): string {
 
 export function HomeNoticeList() {
   const { data: posts, isLoading, isError } = useQuery<Post[]>({
-    queryKey: ['posts', 'notice', 5, 0],
+    queryKey: postKeys.list('home', { category: 'notice', limit: 5 }),
     queryFn: () => listPosts({ category: 'notice', limit: 5 })
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -8,8 +8,9 @@ import React, { useState } from 'react';
 import { ImageUpload } from '../../../components/image-upload';
 import { useAuth } from '../../../hooks/useAuth';
 import { ApiError } from '../../../lib/api';
-import { createPost } from '../../../services/posts';
 import { getBoardCategoryInfo } from '../../../lib/community';
+import { adminPostKeys, postKeys } from '../../../lib/query-keys';
+import { createPost } from '../../../services/posts';
 
 const BOARD_CATEGORY_OPTIONS = [
   { value: 'discussion', label: '자유게시판' },
@@ -21,6 +22,7 @@ const BOARD_CATEGORY_OPTIONS = [
 export default function BoardNewPage() {
   const { status } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState<(typeof BOARD_CATEGORY_OPTIONS)[number]['value']>('discussion');
@@ -37,6 +39,8 @@ export default function BoardNewPage() {
       }),
     onSuccess: () => {
       setError(null);
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
       router.push('/board');
     },
     onError: (err: unknown) => {

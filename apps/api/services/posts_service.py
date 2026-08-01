@@ -15,16 +15,23 @@ async def list_posts(
     *,
     limit: int,
     offset: int,
-    category: str | None = None,
-    categories: Sequence[str] | None = None,
+    filters: posts_repo.PublicPostFilters | None = None,
 ) -> Sequence[models.Post]:
     return await posts_repo.list_posts(
-        db, limit=limit, offset=offset, category=category, categories=categories
+        db,
+        limit=limit,
+        offset=offset,
+        filters=filters,
+        public_only=True,
     )
 
 
 async def get_post(db: AsyncSession, post_id: int) -> models.Post:
     return await posts_repo.get_post(db, post_id)
+
+
+async def get_public_post(db: AsyncSession, post_id: int) -> models.Post:
+    return await posts_repo.get_public_post(db, post_id)
 
 
 async def create_post(db: AsyncSession, payload: schemas.PostCreate) -> models.Post:

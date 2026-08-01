@@ -9,6 +9,7 @@ import { useToast } from '../../../../components/toast';
 import { useAuth } from '../../../../hooks/useAuth';
 import { ApiError } from '../../../../lib/api';
 import { memberApiErrorToMessage } from '../../../../lib/error-map';
+import { adminPostKeys, postKeys } from '../../../../lib/query-keys';
 import { isAdminSession } from '../../../../lib/rbac';
 import { getPost, updatePost, type Post } from '../../../../services/posts';
 
@@ -73,7 +74,7 @@ export default function BoardEditPage() {
   const postId = Number(params.id);
 
   const { data: post, isLoading, isError } = useQuery({
-    queryKey: ['post', postId],
+    queryKey: postKeys.detail(postId),
     queryFn: () => getPost(postId),
     enabled: !Number.isNaN(postId),
   });
@@ -85,8 +86,8 @@ export default function BoardEditPage() {
     mutationFn: (data: PostFormData) => updatePost(postId, buildUpdatePayload(data, post, isAdmin)),
     onSuccess: () => {
       show('게시글이 수정되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      void queryClient.invalidateQueries({ queryKey: ['board'] });
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
       router.push(`/board/${postId}`);
     },
     onError: createErrorHandler(show),

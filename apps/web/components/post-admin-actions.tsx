@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../lib/api';
 import { apiErrorToMessage } from '../lib/error-map';
+import { adminPostKeys, postKeys } from '../lib/query-keys';
 import { isAdminSession } from '../lib/rbac';
 import { deletePost } from '../services/posts';
 import { ConfirmDialog } from './confirm-dialog';
@@ -29,7 +30,8 @@ export function PostAdminActions({ postId, postTitle }: PostAdminActionsProps) {
     mutationFn: () => deletePost(postId),
     onSuccess: () => {
       show('게시물이 삭제되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
       router.push('/posts');
     },
     onError: (e: unknown) => {

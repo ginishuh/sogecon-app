@@ -14,6 +14,7 @@ import { useAuth } from '../../../../../hooks/useAuth';
 import { useHeroTargetControls } from '../../../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../../../lib/api';
 import { apiErrorToMessage } from '../../../../../lib/error-map';
+import { adminPostKeys, postKeys } from '../../../../../lib/query-keys';
 import { hasPermissionSession } from '../../../../../lib/rbac';
 import { getPost, updatePost, type UpdatePostPayload } from '../../../../../services/posts';
 
@@ -40,7 +41,7 @@ export default function EditPostPage() {
   });
 
   const { data: post, isLoading, isError } = useQuery({
-    queryKey: ['post', postId],
+    queryKey: postKeys.detail(postId),
     queryFn: () => getPost(postId),
     enabled: canLoadPost(canManagePosts, postId),
   });
@@ -76,8 +77,8 @@ export default function EditPostPage() {
     },
     onSuccess: () => {
       show('게시물이 수정되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      void queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
       router.push('/admin/posts');
     },
     onError: (e: unknown) => {

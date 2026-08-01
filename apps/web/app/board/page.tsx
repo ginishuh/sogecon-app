@@ -13,12 +13,13 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import React, { Suspense, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 
 import { Tabs } from '../../components/ui/tabs';
 import { resolveApiAssetUrl } from '../../lib/api';
 import { BOARD_CATEGORY_KEYS, getAuthorName, getBoardCategoryInfo, type BoardCategoryKey } from '../../lib/community';
 import { formatPostBoardDate, resolvePostDate } from '../../lib/date-utils';
+import { postKeys } from '../../lib/query-keys';
 import { listPosts, type Post } from '../../services/posts';
 
 const BOARD_CATEGORIES = [
@@ -248,12 +249,24 @@ function BoardPageInner() {
       : 'all';
   const [category, setCategory] = useState<BoardCategory>(initialCategory);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 300);
+    return () => window.clearTimeout(handle);
+  }, [search]);
 
   const query = useInfiniteQuery<Post[]>({
-    queryKey: ['board', category],
+    queryKey: postKeys.list('board', { category, q: debouncedSearch || undefined }),
     initialPageParam: 0,
     queryFn: ({ pageParam }) => {
-      const baseParams = { limit: PAGE_SIZE, offset: Number(pageParam) };
+      const baseParams = {
+        limit: PAGE_SIZE,
+        offset: Number(pageParam),
+        ...(debouncedSearch ? { q: debouncedSearch } : {}),
+      };
       return category === 'all'
         ? listPosts({ ...baseParams, categories: [...BOARD_POST_CATEGORIES] })
         : listPosts({ ...baseParams, category });
@@ -263,24 +276,15 @@ function BoardPageInner() {
     ),
   });
 
-  const filtered = useMemo(() => {
-    const data = query.data?.pages.flat() ?? [];
-    const term = search.trim().toLowerCase();
-    if (!term) return data;
-    return data.filter((post) => {
-      const title = post.title?.toLowerCase() ?? '';
-      const content = post.content?.toLowerCase() ?? '';
-      return title.includes(term) || content.includes(term);
-    });
-  }, [query.data, search]);
+  const posts = useMemo(() => query.data?.pages.flat() ?? [], [query.data]);
 
   const featured = useMemo(
-    () => !search.trim() ? filtered.find((post) => post.pinned && postImage(post)) ?? null : null,
-    [filtered, search]
+    () => !debouncedSearch ? posts.find((post) => post.pinned && postImage(post)) ?? null : null,
+    [posts, debouncedSearch]
   );
   // 주요 이야기는 목록에서 제거하지 않는다. 한 건뿐인 저콘텐츠 상태에서도
   // 강조 카드와 "게시글 없음"이 동시에 노출되지 않고, 목록의 완전성도 유지된다.
-  const listPostsData = filtered;
+  const listPostsData = posts;
   const selectedIndex = Math.max(0, BOARD_CATEGORIES.findIndex((item) => item.key === category));
   const selectedInfo = category === 'all' ? null : getBoardCategoryInfo(category as BoardCategoryKey);
 

@@ -506,6 +506,23 @@
               ],
               "title": "Categories"
             }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
           }
         ],
         "responses": {
@@ -5696,11 +5713,6 @@
             ],
             "title": "Images"
           },
-          "view_count": {
-            "type": "integer",
-            "title": "View Count",
-            "default": 0
-          },
           "author_id": {
             "anyOf": [
               {
@@ -5783,11 +5795,6 @@
             ],
             "title": "Images"
           },
-          "view_count": {
-            "type": "integer",
-            "title": "View Count",
-            "default": 0
-          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -5818,6 +5825,11 @@
               }
             ],
             "title": "Created At"
+          },
+          "view_count": {
+            "type": "integer",
+            "title": "View Count",
+            "default": 0
           },
           "comment_count": {
             "type": "integer",

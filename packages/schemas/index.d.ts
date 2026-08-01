@@ -1690,11 +1690,6 @@ export interface components {
             cover_image?: string | null;
             /** Images */
             images?: string[] | null;
-            /**
-             * View Count
-             * @default 0
-             */
-            view_count: number;
             /** Author Id */
             author_id?: number | null;
         };
@@ -1717,11 +1712,6 @@ export interface components {
             cover_image?: string | null;
             /** Images */
             images?: string[] | null;
-            /**
-             * View Count
-             * @default 0
-             */
-            view_count: number;
             /** Id */
             id: number;
             /** Author Id */
@@ -1730,6 +1720,11 @@ export interface components {
             author_name?: string | null;
             /** Created At */
             created_at: string | null;
+            /**
+             * View Count
+             * @default 0
+             */
+            view_count: number;
             /**
              * Comment Count
              * @default 0
@@ -2304,6 +2299,7 @@ export interface operations {
                 offset?: number;
                 category?: string | null;
                 categories?: string[] | null;
+                q?: string | null;
             };
             header?: never;
             path?: never;

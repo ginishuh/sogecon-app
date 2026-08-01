@@ -17,7 +17,7 @@
 | --- | --- | --- |
 | `Member` | `student_id`, `email`, `name`, `cohort`, `roles`, `visibility` | 회원 기본 정보와 노출 범위 설정. `student_id`는 고유 식별자이자 인증용 ID. 역할 문자열(`member`, `admin` 등)로 권한 제어 예정. |
 | `MemberAuth` | `student_id`, `password_hash` | 회원 인증 정보. `student_id`를 외래 키로 Member와 연동하며, 비밀번호는 해시 저장. 이메일 기반 인증에서 학번 기반으로 전환 완료. |
-| `Post` | `author_id`, `title`, `content`, `published_at` | 공지/게시글. `published_at` 내림차순 인덱스로 최신 게시물 조회 최적화. |
+| `Post` | `author_id`, `title`, `content`, `published_at`, `category`, `view_count` | 공지/게시글. 공개 API는 board 카테고리(`discussion`/`question`/`share`/`congrats`)는 `published_at` 무관 공개, `notice`/`news` 등은 `published_at <= now`만 공개. `view_count`는 서버 전용(생성 입력 불가). 공개 목록은 `q` 서버 검색을 지원. |
 | `Event` | `title`, `starts_at`, `ends_at`, `location`, `capacity` | 모임 일정. 시작 일시 인덱스로 일정 정렬 제공. |
 | `RSVP` | `member_id`, `event_id`, `status` | 회원과 이벤트 간 다대다 관계. 기본 상태는 `going`, 취소·대기열 상태를 Enum으로 제한한다. |
 

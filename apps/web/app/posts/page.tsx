@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '../../hooks/useAuth';
 import { splitPinned } from '../../lib/posts';
+import { postKeys } from '../../lib/query-keys';
 import { hasPermissionSession } from '../../lib/rbac';
 import { listPosts, type Post } from '../../services/posts';
 import { PostCard } from '../../components/post-card';
@@ -129,7 +130,7 @@ export default function PostsPage() {
   }, [urlCategory]);
 
   const query = useQuery<Post[]>({
-    queryKey: ['posts', 20, 0, category],
+    queryKey: postKeys.list('feed', { limit: 20, offset: 0, category }),
     queryFn: () => {
       if (category === 'all') {
         return listPosts({ limit: 20, categories: ['notice', 'news'] });

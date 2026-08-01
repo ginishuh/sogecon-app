@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../lib/api';
 import { memberApiErrorToMessage } from '../lib/error-map';
+import { adminPostKeys, postKeys } from '../lib/query-keys';
 import { isAdminSession } from '../lib/rbac';
 import { deletePost } from '../services/posts';
 import { ConfirmDialog } from './confirm-dialog';
@@ -32,7 +33,8 @@ export function BoardPostActions({ postId, postTitle, authorId }: BoardPostActio
     mutationFn: () => deletePost(postId),
     onSuccess: () => {
       show('게시글이 삭제되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: ['board'] });
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
       router.push('/board');
     },
     onError: (e: unknown) => {

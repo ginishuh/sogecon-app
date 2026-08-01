@@ -10,6 +10,7 @@ export type ListPostsParams = {
   offset?: number;
   category?: string;
   categories?: string[];
+  q?: string;
 };
 
 function assertListPostsParams(params: ListPostsParams) {
@@ -41,6 +42,9 @@ function buildListPostsQuery(params: ListPostsParams): string {
   const q = new URLSearchParams();
   applyListPostsPagination(q, params);
   applyListPostsCategoryFilter(q, params);
+  if (params.q?.trim()) {
+    q.set('q', params.q.trim());
+  }
 
   const qs = q.toString();
   if (!qs) return '';
@@ -57,9 +61,8 @@ export async function getPost(id: number): Promise<Post> {
 }
 
 // pinned는 서버 기본값이 있어 클라이언트에서 생략 가능
-// view_count는 클라이언트에서 설정 불가 (서버 전용)
 export type CreatePostPayload =
-  Omit<Schema<'PostCreate'>, 'pinned' | 'view_count'> & {
+  Omit<Schema<'PostCreate'>, 'pinned'> & {
     pinned?: boolean;
   };
 

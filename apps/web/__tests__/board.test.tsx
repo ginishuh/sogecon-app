@@ -55,23 +55,32 @@ describe('BoardPage', () => {
     authStatusRef.current = 'authorized';
   });
 
-  it('목록을 렌더링하고 검색으로 필터링한다', async () => {
-    listPostsMock.mockResolvedValueOnce([
-      { id: 1, title: '첫 번째 글', content: '커뮤니티 환영', published_at: null, author_id: 1, category: 'discussion' },
+  it('목록을 렌더링하고 서버 검색을 요청한다', async () => {
+    listPostsMock.mockResolvedValue([
       { id: 2, title: 'Q&A', content: '질문 있어요', published_at: null, author_id: 2, category: 'question' },
     ]);
 
     renderWithClient(<BoardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('첫 번째 글')).toBeInTheDocument();
+      expect(listPostsMock).toHaveBeenCalled();
     });
 
     const searchInput = screen.getByRole('textbox', { name: '게시글 검색' });
     fireEvent.change(searchInput, { target: { value: 'Q&A' } });
 
-    expect(screen.queryByText('첫 번째 글')).not.toBeInTheDocument();
-    expect(screen.getByText('Q&A')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(listPostsMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: 'Q&A',
+          categories: ['discussion', 'question', 'share', 'congrats'],
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Q&A')).toBeInTheDocument();
+    });
   });
 
   it('카테고리 탭 전환 시 새 데이터를 불러온다', async () => {

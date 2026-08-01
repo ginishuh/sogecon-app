@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from collections import defaultdict, deque
+from dataclasses import dataclass
 from http import HTTPStatus
 from typing import cast
 
@@ -75,22 +76,53 @@ def reset_member_post_limit_cache() -> None:
     _MEMBER_RATE_TABLE.clear()
 
 
-@router.get("/", response_model=list[schemas.PostRead])
-async def list_posts(
+@dataclass
+class PostListQueryParams:
+    """공개 게시글 목록 쿼리 파라미터."""
+
+    limit: int = 10
+    offset: int = 0
+    category: str | None = None
+    categories: list[str] | None = None
+    q: str | None = None
+
+
+def get_post_list_params(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     category: str | None = Query(None),
     categories: list[str] | None = Query(None),
+    q: str | None = Query(None, max_length=100),
+) -> PostListQueryParams:
+    return PostListQueryParams(
+        limit=limit,
+        offset=offset,
+        category=category,
+        categories=categories,
+        q=q,
+    )
+
+
+@router.get("/", response_model=list[schemas.PostRead])
+async def list_posts(
+    params: PostListQueryParams = Depends(get_post_list_params),
     db: AsyncSession = Depends(get_db),
 ) -> list[schemas.PostRead]:
-    if category is not None and categories is not None:
+    if params.category is not None and params.categories is not None:
         raise ApiError(
             code="category_query_conflict",
             detail="category and categories cannot be used together",
             status=400,
         )
     posts = await posts_service.list_posts(
-        db, limit=limit, offset=offset, category=category, categories=categories
+        db,
+        limit=params.limit,
+        offset=params.offset,
+        filters={
+            "category": params.category,
+            "categories": params.categories,
+            "q": params.q,
+        },
     )
     # N+1 쿼리 방지: 배치로 댓글 수 조회
     post_ids = [cast(int, p.id) for p in posts]
@@ -110,10 +142,12 @@ async def get_post(
     post_id: int,
     db: AsyncSession = Depends(get_db),
 ) -> schemas.PostRead:
-    post = await posts_service.get_post(db, post_id)
-    # 관리자 조회는 통계 왜곡을 피하기 위해 조회수 증가 제외
-    if not await is_admin(db, request):
-        # 조회수 증가 후 refresh로 최신 값 반영 (재조회 대신)
+    admin = await is_admin(db, request)
+    # 관리자는 draft 미리보기 허용. 비관리자는 공개 가시성만.
+    if admin:
+        post = await posts_service.get_post(db, post_id)
+    else:
+        post = await posts_service.get_public_post(db, post_id)
         await posts_repo.increment_view_count(db, post_id)
         await db.refresh(post)
     post_read = schemas.PostRead.model_validate(post)

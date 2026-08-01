@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from .. import models, schemas
 from ..errors import NotFoundError
+from ..post_visibility import is_post_public, public_visibility_clause
 from . import escape_like
 
 
@@ -20,19 +21,39 @@ class AdminPostFilters(TypedDict, total=False):
     q: str | None
 
 
+class PublicPostFilters(TypedDict, total=False):
+    """공개 게시물 목록 필터."""
+
+    category: str | None
+    categories: Sequence[str] | None
+    q: str | None
+
+
 async def list_posts(
     db: AsyncSession,
     *,
     limit: int,
     offset: int,
-    category: str | None = None,
-    categories: Sequence[str] | None = None,
+    filters: PublicPostFilters | None = None,
+    public_only: bool = True,
 ) -> Sequence[models.Post]:
     stmt = select(models.Post).options(selectinload(models.Post.author))
-    if categories:
-        stmt = stmt.where(models.Post.category.in_(categories))
-    elif category:
-        stmt = stmt.where(models.Post.category == category)
+    if public_only:
+        stmt = stmt.where(public_visibility_clause())
+    if filters:
+        categories = filters.get("categories")
+        category = filters.get("category")
+        q = filters.get("q")
+        if categories:
+            stmt = stmt.where(models.Post.category.in_(categories))
+        elif category:
+            stmt = stmt.where(models.Post.category == category)
+        if q:
+            pattern = f"%{escape_like(q)}%"
+            stmt = stmt.where(
+                models.Post.title.ilike(pattern, escape="\\")
+                | models.Post.content.ilike(pattern, escape="\\")
+            )
     stmt = (
         stmt.order_by(
             desc(models.Post.pinned),
@@ -61,8 +82,17 @@ async def get_post(db: AsyncSession, post_id: int) -> models.Post:
     return post
 
 
+async def get_public_post(db: AsyncSession, post_id: int) -> models.Post:
+    """공개 상세용. 비공개면 존재 비노출로 post_not_found."""
+    post = await get_post(db, post_id)
+    if not is_post_public(post):
+        raise NotFoundError(code="post_not_found", detail="Post not found")
+    return post
+
+
 async def create_post(db: AsyncSession, payload: schemas.PostCreate) -> models.Post:
     data = payload.model_dump()
+    data["view_count"] = 0
     post = models.Post(**data)
     db.add(post)
     await db.commit()
