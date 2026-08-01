@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
 
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -173,7 +174,6 @@ def test_create_rejects_unknown_category(member_login: TestClient) -> None:
         },
     )
     assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert res.json()["code"] == "invalid_post_category"
 
 
 def test_create_rejects_missing_category(member_login: TestClient) -> None:
@@ -185,4 +185,71 @@ def test_create_rejects_missing_category(member_login: TestClient) -> None:
         },
     )
     assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+@pytest.mark.parametrize("category", ["notice", "news"])
+def test_member_cannot_create_published_category(
+    member_login: TestClient,
+    admin_login: TestClient,
+    category: str,
+) -> None:
+    # 두 fixture가 같은 TestClient를 공유하므로, 생성 요청 직전에 멤버 세션을
+    # 명시해 관리자 fixture의 시드/로그인 효과가 섞이지 않게 한다.
+    member_login.post(
+        "/auth/member/login",
+        json={"student_id": "member001", "password": "memberpass"},
+    )
+    title = f"회원 발행형 차단 {category}"
+    res = member_login.post(
+        "/posts/",
+        json={"title": title, "content": "본문", "category": category},
+    )
+    assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert res.json()["code"] == "invalid_post_category"
+
+    admin_relogin = admin_login.post(
+        "/auth/login",
+        json={"student_id": "__seed__admin", "password": "__seed__"},
+    )
+    assert admin_relogin.status_code == HTTPStatus.OK
+    listed = admin_login.get("/admin/posts/", params={"q": title, "limit": 20})
+    assert listed.status_code == HTTPStatus.OK
+    assert all(item["title"] != title for item in listed.json()["items"])
+
+
+def test_update_category_is_optional_but_non_null_when_present(
+    admin_login: TestClient,
+) -> None:
+    created = admin_login.post(
+        "/posts/",
+        json={
+            "title": "수정 계약 테스트",
+            "content": "본문",
+            "category": "discussion",
+        },
+    )
+    assert created.status_code == HTTPStatus.CREATED
+    post_id = created.json()["id"]
+
+    unchanged = admin_login.patch(
+        f"/posts/{post_id}", json={"title": "수정 후에도 board"}
+    )
+    assert unchanged.status_code == HTTPStatus.OK
+    assert unchanged.json()["category"] == "discussion"
+
+    category_attempt = admin_login.patch(
+        f"/posts/{post_id}", json={"category": "notice"}
+    )
+    assert category_attempt.status_code == HTTPStatus.OK
+    assert category_attempt.json()["category"] == "discussion"
+    assert category_attempt.json()["published_at"] is None
+
+    null_category = admin_login.patch(
+        f"/posts/{post_id}", json={"category": None}
+    )
+    assert null_category.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    unknown_category = admin_login.patch(
+        f"/posts/{post_id}", json={"category": "discusion"}
+    )
+    assert unknown_category.status_code == HTTPStatus.UNPROCESSABLE_ENTITY

@@ -7,20 +7,26 @@ notice/news 등 그 외는 published_at이 있고 now(UTC) 이하일 때만 공�
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Final, cast
+from typing import Final, Literal, cast, get_args
 
 from sqlalchemy import ColumnElement, or_
 
 from . import models
 
-BOARD_POST_CATEGORIES: Final[frozenset[str]] = frozenset(
-    {"discussion", "question", "share", "congrats"}
-)
+PostCategoryLiteral = Literal[
+    "discussion",
+    "question",
+    "share",
+    "congrats",
+    "notice",
+    "news",
+]
+
+_POST_CATEGORY_VALUES = get_args(PostCategoryLiteral)
+BOARD_POST_CATEGORIES: Final[frozenset[str]] = frozenset(_POST_CATEGORY_VALUES[:4])
 
 # 생성·수정 시 허용 카테고리 (board + 발행형)
-KNOWN_POST_CATEGORIES: Final[frozenset[str]] = BOARD_POST_CATEGORIES | frozenset(
-    {"notice", "news"}
-)
+KNOWN_POST_CATEGORIES: Final[frozenset[str]] = frozenset(_POST_CATEGORY_VALUES)
 
 
 def is_post_public(post: models.Post, *, now: datetime | None = None) -> bool:

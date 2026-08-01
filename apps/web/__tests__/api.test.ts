@@ -2,12 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { apiFetch, ApiError } from '../lib/api';
 
-vi.mock('next/headers', () => ({
-  cookies: vi.fn(async () => ({
-    getAll: () => [{ name: 'session', value: 'admin-session' }],
-  })),
-}));
-
 describe('apiFetch 오류 정규화', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -37,7 +31,7 @@ describe('apiFetch 오류 정규화', () => {
     );
   });
 
-  it('서버 렌더링에서 요청 쿠키를 API로 전달한다', async () => {
+  it('브라우저 요청에서 세션 credentials를 유지한다', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ id: 1 }), {
         status: 200,
@@ -46,21 +40,12 @@ describe('apiFetch 오류 정규화', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    const windowDesc = Object.getOwnPropertyDescriptor(globalThis, 'window');
-    // SSR 경로: window이 없을 때만 next/headers 쿠키를 붙인다.
-    Reflect.deleteProperty(globalThis, 'window');
-    try {
-      await apiFetch('/posts/1');
-    } finally {
-      if (windowDesc) Object.defineProperty(globalThis, 'window', windowDesc);
-    }
+    await apiFetch('/posts/1');
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/posts/1'),
       expect.objectContaining({
-        headers: expect.objectContaining({
-          Cookie: 'session=admin-session',
-        }),
+        credentials: 'include',
       })
     );
   });

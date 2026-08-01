@@ -5672,17 +5672,6 @@
             ],
             "title": "Published At"
           },
-          "category": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Category"
-          },
           "pinned": {
             "type": "boolean",
             "title": "Pinned",
@@ -5713,6 +5702,18 @@
             ],
             "title": "Images"
           },
+          "category": {
+            "type": "string",
+            "enum": [
+              "discussion",
+              "question",
+              "share",
+              "congrats",
+              "notice",
+              "news"
+            ],
+            "title": "Category"
+          },
           "author_id": {
             "anyOf": [
               {
@@ -5728,7 +5729,8 @@
         "type": "object",
         "required": [
           "title",
-          "content"
+          "content",
+          "category"
         ],
         "title": "PostCreate"
       },
@@ -5754,17 +5756,6 @@
             ],
             "title": "Published At"
           },
-          "category": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Category"
-          },
           "pinned": {
             "type": "boolean",
             "title": "Pinned",
@@ -5794,6 +5785,17 @@
               }
             ],
             "title": "Images"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "id": {
             "type": "integer",
@@ -5872,13 +5874,14 @@
             "title": "Content"
           },
           "category": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
+            "type": "string",
+            "enum": [
+              "discussion",
+              "question",
+              "share",
+              "congrats",
+              "notice",
+              "news"
             ],
             "title": "Category"
           },

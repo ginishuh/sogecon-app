@@ -82,66 +82,6 @@ async function parseOk<T>(res: Response): Promise<T | void> {
   return (await res.json()) as T;
 }
 
-async function serverRequestCookieHeader(): Promise<string | undefined> {
-  if (typeof window !== 'undefined') return undefined;
-  try {
-    const { cookies } = await import('next/headers');
-    const store = await cookies();
-    const pairs = store.getAll();
-    if (pairs.length === 0) return undefined;
-    return pairs.map((item) => `${item.name}=${item.value}`).join('; ');
-  } catch {
-    // 요청 컨텍스트 밖(빌드·테스트 등)에서는 쿠키 없음
-    return undefined;
-  }
-}
-
-function headerLookup(headers: HeadersInit | undefined, name: string): string | undefined {
-  if (!headers) return undefined;
-  const target = name.toLowerCase();
-  if (headers instanceof Headers) {
-    return headers.get(name) ?? undefined;
-  }
-  if (Array.isArray(headers)) {
-    const hit = headers.find(([key]) => key.toLowerCase() === target);
-    return hit?.[1];
-  }
-  for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() === target && typeof value === 'string') return value;
-  }
-  return undefined;
-}
-
-function mergeHeaders(
-  base: Record<string, string>,
-  extra?: HeadersInit
-): Record<string, string> {
-  const headers = { ...base };
-  if (!extra) return headers;
-  if (extra instanceof Headers) {
-    extra.forEach((value, key) => {
-      headers[key] = value;
-    });
-    return headers;
-  }
-  if (Array.isArray(extra)) {
-    for (const [key, value] of extra) headers[key] = value;
-    return headers;
-  }
-  return Object.assign(headers, extra);
-}
-
-async function withServerSessionCookie(
-  headers: Record<string, string>
-): Promise<Record<string, string>> {
-  // SSR: 브라우저 credentials가 없으므로 들어온 세션 쿠키를 API로 전달한다.
-  // 관리자 draft 미리보기(`/posts/{id}`)가 익명 404로 닫히지 않게 한다.
-  if (headerLookup(headers, 'cookie')) return headers;
-  const cookie = await serverRequestCookieHeader();
-  if (!cookie) return headers;
-  return { ...headers, Cookie: cookie };
-}
-
 // 모든 HTTP 메서드에서 T 반환 (DELETE 포함)
 export async function apiFetch<T>(
   path: string,
@@ -154,18 +94,13 @@ export async function apiFetch<T>(
   init?: RequestInit & { method?: HttpMethod }
 ): Promise<T | void> {
   const isFormData = init?.body instanceof FormData;
-  const headers = await withServerSessionCookie(
-    mergeHeaders(
-      {
-        Accept: 'application/json',
-        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-      },
-      init?.headers
-    )
-  );
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
-    headers,
+    headers: {
+      Accept: 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+      ...(init?.headers ?? {}),
+    },
     credentials: 'include',
     cache: 'no-store',
   });

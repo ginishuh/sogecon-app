@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 import re
 from datetime import datetime
-from typing import Literal, TypedDict
+from typing import Annotated, Literal, TypedDict
 
 from pydantic import (
     BaseModel,
@@ -23,6 +23,7 @@ from .media_utils import (
     normalize_media_path,
     normalize_media_paths,
 )
+from .post_visibility import PostCategoryLiteral
 
 VisibilityLiteral = Literal["all", "cohort", "private"]
 DirectoryMemberRead = _DirectoryMemberRead
@@ -291,17 +292,21 @@ class AdminEventListFilters(TypedDict, total=False):
     status: EventStatusLiteral
 
 
-class PostBase(BaseModel):
+class PostFields(BaseModel):
     title: str
     content: str
     published_at: datetime | None = None
-    category: str | None = None
     pinned: bool = False
     cover_image: str | None = None
     images: list[str] | None = None  # 추가 이미지 URL 배열
 
 
-class PostCreate(PostBase):
+class PostBase(PostFields):
+    category: str | None = None
+
+
+class PostCreate(PostFields):
+    category: PostCategoryLiteral = Field(...)
     author_id: int | None = None
 
     @field_validator("cover_image", mode="before")
@@ -324,7 +329,7 @@ class PostUpdate(BaseModel):
 
     title: str | None = None
     content: str | None = None
-    category: str | None = None
+    category: Annotated[PostCategoryLiteral, Field(default=None)]
     pinned: bool | None = None
     published_at: datetime | None = Field(
         default=None,

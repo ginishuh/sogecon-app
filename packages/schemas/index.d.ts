@@ -1679,8 +1679,6 @@ export interface components {
             content: string;
             /** Published At */
             published_at?: string | null;
-            /** Category */
-            category?: string | null;
             /**
              * Pinned
              * @default false
@@ -1690,6 +1688,11 @@ export interface components {
             cover_image?: string | null;
             /** Images */
             images?: string[] | null;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "discussion" | "question" | "share" | "congrats" | "notice" | "news";
             /** Author Id */
             author_id?: number | null;
         };
@@ -1701,8 +1704,6 @@ export interface components {
             content: string;
             /** Published At */
             published_at?: string | null;
-            /** Category */
-            category?: string | null;
             /**
              * Pinned
              * @default false
@@ -1712,6 +1713,8 @@ export interface components {
             cover_image?: string | null;
             /** Images */
             images?: string[] | null;
+            /** Category */
+            category?: string | null;
             /** Id */
             id: number;
             /** Author Id */
@@ -1743,8 +1746,11 @@ export interface components {
             title?: string | null;
             /** Content */
             content?: string | null;
-            /** Category */
-            category?: string | null;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category?: "discussion" | "question" | "share" | "congrats" | "notice" | "news";
             /** Pinned */
             pinned?: boolean | null;
             /**

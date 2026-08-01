@@ -49,6 +49,7 @@ def test_create_post_and_get(admin_login: TestClient) -> None:
             "author_id": m["id"],
             "title": "Hello",
             "content": "World",
+            "category": "notice",
             "published_at": None,
         },
     ).json()

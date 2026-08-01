@@ -57,6 +57,7 @@ def test_login_success_and_protected_routes(client: TestClient) -> None:
             "author_id": admin_member_id,
             "title": "T",
             "content": "C",
+            "category": "notice",
             "published_at": None,
         },
     )
@@ -75,6 +76,7 @@ def test_login_success_and_protected_routes(client: TestClient) -> None:
             "author_id": admin_member_id,
             "title": "Hello",
             "content": "World",
+            "category": "notice",
             "published_at": None,
         },
     )

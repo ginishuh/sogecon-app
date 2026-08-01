@@ -16,6 +16,7 @@ import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
 import { adminPostKeys, postKeys } from '../../../lib/query-keys';
+import { getPostDetailHref } from '../../../lib/post-links';
 import { hasPermissionSession } from '../../../lib/rbac';
 import type { HeroTargetLookupItem } from '../../../services/hero';
 import {
@@ -173,7 +174,7 @@ function PostTableRow({
         <div className="flex items-center gap-2">
           {post.pinned && <span title="고정됨">📌</span>}
           <Link
-            href={`/posts/${post.id}`}
+            href={getPostDetailHref(post)}
             className="font-medium text-text-primary hover:underline"
           >
             {post.title}
