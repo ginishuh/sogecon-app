@@ -39,8 +39,14 @@ function adminPostsDescription(canManageHero: boolean) {
 // Sub-components (complexity isolation)
 // ─────────────────────────────────────────────────────────────────────────
 
-function StatusBadge({ publishedAt }: { publishedAt: string | null | undefined }) {
-  const status = getAdminPostPublicationState(publishedAt);
+function StatusBadge({
+  category,
+  publishedAt,
+}: {
+  category: string | null | undefined;
+  publishedAt: string | null | undefined;
+}) {
+  const status = getAdminPostPublicationState(category, publishedAt);
   if (status === 'published') {
     return (
       <span className="inline-flex items-center rounded-full bg-state-success-subtle px-2 py-0.5 text-xs font-medium text-state-success ring-1 ring-state-success-ring">
@@ -64,6 +70,10 @@ function StatusBadge({ publishedAt }: { publishedAt: string | null | undefined }
 
 function CategoryBadge({ category }: { category: string | null | undefined }) {
   const labels: Record<string, string> = {
+    discussion: '자유게시판',
+    question: '묻고 답하기',
+    share: '동문 이야기·행사 후기',
+    congrats: '경조사',
     notice: '공지',
     news: '소식',
     hero: '히어로(구)',
@@ -198,7 +208,7 @@ function PostTableRow({
         <CategoryBadge category={post.category} />
       </td>
       <td className="px-3 py-2">
-        <StatusBadge publishedAt={post.published_at} />
+        <StatusBadge category={post.category} publishedAt={post.published_at} />
       </td>
       <td className="px-3 py-2 text-text-secondary">{post.view_count ?? 0}</td>
       <td className="px-3 py-2 text-text-secondary">{post.comment_count ?? 0}</td>

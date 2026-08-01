@@ -34,7 +34,6 @@ async def list_posts(
         limit=limit,
         offset=offset,
         filters=filters,
-        public_only=True,
     )
 
 

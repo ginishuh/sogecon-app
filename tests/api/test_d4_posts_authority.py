@@ -113,6 +113,43 @@ def test_board_null_published_remains_public(
     assert detail.json()["id"] == post_id
 
 
+def test_admin_status_treats_board_posts_as_published(
+    member_login: TestClient, admin_login: TestClient
+) -> None:
+    member_login.post(
+        "/auth/member/login",
+        json={"student_id": "member001", "password": "memberpass"},
+    )
+    created = member_login.post(
+        "/posts/",
+        json={
+            "title": "관리자 상태 보드 공개",
+            "content": "published_at 없이도 공개",
+            "category": "discussion",
+        },
+    )
+    assert created.status_code == HTTPStatus.CREATED
+    post_id = created.json()["id"]
+
+    relogin = admin_login.post(
+        "/auth/login", json={"student_id": "__seed__admin", "password": "__seed__"}
+    )
+    assert relogin.status_code == HTTPStatus.OK
+
+    for status in ("draft", "scheduled"):
+        response = admin_login.get(
+            "/admin/posts/", params={"status": status, "q": "관리자 상태 보드 공개"}
+        )
+        assert response.status_code == HTTPStatus.OK
+        assert post_id not in {item["id"] for item in response.json()["items"]}
+
+    published = admin_login.get(
+        "/admin/posts/", params={"status": "published", "q": "관리자 상태 보드 공개"}
+    )
+    assert published.status_code == HTTPStatus.OK
+    assert post_id in {item["id"] for item in published.json()["items"]}
+
+
 def test_create_ignores_client_view_count(admin_login: TestClient) -> None:
     res = admin_login.post(
         "/posts/",

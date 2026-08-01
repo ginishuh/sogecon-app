@@ -12,6 +12,10 @@
 - **데이터 스토어**: PostgreSQL 16만 사용한다(루트 `compose.yaml` dev 프로필 참조). 모든 환경에서 `postgresql+psycopg://` 스킴을 강제한다.
 - **스키마 공유 (`packages/schemas`)**: FastAPI에서 생성한 `openapi.json`을 TypeScript DTO로 변환하여 프런트엔드에서 타입 안정성을 확보한다.
 
+관리자 게시물 목록의 상태도 게시글 공개성 SSOT를 따른다. board 4종은
+`published_at`이 없어도 `published`로 분류하고, notice/news 및 legacy/알 수 없는
+카테고리는 `published_at`으로 `published`/`scheduled`/`draft`를 계산한다.
+
 ## 도메인 모델
 | 엔터티 | 주요 속성 | 설명 |
 | --- | --- | --- |

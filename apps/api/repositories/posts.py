@@ -3,13 +3,17 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TypedDict
 
-from sqlalchemy import desc, func, select, update
+from sqlalchemy import ColumnElement, and_, desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from .. import models, schemas
 from ..errors import NotFoundError
-from ..post_visibility import is_post_public, public_visibility_clause
+from ..post_visibility import (
+    BOARD_POST_CATEGORIES,
+    is_post_public,
+    public_visibility_clause,
+)
 from . import escape_like
 
 
@@ -29,17 +33,42 @@ class PublicPostFilters(TypedDict, total=False):
     q: str | None
 
 
+def _admin_non_board_category_clause() -> ColumnElement[bool]:
+    """발행 시각으로 상태를 계산할 legacy/발행형 카테고리 조건."""
+    return or_(
+        models.Post.category.is_(None),
+        models.Post.category.notin_(list(BOARD_POST_CATEGORIES)),
+    )
+
+
+def _admin_status_clause(status: str | None) -> ColumnElement[bool] | None:
+    """관리자 목록 상태를 공개성 SSOT와 같은 규칙으로 계산한다."""
+    non_board = _admin_non_board_category_clause()
+    if status == "published":
+        return or_(
+            models.Post.category.in_(list(BOARD_POST_CATEGORIES)),
+            and_(
+                non_board,
+                models.Post.published_at.isnot(None),
+                models.Post.published_at <= func.now(),
+            ),
+        )
+    if status == "scheduled":
+        return and_(non_board, models.Post.published_at > func.now())
+    if status == "draft":
+        return and_(non_board, models.Post.published_at.is_(None))
+    return None
+
+
 async def list_posts(
     db: AsyncSession,
     *,
     limit: int,
     offset: int,
     filters: PublicPostFilters | None = None,
-    public_only: bool = True,
 ) -> Sequence[models.Post]:
     stmt = select(models.Post).options(selectinload(models.Post.author))
-    if public_only:
-        stmt = stmt.where(public_visibility_clause())
+    stmt = stmt.where(public_visibility_clause())
     if filters:
         categories = filters.get("categories")
         category = filters.get("category")
@@ -175,15 +204,9 @@ async def list_admin_posts(
         q = filters.get("q")
         if category:
             stmt = stmt.where(models.Post.category == category)
-        if status == "published":
-            stmt = stmt.where(
-                models.Post.published_at.isnot(None),
-                models.Post.published_at <= func.now(),
-            )
-        elif status == "scheduled":
-            stmt = stmt.where(models.Post.published_at > func.now())
-        elif status == "draft":
-            stmt = stmt.where(models.Post.published_at.is_(None))
+        status_clause = _admin_status_clause(status)
+        if status_clause is not None:
+            stmt = stmt.where(status_clause)
         if q:
             pattern = f"%{escape_like(q)}%"
             stmt = stmt.where(
@@ -212,15 +235,9 @@ async def count_posts(
         q = filters.get("q")
         if category:
             stmt = stmt.where(models.Post.category == category)
-        if status == "published":
-            stmt = stmt.where(
-                models.Post.published_at.isnot(None),
-                models.Post.published_at <= func.now(),
-            )
-        elif status == "scheduled":
-            stmt = stmt.where(models.Post.published_at > func.now())
-        elif status == "draft":
-            stmt = stmt.where(models.Post.published_at.is_(None))
+        status_clause = _admin_status_clause(status)
+        if status_clause is not None:
+            stmt = stmt.where(status_clause)
         if q:
             pattern = f"%{escape_like(q)}%"
             stmt = stmt.where(
