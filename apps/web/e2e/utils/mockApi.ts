@@ -155,37 +155,58 @@ async function respondAdminPostPreviewApi(request: HTTPRequest, url: URL): Promi
 
 async function respondAdminPostsApi(request: HTTPRequest, url: URL): Promise<boolean> {
   if (request.method() !== 'GET' || url.pathname !== '/admin/posts/') return false;
+  const posts = [{
+    id: 42,
+    title: 'E2E 관리자 초안',
+    content: 'E2E 관리자 preview 본문',
+    category: 'notice',
+    published_at: null,
+    pinned: false,
+    cover_image: null,
+    images: null,
+    view_count: 0,
+    author_name: 'Admin',
+    comment_count: 0,
+  }, {
+    id: 43,
+    title: 'E2E 관리자 공개 글',
+    content: 'E2E 관리자 공개 본문',
+    category: 'notice',
+    published_at: '2026-07-31T00:00:00Z',
+    pinned: false,
+    cover_image: null,
+    images: null,
+    view_count: 7,
+    author_name: 'Admin',
+    comment_count: 0,
+  }, {
+    id: 44,
+    title: 'E2E board 공개 글',
+    content: 'published_at 없이도 공개되는 board 글',
+    category: 'discussion',
+    published_at: null,
+    pinned: false,
+    cover_image: null,
+    images: null,
+    view_count: 2,
+    author_name: 'Member',
+    comment_count: 1,
+  }];
+  const status = url.searchParams.get('status');
+  const items = status === 'published'
+    ? posts.filter((post) => post.id === 43 || post.id === 44)
+    : status === 'draft'
+      ? posts.filter((post) => post.id === 42)
+      : status === 'scheduled'
+        ? []
+        : posts;
   await request.respond({
     status: 200,
     contentType: 'application/json',
     headers: corsHeaders,
     body: JSON.stringify({
-      items: [{
-        id: 42,
-        title: 'E2E 관리자 초안',
-        content: 'E2E 관리자 preview 본문',
-        category: 'notice',
-        published_at: null,
-        pinned: false,
-        cover_image: null,
-        images: null,
-        view_count: 0,
-        author_name: 'Admin',
-        comment_count: 0,
-      }, {
-        id: 43,
-        title: 'E2E 관리자 공개 글',
-        content: 'E2E 관리자 공개 본문',
-        category: 'notice',
-        published_at: '2026-07-31T00:00:00Z',
-        pinned: false,
-        cover_image: null,
-        images: null,
-        view_count: 7,
-        author_name: 'Admin',
-        comment_count: 0,
-      }],
-      total: 2,
+      items,
+      total: items.length,
     }),
   });
   return true;

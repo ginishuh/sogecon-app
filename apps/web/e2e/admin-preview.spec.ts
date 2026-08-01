@@ -108,6 +108,37 @@ describe('Admin post preview (CDP E2E)', () => {
     );
   });
 
+  it('관리자 목록에서 published_at 없는 board 글을 공개로 표시하고 필터링한다', async () => {
+    if (!page) throw new Error('Puppeteer page not initialized');
+    await configureMockServer('admin');
+    if (!process.env.E2E_MOCK_API_CONTROL_URL) {
+      setLocalMockSession('admin');
+      await setupDirectoryMocks(page);
+    }
+
+    await page.goto(`${WEB_BASE_URL}/admin/posts`, { waitUntil: 'networkidle0' });
+    await page.waitForFunction(() => document.body.innerText.includes('E2E board 공개 글'));
+    const boardRowText = await page.$eval(
+      'tbody tr:nth-child(3)',
+      (row) => row.textContent ?? '',
+    );
+    expect(boardRowText).toContain('자유게시판');
+    expect(boardRowText).toContain('공개');
+    expect(boardRowText).not.toContain('비공개');
+
+    await page.select('select:nth-of-type(2)', 'draft');
+    await page.waitForFunction(() => !document.body.innerText.includes('E2E board 공개 글'));
+
+    await page.select('select:nth-of-type(2)', 'published');
+    await page.waitForFunction(() => document.body.innerText.includes('E2E board 공개 글'));
+    const publishedBoardRowText = await page.$eval(
+      'tbody tr:nth-child(2)',
+      (row) => row.textContent ?? '',
+    );
+    expect(publishedBoardRowText).toContain('자유게시판');
+    expect(publishedBoardRowText).toContain('공개');
+  });
+
   it('익명 사용자는 같은 draft의 공개 상세에서 404를 받는다', async () => {
     if (!browser) throw new Error('Puppeteer browser not initialized');
     await configureMockServer('anonymous');
