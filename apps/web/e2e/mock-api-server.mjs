@@ -12,6 +12,9 @@ let ownerPostTitle = 'E2E 회원 게시판 글';
 let ownerPostContent = 'E2E 회원 게시판 본문';
 let ownerPostCoverImage = null;
 let ownerPostImages = [];
+let adminBoardPostTitle = 'E2E board 공개 글';
+let adminBoardPostContent = 'published_at 없이도 공개되는 board 글';
+let adminBoardPostPinned = false;
 
 function corsHeaders(origin) {
   return {
@@ -127,6 +130,22 @@ function ownerPostPayload() {
   };
 }
 
+function adminBoardPostPayload() {
+  return {
+    id: 44,
+    title: adminBoardPostTitle,
+    content: adminBoardPostContent,
+    category: 'discussion',
+    published_at: null,
+    pinned: adminBoardPostPinned,
+    cover_image: null,
+    images: null,
+    view_count: 2,
+    author_name: 'Member',
+    comment_count: 1,
+  };
+}
+
 function isBoardPostsList(url) {
   const categories = [url.searchParams.get('category'), ...url.searchParams.getAll('categories')];
   return categories.some((category) => ['discussion', 'question', 'share', 'congrats'].includes(category));
@@ -214,6 +233,9 @@ const server = createServer(async (request, response) => {
     ownerPostContent = 'E2E 회원 게시판 본문';
     ownerPostCoverImage = null;
     ownerPostImages = [];
+    adminBoardPostTitle = 'E2E board 공개 글';
+    adminBoardPostContent = 'published_at 없이도 공개되는 board 글';
+    adminBoardPostPinned = false;
     sendJson(response, 200, { ok: true, session: sessionKind }, origin);
     return;
   }
@@ -290,17 +312,7 @@ const server = createServer(async (request, response) => {
       author_name: 'Admin',
       comment_count: 0,
     }, {
-      id: 44,
-      title: 'E2E board 공개 글',
-      content: 'published_at 없이도 공개되는 board 글',
-      category: 'discussion',
-      published_at: null,
-      pinned: false,
-      cover_image: null,
-      images: null,
-      view_count: 2,
-      author_name: 'Member',
-      comment_count: 1,
+      ...adminBoardPostPayload(),
     }];
     const status = url.searchParams.get('status');
     const items = status === 'published'
@@ -358,9 +370,25 @@ const server = createServer(async (request, response) => {
     sendJson(response, 200, { ok: true, deleted_id: 45 }, origin);
     return;
   }
-  const previewMatch = url.pathname.match(/^\/admin\/posts\/(42|43)\/preview$/);
+  if (method === 'PATCH' && url.pathname === '/posts/44') {
+    const body = await readJson(request);
+    if (['category', 'published_at', 'unpublish'].some((field) => Object.hasOwn(body, field))) {
+      sendJson(response, 422, { code: 'board_category_immutable', detail: 'board fields are immutable' }, origin);
+      return;
+    }
+    if (typeof body.title === 'string') adminBoardPostTitle = body.title;
+    if (typeof body.content === 'string') adminBoardPostContent = body.content;
+    if (typeof body.pinned === 'boolean') adminBoardPostPinned = body.pinned;
+    sendJson(response, 200, adminBoardPostPayload(), origin);
+    return;
+  }
+  const previewMatch = url.pathname.match(/^\/admin\/posts\/(42|43|44)\/preview$/);
   if (method === 'GET' && previewMatch) {
     const postId = Number(previewMatch[1]);
+    if (postId === 44) {
+      sendJson(response, 200, adminBoardPostPayload(), origin);
+      return;
+    }
     const isPublished = postId === 43;
     sendJson(response, 200, {
       id: postId,

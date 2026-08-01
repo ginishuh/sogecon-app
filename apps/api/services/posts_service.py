@@ -125,8 +125,7 @@ async def update_admin_post(
 def _require_member_board_owner(post: models.Post, member_id: int) -> None:
     """회원 mutation 대상이 본인 소유의 board 글인지 확인한다."""
     author_id = cast(int, post.author_id)
-    category = cast(str | None, post.category)
-    if author_id != member_id or category not in BOARD_POST_CATEGORIES:
+    if author_id != member_id:
         raise ApiError(
             code="post_owner_required",
             detail="only the author can modify board posts",
@@ -142,7 +141,7 @@ async def update_member_post(
     member_id: int,
 ) -> models.Post:
     """회원이 자기 board 게시글의 본문 필드만 수정한다."""
-    post = await posts_repo.get_post(db, post_id)
+    post = await posts_repo.get_board_post(db, post_id)
     _require_member_board_owner(post, member_id)
     admin_payload = schemas.PostUpdate(
         **payload.model_dump(exclude_unset=True),
@@ -157,7 +156,7 @@ async def delete_member_post(
     member_id: int,
 ) -> int:
     """회원이 자기 board 게시글만 삭제한다."""
-    post = await posts_repo.get_post(db, post_id)
+    post = await posts_repo.get_board_post(db, post_id)
     _require_member_board_owner(post, member_id)
     return await posts_repo.delete_post(db, post_id)
 

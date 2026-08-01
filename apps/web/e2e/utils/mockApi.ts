@@ -128,9 +128,18 @@ async function respondAnonymousSessionApi(request: HTTPRequest, url: URL): Promi
 }
 
 async function respondAdminPostPreviewApi(request: HTTPRequest, url: URL): Promise<boolean> {
-  const match = url.pathname.match(/^\/admin\/posts\/(42|43)\/preview$/);
+  const match = url.pathname.match(/^\/admin\/posts\/(42|43|44)\/preview$/);
   if (request.method() !== 'GET' || !match) return false;
   const postId = Number(match[1]);
+  if (postId === 44) {
+    await request.respond({
+      status: 200,
+      contentType: 'application/json',
+      headers: corsHeaders,
+      body: JSON.stringify(localAdminBoardPostPayload()),
+    });
+    return true;
+  }
   const isPublished = postId === 43;
   await request.respond({
     status: 200,
@@ -158,6 +167,9 @@ let localOwnerPostTitle = 'E2E 회원 게시판 글';
 let localOwnerPostContent = 'E2E 회원 게시판 본문';
 let localOwnerPostCoverImage: string | null = null;
 let localOwnerPostImages: string[] = [];
+let localAdminBoardPostTitle = 'E2E board 공개 글';
+let localAdminBoardPostContent = 'published_at 없이도 공개되는 board 글';
+let localAdminBoardPostPinned = false;
 
 function localOwnerPostPayload() {
   return {
@@ -176,12 +188,31 @@ function localOwnerPostPayload() {
   };
 }
 
+function localAdminBoardPostPayload() {
+  return {
+    id: 44,
+    title: localAdminBoardPostTitle,
+    content: localAdminBoardPostContent,
+    category: 'discussion',
+    published_at: null,
+    pinned: localAdminBoardPostPinned,
+    cover_image: null,
+    images: null,
+    view_count: 2,
+    author_name: 'Member',
+    comment_count: 1,
+  };
+}
+
 function resetLocalOwnerPost(): void {
   localOwnerPostDeleted = false;
   localOwnerPostTitle = 'E2E 회원 게시판 글';
   localOwnerPostContent = 'E2E 회원 게시판 본문';
   localOwnerPostCoverImage = null;
   localOwnerPostImages = [];
+  localAdminBoardPostTitle = 'E2E board 공개 글';
+  localAdminBoardPostContent = 'published_at 없이도 공개되는 board 글';
+  localAdminBoardPostPinned = false;
 }
 
 function isLocalBoardPostsList(url: URL): boolean {
@@ -266,6 +297,32 @@ async function respondOwnerPostMutationApi(request: HTTPRequest, url: URL): Prom
     || (await respondOwnerPostDeleteApi(request, url));
 }
 
+async function respondAdminBoardPostPatchApi(request: HTTPRequest, url: URL): Promise<boolean> {
+  if (url.port !== '3001' || request.method() !== 'PATCH' || url.pathname !== '/posts/44') {
+    return false;
+  }
+  const body = JSON.parse(request.postData() ?? '{}') as Record<string, unknown>;
+  if (['category', 'published_at', 'unpublish'].some((field) => Object.hasOwn(body, field))) {
+    await request.respond({
+      status: 422,
+      contentType: 'application/json',
+      headers: corsHeaders,
+      body: JSON.stringify({ code: 'board_category_immutable', detail: 'board fields are immutable' }),
+    });
+    return true;
+  }
+  if (typeof body.title === 'string') localAdminBoardPostTitle = body.title;
+  if (typeof body.content === 'string') localAdminBoardPostContent = body.content;
+  if (typeof body.pinned === 'boolean') localAdminBoardPostPinned = body.pinned;
+  await request.respond({
+    status: 200,
+    contentType: 'application/json',
+    headers: corsHeaders,
+    body: JSON.stringify(localAdminBoardPostPayload()),
+  });
+  return true;
+}
+
 async function respondOwnerPostApi(request: HTTPRequest, url: URL): Promise<boolean> {
   return (await respondOwnerPostReadApi(request, url))
     || (await respondOwnerPostMutationApi(request, url));
@@ -298,17 +355,7 @@ async function respondAdminPostsApi(request: HTTPRequest, url: URL): Promise<boo
     author_name: 'Admin',
     comment_count: 0,
   }, {
-    id: 44,
-    title: 'E2E board 공개 글',
-    content: 'published_at 없이도 공개되는 board 글',
-    category: 'discussion',
-    published_at: null,
-    pinned: false,
-    cover_image: null,
-    images: null,
-    view_count: 2,
-    author_name: 'Member',
-    comment_count: 1,
+    ...localAdminBoardPostPayload(),
   }];
   const status = url.searchParams.get('status');
   const items = status === 'published'
@@ -407,17 +454,23 @@ export async function setupDirectoryMocks(page: Page): Promise<void> {
   if (process.env.E2E_MOCK_API_CONTROL_URL) return;
   resetLocalOwnerPost();
   await page.setRequestInterception(true);
+  const handlers = [
+    respondHeroApi,
+    respondAdminPostsApi,
+    respondAdminHeroLookupApi,
+    respondAdminPostPreviewApi,
+    respondAdminBoardPostPatchApi,
+    respondOwnerPostApi,
+    respondCommentsApi,
+    respondAnonymousSessionApi,
+    respondDirectoryApi,
+  ];
   const handler = async (request: HTTPRequest): Promise<void> => {
     try {
       const url = new URL(request.url());
-      if (await respondHeroApi(request, url)) return;
-      if (await respondAdminPostsApi(request, url)) return;
-      if (await respondAdminHeroLookupApi(request, url)) return;
-      if (await respondAdminPostPreviewApi(request, url)) return;
-      if (await respondOwnerPostApi(request, url)) return;
-      if (await respondCommentsApi(request, url)) return;
-      if (await respondAnonymousSessionApi(request, url)) return;
-      if (await respondDirectoryApi(request, url)) return;
+      for (const respond of handlers) {
+        if (await respond(request, url)) return;
+      }
       await request.continue();
     } catch {
       await request.continue();

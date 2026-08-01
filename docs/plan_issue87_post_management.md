@@ -122,10 +122,11 @@ DELETE /board/posts/{post_id}
 제거를 위한 `cover_image: null`과 `images: []`는 보존한다. `category`,
 `published_at`, `pinned`, `unpublish`, `author_id`, `view_count` 등 추가 필드는
 `extra="forbid"`로 차단한다. 서비스 계층은 작성자와 category를 다시 확인하고,
-수정 뒤에도 작성자·category·공개 상태·고정·조회수를 유지한다. 대상이 없으면
-404, 타인 글·notice/news·legacy non-board 글이면 `403 post_owner_required`를
-반환한다. 삭제는 기존 관리자 삭제와 같은 hard delete 및 댓글 cascade를
-사용한다.
+수정 뒤에도 작성자·category·공개 상태·고정·조회수를 유지한다. repository는
+board 4종만 owner mutation 대상에 포함한다. 없는 ID와 notice/news·legacy
+non-board 글은 공개 여부와 무관하게 `404 post_not_found`, 다른 작성자의
+board 글은 `403 post_owner_required`를 반환한다. 삭제는 기존 관리자 삭제와
+같은 hard delete 및 댓글 cascade를 사용한다.
 
 ---
 

@@ -111,6 +111,23 @@ async def get_post(db: AsyncSession, post_id: int) -> models.Post:
     return post
 
 
+async def get_board_post(db: AsyncSession, post_id: int) -> models.Post:
+    """board mutation 대상만 조회한다. non-board 글은 존재하지 않는 것으로 처리."""
+    stmt = (
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .where(
+            models.Post.id == post_id,
+            models.Post.category.in_(list(BOARD_POST_CATEGORIES)),
+        )
+    )
+    result = await db.execute(stmt)
+    post = result.scalar_one_or_none()
+    if post is None:
+        raise NotFoundError(code="post_not_found", detail="Post not found")
+    return post
+
+
 async def get_public_post(db: AsyncSession, post_id: int) -> models.Post:
     """공개 상세용. 비공개면 존재 비노출로 post_not_found."""
     post = await get_post(db, post_id)

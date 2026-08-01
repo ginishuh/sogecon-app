@@ -25,6 +25,19 @@ describe('게시글 수정 payload', () => {
     expect(payload).not.toHaveProperty('unpublish');
   });
 
+  it('관리자가 board 글을 공개로 선택해도 published_at을 만들지 않는다', () => {
+    const payload = buildPostUpdatePayload(
+      { ...formData, published: true },
+      { category: 'discussion', published_at: null },
+      true,
+    );
+
+    expect(payload).not.toHaveProperty('category');
+    expect(payload).not.toHaveProperty('published_at');
+    expect(payload).not.toHaveProperty('unpublish');
+    expect(payload.pinned).toBe(false);
+  });
+
   it('관리자가 notice/news 글을 수정하면 선택한 category를 보낸다', () => {
     const payload = buildPostUpdatePayload(
       formData,

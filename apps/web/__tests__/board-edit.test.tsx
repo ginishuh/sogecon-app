@@ -37,12 +37,21 @@ vi.mock('../services/posts', () => ({
 vi.mock('../components/post-form', () => ({
   PostForm: ({
     hideAdminOptions,
+    hideCategory,
+    hidePublication,
     onSubmit,
   }: {
     hideAdminOptions?: boolean;
+    hideCategory?: boolean;
+    hidePublication?: boolean;
     onSubmit?: (data: unknown) => void;
   }) => (
-    <div data-testid="post-form" data-hide-admin-options={String(hideAdminOptions)}>
+    <div
+      data-testid="post-form"
+      data-hide-admin-options={String(hideAdminOptions)}
+      data-hide-category={String(hideCategory)}
+      data-hide-publication={String(hidePublication)}
+    >
       <button
         type="button"
         onClick={() => onSubmit?.({
@@ -112,6 +121,16 @@ describe('게시판 글 수정 권한 경계', () => {
       'data-hide-admin-options',
       'false',
     );
+    expect(screen.getByTestId('post-form')).toHaveAttribute('data-hide-category', 'true');
+    expect(screen.getByTestId('post-form')).toHaveAttribute('data-hide-publication', 'true');
+
+    screen.getByRole('button', { name: '제출' }).click();
+    await waitFor(() => expect(mocks.updatePost).toHaveBeenCalled());
+    const payload = mocks.updatePost.mock.calls[0][1] as Record<string, unknown>;
+    expect(payload).not.toHaveProperty('category');
+    expect(payload).not.toHaveProperty('published_at');
+    expect(payload).not.toHaveProperty('unpublish');
+    expect(payload.pinned).toBe(true);
   });
 
   it('일반 작성자는 board 글을 owner endpoint로 수정하고 관리자 옵션을 보지 않는다', async () => {
@@ -139,6 +158,7 @@ describe('게시판 글 수정 권한 경계', () => {
       'data-hide-admin-options',
       'true',
     );
+    expect(screen.getByTestId('post-form')).toHaveAttribute('data-hide-publication', 'true');
     screen.getByRole('button', { name: '제출' }).click();
 
     await waitFor(() => {

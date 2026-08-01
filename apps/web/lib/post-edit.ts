@@ -6,14 +6,14 @@ import type {
   UpdatePostPayload,
 } from '../services/posts';
 
-function buildAdminPostFields(
+function buildNonBoardAdminFields(
   data: PostFormData,
   post: Pick<Post, 'category' | 'published_at'> | undefined,
 ): UpdatePostPayload {
   const payload: UpdatePostPayload = { pinned: data.pinned };
 
-  // board와 legacy hero는 notice/news 전용 폼의 category로 덮어쓰지 않는다.
-  if (post && !isBoardCategory(post.category) && post.category !== 'hero') {
+  // legacy hero는 notice/news 전용 폼의 category로 덮어쓰지 않는다.
+  if (post && post.category !== 'hero') {
     payload.category = data.category;
   }
 
@@ -24,6 +24,17 @@ function buildAdminPostFields(
     payload.published_at = new Date().toISOString();
   }
   return payload;
+}
+
+function buildAdminPostFields(
+  data: PostFormData,
+  post: Pick<Post, 'category' | 'published_at'> | undefined,
+): UpdatePostPayload {
+  // board 글은 published_at과 무관하게 공개이므로 공개 상태 mutation을 만들지 않는다.
+  if (post && isBoardCategory(post.category)) {
+    return { pinned: data.pinned };
+  }
+  return buildNonBoardAdminFields(data, post);
 }
 
 export function buildPostUpdatePayload(

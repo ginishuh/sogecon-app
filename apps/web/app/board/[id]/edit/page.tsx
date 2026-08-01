@@ -116,6 +116,7 @@ export default function BoardEditPage() {
         onSubmit={(data) => mutation.mutate(data)}
         onCancel={() => router.push(`/board/${postId}`)}
         hideCategory={isBoardCategory(post.category)}
+        hidePublication={isBoardCategory(post.category)}
         hideAdminOptions={!canManagePosts}
       />
     </div>

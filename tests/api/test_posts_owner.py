@@ -23,7 +23,10 @@ def _db_override() -> Any:
     return override
 
 
-def _seed_member_owned_post(category: str = "discussion") -> int:
+def _seed_member_owned_post(
+    category: str | None = "discussion",
+    published_at: datetime | None = None,
+) -> int:
     async def _do_seed() -> int:
         async for db in _db_override()():
             member_result = await db.execute(
@@ -35,7 +38,7 @@ def _seed_member_owned_post(category: str = "discussion") -> int:
                 title="회원 소유 게시글",
                 content="회원 소유 본문",
                 category=category,
-                published_at=None,
+                published_at=published_at,
                 pinned=False,
             )
             db.add(post)
@@ -168,20 +171,41 @@ def test_member_cannot_mutate_another_members_board_post(
     assert delete.json()["code"] == "post_owner_required"
 
 
-def test_member_cannot_mutate_non_board_post_owned_by_member(
+@pytest.mark.parametrize(
+    ("category", "published_at"),
+    [
+        ("notice", None),
+        ("notice", datetime(2099, 1, 1, tzinfo=UTC)),
+        ("news", datetime(2099, 1, 1, tzinfo=UTC)),
+        ("notice", datetime(2020, 1, 1, tzinfo=UTC)),
+        ("news", datetime(2020, 1, 1, tzinfo=UTC)),
+        (None, None),
+    ],
+    ids=[
+        "notice-draft",
+        "notice-scheduled",
+        "news-scheduled",
+        "notice-published",
+        "news-published",
+        "legacy-non-board",
+    ],
+)
+def test_member_owner_mutation_hides_non_board_posts(
     member_login: TestClient,
+    category: str | None,
+    published_at: datetime | None,
 ) -> None:
-    post_id = _seed_member_owned_post("notice")
+    post_id = _seed_member_owned_post(category, published_at)
 
     update = member_login.patch(
         f"/board/posts/{post_id}", json={"title": "공개 범위 우회"}
     )
     delete = member_login.delete(f"/board/posts/{post_id}")
 
-    assert update.status_code == HTTPStatus.FORBIDDEN
-    assert update.json()["code"] == "post_owner_required"
-    assert delete.status_code == HTTPStatus.FORBIDDEN
-    assert delete.json()["code"] == "post_owner_required"
+    assert update.status_code == HTTPStatus.NOT_FOUND
+    assert update.json()["code"] == "post_not_found"
+    assert delete.status_code == HTTPStatus.NOT_FOUND
+    assert delete.json()["code"] == "post_not_found"
 
 
 @pytest.mark.parametrize(

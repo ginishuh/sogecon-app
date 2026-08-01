@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import puppeteer, { Browser, Page } from 'puppeteer';
+import puppeteer, { Browser, HTTPRequest, Page } from 'puppeteer';
 
 import { WEB_BASE_URL } from './utils/env';
 import { setLocalMockSession, setupDirectoryMocks } from './utils/mockApi';
@@ -10,6 +10,22 @@ let page: Page | null = null;
 
 const heroPreviewLink =
   'section[aria-label="홈 배너"] a[aria-label="E2E 관리자 초안 자세히 보기"]';
+
+async function waitForBodyText(currentPage: Page, expected: string): Promise<void> {
+  await currentPage.waitForFunction(
+    (text) => document.body.textContent?.includes(text),
+    { timeout: 30_000 },
+    expected,
+  );
+}
+
+async function clickButtonByText(currentPage: Page, text: string): Promise<void> {
+  await currentPage.$$eval('button', (buttons, expectedText) => {
+    const button = buttons.find((candidate) => candidate.textContent?.trim() === expectedText);
+    if (!(button instanceof HTMLElement)) throw new Error(`버튼을 찾지 못했습니다: ${expectedText}`);
+    button.click();
+  }, text);
+}
 
 describe('Admin post preview (CDP E2E)', () => {
   beforeAll(async () => {
@@ -137,6 +153,52 @@ describe('Admin post preview (CDP E2E)', () => {
     );
     expect(publishedBoardRowText).toContain('자유게시판');
     expect(publishedBoardRowText).toContain('공개');
+  });
+
+  it('관리자 board 편집은 공개 상태 UI와 공개 필드를 숨기고 null readback을 보존한다', async () => {
+    if (!page) throw new Error('Puppeteer page not initialized');
+    await configureMockServer('admin');
+    if (!process.env.E2E_MOCK_API_CONTROL_URL) {
+      setLocalMockSession('admin');
+      await setupDirectoryMocks(page);
+    }
+
+    let patchBody: Record<string, unknown> | null = null;
+    const recordRequest = (request: HTTPRequest) => {
+      const url = new URL(request.url());
+      if (url.port === '3001' && request.method() === 'PATCH' && url.pathname === '/posts/44') {
+        patchBody = JSON.parse(request.postData() ?? '{}') as Record<string, unknown>;
+      }
+    };
+    page.on('request', recordRequest);
+
+    await page.goto(`${WEB_BASE_URL}/admin/posts`, { waitUntil: 'networkidle0' });
+    await page.click('a[href="/admin/posts/44/edit"]');
+    await page.waitForFunction(() => window.location.pathname === '/admin/posts/44/edit');
+    await page.waitForSelector('input[placeholder="글 제목을 입력하세요"]');
+
+    expect(await page.$('input[name="published"]')).toBeNull();
+    expect(
+      await page.$eval('select', (select) => select.closest('[hidden]') !== null),
+    ).toBe(true);
+
+    await clickButtonByText(page, '수정');
+    await page.waitForFunction(() => window.location.pathname === '/admin/posts');
+    await waitForBodyText(page, 'E2E board 공개 글');
+    expect(patchBody).not.toBeNull();
+    expect(patchBody).not.toHaveProperty('category');
+    expect(patchBody).not.toHaveProperty('published_at');
+    expect(patchBody).not.toHaveProperty('unpublish');
+
+    const previewResponse = page.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return url.port === '3001'
+        && url.pathname === '/admin/posts/44/preview'
+        && response.request().method() === 'GET';
+    });
+    await page.goto(`${WEB_BASE_URL}/admin/posts/44/preview`, { waitUntil: 'networkidle0' });
+    const preview = await (await previewResponse).json() as { published_at: string | null };
+    expect(preview.published_at).toBeNull();
   });
 
   it('익명 사용자는 같은 draft의 공개 상세에서 404를 받는다', async () => {

@@ -118,6 +118,7 @@ export default function EditPostPage() {
               isPending={mutation.isPending}
               error={mutation.error ? '수정 중 오류가 발생했습니다.' : null}
               hideCategory={isBoardCategory(post.category) || post.category === 'hero'}
+              hidePublication={isBoardCategory(post.category)}
               onSubmit={(data) => mutation.mutate(data)}
               onCancel={() => router.push('/admin/posts')}
             />
