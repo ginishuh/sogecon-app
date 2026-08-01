@@ -124,6 +124,16 @@ def test_public_search_q_with_literal_wildcards(admin_login: TestClient) -> None
         },
     )
     assert target.status_code == HTTPStatus.CREATED
+    wildcard_bait = admin_login.post(
+        "/posts/",
+        json={
+            "title": "1000Zexact",
+            "content": "와일드카드면 매칭",
+            "category": "notice",
+            "published_at": past,
+        },
+    )
+    assert wildcard_bait.status_code == HTTPStatus.CREATED
     other = admin_login.post(
         "/posts/",
         json={
@@ -142,6 +152,7 @@ def test_public_search_q_with_literal_wildcards(admin_login: TestClient) -> None
     assert found.status_code == HTTPStatus.OK
     titles = [item["title"] for item in found.json()]
     assert "100%_exact" in titles
+    assert "1000Zexact" not in titles
     assert "다른 공지" not in titles
 
     paged = admin_login.get(
@@ -150,3 +161,28 @@ def test_public_search_q_with_literal_wildcards(admin_login: TestClient) -> None
     )
     assert paged.status_code == HTTPStatus.OK
     assert len(paged.json()) <= 1
+
+
+def test_create_rejects_unknown_category(member_login: TestClient) -> None:
+    res = member_login.post(
+        "/posts/",
+        json={
+            "title": "오타 카테고리",
+            "content": "본문",
+            "category": "discusion",
+        },
+    )
+    assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert res.json()["code"] == "invalid_post_category"
+
+
+def test_create_rejects_missing_category(member_login: TestClient) -> None:
+    res = member_login.post(
+        "/posts/",
+        json={
+            "title": "카테고리 없음",
+            "content": "본문",
+        },
+    )
+    assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert res.json()["code"] == "invalid_post_category"

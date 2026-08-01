@@ -9,7 +9,7 @@ import {
   PencilSimple,
   PushPin,
 } from '@phosphor-icons/react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -221,6 +221,7 @@ function BoardPanel(props: BoardPanelProps) {
             className="min-h-12 w-full min-w-0 rounded-xl border border-neutral-border bg-white py-3 pl-12 pr-4 text-sm focus:border-brand-400 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500"
             value={props.search}
             onChange={(event) => props.onSearchChange(event.currentTarget.value)}
+            maxLength={100}
             placeholder="제목이나 내용으로 찾아보세요"
           />
         </label>
@@ -265,7 +266,7 @@ function BoardPageInner() {
       const baseParams = {
         limit: PAGE_SIZE,
         offset: Number(pageParam),
-        ...(debouncedSearch ? { q: debouncedSearch } : {}),
+        ...(debouncedSearch ? { q: debouncedSearch.slice(0, 100) } : {}),
       };
       return category === 'all'
         ? listPosts({ ...baseParams, categories: [...BOARD_POST_CATEGORIES] })
@@ -274,6 +275,7 @@ function BoardPageInner() {
     getNextPageParam: (lastPage, pages) => (
       lastPage.length === PAGE_SIZE ? pages.length * PAGE_SIZE : undefined
     ),
+    placeholderData: keepPreviousData,
   });
 
   const posts = useMemo(() => query.data?.pages.flat() ?? [], [query.data]);

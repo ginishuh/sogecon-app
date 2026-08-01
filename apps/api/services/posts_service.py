@@ -6,8 +6,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models, schemas
 from ..errors import ApiError
+from ..post_visibility import KNOWN_POST_CATEGORIES
 from ..repositories import members as members_repo
 from ..repositories import posts as posts_repo
+
+
+def _require_known_category(category: str | None) -> str:
+    if category is None or category not in KNOWN_POST_CATEGORIES:
+        allowed = ", ".join(sorted(KNOWN_POST_CATEGORIES))
+        raise ApiError(
+            code="invalid_post_category",
+            detail=f"category must be one of: {allowed}",
+            status=422,
+        )
+    return category
 
 
 async def list_posts(
@@ -41,6 +53,7 @@ async def create_post(db: AsyncSession, payload: schemas.PostCreate) -> models.P
             detail="author_id is required",
             status=422,
         )
+    _require_known_category(payload.category)
     _ = await members_repo.get_member(db, payload.author_id)  # NotFoundError
     return await posts_repo.create_post(db, payload)
 
@@ -54,8 +67,9 @@ async def create_admin_post(
     """관리자가 글을 작성할 때 사용.
 
     보안: 클라이언트가 보낸 author_id를 무시하고 admin_student_id로 member를 조회하여
-    author_id를 서버에서 강제 결정. pinned, published_at 등 관리자 권한 필드는 유지.
+    author_id를 서버에서 강제 설정. pinned, published_at 등 관리자 권한 필드는 유지.
     """
+    _require_known_category(payload.category)
     member = await members_repo.get_member_by_student_id(db, admin_student_id)
     sanitized = payload.model_copy(update={"author_id": member.id})
     return await posts_repo.create_post(db, sanitized)
@@ -72,6 +86,7 @@ async def create_member_post(
 
     보안: author_id 강제 주입 + pinned/published_at 비활성화.
     """
+    _require_known_category(payload.category)
     author_id = member_id
     if author_id is None:
         member = await members_repo.get_member_by_student_id(db, member_student_id)
@@ -92,6 +107,8 @@ async def update_admin_post(
     payload: schemas.PostUpdate,
 ) -> models.Post:
     """관리자가 게시물을 수정할 때 사용."""
+    if "category" in payload.model_fields_set:
+        _require_known_category(payload.category)
     return await posts_repo.update_post(db, post_id, payload)
 
 

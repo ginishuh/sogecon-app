@@ -67,6 +67,7 @@ describe('BoardPage', () => {
     });
 
     const searchInput = screen.getByRole('textbox', { name: '게시글 검색' });
+    expect(searchInput).toHaveAttribute('maxLength', '100');
     fireEvent.change(searchInput, { target: { value: 'Q&A' } });
 
     await waitFor(() => {

@@ -17,6 +17,11 @@ BOARD_POST_CATEGORIES: Final[frozenset[str]] = frozenset(
     {"discussion", "question", "share", "congrats"}
 )
 
+# 생성·수정 시 허용 카테고리 (board + 발행형)
+KNOWN_POST_CATEGORIES: Final[frozenset[str]] = BOARD_POST_CATEGORIES | frozenset(
+    {"notice", "news"}
+)
+
 
 def is_post_public(post: models.Post, *, now: datetime | None = None) -> bool:
     """단일 게시글이 공개 API에 노출 가능한지."""
