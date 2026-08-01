@@ -2359,7 +2359,7 @@
               "anyOf": [
                 {
                   "type": "string",
-                  "pattern": "^(published|draft)$"
+                  "pattern": "^(published|scheduled|draft)$"
                 },
                 {
                   "type": "null"

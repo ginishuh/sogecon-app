@@ -17,6 +17,7 @@ import { ApiError } from '../../../lib/api';
 import { apiErrorToMessage } from '../../../lib/error-map';
 import { adminPostKeys, postKeys } from '../../../lib/query-keys';
 import { getAdminPostPreviewHref } from '../../../lib/post-links';
+import { getAdminPostPublicationState, type AdminPostPublicationState } from '../../../lib/admin-post-status';
 import { hasPermissionSession } from '../../../lib/rbac';
 import type { HeroTargetLookupItem } from '../../../services/hero';
 import {
@@ -38,11 +39,19 @@ function adminPostsDescription(canManageHero: boolean) {
 // Sub-components (complexity isolation)
 // ─────────────────────────────────────────────────────────────────────────
 
-function StatusBadge({ published }: { published: boolean }) {
-  if (published) {
+function StatusBadge({ publishedAt }: { publishedAt: string | null | undefined }) {
+  const status = getAdminPostPublicationState(publishedAt);
+  if (status === 'published') {
     return (
       <span className="inline-flex items-center rounded-full bg-state-success-subtle px-2 py-0.5 text-xs font-medium text-state-success ring-1 ring-state-success-ring">
         공개
+      </span>
+    );
+  }
+  if (status === 'scheduled') {
+    return (
+      <span className="inline-flex items-center rounded-full bg-state-warning-subtle px-2 py-0.5 text-xs font-medium text-state-warning ring-1 ring-state-warning-ring">
+        예약
       </span>
     );
   }
@@ -117,6 +126,7 @@ function FilterBar({
       >
         <option value="">전체 상태</option>
         <option value="published">공개</option>
+        <option value="scheduled">예약</option>
         <option value="draft">비공개</option>
       </select>
 
@@ -188,7 +198,7 @@ function PostTableRow({
         <CategoryBadge category={post.category} />
       </td>
       <td className="px-3 py-2">
-        <StatusBadge published={!!post.published_at} />
+        <StatusBadge publishedAt={post.published_at} />
       </td>
       <td className="px-3 py-2 text-text-secondary">{post.view_count ?? 0}</td>
       <td className="px-3 py-2 text-text-secondary">{post.comment_count ?? 0}</td>
@@ -412,7 +422,7 @@ function useFilters() {
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
     category: categoryFilter || undefined,
-    status: (statusFilter as 'published' | 'draft') || undefined,
+    status: (statusFilter as AdminPostPublicationState) || undefined,
     q: searchQuery || undefined,
   };
 

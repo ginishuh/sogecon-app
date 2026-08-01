@@ -9,7 +9,7 @@ from typing import cast
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import schemas
+from .. import models, schemas
 from ..config import get_settings
 from ..db import get_db
 from ..errors import ApiError
@@ -82,6 +82,31 @@ def _enforce_member_post_limit(request: Request, limit_value: str) -> None:
 
 def reset_member_post_limit_cache() -> None:
     _MEMBER_RATE_TABLE.clear()
+
+
+async def _create_member_post_for_request(
+    payload: schemas.PostCreate,
+    request: Request,
+    db: AsyncSession,
+) -> models.Post:
+    """현재 세션을 일반 회원 게시판 작성 경로로 처리한다."""
+    try:
+        member = await require_member(request, db)
+    except HTTPException as exc_member:
+        # 기존 비회원 계약을 유지한다. 관리자 검사에서 403이 난 뒤에도
+        # 회원 fallback을 시도하므로, 여기서만 인증 실패를 401로 정규화한다.
+        raise HTTPException(status_code=401, detail="unauthorized") from exc_member
+
+    settings = get_settings()
+    _enforce_member_post_limit(request, settings.rate_limit_post_create)
+
+    sanitized = payload.model_copy(update={"pinned": False, "published_at": None})
+    return await posts_service.create_member_post(
+        db,
+        sanitized,
+        member_student_id=member.student_id,
+        member_id=member.id,
+    )
 
 
 @dataclass
@@ -176,36 +201,23 @@ async def create_post(
             HTTPStatus.FORBIDDEN,
         ):
             raise
-        try:
-            member = await require_member(request, db)
-        except HTTPException as exc_member:
-            raise HTTPException(status_code=401, detail="unauthorized") from exc_member
-
-        settings = get_settings()
-        _enforce_member_post_limit(request, settings.rate_limit_post_create)
-
-        sanitized = payload.model_copy(update={"pinned": False, "published_at": None})
-        post = await posts_service.create_member_post(
-            db,
-            sanitized,
-            member_student_id=member.student_id,
-            member_id=member.id,
-        )
+        post = await _create_member_post_for_request(payload, request, db)
     else:
-        # generic admin은 게시물 관리 권한을 자동 상속하지 않는다.
-        # 일반 회원 작성 fallback과 분리해 admin_hero 같은 제한 관리자가
-        # 게시물 mutation API를 우회하지 못하게 한다.
-        if not await has_any_permission(db, request, ("admin_posts",)):
-            raise HTTPException(status_code=403, detail="admin_permission_required")
-
-        # 보안: 클라이언트가 보낸 author_id를 무시하고 서버에서 강제 주입
-        # student_id로 member를 조회하여 author_id 결정 (레거시 세션 호환)
-        # 관리자는 pinned, published_at 등 관리자 권한 필드 설정 가능
-        post = await posts_service.create_admin_post(
-            db,
-            payload,
-            admin_student_id=admin.student_id,
-        )
+        if await has_any_permission(db, request, ("admin_posts",)):
+            # 보안: 클라이언트가 보낸 author_id를 무시하고 서버에서 강제 주입
+            # student_id로 member를 조회하여 author_id 결정 (레거시 세션 호환)
+            # 관리자는 pinned, published_at 등 관리자 권한 필드 설정 가능
+            post = await posts_service.create_admin_post(
+                db,
+                payload,
+                admin_student_id=admin.student_id,
+            )
+        else:
+            # admin 등급은 게시물 관리 권한을 자동 상속하지 않는다. 다만
+            # admin_hero 같은 제한 관리자는 일반 회원으로서 board 글을 쓸 수
+            # 있으므로, notice/news 관리 권한을 부여하지 않은 채 member 경로를
+            # 사용한다. 이 경로는 board 카테고리와 비공개 상태를 강제한다.
+            post = await _create_member_post_for_request(payload, request, db)
 
     return schemas.PostRead.model_validate(post)
 

@@ -92,7 +92,7 @@ export type AdminPostListParams = {
   limit?: number;
   offset?: number;
   category?: string;
-  status?: 'published' | 'draft';
+  status?: 'published' | 'scheduled' | 'draft';
   q?: string;
 };
 

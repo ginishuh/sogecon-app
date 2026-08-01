@@ -14,7 +14,7 @@
 |------|-----|--------|------|
 | 게시물 목록 조회 | ✅ `GET /posts/` | ✅ `/posts` | 카테고리 필터, 고정글 지원 |
 | 게시물 상세 조회 | ✅ `GET /posts/{id}` | ✅ `/posts/[id]` | 조회수 자동 증가 |
-| 게시물 생성 | ✅ `POST /posts/` | ✅ `/posts/new` | 관리자 전용 |
+| 게시물 생성 | ✅ `POST /posts/` | ✅ `/posts/new` | notice/news는 관리자 전용, board 4종은 회원 작성 |
 | 게시물 수정 | ❌ 없음 | ❌ 없음 | **구현 필요** |
 | 게시물 삭제 | ❌ 없음 | ❌ 없음 | **구현 필요** |
 | 관리자 목록 페이지 | - | ❌ 없음 | **구현 필요** |
@@ -97,7 +97,7 @@ class PostUpdate(BaseModel):
 
 ```
 권한: 관리자만 (require_admin)
-쿼리: limit, offset, category, status (all|published|draft), q (검색어)
+쿼리: limit, offset, category, status (all|published|scheduled|draft), q (검색어)
 응답: { items: PostRead[], total: int }
 ```
 

@@ -61,6 +61,17 @@ def test_public_hides_notice_draft_and_future(admin_login: TestClient) -> None:
     admin_ids = {item["id"] for item in admin_list.json()["items"]}
     assert draft_id in admin_ids
 
+    published_list = admin_login.get("/admin/posts/?status=published&limit=50")
+    assert published_list.status_code == HTTPStatus.OK
+    published_ids = {item["id"] for item in published_list.json()["items"]}
+    assert published_id in published_ids
+    assert scheduled_id not in published_ids
+
+    scheduled_list = admin_login.get("/admin/posts/?status=scheduled&limit=50")
+    assert scheduled_list.status_code == HTTPStatus.OK
+    scheduled_ids = {item["id"] for item in scheduled_list.json()["items"]}
+    assert scheduled_id in scheduled_ids
+
     # 공개 클라이언트 검증을 위해 세션 쿠키 제거
     admin_login.cookies.clear()
 
@@ -338,16 +349,31 @@ def test_admin_hero_can_read_preview_without_post_management(
     assert admin_login.get("/admin/posts/").status_code == HTTPStatus.FORBIDDEN
     assert admin_login.get(f"/posts/{post_id}").status_code == HTTPStatus.NOT_FOUND
 
-    create_attempt = admin_login.post(
+    notice_attempt = admin_login.post(
         "/posts/",
         json={
-            "title": "hero 제한 관리자 추가 시도",
-            "content": "생성 거부",
+            "title": "hero 제한 관리자 공지 시도",
+            "content": "관리자 전용 카테고리 거부",
             "category": "notice",
         },
     )
-    assert create_attempt.status_code == HTTPStatus.FORBIDDEN
-    assert create_attempt.json()["detail"] == "admin_permission_required"
+    assert notice_attempt.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert notice_attempt.json()["code"] == "invalid_post_category"
+
+    board_create = admin_login.post(
+        "/posts/",
+        json={
+            "title": "hero 제한 관리자 게시판 글",
+            "content": "회원 작성 경로",
+            "category": "discussion",
+            "pinned": True,
+            "published_at": "2099-01-01T00:00:00Z",
+        },
+    )
+    assert board_create.status_code == HTTPStatus.CREATED
+    assert board_create.json()["category"] == "discussion"
+    assert board_create.json()["pinned"] is False
+    assert board_create.json()["published_at"] is None
 
     update_attempt = admin_login.patch(
         f"/posts/{post_id}", json={"title": "수정 거부"}

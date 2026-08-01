@@ -17,7 +17,7 @@ class AdminPostFilters(TypedDict, total=False):
     """관리자 게시물 목록 필터."""
 
     category: str | None
-    status: str | None  # 'published' | 'draft' | None (all)
+    status: str | None  # 'published' | 'scheduled' | 'draft' | None (all)
     q: str | None
 
 
@@ -176,7 +176,12 @@ async def list_admin_posts(
         if category:
             stmt = stmt.where(models.Post.category == category)
         if status == "published":
-            stmt = stmt.where(models.Post.published_at.isnot(None))
+            stmt = stmt.where(
+                models.Post.published_at.isnot(None),
+                models.Post.published_at <= func.now(),
+            )
+        elif status == "scheduled":
+            stmt = stmt.where(models.Post.published_at > func.now())
         elif status == "draft":
             stmt = stmt.where(models.Post.published_at.is_(None))
         if q:
@@ -208,7 +213,12 @@ async def count_posts(
         if category:
             stmt = stmt.where(models.Post.category == category)
         if status == "published":
-            stmt = stmt.where(models.Post.published_at.isnot(None))
+            stmt = stmt.where(
+                models.Post.published_at.isnot(None),
+                models.Post.published_at <= func.now(),
+            )
+        elif status == "scheduled":
+            stmt = stmt.where(models.Post.published_at > func.now())
         elif status == "draft":
             stmt = stmt.where(models.Post.published_at.is_(None))
         if q:

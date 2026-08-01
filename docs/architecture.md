@@ -17,7 +17,7 @@
 | --- | --- | --- |
 | `Member` | `student_id`, `email`, `name`, `cohort`, `roles`, `visibility` | 회원 기본 정보와 노출 범위 설정. `student_id`는 고유 식별자이자 인증용 ID. 역할 문자열(`member`, `admin` 등)로 권한 제어 예정. |
 | `MemberAuth` | `student_id`, `password_hash` | 회원 인증 정보. `student_id`를 외래 키로 Member와 연동하며, 비밀번호는 해시 저장. 이메일 기반 인증에서 학번 기반으로 전환 완료. |
-| `Post` | `author_id`, `title`, `content`, `published_at`, `category`, `view_count` | 공지/게시글. 공개 API는 board 카테고리(`discussion`/`question`/`share`/`congrats`)는 `published_at` 무관 공개, `notice`/`news` 등은 `published_at <= now`만 공개. 생성·수정 `category`는 위 6종만 허용하고 회원 생성은 board 4종으로 제한한다. board와 발행형 카테고리 사이의 변경은 공개 범위가 바뀌므로 거부한다. `view_count`는 서버 전용(생성 입력 불가)이며 관리자 목록의 게시글 상세는 `/admin/posts/{id}/preview`에서 조회해 집계하지 않는다. 공개 목록은 `q` 서버 검색을 지원한다. 운영의 host-only API 세션 쿠키를 유지하기 위해 관리자 draft와 관리자 상세는 브라우저 preview 경로에서 확인한다. 게시글 생성·수정·삭제는 `admin_posts` 권한(또는 `super_admin`)이 필요하다. |
+| `Post` | `author_id`, `title`, `content`, `published_at`, `category`, `view_count` | 공지/게시글. 공개 API는 board 카테고리(`discussion`/`question`/`share`/`congrats`)는 `published_at` 무관 공개, `notice`/`news` 등은 `published_at <= now`만 공개. 생성·수정 `category`는 위 6종만 허용하고 회원 생성은 board 4종으로 제한한다. board와 발행형 카테고리 사이의 변경은 공개 범위가 바뀌므로 거부한다. `view_count`는 서버 전용(생성 입력 불가)이며 관리자 목록의 게시글 상세는 `/admin/posts/{id}/preview`에서 조회해 집계하지 않는다. 공개 목록은 `q` 서버 검색을 지원한다. 운영의 host-only API 세션 쿠키를 유지하기 위해 관리자 draft와 관리자 상세는 브라우저 preview 경로에서 확인한다. 관리자 게시물 생성·수정·삭제는 `admin_posts` 권한(또는 `super_admin`)이 필요하고, 일반 회원과 제한 관리자도 board 4종은 회원 작성 경로로 생성할 수 있다. |
 | `Event` | `title`, `starts_at`, `ends_at`, `location`, `capacity` | 모임 일정. 시작 일시 인덱스로 일정 정렬 제공. |
 | `RSVP` | `member_id`, `event_id`, `status` | 회원과 이벤트 간 다대다 관계. 기본 상태는 `going`, 취소·대기열 상태를 Enum으로 제한한다. |
 

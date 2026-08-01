@@ -12,7 +12,7 @@ import { isBoardCategory } from '../../../../lib/community';
 import { memberApiErrorToMessage } from '../../../../lib/error-map';
 import { buildPostUpdatePayload } from '../../../../lib/post-edit';
 import { adminPostKeys, postKeys } from '../../../../lib/query-keys';
-import { isAdminSession } from '../../../../lib/rbac';
+import { hasPermissionSession } from '../../../../lib/rbac';
 import { getPost, updatePost } from '../../../../services/posts';
 
 /** 상태 메시지 컴포넌트 */
@@ -55,10 +55,10 @@ export default function BoardEditPage() {
   });
 
   // 권한 체크용 (mutation 내에서 사용)
-  const isAdmin = isAdminSession(auth);
+  const canManagePosts = hasPermissionSession(auth, 'admin_posts');
 
   const mutation = useMutation({
-    mutationFn: (data: PostFormData) => updatePost(postId, buildPostUpdatePayload(data, post, isAdmin)),
+    mutationFn: (data: PostFormData) => updatePost(postId, buildPostUpdatePayload(data, post, canManagePosts)),
     onSuccess: () => {
       show('게시글이 수정되었습니다.', { type: 'success' });
       void queryClient.invalidateQueries({ queryKey: postKeys.all });
@@ -77,7 +77,7 @@ export default function BoardEditPage() {
   // 에러 또는 게시글 없음
   if (isError || !post) return <StatusMessage text="게시글을 불러올 수 없습니다." error />;
   // 권한 체크: 작성자 본인 또는 관리자만
-  const canEdit = auth?.id === post.author_id || isAdmin;
+  const canEdit = auth?.id === post.author_id || canManagePosts;
   if (!canEdit) return <StatusMessage text="수정 권한이 없습니다." error />;
 
   return (
@@ -106,7 +106,7 @@ export default function BoardEditPage() {
         onSubmit={(data) => mutation.mutate(data)}
         onCancel={() => router.push(`/board/${postId}`)}
         hideCategory={isBoardCategory(post.category)}
-        hideAdminOptions={!isAdmin}
+        hideAdminOptions={!canManagePosts}
       />
     </div>
   );

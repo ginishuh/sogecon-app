@@ -10,7 +10,7 @@ import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../lib/api';
 import { memberApiErrorToMessage } from '../lib/error-map';
 import { adminPostKeys, postKeys } from '../lib/query-keys';
-import { isAdminSession } from '../lib/rbac';
+import { hasPermissionSession } from '../lib/rbac';
 import { deletePost } from '../services/posts';
 import { ConfirmDialog } from './confirm-dialog';
 import { useToast } from './toast';
@@ -48,8 +48,8 @@ export function BoardPostActions({ postId, postTitle, authorId }: BoardPostActio
 
   // 작성자 본인 또는 관리자만 표시
   const isAuthor = auth?.id === authorId;
-  const isAdmin = isAdminSession(auth);
-  if (!isAuthor && !isAdmin) {
+  const canManagePosts = hasPermissionSession(auth, 'admin_posts');
+  if (!isAuthor && !canManagePosts) {
     return null;
   }
 

@@ -33,7 +33,7 @@ def get_admin_post_params(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     category: str | None = Query(None),
-    status: str | None = Query(None, pattern="^(published|draft)$"),
+    status: str | None = Query(None, pattern="^(published|scheduled|draft)$"),
     q: str | None = Query(None, max_length=100),
 ) -> AdminPostQueryParams:
     """쿼리 파라미터를 AdminPostQueryParams로 변환."""
