@@ -33,6 +33,9 @@ jobs:
         run: pnpm -C apps/web install --frozen-lockfile
 
       - name: Build (web)
+        env:
+          NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
+          WEB_BUILD_ALLOW_INSECURE_LOCAL_API: "1"
         run: pnpm -C apps/web build
 
       - name: Start server
@@ -77,6 +80,7 @@ jobs:
           NEXT_PUBLIC_RELAX_CSP: "1"
           NEXT_PUBLIC_ENABLE_SW: "0"
           NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
+          WEB_BUILD_ALLOW_INSECURE_LOCAL_API: "1"
 
       - name: Lighthouse CI (debug desktop)
         id: lhci_desktop
@@ -94,6 +98,7 @@ jobs:
           NEXT_PUBLIC_RELAX_CSP: "1"
           NEXT_PUBLIC_ENABLE_SW: "0"
           NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
+          WEB_BUILD_ALLOW_INSECURE_LOCAL_API: "1"
 
       - name: Attach debug note
         if: ${{ always() }}

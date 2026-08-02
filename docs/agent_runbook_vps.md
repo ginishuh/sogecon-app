@@ -31,6 +31,43 @@ sudo chown 1000:1000 /var/lib/sogecon/uploads
 - [ ] `git pull` → 로컬 빌드 → 마이그레이션 → 재기동 순서
 - [ ] 헬스체크 200(워밍업 ≤90s 허용)
 
+### D6 cloud-start resource/health guard defaults
+
+`ops/cloud-start.sh`는 image와 supplied env file, Docker network를 먼저
+preflight한 뒤 기존 컨테이너를 중지한다. 두 실제 `docker run`에 다음 기본값을
+적용하며 모두 환경변수로 override할 수 있다.
+
+| 대상 | memory | cpus | pids-limit |
+| --- | --- | --- | --- |
+| API | `768m` | `1.0` | `256` |
+| Web | `512m` | `1.0` | `256` |
+
+공통으로 `json-file` `max-size=10m`, `max-file=5`,
+`no-new-privileges=true`, `cap-drop ALL`, `restart unless-stopped`,
+loopback-only publication을 적용한다. image healthcheck의 interval/timeout/
+retries/start-period 기본값은 `10s/5s/9/15s`이고, API가 healthy가 되기 전에는
+Web을 시작하지 않는다. 두 서비스 모두 120초 안에 healthy가 되어야 성공한다.
+
+health가 없거나 `unhealthy`, `exited`, `dead`이거나 timeout이면 nonzero로
+종료하며 제한된 inspect state와 최근 40줄 로그만 출력한다. env/config 전체를
+inspect하지 않고 알려진 env-file/database 값은 로그에서 가린다. 자동 DB rollback이나
+기존 컨테이너 복구는 하지 않는다.
+
+리소스 튜닝 예:
+
+```bash
+API_MEMORY=1g WEB_CPUS=1.5 HEALTH_WAIT_TIMEOUT=180 \
+  API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net bash ops/cloud-start.sh
+```
+
+운영 readback은 `docker inspect`에서 `User`, `HostConfig.Memory/NanoCpus/PidsLimit`,
+`LogConfig`, `SecurityOpt`, `CapDrop`, `State.Health`, `RestartPolicy`,
+`NetworkSettings.Ports`, `Mounts`, `NetworkSettings.Networks`를 확인한다.
+실패 시 정확히 알고 있는 이전 API/Web image tag를 같은 script에 넣어 재실행한다.
+두 이미지 모두 healthy라는 성공 출력이 rollback 완료 증거다.
+
 ### 2.1 D4 게시글 공개성 배포 전 read-only audit
 
 D4의 공개성 계약은 board 4종은 `published_at`과 무관하게 공개하고,

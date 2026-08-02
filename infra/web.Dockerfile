@@ -33,6 +33,7 @@ ARG NEXT_PUBLIC_ANALYTICS_ID=""
 ARG NEXT_PUBLIC_ENABLE_SW=""
 ARG NEXT_PUBLIC_RELAX_CSP=""
 ARG NEXT_PUBLIC_IMAGE_DOMAINS=""
+ARG WEB_BUILD_ALLOW_INSECURE_LOCAL_API=""
 
 ENV NEXT_PUBLIC_WEB_API_BASE=${NEXT_PUBLIC_WEB_API_BASE} \
     NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL} \
@@ -40,10 +41,12 @@ ENV NEXT_PUBLIC_WEB_API_BASE=${NEXT_PUBLIC_WEB_API_BASE} \
     NEXT_PUBLIC_ANALYTICS_ID=${NEXT_PUBLIC_ANALYTICS_ID} \
     NEXT_PUBLIC_ENABLE_SW=${NEXT_PUBLIC_ENABLE_SW} \
     NEXT_PUBLIC_RELAX_CSP=${NEXT_PUBLIC_RELAX_CSP} \
-    NEXT_PUBLIC_IMAGE_DOMAINS=${NEXT_PUBLIC_IMAGE_DOMAINS}
+    NEXT_PUBLIC_IMAGE_DOMAINS=${NEXT_PUBLIC_IMAGE_DOMAINS} \
+    WEB_BUILD_ALLOW_INSECURE_LOCAL_API=${WEB_BUILD_ALLOW_INSECURE_LOCAL_API}
 
 RUN pnpm -C apps/web build \
-    && pnpm --filter web deploy --prod --legacy /opt/app_web
+    && pnpm --filter web deploy --prod --legacy /opt/app_web \
+    && chmod -R a+rX /opt/app_web
 
 FROM node:${NODE_VERSION}-slim AS runtime
 
@@ -60,6 +63,9 @@ COPY --from=build /opt/app_web /app/apps/web
 USER webuser
 
 EXPOSE 3000
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=9 \
+  CMD node -e "fetch('http://127.0.0.1:3000/').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1))"
 
 # Avoid requiring pnpm in runtime; call Next directly
 CMD ["node", "node_modules/next/dist/bin/next", "start", "-p", "3000"]

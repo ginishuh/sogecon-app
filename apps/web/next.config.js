@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const path = require('node:path');
+const { PHASE_PRODUCTION_BUILD } = require('next/constants');
+const { validateProductionWebApiBase } = require('./lib/build-config');
 
 // Bundle analyzer: pnpm -C apps/web analyze (Webpack 전용)
 // 런타임에서는 devDependency가 없으므로 조건부 로드
@@ -81,4 +83,9 @@ const nextConfig = {
   },
 };
 
-module.exports = withBundleAnalyzer(nextConfig);
+module.exports = (phase) => {
+  if (phase === PHASE_PRODUCTION_BUILD) {
+    validateProductionWebApiBase();
+  }
+  return withBundleAnalyzer(nextConfig);
+};

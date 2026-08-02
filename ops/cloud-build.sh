@@ -10,6 +10,8 @@ set -euo pipefail
 #   PUSH_IMAGES      : 1이면 빌드 후 docker push 수행
 #   PNPM_VERSION     : Web 빌드에 사용할 pnpm 버전(미지정 시 자동 해석)
 #   NEXT_PUBLIC_*    : 웹 빌드 시 주입할 Next.js 공개 환경변수
+#   WEB_BUILD_ALLOW_INSECURE_LOCAL_API는 직접 로컬 Docker 빌드에서만 Dockerfile
+#   build-arg로 지정합니다. 이 운영 빌드 경로에서는 전달하지 않습니다.
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "${ROOT_DIR}"

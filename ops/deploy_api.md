@@ -46,7 +46,8 @@
 3. DB 마이그레이션 적용: `API_IMAGE=registry/alumni-api:<태그> ENV_FILE=/etc/secrets/api.env ./ops/cloud-migrate.sh`
 4. (선택) 관리자 bootstrap 시드: `API_IMAGE=registry/alumni-api:<태그> ENV_FILE=/etc/secrets/api.env ./ops/cloud-seed-admin.sh`
 5. 서비스 재시작: `API_IMAGE=... WEB_IMAGE=registry/alumni-web:<태그> API_ENV_FILE=/etc/secrets/api.env WEB_ENV_FILE=/etc/secrets/web.env ./ops/cloud-start.sh`
-6. 프로빙: `curl https://api.sogangeconomics.com/healthz` 응답 확인, 주요 엔드포인트 스팟 체크
+   - 기본 resource/log/health 값과 `127.0.0.1` publication은 script가 적용한다. API가 healthy가 되기 전에는 Web을 시작하지 않는다.
+6. `cloud-start.sh` 성공 후 프로빙: `curl https://api.sogangeconomics.com/healthz` 응답 확인, 주요 엔드포인트 스팟 체크
 
 > 참고: `API_ENV_FILE`에는 `DATABASE_URL`, `JWT_SECRET`, `PUSH_*`, `SENTRY_*` 등 필수 시크릿을 포함한다. 컨테이너 업로드 볼륨은 `UPLOADS_DIR=/var/lib/sogecon/uploads` 로 기본 설정되어 있으며, 필요 시 커스터마이즈한다.
 > 관리자 bootstrap 시드를 실행할 경우 `SEED_PROD_ADMIN001_VALUE`를 `.env.api`에 설정해야 한다.
@@ -57,7 +58,8 @@
 - 향후 `/__health` 라우트 추가 시, DB/외부 의존성 체크 포함 예정 (후속 작업)
 
 ## 6. 롤백 전략
-- `ops/rollback.md` 문서를 참조하여 이전 이미지/커밋으로 즉시 배포 전환
+- 정확히 알고 있는 이전 API/Web 이미지 태그를 `API_IMAGE`/`WEB_IMAGE`에 넣고 같은 `ops/cloud-start.sh`를 다시 실행한다. 두 이미지가 모두 healthy라는 성공 결과가 rollback의 권위 있는 완료 증거다.
+- 자동 데이터베이스 rollback이나 기존 컨테이너의 silent restore는 수행하지 않는다.
 - DB 마이그레이션 롤백이 필요한 경우 `alembic downgrade <revision>` 실행 (사전 백업 필수)
 - 실패 원인: `journalctl -u alumni-api`, 애플리케이션 로그, Sentry 등으로 분석
 

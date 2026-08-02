@@ -1,29 +1,73 @@
 // 공통 API 클라이언트 래퍼
 // - fetch 옵션 통일, 에러 포맷 처리, BASE_URL 주입
 
-// API 기본 호스트는 가능한 한 현재 호스트를 따릅니다(포트만 3001 고정).
-// 환경변수에 localhost/127.0.0.1이 들어있으면 모바일/원격에서 동작하지 않으므로 무시하고 현재 호스트를 사용합니다.
-function resolveApiBase(): string {
-  const envBase = process.env.NEXT_PUBLIC_WEB_API_BASE;
+const DEV_LIKE_ENVS = new Set(['development', 'test']);
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
 
-  if (typeof window !== 'undefined') {
-    // 클라이언트 사이드
-    const h = window.location.hostname;
-    if (!envBase) return `http://${h}:3001`;
-    const isLocal = /^(?:https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?/i.test(envBase);
-    if (isLocal) return `http://${h}:3001`;
-    return envBase;
+type ApiBaseResolutionOptions = {
+  publicBase?: string;
+  internalBase?: string;
+  isBrowser?: boolean;
+  nodeEnv?: string;
+  currentHostname?: string;
+};
+
+function isLoopbackUrl(value: string | undefined): boolean {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return LOOPBACK_HOSTS.has(url.hostname.toLowerCase().replace(/^\[|\]$/g, ''));
+  } catch {
+    return false;
   }
-
-  // 서버 사이드: Docker Compose 환경에서는 컨테이너 간 통신을 위해 내부 URL 사용
-  // NEXT_PUBLIC_API_INTERNAL_URL이 설정되어 있으면 Docker 환경으로 간주
-  const internalUrl = process.env.NEXT_PUBLIC_API_INTERNAL_URL;
-  if (internalUrl) {
-    return internalUrl;
-  }
-
-  return envBase ?? 'http://localhost:3001';
 }
+
+function hostWithBrackets(hostname: string): string {
+  return hostname.includes(':') && !hostname.startsWith('[') ? `[${hostname}]` : hostname;
+}
+
+function getBrowserValue(value: boolean | undefined): boolean {
+  return value === undefined ? typeof window !== 'undefined' : value;
+}
+
+function getCurrentHostname(value: string | undefined, isBrowser: boolean): string {
+  if (value) return value;
+  if (isBrowser && typeof window !== 'undefined') return window.location.hostname;
+  return 'localhost';
+}
+
+function getInternalBase(options: ApiBaseResolutionOptions, isBrowser: boolean): string | undefined {
+  if (isBrowser) return undefined;
+  const value = options.internalBase === undefined ? process.env.API_INTERNAL_URL : options.internalBase;
+  return value?.trim() || undefined;
+}
+
+function resolvePublicBase(publicUrl: string, isBrowser: boolean, nodeEnv: string, currentHostname: string): string {
+  const shouldRewriteLoopback = isBrowser && DEV_LIKE_ENVS.has(nodeEnv) && isLoopbackUrl(publicUrl);
+  if (shouldRewriteLoopback) return `http://${hostWithBrackets(currentHostname)}:3001`;
+  return publicUrl;
+}
+
+function resolveMissingBase(nodeEnv: string, currentHostname: string): string {
+  if (!DEV_LIKE_ENVS.has(nodeEnv)) {
+    throw new Error('NEXT_PUBLIC_WEB_API_BASE is required outside development and test environments.');
+  }
+  return `http://${hostWithBrackets(currentHostname)}:3001`;
+}
+
+export function resolveApiBase(options: ApiBaseResolutionOptions = {}): string {
+  const isBrowser = getBrowserValue(options.isBrowser);
+  const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV ?? 'development';
+  const publicValue = options.publicBase === undefined ? process.env.NEXT_PUBLIC_WEB_API_BASE : options.publicBase;
+  const publicUrl = publicValue?.trim();
+  const internalBase = getInternalBase(options, isBrowser);
+  const currentHostname = getCurrentHostname(options.currentHostname, isBrowser);
+
+  if (internalBase) return internalBase;
+  if (publicUrl) return resolvePublicBase(publicUrl, isBrowser, nodeEnv, currentHostname);
+  return resolveMissingBase(nodeEnv, currentHostname);
+}
+
 export const API_BASE = resolveApiBase();
 
 export function resolveApiAssetUrl(value: string): string {

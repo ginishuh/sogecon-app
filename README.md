@@ -124,6 +124,7 @@ make schema-gen
 - 웹(Next.js)
   - `NEXT_PUBLIC_*`는 “빌드타임 고정”입니다. 값 변경 시 반드시 재빌드가 필요합니다.
   - 대표 키: `NEXT_PUBLIC_WEB_API_BASE`(API 베이스), `NEXT_PUBLIC_SITE_URL`(공개 URL), `NEXT_PUBLIC_VAPID_PUBLIC_KEY`.
+  - production build의 API 베이스는 HTTPS가 필수이며, `API_INTERNAL_URL`은 서버 전용 Docker 내부 URL입니다. loopback HTTP local/test build만 `WEB_BUILD_ALLOW_INSECURE_LOCAL_API=1`을 명시합니다.
 - 서버 배포(API/Web)
   - API 런타임 env 파일: `.env.api`(루트), 예시는 `.env.api.example` 참고.
   - Web 런타임 env 파일(선택): `.env.web`(예시는 `.env.web.example`). 단, `NEXT_PUBLIC_*`는 빌드타임 주입이 원칙.

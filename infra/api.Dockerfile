@@ -34,12 +34,16 @@ COPY apps/api ./apps/api
 COPY ops/ci/migration_gate.py ./ops/ci/migration_gate.py
 COPY infra/api-entrypoint.sh /app/infra/api-entrypoint.sh
 
-RUN mkdir -p uploads \
-    && chmod +x /app/infra/api-entrypoint.sh \
-    && chown apiuser:apiuser uploads
+RUN mkdir -p uploads logs \
+    && chmod -R a+rX /app/apps /app/ops /app/infra \
+    && chmod 755 /app/infra/api-entrypoint.sh \
+    && chown apiuser:apiuser uploads logs
 
 USER apiuser
 
 EXPOSE 3001
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=9 \
+  CMD python -c "import urllib.request; response = urllib.request.urlopen('http://127.0.0.1:3001/healthz', timeout=5); raise SystemExit(0 if 200 <= response.status < 300 else 1)"
 
 ENTRYPOINT ["/app/infra/api-entrypoint.sh"]

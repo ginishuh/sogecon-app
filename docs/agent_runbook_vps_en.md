@@ -28,6 +28,45 @@ Checklist (quick)
 - [ ] `.env.api` uses container DNS in `DATABASE_URL` (e.g., `sogecon-db`)
 - [ ] `git pull` → local build → migrate → restart order
 - [ ] Health 200 (allow warm‑up ≤90s)
+
+### D6 cloud-start resource and health guard defaults
+
+`ops/cloud-start.sh` preflights both images, supplied env files, and the Docker
+network before stopping any existing container. It applies these overrideable
+defaults to both actual `docker run` commands:
+
+| service | memory | cpus | pids-limit |
+| --- | --- | --- | --- |
+| API | `768m` | `1.0` | `256` |
+| Web | `512m` | `1.0` | `256` |
+
+Both services also use the `json-file` driver with `max-size=10m` and
+`max-file=5`, `no-new-privileges=true`, `cap-drop ALL`,
+`restart unless-stopped`, and loopback-only host publication. Health defaults
+are interval/timeout/retries/start-period `10s/5s/9/15s`; Web is not started
+until API is healthy, and both services must become healthy within 120 seconds.
+
+Missing health, `unhealthy`, `exited`, `dead`, or timeout exits nonzero and prints
+only concise inspect state plus the most recent 40 log lines. It does not inspect
+or print the complete environment/configuration, and known env-file/database
+values are redacted from the bounded logs. It does not automatically roll back
+the database or silently restore containers.
+
+For tuning, override only the required values:
+
+```bash
+API_MEMORY=1g WEB_CPUS=1.5 HEALTH_WAIT_TIMEOUT=180 \
+  API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net bash ops/cloud-start.sh
+```
+
+Operational readback should use `docker inspect` for `User`,
+`HostConfig.Memory/NanoCpus/PidsLimit`, `LogConfig`, `SecurityOpt`, `CapDrop`,
+`State.Health`, `RestartPolicy`, `NetworkSettings.Ports`, `Mounts`, and
+`NetworkSettings.Networks`. On failure, rerun the same script with the exact
+previous API/Web image tags. Both images becoming healthy is authoritative
+rollback completion evidence.
 ```bash
 cd /srv/sogecon-app
 git pull --ff-only origin main
