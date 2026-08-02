@@ -27,6 +27,9 @@ pnpm -C apps/web install
 .venv/bin/python ops/ci/guards.py
 .venv/bin/python ops/ci/check_versions.py
 pnpm exec commitlint --from origin/main --to HEAD --config docs/commitlint.config.cjs
+# 빈 PostgreSQL 서비스에서 최초 revision부터 upgrade/check/catalog readback
+DATABASE_URL=postgresql+psycopg://app:devpass@localhost:5434/appdb_test \
+  .venv/bin/python ops/ci/migration_gate.py --require-empty
 .venv/bin/ruff check apps/api
 .venv/bin/python -m pyright --project pyrightconfig.json
 .venv/bin/pytest -q
@@ -42,7 +45,7 @@ git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 | Job | 내용 |
 |-----|------|
 | `repo-guards` | guards, versions, **commitlint (hard)** |
-| `python` | ruff, pyright, pytest, bandit, pip-audit |
+| `python` | 빈 PostgreSQL Alembic upgrade·schema drift·catalog gate, ruff, pyright, pytest, bandit, pip-audit |
 | `contract` | OpenAPI export + DTO drift |
 | `web` | **eslint**, **vitest 전체**, build, a11y smoke, bundle, pnpm audit |
 | `secrets-scan` | gitleaks |
@@ -85,7 +88,17 @@ bash ops/ci/apply_main_branch_protection.sh              # 기본: ginishuh/soge
 bash ops/ci/apply_main_branch_protection.sh OWNER/REPO   # 다른 포크
 ```
 
-Draft PR은 job이 skip되므로 Ready 전환 후 CI가 녹색인지 확인한다.
+Draft PR은 job이 skip되므로 Ready 전환 후 CI가 녹색인지 확인한다. `python` job의 migration gate는 테스트 fixture와 독립적으로 빈 PostgreSQL에서 실행되며, `alembic_version`, `pg_extension`, `pg_indexes` readback까지 통과해야 한다.
+
+## Alembic migration/schema drift gate (D5)
+
+`ops/ci/migration_gate.py`가 D5의 authoritative schema gate다.
+
+- `--require-empty`: public table이 없는 PostgreSQL에서 `alembic upgrade head`를 실행한다.
+- upgrade 직후 `alembic check`를 실행해 현재 모델 metadata와 migration-created catalog의 drift를 검출한다. 모델에 표현 가능한 기존 PostgreSQL 인덱스는 metadata에 선언했고, 일반 drift를 숨기는 `include_object`/`compare_index` blanket 예외는 두지 않았다.
+- `alembic_version`가 단일 head인지, `pg_trgm` extension이 존재하는지, 기존 5개와 D5의 2개 GIN trgm index 이름·operator class가 `pg_indexes`에서 일치하는지 확인한다.
+- `tests/api/test_migration_gate.py`의 negative regression은 정상 모델의 컬럼·테이블·인덱스가 migration에 누락되었을 때 Alembic comparator가 각각 `add_column`·`add_table`·`add_index`를 반환하는 것을 고정한다.
+- 기존 schema DB에는 `--require-empty` 없이 같은 upgrade를 적용하고 current/catalog를 readback한다. 역사적으로 남은 별도 인덱스는 삭제하거나 gate에서 숨기지 않고 별도 drift로 기록한다. 따라서 기존 local `appdb`의 `signup_activation_issue_logs` 추가 index 4개가 있으면 authoritative `alembic check`는 의도적으로 FAIL하며, D5에서 임의로 정렬하지 않는다.
 
 ## 훅 통합 테스트
 

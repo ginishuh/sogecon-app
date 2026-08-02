@@ -34,7 +34,9 @@
   - `apps/api/repositories/`: SQLAlchemy를 통한 영속성 접근. 쿼리/정렬/페이징 책임을 가짐.
 - **라우터 구성**: `routers/` 하위 `members.py`, `posts.py`, `board_posts.py`, `events.py`, `rsvps.py`가 서비스만 호출하도록 리팩터링 완료(초판). `posts.py`의 관리자 mutation과 `board_posts.py`의 회원 owner mutation은 권한 경계를 공유하지 않는다.
 - **DB 세션 관리**: `db.py`의 `get_db()` 의존성을 통해 요청 단위 세션 생성/정리.
-- **마이그레이션**: `migrations/` 하위 Alembic 스크립트로 버전 관리. 새로운 모델 변경 시 `alembic revision --autogenerate` 사용 후 코드 검토.
+- **마이그레이션**: `migrations/` 하위 Alembic 스크립트로 버전 관리. 새로운 모델 변경 시 `alembic revision --autogenerate` 사용 후 코드 검토한다. PostgreSQL의 실제 catalog가 권위이며, 모델 metadata에도 운영 인덱스 계약을 표현해 `alembic check`가 일반 테이블·컬럼·인덱스 drift를 검출하도록 유지한다.
+- **마이그레이션 필수 게이트**: `ops/ci/migration_gate.py --require-empty`가 빈 PostgreSQL에서 최초 revision부터 `upgrade head`와 `alembic check`를 실행하고, `alembic_version`, `pg_trgm`, 기대 GIN 인덱스를 catalog에서 readback한다. CI의 PostgreSQL 서비스와 로컬 전용 disposable DB에서 같은 명령을 실행한다.
+- **검색 인덱스 운영 계약**: `d5f2a1c9e7b3`는 `student_id`와 `company`의 부분문자열 검색만 `pg_trgm` GIN으로 보완한다. 기존 `name`·`email`·주소·직함 GIN은 유지하고, 낮은 선택도의 `major`·`industry`에는 인덱스를 추가하지 않는다. `CREATE/DROP INDEX CONCURRENTLY`는 migration의 autocommit block 안에서 수행하며, 운영 migration을 외부 트랜잭션으로 감싸지 않는다.
 - **예정 기능**: 인증(예: OAuth2, SSO), 권한 레이어, 감사 로깅, 웹훅 등은 추후 설계 항목으로 남겨둔다.
 
 ## 프런트엔드 구조
@@ -93,11 +95,12 @@
 - 세션은 남아 있지만 해당 회원 행이 삭제된 비정상 상태에서는 목록·건수는 빈 결과로 닫고 상세는 `member_not_found`를 반환합니다. 어떤 경로에서도 다른 회원 정보는 노출하지 않습니다.
 - `DirectoryMemberRead`는 학번, 역할, 계정 상태를 제외한 동문 수첩 전용 DTO입니다. 관리 화면은 권한이 적용된 `/admin/members` 계약을 사용합니다.
 - 조회자별 건수는 공개 범위 변경을 즉시 반영하기 위해 캐시하지 않습니다.
+- 동문 수첩 검색은 `MemberRepository`의 `ILIKE` 조건과 동일한 결과 계약을 유지한다. D5에서 실제 plan이 인덱스를 선택한 `student_id`·`company`만 GIN을 추가했고, `major`·`industry`는 현실적인 분포에서 순차 스캔이 선택되어 제외했다. 인덱스 전후 exact·partial·case-insensitive 대표 결과 digest는 동일하다.
 
 ## 품질 및 운영 가드레일
 - **정적 검사**: `ruff`, `pyright`, `eslint`, `tsc --noEmit`.
 - **테스트**: `pytest -q`로 API 단위 테스트, 웹 쪽은 `vitest`/`@testing-library/react` 도입 예정.
-- **CI 파이프라인**: PR Ready 전환 시 lint → type check → build 순서. 비밀 검출은 `gitleaks`로 수행.
+- **CI 파이프라인**: PR Ready 전환 시 repository guards와 빈 PostgreSQL migration/schema drift gate를 먼저 통과한 뒤 lint → type check → build 순서로 진행한다. 비밀 검출은 `gitleaks`로 수행한다. API 테스트 fixture가 `create_all()`을 사용하는 경우에도 migration gate가 스키마의 권위 있는 검증 경로다.
 - **로그 정책**: 상세 이력은 커밋/PR 히스토리로 관리하고, 개발 세션 별로 `docs/dev_log_YYMMDD.md`를 업데이트.
 
 ## 배포 및 환경 구성

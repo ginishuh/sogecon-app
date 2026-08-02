@@ -10,7 +10,7 @@ import httpx
 import pytest
 from bcrypt import gensalt, hashpw  # 테스트 전용(최상위 임포트)
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -88,6 +88,11 @@ def client(tmp_path: Path) -> Generator[TestClient, None, None]:
 
     # 동기 엔진으로 테이블 생성 (metadata.create_all은 동기만 지원)
     sync_engine = create_engine(engine_url)
+    # models.Base.metadata에는 PostgreSQL GIN trigram catalog 계약도 표현되어
+    # 있으므로, fixture가 create_all()을 사용하더라도 연산자 클래스를 먼저
+    # 준비한다. 실제 migration gate는 별도로 빈 DB upgrade를 검증한다.
+    with sync_engine.begin() as connection:
+        connection.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
     # PostgreSQL ENUM 타입은 create_all 과정에서 누락될 수 있어 선행 생성합니다.
     models.Member.__table__.c.visibility.type.create(
         bind=sync_engine, checkfirst=True
@@ -338,6 +343,8 @@ async def async_client(
     )
 
     sync_engine = create_engine(engine_url)
+    with sync_engine.begin() as connection:
+        connection.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
     models.Base.metadata.create_all(bind=sync_engine)
 
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:

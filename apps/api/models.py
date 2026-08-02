@@ -110,6 +110,23 @@ class Member(Base):
 
 Index("ix_members_updated_at", Member.updated_at)
 Index("ix_members_cohort_name", Member.cohort, Member.name)
+# PostgreSQL 전용 검색 인덱스도 migration과 metadata가 같은 catalog 계약을
+# 표현한다. 실제 생성·삭제는 운영 lock 규칙을 지키는 migration이 담당한다.
+for _index_name, _column, _column_name in (
+    ("idx_members_name_trgm", Member.name, "name"),
+    ("idx_members_email_trgm", Member.email, "email"),
+    ("idx_members_addr_personal_trgm", Member.addr_personal, "addr_personal"),
+    ("idx_members_addr_company_trgm", Member.addr_company, "addr_company"),
+    ("idx_members_job_title_trgm", Member.job_title, "job_title"),
+    ("idx_members_student_id_trgm", Member.student_id, "student_id"),
+    ("idx_members_company_trgm", Member.company, "company"),
+):
+    Index(
+        _index_name,
+        _column,
+        postgresql_using="gin",
+        postgresql_ops={_column_name: "gin_trgm_ops"},
+    )
 
 
 class Post(Base):
@@ -249,6 +266,7 @@ Index(
 
 class RSVP(Base):
     __tablename__ = "rsvps"
+    __table_args__ = (Index("ix_rsvps_event_status", "event_id", "status"),)
 
     member_id = Column(
         Integer,
@@ -420,6 +438,13 @@ class ProfileChangeRequest(Base):
 
 class PushSubscription(Base):
     __tablename__ = "push_subscriptions"
+    __table_args__ = (
+        Index(
+            "ix_push_subs_active",
+            "id",
+            postgresql_where=text("revoked_at IS NULL"),
+        ),
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     member_id = Column(

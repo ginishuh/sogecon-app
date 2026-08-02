@@ -82,6 +82,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
           pip install pip-audit bandit
+      - name: Alembic migration and schema drift gate
+        env:
+          DATABASE_URL: postgresql+psycopg://app:devpass@localhost:5434/appdb_test
+        run: python ops/ci/migration_gate.py --require-empty
       - name: Lint
         run: ruff check apps/api
       - name: Type check

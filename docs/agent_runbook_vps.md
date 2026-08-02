@@ -73,6 +73,32 @@ ORDER BY category NULLS FIRST;
 
 조회 결과와 판단을 배포 기록에 남긴 뒤 기존 릴리스 태그를 롤백 대상으로 보존한다.
 
+### D5 Alembic·검색 인덱스 migration 운영 규칙
+
+배포 이미지의 `ops/cloud-migrate.sh`가 기본값으로
+`alembic -c apps/api/alembic.ini upgrade head`를 실행한다. D5 revision
+`d5f2a1c9e7b3`는 `pg_trgm` extension을 확인·생성하고
+`student_id`·`company` GIN index를 `CREATE INDEX CONCURRENTLY`로 만든다.
+따라서 이 migration을 별도 트랜잭션으로 감싸거나 `--sql` 출력만으로 적용하지
+않는다. 인덱스 build 중에는 lock·build 상태를 관찰하고, 실패 시 해당 이름의
+invalid index가 없는지 catalog를 확인한 뒤 운영 승인 하에 재시도한다.
+
+적용 후에는 API 재기동 전 다음처럼 version과 검색 catalog를 readback한다.
+
+```bash
+docker run --rm --network sogecon_net --env-file .env.api \
+  "$API_IMAGE" bash -lc \
+  'alembic -c apps/api/alembic.ini current && \
+   psql "$DATABASE_URL" -c "SELECT extname, extversion FROM pg_extension WHERE extname = '\''pg_trgm'\'';" && \
+   psql "$DATABASE_URL" -c "SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = '\''public'\'' AND indexname IN ('\''idx_members_student_id_trgm'\'', '\''idx_members_company_trgm'\'') ORDER BY indexname;"'
+```
+
+D5 rollback은 애플리케이션 릴리스 rollback과 별개로 승인 후
+`alembic -c apps/api/alembic.ini downgrade -1`을 실행한다. 두 GIN index만
+`DROP INDEX CONCURRENTLY`로 제거하고, 기존 검색 index가 사용하므로
+`pg_trgm` extension은 제거하지 않는다. 운영 DB mutation은 이 runbook을
+따르는 운영자만 수행하며, 이번 D5 검증에서는 실행하지 않는다.
+
 ```bash
 cd /srv/sogecon-app
 git pull --ff-only origin main
