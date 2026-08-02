@@ -87,12 +87,64 @@ API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
   bash ops/cloud-start.sh
 ```
 
-## 4) Cookie/domain switches
+## 4) D5 migration and catalog readback
+
+The Korean runbook is the canonical policy source; the D5 operational details are
+also reproduced here so an English-reading operator does not skip the safety steps:
+[D5 migration/readback procedure](agent_runbook_vps.md).
+
+Run the migration as a one-shot container command before restarting the API. The
+repository script explicitly overrides the image's fixed uvicorn entrypoint with
+`/bin/sh -lc`; do not change the global API entrypoint or run a shell command after
+the image without the override.
+
+```bash
+cd /srv/sogecon-app
+ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net \
+  bash ops/cloud-migrate.sh
+```
+
+After the one-shot migration exits successfully, use the same API image and the
+same `postgresql+psycopg://` `DATABASE_URL` for the non-mutating operational readback
+before restarting the API. This also explicitly bypasses the fixed entrypoint:
+
+```bash
+docker run --rm --network sogecon_net --env-file .env.api \
+  --entrypoint /bin/sh "$API_IMAGE" -lc \
+  'python ops/ci/migration_gate.py --readback-only'
+```
+
+The readback must show a single Alembic head, `pg_trgm`, and each expected
+`members` GIN index with the expected column and `gin_trgm_ops`. Each expected
+index must be a full index (`pg_index.indpred IS NULL`) and must have
+`indisvalid=true`, `indisready=true`, and `indislive=true`. A valid partial index
+with the expected name, table, column, access method, and operator class is not
+acceptable.
+
+If `CREATE INDEX CONCURRENTLY` fails, inspect the exact catalog row before retrying.
+An invalid, not-ready, not-live, wrong-method, or partial index with the expected
+name can cause `CREATE INDEX CONCURRENTLY IF NOT EXISTS` to skip the desired full
+index. Approve only the exact expected full index. Otherwise run the narrow,
+non-destructive recovery sequence: read back the exact index name, run
+`DROP INDEX CONCURRENTLY IF EXISTS public.<exact-index-name>`, retry the migration,
+then run the Python readback again. Do not drop unrelated indexes or use a blanket
+catalog exception.
+
+`autocommit_block()` can commit earlier revisions before a later concurrent
+revision fails. After such a failure, `alembic current` may show an intermediate
+revision and the database may be partially applied. Read back the current revision
+and catalog state first, then resume or roll back according to the exact state.
+
+`--require-empty` is only for a named disposable local database. Drop and recreate
+that exact database before rerunning it; never run it against `appdb`, `appdb_test`,
+production, or a VPS operational database.
+
+## 5) Cookie/domain switches
 - Subdomain stage: `COOKIE_SAMESITE=lax`, `COOKIE_SECURE=true`.
 - Cross‑site domains: `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true` (HTTPS required).
 - Location: `.env.api` → applied by `SessionMiddleware` in `apps/api/main.py`.
 
-## 5) Web without container (Next.js standalone + systemd + Nginx)
+## 6) Web without container (Next.js standalone + systemd + Nginx)
 
 Run the Next.js `standalone` build as a systemd service. DB/API containers remain unchanged.
 
@@ -155,12 +207,12 @@ Notes
 - Alternative (in repo): `RELEASE_BASE=/srv/sogecon-app/.releases/web`
   - How‑to: pass `RELEASE_BASE` to `ops/web-deploy.sh` and update `WorkingDirectory` in `ops/systemd/sogecon-web.service` accordingly
 
-## 6) Troubleshooting
+## 7) Troubleshooting
 - Next public envs not applied: `NEXT_PUBLIC_*` are build‑time only — rebuild required.
 - Uploads permission error: ensure `/var/lib/sogecon/uploads` owner uid 1000.
 - Health check fails: verify Nginx upstream to 127.0.0.1:3000/3001 and TLS cert paths.
 
-## References
+## 8) References
 - Detailed deploy docs: `ops/deploy_api.md`, `ops/deploy_web.md`
 - Nginx examples: `ops/nginx-examples/`
 - CI workflows: `.github/workflows/ci.yml`, `.github/workflows/dto-verify.yml`, `.github/workflows/codeql.yml`

@@ -73,6 +73,70 @@ ORDER BY category NULLS FIRST;
 
 조회 결과와 판단을 배포 기록에 남긴 뒤 기존 릴리스 태그를 롤백 대상으로 보존한다.
 
+### D5 Alembic·검색 인덱스 migration 운영 규칙
+
+배포 이미지의 `ops/cloud-migrate.sh`가 기본값으로
+`alembic -c apps/api/alembic.ini upgrade head`를 실행한다. D5 revision
+`d5f2a1c9e7b3`는 `pg_trgm` extension을 확인·생성하고
+`student_id`·`company` GIN index를 `CREATE INDEX CONCURRENTLY`로 만든다.
+따라서 이 migration을 별도 트랜잭션으로 감싸거나 `--sql` 출력만으로 적용하지
+않는다. API 이미지의 고정 uvicorn entrypoint는 운영 API 실행 계약이므로
+전역적으로 바꾸지 않는다. 대신 `cloud-migrate.sh`가 `docker run`에서
+`--entrypoint /bin/sh`를 명시하고 `IMAGE -lc "$ALEMBIC_CMD"`를 실행해
+one-shot migration으로 종료되게 한다. 인덱스 build 중에는 lock·build 상태를
+관찰한다.
+
+적용 후에는 API 재기동 전 같은 API 이미지에 포함된 Python gate를 사용해
+version과 검색 catalog를 readback한다. `--readback-only`는 upgrade와
+`alembic check`를 건너뛰고 DB를 변경하지 않으며, Alembic current/head,
+`pg_trgm`, 기대 index의 public table·column·access method·operator class와
+`pg_index.indpred IS NULL`, `indisvalid`·`indisready`·`indislive`를
+PostgreSQL catalog에서 구조적으로
+확인한다. API 이미지 내부에서 `psql`을 호출하거나 `pg_indexes.indexdef`
+문자열을 파싱하지 않는다.
+
+```bash
+docker run --rm --entrypoint /bin/sh --network sogecon_net --env-file .env.api \
+  "$API_IMAGE" -lc \
+  'python ops/ci/migration_gate.py --readback-only'
+```
+
+D5 rollback은 애플리케이션 릴리스 rollback과 별개로 승인 후
+`ALEMBIC_CMD='alembic -c apps/api/alembic.ini downgrade -1' \
+  bash ops/cloud-migrate.sh`로 실행한다. 두 GIN index만 `DROP INDEX CONCURRENTLY`로
+역순 제거하고, 기존 검색 index가 사용하므로 `pg_trgm` extension은 제거하지
+않는다. 운영 DB mutation은 이 runbook을 따르는 운영자만 수행하며, 이번 D5
+검증에서는 실행하지 않는다.
+
+실패한 `CREATE INDEX CONCURRENTLY`는 이름이 남은 invalid/not-ready index를
+만들 수 있다. 이 상태에서 `CREATE INDEX CONCURRENTLY IF NOT EXISTS`를 다시
+실행하면 이름 충돌로 실제 재생성이 되지 않을 수 있다. 먼저 위
+`--readback-only` gate로 exact index 이름과 catalog flag를 확인하고, 승인된
+운영 절차에서 해당 invalid index만 `DROP INDEX CONCURRENTLY`로 제거한 뒤
+`cloud-migrate.sh`를 재실행하고 다시 readback한다. 다른 index나 데이터를
+삭제하지 않으며, 여러 pending revision 중 뒤 revision이 실패하면 앞선
+revision이 `autocommit_block()` 때문에 이미 커밋되어 중간 `alembic current`가
+남을 수 있으므로 current를 확인한 후 그 지점부터 재개한다.
+
+`--require-empty`는 CI와 local disposable DB에서만 사용한다. 재실행 전에
+정확한 전용 DB를 drop/create하고, 기존 `appdb`·`appdb_test` 또는 운영 DB를
+대상으로 하지 않는다.
+
+```bash
+# 예시: local disposable PostgreSQL에서만 실행
+docker compose --profile dev exec -T postgres_test \
+  psql -U app -d postgres -c 'DROP DATABASE IF EXISTS d5_migration_gate_local'
+docker compose --profile dev exec -T postgres_test \
+  psql -U app -d postgres -c 'CREATE DATABASE d5_migration_gate_local'
+DATABASE_URL=postgresql+psycopg://app:devpass@localhost:5434/d5_migration_gate_local \
+  .venv/bin/python ops/ci/migration_gate.py --require-empty
+DATABASE_URL=postgresql+psycopg://app:devpass@localhost:5434/d5_migration_gate_local \
+  .venv/bin/python ops/ci/migration_gate.py --readback-only
+```
+
+마지막으로 전용 DB를 drop하고, migration 실패 시 남은 invalid index와 중간
+`alembic current`를 배포 기록에 남긴다.
+
 ```bash
 cd /srv/sogecon-app
 git pull --ff-only origin main

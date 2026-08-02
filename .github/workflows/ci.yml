@@ -41,6 +41,8 @@ jobs:
         run: python ops/ci/guards.py
       - name: Git hooks integration tests
         run: bash ops/ci/test_githooks.sh
+      - name: Cloud migration command contract
+        run: bash ops/ci/test_cloud_migrate.sh
       - name: Enforce standardized versions
         run: python ops/ci/check_versions.py
       - name: Validate Dependabot policy
@@ -82,6 +84,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
           pip install pip-audit bandit
+      - name: Alembic migration and schema drift gate
+        env:
+          DATABASE_URL: postgresql+psycopg://app:devpass@localhost:5434/appdb_test
+        run: python ops/ci/migration_gate.py --require-empty
       - name: Lint
         run: ruff check apps/api
       - name: Type check

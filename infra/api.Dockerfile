@@ -31,6 +31,7 @@ WORKDIR /app
 
 COPY --from=build /install /usr/local
 COPY apps/api ./apps/api
+COPY ops/ci/migration_gate.py ./ops/ci/migration_gate.py
 COPY infra/api-entrypoint.sh /app/infra/api-entrypoint.sh
 
 RUN mkdir -p uploads \
