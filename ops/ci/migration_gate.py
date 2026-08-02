@@ -129,7 +129,7 @@ def _assert_empty_database(engine: Engine) -> None:
 
 def _assert_alembic_head(connection: Connection, config: Config) -> str:
     script = ScriptDirectory.from_config(config)
-    heads = list(script.get_heads())
+    heads = script.get_heads()
     if len(heads) != 1:
         raise SystemExit(f"[migration-gate] expected one Alembic head, found {heads}")
     versions = [
