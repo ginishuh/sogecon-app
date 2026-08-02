@@ -58,7 +58,7 @@ API_IMAGE=local/sogecon/alumni-api:<태그> WEB_IMAGE=local/sogecon/alumni-web:<
   ./ops/cloud-start.sh
 ```
 
-> 참고: `WEB_ENV_FILE`에는 `API_INTERNAL_URL`과 런타임에 필요한 추가 값(예: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`)을 주입한다. `NEXT_PUBLIC_*` public API 값은 build-time이다. Nginx는 127.0.0.1:${WEB_PORT}로 프록시하며, HTTPS/TLS는 기존 서버 설정을 활용한다.
+> 참고: `WEB_ENV_FILE`에는 `API_INTERNAL_URL`처럼 서버 전용 runtime 값만 둔다. `NEXT_PUBLIC_VAPID_PUBLIC_KEY`를 포함한 모든 `NEXT_PUBLIC_*` 값은 build-time에 고정되며, local-build에서는 `deploy-vps.sh`가 allowlist만 안전하게 읽어 `cloud-build.sh`로 전달한다. Nginx는 127.0.0.1:${WEB_PORT}로 프록시하며, HTTPS/TLS는 기존 서버 설정을 활용한다.
 
 ### 4.2 Current standalone / rollback fallback
 

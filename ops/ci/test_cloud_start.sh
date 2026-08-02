@@ -180,4 +180,24 @@ for mode in missing-health unhealthy; do
   grep -qF '***' "$TMP_DIR/${mode}.out"
 done
 
+# A container that exits immediately is a terminal failure, not a health wait.
+export FAKE_DOCKER_MODE=exited
+: >"$FAKE_DOCKER_LOG"
+if run_start >"$TMP_DIR/exited.out" 2>&1; then
+  echo 'exited container unexpectedly passed' >&2
+  exit 1
+fi
+grep -qF 'status=exited' "$TMP_DIR/exited.out"
+grep -qF 'recent logs (max 40 lines)' "$TMP_DIR/exited.out"
+
+# A still-starting health state must time out and return nonzero.
+export FAKE_DOCKER_MODE=starting
+: >"$FAKE_DOCKER_LOG"
+if run_start >"$TMP_DIR/starting.out" 2>&1; then
+  echo 'starting health state unexpectedly passed' >&2
+  exit 1
+fi
+grep -qF 'did not become healthy within 2s' "$TMP_DIR/starting.out"
+grep -qF 'recent logs (max 40 lines)' "$TMP_DIR/starting.out"
+
 echo 'cloud-start command contract: PASS'

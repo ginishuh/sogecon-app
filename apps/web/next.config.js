@@ -2,6 +2,7 @@
 const path = require('node:path');
 const { PHASE_PRODUCTION_BUILD } = require('next/constants');
 const {
+  allowsLocalApiImageOptimization,
   getPublicApiImageRemotePattern,
   validateProductionWebApiBase,
 } = require('./lib/build-config');
@@ -39,15 +40,7 @@ const imageRemotePatterns = [
   ...remoteDomainsEnv.map((hostname) => ({ protocol: 'https', hostname })),
 ];
 
-const apiHostname = (() => {
-  try {
-    return new URL(process.env.NEXT_PUBLIC_WEB_API_BASE || '').hostname;
-  } catch {
-    return '';
-  }
-})();
-
-const allowLocalImageOptimization = apiHostname === 'localhost' || apiHostname === '127.0.0.1';
+const allowLocalImageOptimization = allowsLocalApiImageOptimization();
 
 const nextConfig = {
   poweredByHeader: false,

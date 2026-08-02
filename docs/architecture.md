@@ -155,7 +155,7 @@
 
 ### 구현 메모
 - iOS/Android 주요 브라우저에서 설치형 PWA 기준 Web Push 지원. 설치되지 않은 상태, 또는 지원 불가 환경에서는 이메일로 폴백(Phase 1에선 폴백 없이 UI만 안내 가능).
-- 프런트 키 배포: VAPID 공개키를 빌드 타임/런타임 노출(환경변수 → 페이지 데이터 주입)하고, 비공개키는 서버 전용으로 보관.
+- 프런트 키 배포: VAPID 공개키는 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`로 Web build 때 브라우저 번들에 고정하고, 비공개키는 API 서버 전용으로 보관한다. 컨테이너 재시작이나 `WEB_ENV_FILE`의 런타임 주입만으로 공개키를 바꾸지 않는다.
 - Admin UI: `/admin/notifications`에서 알림(제목/본문/URL) 발송 요청 가능.
 
 

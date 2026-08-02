@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // next.config.js loads this small CommonJS module directly during `next build`.
 import {
+  allowsLocalApiImageOptimization,
   getPublicApiImageRemotePattern,
   validateProductionWebApiBase,
 } from '../lib/build-config';
@@ -55,6 +56,14 @@ describe('production Web API build configuration', () => {
 
   it.each(['http://localhost:3001', 'http://127.0.0.1:3001', 'http://[::1]:3001'])('accepts explicit HTTP loopback escape: %s', (apiBase) => {
     expect(validateProductionWebApiBase({ apiBase, allowInsecureLocalApi: '1' })).toBe(apiBase);
+  });
+
+  it.each(['http://localhost:3001', 'http://127.0.0.1:3001', 'http://[::1]:3001'])('allows local image optimization for loopback API: %s', (apiBase) => {
+    expect(allowsLocalApiImageOptimization(apiBase)).toBe(true);
+  });
+
+  it('does not allow local image optimization for a public API', () => {
+    expect(allowsLocalApiImageOptimization('https://api.example.com')).toBe(false);
   });
 
   it.each(['http://api.example.com:3001', 'http://192.0.2.10:3001'])('rejects arbitrary-host HTTP even with escape: %s', (apiBase) => {

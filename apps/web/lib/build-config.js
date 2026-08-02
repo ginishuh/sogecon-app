@@ -75,7 +75,13 @@ function getPublicApiImageRemotePattern(apiBase = process.env.NEXT_PUBLIC_WEB_AP
   };
 }
 
+function allowsLocalApiImageOptimization(apiBase = process.env.NEXT_PUBLIC_WEB_API_BASE) {
+  const pattern = getPublicApiImageRemotePattern(apiBase);
+  return pattern !== null && LOOPBACK_HOSTS.has(pattern.hostname);
+}
+
 module.exports = {
+  allowsLocalApiImageOptimization,
   LOOPBACK_HOSTS,
   getPublicApiImageRemotePattern,
   validateProductionWebApiBase,

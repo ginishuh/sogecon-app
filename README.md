@@ -235,13 +235,16 @@ REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
   - ARM 맥에서 AMD64 서버용: `PLATFORMS=linux/amd64 USE_BUILDX=1` 추가
 - Web 이미지 빌드 주의(Next.js + pnpm)
   - `corepack`으로 pnpm 버전 고정: Dockerfile에서 `corepack prepare pnpm@10.17.1 --activate` 사용.
-  - 런타임에서 `pnpm`이 필요 없도록 빌드 단계에서 의존성을 포함시킵니다.
-  - 실행 커맨드: `node node_modules/next/dist/bin/next start -p 3000`(런타임 최소화).
+  - 생성된 standalone artifact에 의존성·public·`.next/static`을 함께 넣고, 런타임에는 빌드 시점 public 설정을 다시 주입하지 않습니다.
+  - 실행 커맨드: `node apps/web/server.js`(생성된 standalone entrypoint).
 - 서버 실행(예: `/srv/sogecon`에 클론되어 있다고 가정)
   ```bash
   # 1) 이미지 풀
   docker pull ghcr.io/<owner>/<repo>/alumni-api:<tag>
   docker pull ghcr.io/<owner>/<repo>/alumni-web:<tag>
+
+  # Docker 내부 API hostname(alumni-api)을 해석할 user-defined network
+  docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
 
   # 2) 마이그레이션(최초/스키마 변경 시)
   API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:<tag> \

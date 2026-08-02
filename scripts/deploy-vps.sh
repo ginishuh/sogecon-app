@@ -30,6 +30,20 @@ WEB_API_BASE_OVERRIDE=0
 HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-60}
 PULL_IMAGES=0
 
+# Keep this list in lockstep with ops/cloud-build.sh. These values are public
+# build configuration, but .env.web is parsed as data: it is never sourced or
+# evaluated by this deploy wrapper.
+WEB_BUILD_PUBLIC_KEYS=(
+  NEXT_PUBLIC_WEB_API_BASE
+  NEXT_PUBLIC_SITE_URL
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY
+  NEXT_PUBLIC_ANALYTICS_ID
+  NEXT_PUBLIC_ENABLE_SW
+  NEXT_PUBLIC_RELAX_CSP
+  NEXT_PUBLIC_IMAGE_DOMAINS
+)
+declare -A WEB_BUILD_PUBLIC_ENV=()
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -t|--tag)
@@ -70,7 +84,7 @@ if [[ ! "${HEALTH_TIMEOUT}" =~ ^[0-9]+$ || "${HEALTH_TIMEOUT}" =~ ^0+$ ]]; then
   exit 1
 fi
 
-extract_web_api_base() {
+extract_web_build_env() {
   local line key value
   [[ -f "$WEB_ENV_FILE" ]] || return 0
 
@@ -78,7 +92,10 @@ extract_web_api_base() {
     line=${line%$'\r'}
     if [[ "$line" =~ ^[[:space:]]*(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]]; then
       key=${BASH_REMATCH[2]}
-      [[ "$key" == NEXT_PUBLIC_WEB_API_BASE ]] || continue
+      case "$key" in
+        NEXT_PUBLIC_WEB_API_BASE|NEXT_PUBLIC_SITE_URL|NEXT_PUBLIC_VAPID_PUBLIC_KEY|NEXT_PUBLIC_ANALYTICS_ID|NEXT_PUBLIC_ENABLE_SW|NEXT_PUBLIC_RELAX_CSP|NEXT_PUBLIC_IMAGE_DOMAINS) ;;
+        *) continue ;;
+      esac
       value=${BASH_REMATCH[3]}
       value="${value#"${value%%[![:space:]]*}"}"
       value="${value%"${value##*[![:space:]]}"}"
@@ -86,9 +103,13 @@ extract_web_api_base() {
         \"*\") value=${value:1:${#value}-2} ;;
         \'*\') value=${value:1:${#value}-2} ;;
       esac
-      WEB_API_BASE="$value"
+      WEB_BUILD_PUBLIC_ENV["$key"]="$value"
     fi
   done <"$WEB_ENV_FILE"
+
+  if [[ "$WEB_API_BASE_OVERRIDE" -eq 0 ]]; then
+    WEB_API_BASE=${WEB_BUILD_PUBLIC_ENV[NEXT_PUBLIC_WEB_API_BASE]:-}
+  fi
 }
 
 if [[ -z "$TAG" ]]; then
@@ -112,16 +133,23 @@ if [[ "$PULL_IMAGES" -eq 1 ]]; then
   docker pull "$WEB_IMAGE"
 else
   echo "[deploy] Build images on VPS (no registry)"
-  if [[ "$WEB_API_BASE_OVERRIDE" -eq 0 ]]; then
-    extract_web_api_base
-  fi
+  extract_web_build_env
   if [[ -z "$WEB_API_BASE" ]]; then
     echo "NEXT_PUBLIC_WEB_API_BASE is required for local Web image build; set it in ${WEB_ENV_FILE} or pass --web-api-base <https-url>." >&2
     exit 1
   fi
-  IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" \
-    NEXT_PUBLIC_WEB_API_BASE="$WEB_API_BASE" PUSH_IMAGES=0 \
-    bash "$ROOT_DIR/ops/cloud-build.sh"
+  WEB_BUILD_ENV=(
+    "IMAGE_TAG=$TAG"
+    "IMAGE_PREFIX=$IMAGE_PREFIX"
+    "PUSH_IMAGES=0"
+    "NEXT_PUBLIC_WEB_API_BASE=$WEB_API_BASE"
+  )
+  for key in "${WEB_BUILD_PUBLIC_KEYS[@]}"; do
+    [[ "$key" == NEXT_PUBLIC_WEB_API_BASE ]] && continue
+    value=${WEB_BUILD_PUBLIC_ENV[$key]:-}
+    [[ -n "$value" ]] && WEB_BUILD_ENV+=("$key=$value")
+  done
+  env "${WEB_BUILD_ENV[@]}" bash "$ROOT_DIR/ops/cloud-build.sh"
 fi
 
 if [[ -n "$NET_NAME" ]]; then

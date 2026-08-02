@@ -52,6 +52,12 @@ printf '%s\n' 'DATABASE_URL=postgresql://app:devpass@db:5432/appdb' >"$API_ENV"
 cat >"$WEB_ENV" <<EOF
 RUN_MARKER=\$(touch "$MARKER")
 NEXT_PUBLIC_WEB_API_BASE=https://api.example.com
+NEXT_PUBLIC_SITE_URL=https://www.example.com
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=test-public-vapid-key
+NEXT_PUBLIC_ANALYTICS_ID=G-D6TEST
+NEXT_PUBLIC_ENABLE_SW=1
+NEXT_PUBLIC_RELAX_CSP=1
+NEXT_PUBLIC_IMAGE_DOMAINS=cdn.example.com
 EOF
 printf '%s\n' 'NEXT_PUBLIC_SITE_URL=https://www.example.com' >"$MISSING_WEB_ENV"
 
@@ -68,8 +74,30 @@ PNPM_VERSION=10.17.1 \
   --uploads "$TMP_DIR/uploads"
 
 grep -qF -- 'build --build-arg NEXT_PUBLIC_WEB_API_BASE=https://api.example.com' "$FAKE_DOCKER_LOG"
+grep -qF -- '--build-arg NEXT_PUBLIC_VAPID_PUBLIC_KEY=test-public-vapid-key' "$FAKE_DOCKER_LOG"
+grep -qF -- '--build-arg NEXT_PUBLIC_SITE_URL=https://www.example.com' "$FAKE_DOCKER_LOG"
+grep -qF -- '--build-arg NEXT_PUBLIC_ANALYTICS_ID=G-D6TEST' "$FAKE_DOCKER_LOG"
+grep -qF -- '--build-arg NEXT_PUBLIC_ENABLE_SW=1' "$FAKE_DOCKER_LOG"
+grep -qF -- '--build-arg NEXT_PUBLIC_RELAX_CSP=1' "$FAKE_DOCKER_LOG"
+grep -qF -- '--build-arg NEXT_PUBLIC_IMAGE_DOMAINS=cdn.example.com' "$FAKE_DOCKER_LOG"
 grep -qF -- 'network inspect sogecon_net' "$FAKE_DOCKER_LOG"
 grep -qF -- '--network sogecon_net' "$FAKE_DOCKER_LOG"
+[[ ! -e "$MARKER" ]]
+
+# An explicit API-base override wins only for that one key. Other allowlisted
+# public build values continue to come from the safely parsed file.
+: >"$FAKE_DOCKER_LOG"
+PNPM_VERSION=10.17.1 \
+  bash "$ROOT/scripts/deploy-vps.sh" \
+  --tag d6-contract-override \
+  --local-build \
+  --skip-migrate \
+  --env "$API_ENV" \
+  --web-env "$WEB_ENV" \
+  --web-api-base https://override.example.com \
+  --uploads "$TMP_DIR/override-uploads"
+grep -qF -- 'build --build-arg NEXT_PUBLIC_WEB_API_BASE=https://override.example.com' "$FAKE_DOCKER_LOG"
+grep -qF -- '--build-arg NEXT_PUBLIC_VAPID_PUBLIC_KEY=test-public-vapid-key' "$FAKE_DOCKER_LOG"
 [[ ! -e "$MARKER" ]]
 
 : >"$FAKE_DOCKER_LOG"

@@ -12,7 +12,6 @@ URL=http://localhost:3000/
 export NEXT_PUBLIC_RELAX_CSP=1
 export NEXT_PUBLIC_ENABLE_SW=0
 export NEXT_PUBLIC_WEB_API_BASE=http://localhost:3000
-export WEB_BUILD_ALLOW_INSECURE_LOCAL_API=1
 
 # Start server if not running
 if ! curl -sSf http://localhost:3000 >/dev/null 2>&1; then
