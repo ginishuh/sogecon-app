@@ -11,4 +11,13 @@ describe('API 이미지 URL', () => {
     expect(resolveApiAssetUrl('https://cdn.example.com/example.png')).toBe('https://cdn.example.com/example.png');
     expect(resolveApiAssetUrl('/images/home/hero.svg')).toBe('/images/home/hero.svg');
   });
+
+  it('SSR 자산 URL은 내부 fetch base가 아니라 공개 API base를 사용한다', () => {
+    expect(resolveApiAssetUrl('/media/images/server-rendered.png', {
+      publicBase: 'https://public-api.example.com///',
+      internalBase: 'http://api:3001',
+      isBrowser: false,
+      nodeEnv: 'production',
+    })).toBe('https://public-api.example.com/media/images/server-rendered.png');
+  });
 });

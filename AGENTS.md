@@ -80,7 +80,7 @@
 # Web
 pnpm -C apps/web lint
 pnpm -C apps/web test
-pnpm -C apps/web build
+NEXT_PUBLIC_WEB_API_BASE=https://api.example.com pnpm -C apps/web build
 
 # API 계약 변경
 .venv/bin/python scripts/export_openapi.py

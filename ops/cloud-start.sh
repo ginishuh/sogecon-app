@@ -35,7 +35,7 @@ WEB_PIDS_LIMIT=${WEB_PIDS_LIMIT:-256}
 CONTAINER_LOG_MAX_SIZE=${CONTAINER_LOG_MAX_SIZE:-10m}
 CONTAINER_LOG_MAX_FILE=${CONTAINER_LOG_MAX_FILE:-5}
 HEALTH_INTERVAL=${HEALTH_INTERVAL:-10s}
-HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-5s}
+CONTAINER_HEALTH_TIMEOUT=${CONTAINER_HEALTH_TIMEOUT:-5s}
 HEALTH_RETRIES=${HEALTH_RETRIES:-9}
 HEALTH_START_PERIOD=${HEALTH_START_PERIOD:-15s}
 HEALTH_WAIT_TIMEOUT=${HEALTH_WAIT_TIMEOUT:-120}
@@ -93,8 +93,10 @@ redact_known_secrets() {
       key=${line%%=*}
       value=${line#*=}
       value=${value%$'\r'}
-      value=${value#\"}
-      value=${value%\"}
+      case "${value}" in
+        \"*\") value=${value:1:${#value}-2} ;;
+        \'*\') value=${value:1:${#value}-2} ;;
+      esac
       case "${key}" in
         *SECRET*|*PASSWORD*|*TOKEN*|*PRIVATE*|*KEY*|DATABASE_URL)
           [[ -n "${value}" ]] && text=${text//"${value}"/***}
@@ -158,7 +160,7 @@ run_api() {
     --security-opt no-new-privileges=true
     --cap-drop ALL
     --health-interval "${HEALTH_INTERVAL}"
-    --health-timeout "${HEALTH_TIMEOUT}"
+    --health-timeout "${CONTAINER_HEALTH_TIMEOUT}"
     --health-retries "${HEALTH_RETRIES}"
     --health-start-period "${HEALTH_START_PERIOD}"
   )
@@ -189,7 +191,7 @@ run_web() {
     --security-opt no-new-privileges=true
     --cap-drop ALL
     --health-interval "${HEALTH_INTERVAL}"
-    --health-timeout "${HEALTH_TIMEOUT}"
+    --health-timeout "${CONTAINER_HEALTH_TIMEOUT}"
     --health-retries "${HEALTH_RETRIES}"
     --health-start-period "${HEALTH_START_PERIOD}"
   )

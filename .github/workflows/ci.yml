@@ -45,6 +45,8 @@ jobs:
         run: bash ops/ci/test_cloud_migrate.sh
       - name: Cloud start command contract
         run: bash ops/ci/test_cloud_start.sh
+      - name: VPS deploy command contract
+        run: bash ops/ci/test_deploy_vps.sh
       - name: Enforce standardized versions
         run: python ops/ci/check_versions.py
       - name: Validate Dependabot policy

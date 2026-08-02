@@ -4,7 +4,7 @@
 const DEV_LIKE_ENVS = new Set(['development', 'test']);
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
 
-type ApiBaseResolutionOptions = {
+export type ApiBaseResolutionOptions = {
   publicBase?: string;
   internalBase?: string;
   isBrowser?: boolean;
@@ -26,6 +26,10 @@ function hostWithBrackets(hostname: string): string {
   return hostname.includes(':') && !hostname.startsWith('[') ? `[${hostname}]` : hostname;
 }
 
+function normalizeApiBase(value: string): string {
+  return value.replace(/\/+$/, '');
+}
+
 function getBrowserValue(value: boolean | undefined): boolean {
   return value === undefined ? typeof window !== 'undefined' : value;
 }
@@ -39,13 +43,14 @@ function getCurrentHostname(value: string | undefined, isBrowser: boolean): stri
 function getInternalBase(options: ApiBaseResolutionOptions, isBrowser: boolean): string | undefined {
   if (isBrowser) return undefined;
   const value = options.internalBase === undefined ? process.env.API_INTERNAL_URL : options.internalBase;
-  return value?.trim() || undefined;
+  return value?.trim() ? normalizeApiBase(value.trim()) : undefined;
 }
 
 function resolvePublicBase(publicUrl: string, isBrowser: boolean, nodeEnv: string, currentHostname: string): string {
-  const shouldRewriteLoopback = isBrowser && DEV_LIKE_ENVS.has(nodeEnv) && isLoopbackUrl(publicUrl);
+  const normalizedPublicUrl = normalizeApiBase(publicUrl);
+  const shouldRewriteLoopback = isBrowser && DEV_LIKE_ENVS.has(nodeEnv) && isLoopbackUrl(normalizedPublicUrl);
   if (shouldRewriteLoopback) return `http://${hostWithBrackets(currentHostname)}:3001`;
-  return publicUrl;
+  return normalizedPublicUrl;
 }
 
 function resolveMissingBase(nodeEnv: string, currentHostname: string): string {
@@ -70,8 +75,18 @@ export function resolveApiBase(options: ApiBaseResolutionOptions = {}): string {
 
 export const API_BASE = resolveApiBase();
 
-export function resolveApiAssetUrl(value: string): string {
-  if (value.startsWith('/media/')) return `${API_BASE}${value}`;
+export function resolveApiAssetUrl(value: string, options: ApiBaseResolutionOptions = {}): string {
+  if (value.startsWith('/media/')) {
+    const isBrowser = getBrowserValue(options.isBrowser);
+    const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV ?? 'development';
+    const publicValue = options.publicBase === undefined ? process.env.NEXT_PUBLIC_WEB_API_BASE : options.publicBase;
+    const publicUrl = publicValue?.trim();
+    const currentHostname = getCurrentHostname(options.currentHostname, isBrowser);
+    const publicBase = publicUrl
+      ? resolvePublicBase(publicUrl, isBrowser, nodeEnv, currentHostname)
+      : resolveMissingBase(nodeEnv, currentHostname);
+    return `${publicBase}${value}`;
+  }
   return value;
 }
 

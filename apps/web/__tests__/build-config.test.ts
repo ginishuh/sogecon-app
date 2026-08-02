@@ -13,7 +13,10 @@ describe('production Web API build configuration', () => {
   });
 
   it('rejects HTTP production API URLs without the explicit local escape hatch', () => {
-    expect(() => validateProductionWebApiBase({ apiBase: 'http://localhost:3001' })).toThrow();
+    expect(() => validateProductionWebApiBase({
+      apiBase: 'http://localhost:3001',
+      allowInsecureLocalApi: '',
+    })).toThrow();
   });
 
   it('accepts HTTPS API URLs', () => {

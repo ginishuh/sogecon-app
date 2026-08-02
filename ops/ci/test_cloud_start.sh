@@ -10,6 +10,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 export FAKE_DOCKER_LOG="$TMP_DIR/docker.log"
 export FAKE_DOCKER_MODE=success
+unset HEALTH_TIMEOUT CONTAINER_HEALTH_TIMEOUT
 
 docker() {
   local command=${1:-}
@@ -64,7 +65,7 @@ docker() {
 export -f docker
 
 make_env_files() {
-  printf '%s\n' 'DATABASE_URL=postgresql://app:supersecret@db:5432/appdb' >"$TMP_DIR/api.env"
+  printf '%s\n' "DATABASE_URL='postgresql://app:supersecret@db:5432/appdb'" >"$TMP_DIR/api.env"
   printf '%s\n' 'NEXT_PUBLIC_WEB_API_BASE=https://api.example.com' >"$TMP_DIR/web.env"
 }
 
@@ -96,6 +97,19 @@ grep -qF -- '--publish 127.0.0.1:3000:3000' "$FAKE_DOCKER_LOG"
 grep -qF -- '--restart unless-stopped' "$FAKE_DOCKER_LOG"
 grep -qF -- '--volume '"$TMP_DIR"'/uploads:/app/uploads' "$FAKE_DOCKER_LOG"
 
+# The deploy wrapper owns integer curl wait seconds; cloud-start must not
+# reinterpret the inherited name as a Docker health duration.
+export HEALTH_TIMEOUT=120
+: >"$FAKE_DOCKER_LOG"
+run_start >"$TMP_DIR/inherited-health-timeout.out" 2>&1
+grep -qF -- '--health-timeout 5s' "$FAKE_DOCKER_LOG"
+! grep -qF -- '--health-timeout 120' "$FAKE_DOCKER_LOG"
+export CONTAINER_HEALTH_TIMEOUT=17s
+: >"$FAKE_DOCKER_LOG"
+run_start >"$TMP_DIR/container-health-timeout.out" 2>&1
+grep -qF -- '--health-timeout 17s' "$FAKE_DOCKER_LOG"
+unset HEALTH_TIMEOUT CONTAINER_HEALTH_TIMEOUT
+
 api_run_line=$(grep 'run .*--name d6-api' "$FAKE_DOCKER_LOG")
 web_run_line=$(grep 'run .*--name d6-web' "$FAKE_DOCKER_LOG")
 for run_line in "$api_run_line" "$web_run_line"; do
@@ -107,7 +121,7 @@ for run_line in "$api_run_line" "$web_run_line"; do
     '--security-opt no-new-privileges=true' \
     '--cap-drop ALL' \
     '--health-interval 10s' \
-    '--health-timeout 5s' \
+    '--health-timeout 17s' \
     '--health-retries 9' \
     '--health-start-period 15s'; do
     grep -qF -- "$shared_guard" <<<"$run_line"

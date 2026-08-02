@@ -103,7 +103,7 @@ make schema-gen
   - 사전: `docker network create sogecon_net || true`, `.env.api` 준비(`APP_ENV=prod`, 강한 `JWT_SECRET`, `DATABASE_URL=...@sogecon-db:5432/...`).
   - 실행(예시):
     - `bash scripts/deploy-vps.sh -t <TAG> -p ghcr.io/<owner>/<repo> \
-      --network sogecon_net --uploads "$PWD/uploads" -e .env.api -w "" \
+      --pull-images --network sogecon_net --uploads "$PWD/uploads" -e .env.api -w .env.web \
       --api-health http://localhost:3001/healthz --web-health http://localhost:3000/`
   - 특성: GHCR에 빌드된 이미지를 그대로 실행(배포 동작·보안·CORS 검증에 적합).
 
@@ -137,7 +137,7 @@ make schema-gen
 - 품질 게이트 SSOT: `docs/ci_quality_gates.md`
 - 훅 활성화: `git config core.hooksPath .githooks` + `pnpm install`(루트, commitlint) + `make venv && make api-install`
 - Python: `ruff` · `pyright` · `pytest -q`(PR CI)
-- Web: `pnpm -C apps/web lint` · `pnpm -C apps/web test` · `pnpm -C apps/web build`
+- Web: `pnpm -C apps/web lint` · `pnpm -C apps/web test` · `NEXT_PUBLIC_WEB_API_BASE=https://api.example.com pnpm -C apps/web build`
 - 훅 스모크: `bash ops/ci/test_githooks.sh`
 - 단축키: `make test-api`, `make schema-gen` 등은 `Makefile` 참고.
 - CI: `.github/workflows/ci.yml` — commitlint(hard), API/Web 전체 검증, 보안 스캔. E2E·DTO·CodeQL은 별도 workflow.
@@ -166,17 +166,25 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
 
 ---
 문서 기본 언어는 한국어입니다. 사용자 노출 텍스트/README 역시 한국어를 우선합니다. 필요한 경우 간단한 영어 요약을 함께 제공합니다.
-## 배포 가이드(Prod: Web standalone + systemd, API/DB 컨테이너)
+## 배포 가이드(Prod target: full Docker, systemd rollback fallback)
 
-권장 운영 구성은 “Web(Next.js) 비컨테이너 + systemd + Nginx”이며, API/DB는 컨테이너로 유지합니다. 기존 “Web 컨테이너” 경로도 병행 지원하지만, 단순성·관찰성·롤백 속도 측면에서 standalone 구성을 권장합니다.
+Operator-confirmed current state는 migration 전까지 Web이 `sogecon-web`
+systemd standalone release이고 API/PostgreSQL이 Docker 컨테이너인 구성입니다.
+대표가 결정한 near-term target은 API/Web/PostgreSQL full Docker 구성입니다.
+기존 D6 `ops/cloud-start.sh`의 full-container guard를 target entry point로
+사용하며, systemd standalone release는 cutover 중 rollback fallback으로
+유지합니다.
 
-- 원클릭(권장): GitHub Actions → `web-standalone-deploy` → environment=`prod`
-  - CI가 `apps/web`을 `output: 'standalone'`으로 빌드 → 아카이브 업로드(SCP) → 원격에서 `ops/web-deploy.sh` 실행(릴리스 디렉터리 전개 + `current` 링크 전환 + systemd 재시작) → 헬스체크
-  - 서버 1회 준비: Node 24.12.0(asdf), `/srv/www/sogecon/releases`, Nginx 프록시(127.0.0.1:3000), systemd 유닛(`ops/systemd/sogecon-web.service`) 설치, sudoers(NOPASSWD) 설정
-  - 상세: `docs/agent_runbook_vps.md` (KR) / `_en.md` (EN)
+- full-Docker migration flow: HTTPS `NEXT_PUBLIC_WEB_API_BASE`로 Web image build/pull → `API_INTERNAL_URL`을 Docker network runtime 값으로 준비 → image/env/network preflight → cutover 시점에만 `sogecon-web` systemd stop/disable → `ops/cloud-start.sh` → API/Web health와 representative browser flow readback
+  - 상세 절차: `docs/agent_runbook_vps.md` (KR) / `_en.md` (EN)
+  - `API_INTERNAL_URL=http://alumni-api:3001`은 Web runtime env file(`.env.web`)에 넣고, 공개 API 주소는 `NEXT_PUBLIC_WEB_API_BASE`로 build-time 주입합니다.
 
-- TL;DR(컨테이너 경로 — 병행 지원)
-  - 순서: 태그 선택 → 이미지 pull → Alembic → 재기동 → 헬스체크(최대 90초 재시도)
+- Web standalone(systemd) current-state/rollback fallback
+  - migration 전 operator-confirmed 상태 확인 또는 full-Docker Web rollback에만 사용합니다.
+  - standalone 산출물과 `/srv/www/sogecon/current` symlink는 cutover 전에 보존합니다.
+
+- Full Docker target quick path
+  - 순서: 태그 선택 → 이미지 pull → Alembic → 재기동 → image health/readiness 및 public health readback
   - 수동 예시(서버):
     ```bash
     TAG=<sha>
@@ -186,17 +194,18 @@ MIT © 2025 Traum — 자세한 내용은 `LICENSE` 참조.
     API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:$TAG ENV_FILE=.env.api DOCKER_NETWORK=sogecon_net ./ops/cloud-migrate.sh
     API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:$TAG WEB_IMAGE=ghcr.io/<owner>/<repo>/alumni-web:$TAG \
       DOCKER_NETWORK=sogecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web ./ops/cloud-start.sh
-    # 헬스(2xx 기대, 재기동 직후 5xx 허용 구간: ≤90s)
-    for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://api.<도메인>/healthz || true); [ "$code" = 200 ] && break; sleep 1; done
-    for i in {1..90}; do code=$(curl -sf -o /dev/null -w "%{http_code}" https://<도메인>/ || true); [ "$code" = 200 ] && break; sleep 1; done
+    # public health readback after cloud-start's image health wait
+    curl -fsS https://api.<도메인>/healthz
+    curl -fsS https://<도메인>/
     ```
-  - 원클릭: `scripts/deploy-vps.sh -t <tag> --network sogecon_net --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
+  - 원클릭 full-Docker 실행: `scripts/deploy-vps.sh -t <tag> --pull-images --network sogecon_net -e .env.api -w .env.web --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
 
-### Web standalone(systemd) 수동 절차(요약)
-서버에 레포가 `/srv/sogecon-app`로 클론되어 있다고 가정합니다. CI 없이 수동으로 전개하려면:
+### Web standalone(systemd) rollback fallback(요약)
+full-Docker cutover 전 현재 release를 보존하거나 Web rollback을 수행할 때만 사용합니다.
 ```bash
 # 1) 로컬/CI에서 빌드
-pnpm -C apps/web install && pnpm -C apps/web build  # output: 'standalone'
+NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인> pnpm -C apps/web install
+NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인> pnpm -C apps/web build  # output: 'standalone'
 tar -C . -czf web-standalone-<sha7>.tar.gz \
   apps/web/.next/standalone apps/web/.next/static apps/web/public
 
@@ -212,6 +221,8 @@ CI=1 RELEASE_BASE=/srv/www/sogecon SERVICE_NAME=sogecon-web \
 REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
 ```
 참고 파일: `ops/web-deploy.sh`, `ops/web-rollback.sh`, `ops/systemd/sogecon-web.service`, `ops/nginx/sogecon.conf`, `ops/nginx/nginx-site-web.conf`
+
+### Full-Docker target image build/run reference
 
 - 컨테이너 빌드/푸시(GHCR 권장)
   - AMD64 빌드: 
@@ -242,7 +253,7 @@ REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
   API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
   ./ops/cloud-start.sh
   ```
-- 원클릭 스크립트(서버): `scripts/deploy-vps.sh -t <tag> --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
+- 원클릭 full-Docker 스크립트(서버): `scripts/deploy-vps.sh -t <tag> --pull-images -e .env.api -w .env.web --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
 - 리버스 프록시: Nginx 예시는 `ops/nginx-examples/` 참고(127.0.0.1:3000/3001로 프록시, TLS는 Nginx에서 처리).
 
 ### 보안 헤더/CSP 주의
@@ -252,7 +263,7 @@ REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
 - Google Analytics: `NEXT_PUBLIC_ANALYTICS_ID`가 설정되면 `https://www.googletagmanager.com` 스크립트와 `https://www.google-analytics.com` 전송 도메인이 자동 허용됩니다.
 
 #### 운영 체크리스트
-- [ ] `pnpm -C apps/web build` 후 `pnpm -C apps/web start` + reverse proxy 구성에서 브라우저 DevTools → Network 헤더로 CSP 적용 상태를 확인합니다.
+- [ ] `NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인> pnpm -C apps/web build` 후 `pnpm -C apps/web start` + reverse proxy 구성에서 브라우저 DevTools → Network 헤더로 CSP 적용 상태를 확인합니다.
 - [ ] `style-src 'unsafe-inline'`을 그대로 둘 경우, 인라인 스타일 삽입이 필요한 컴포넌트만 사용하는지(Next 빌트인 스타일 태그) 정기적으로 점검하고 별도 인라인 스니펫을 추가하지 않도록 리뷰합니다.
 - [ ] relax 모드(`NEXT_PUBLIC_RELAX_CSP=1`)는 개발/사내 환경에서만 사용하고, 운영에서는 제거했는지 배포 전 체크합니다.
 
@@ -267,7 +278,7 @@ REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
     ```
 
 ### 롤백(요약)
-- 직전 안정 태그로 이미지 pull → 재기동으로 복구합니다(대부분의 변경에서 DB downgrade 불필요).
+- D6+ HEALTHCHECK 이미지끼리는 직전 안정 태그로 pull → 현재 D6+ `cloud-start.sh` 재기동으로 복구합니다. pre-D6 이미지처럼 HEALTHCHECK가 없는 태그는 해당 이미지와 matched release set인 pre-D6 deployment script/release checkout으로 롤백합니다(대부분의 변경에서 DB downgrade 불필요).
   ```bash
   PREV=<stable-tag>
   docker pull ghcr.io/<owner>/<repo>/alumni-api:$PREV
@@ -275,6 +286,9 @@ REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
   API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:$PREV WEB_IMAGE=ghcr.io/<owner>/<repo>/alumni-web:$PREV \
     DOCKER_NETWORK=sogecon_net API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web ./ops/cloud-start.sh
   ```
+  Web rollback fallback: stop/remove the Web container, restore the previous
+  `/srv/www/sogecon/current` symlink/release, then run
+  `systemctl enable --now sogecon-web`.
 
 ### Nginx 502 완화 팁
 - 재기동 직후 잠깐의 502는 정상일 수 있습니다. 필요 시 업스트림 타임아웃을 보수적으로 조정합니다.

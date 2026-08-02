@@ -22,6 +22,21 @@ describe('API base selection', () => {
     })).toBe('https://api.example.com');
   });
 
+  it('normalizes trailing slashes without changing the server/browser split', () => {
+    expect(resolveApiBase({
+      publicBase: 'https://api.example.com///',
+      internalBase: 'http://api:3001///',
+      isBrowser: false,
+      nodeEnv: 'production',
+    })).toBe('http://api:3001');
+    expect(resolveApiBase({
+      publicBase: 'https://api.example.com///',
+      internalBase: 'http://api:3001///',
+      isBrowser: true,
+      nodeEnv: 'production',
+    })).toBe('https://api.example.com');
+  });
+
   it('does not invent a production localhost fallback', () => {
     expect(() => resolveApiBase({
       isBrowser: false,

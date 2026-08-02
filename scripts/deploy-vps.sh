@@ -8,6 +8,7 @@ set -euo pipefail
 # Usage:
 #   bash scripts/deploy-vps.sh -t <tag> [--prefix local/sogecon] [--local-build|--pull-images] \
 #       [--env .env.api] [--web-env .env.web] \
+#       [--web-api-base https://api.example.com] \
 #       [--skip-migrate] [--seed-admin] [--uploads /var/lib/sogecon/uploads] \
 #       [--api-health URL] [--web-health URL]
 
@@ -24,6 +25,8 @@ DO_MIGRATE=1
 DO_SEED_ADMIN=0
 API_HEALTH=""
 WEB_HEALTH=""
+WEB_API_BASE=""
+WEB_API_BASE_OVERRIDE=0
 HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-60}
 PULL_IMAGES=0
 
@@ -41,6 +44,8 @@ while [[ $# -gt 0 ]]; do
       ENV_FILE="$2"; shift 2;;
     -w|--web-env)
       WEB_ENV_FILE="$2"; shift 2;;
+    --web-api-base)
+      WEB_API_BASE="$2"; WEB_API_BASE_OVERRIDE=1; shift 2;;
     --uploads)
       UPLOADS_DIR="$2"; shift 2;;
     --network)
@@ -59,6 +64,32 @@ while [[ $# -gt 0 ]]; do
       echo "Unknown arg: $1" >&2; exit 1;;
   esac
 done
+
+if [[ ! "${HEALTH_TIMEOUT}" =~ ^[0-9]+$ || "${HEALTH_TIMEOUT}" =~ ^0+$ ]]; then
+  echo "HEALTH_TIMEOUT must be a positive integer number of seconds." >&2
+  exit 1
+fi
+
+extract_web_api_base() {
+  local line key value
+  [[ -f "$WEB_ENV_FILE" ]] || return 0
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line=${line%$'\r'}
+    if [[ "$line" =~ ^[[:space:]]*(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]]; then
+      key=${BASH_REMATCH[2]}
+      [[ "$key" == NEXT_PUBLIC_WEB_API_BASE ]] || continue
+      value=${BASH_REMATCH[3]}
+      value="${value#"${value%%[![:space:]]*}"}"
+      value="${value%"${value##*[![:space:]]}"}"
+      case "${value}" in
+        \"*\") value=${value:1:${#value}-2} ;;
+        \'*\') value=${value:1:${#value}-2} ;;
+      esac
+      WEB_API_BASE="$value"
+    fi
+  done <"$WEB_ENV_FILE"
+}
 
 if [[ -z "$TAG" ]]; then
   echo "-t|--tag <tag> is required (e.g., a commit SHA)" >&2
@@ -81,7 +112,15 @@ if [[ "$PULL_IMAGES" -eq 1 ]]; then
   docker pull "$WEB_IMAGE"
 else
   echo "[deploy] Build images on VPS (no registry)"
-  IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" PUSH_IMAGES=0 \
+  if [[ "$WEB_API_BASE_OVERRIDE" -eq 0 ]]; then
+    extract_web_api_base
+  fi
+  if [[ -z "$WEB_API_BASE" ]]; then
+    echo "NEXT_PUBLIC_WEB_API_BASE is required for local Web image build; set it in ${WEB_ENV_FILE} or pass --web-api-base <https-url>." >&2
+    exit 1
+  fi
+  IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" \
+    NEXT_PUBLIC_WEB_API_BASE="$WEB_API_BASE" PUSH_IMAGES=0 \
     bash "$ROOT_DIR/ops/cloud-build.sh"
 fi
 

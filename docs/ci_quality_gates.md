@@ -21,6 +21,7 @@ WEB_BUILD_ALLOW_INSECURE_LOCAL_API=1 pnpm -C apps/web build
 
 ```bash
 bash ops/ci/test_cloud_start.sh
+bash ops/ci/test_deploy_vps.sh
 ```
 
 `repo-guards` job은 `test_cloud_migrate.sh`와 함께 이 command contract를 실행한다.
@@ -73,7 +74,7 @@ docker compose --profile dev exec -T postgres_test psql -U app -d postgres \
 .venv/bin/pytest -q
 pnpm -C apps/web lint
 pnpm -C apps/web test
-pnpm -C apps/web build
+NEXT_PUBLIC_WEB_API_BASE=https://api.example.com pnpm -C apps/web build
 .venv/bin/python scripts/export_openapi.py && pnpm -C packages/schemas run gen-dts
 git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 ```
