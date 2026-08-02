@@ -15,7 +15,9 @@ fi
 
 ALEMBIC_CMD=${ALEMBIC_CMD:-"alembic -c apps/api/alembic.ini upgrade head"}
 
-DOCKER_ARGS=(--rm)
+# The API image has a fixed uvicorn entrypoint.  Migration commands must
+# explicitly bypass it so this container remains a one-shot Alembic process.
+DOCKER_ARGS=(--rm --entrypoint /bin/sh)
 
 # 동일 네트워크가 필요하면 명시적으로 연결
 if [[ -n "${DOCKER_NETWORK:-}" ]]; then
@@ -42,6 +44,6 @@ fi
 echo "[migrate] image=${API_IMAGE} env=${ENV_FILE:-<none>} network=${DOCKER_NETWORK:-<none>}"
 docker run "${DOCKER_ARGS[@]}" \
   "${API_IMAGE}" \
-  bash -lc "${ALEMBIC_CMD}"
+  -lc "${ALEMBIC_CMD}"
 
 echo "Alembic 마이그레이션 완료"

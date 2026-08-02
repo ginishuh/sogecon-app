@@ -35,7 +35,7 @@
 - **라우터 구성**: `routers/` 하위 `members.py`, `posts.py`, `board_posts.py`, `events.py`, `rsvps.py`가 서비스만 호출하도록 리팩터링 완료(초판). `posts.py`의 관리자 mutation과 `board_posts.py`의 회원 owner mutation은 권한 경계를 공유하지 않는다.
 - **DB 세션 관리**: `db.py`의 `get_db()` 의존성을 통해 요청 단위 세션 생성/정리.
 - **마이그레이션**: `migrations/` 하위 Alembic 스크립트로 버전 관리. 새로운 모델 변경 시 `alembic revision --autogenerate` 사용 후 코드 검토한다. PostgreSQL의 실제 catalog가 권위이며, 모델 metadata에도 운영 인덱스 계약을 표현해 `alembic check`가 일반 테이블·컬럼·인덱스 drift를 검출하도록 유지한다.
-- **마이그레이션 필수 게이트**: `ops/ci/migration_gate.py --require-empty`가 빈 PostgreSQL에서 최초 revision부터 `upgrade head`와 `alembic check`를 실행하고, `alembic_version`, `pg_trgm`, 기대 GIN 인덱스를 catalog에서 readback한다. CI의 PostgreSQL 서비스와 로컬 전용 disposable DB에서 같은 명령을 실행한다.
+- **마이그레이션 필수 게이트**: `ops/ci/migration_gate.py --require-empty`가 빈 PostgreSQL에서 최초 revision부터 `upgrade head`와 `alembic check`를 실행하고, `alembic_version`, `pg_trgm`, 기대 GIN 인덱스를 PostgreSQL 구조적 catalog에서 readback한다. `--readback-only`는 같은 Python gate를 운영 readback에 재사용하되 DB를 변경하지 않는다. CI의 PostgreSQL 서비스와 로컬 전용 disposable DB에서 같은 authority를 실행한다.
 - **검색 인덱스 운영 계약**: `d5f2a1c9e7b3`는 `student_id`와 `company`의 부분문자열 검색만 `pg_trgm` GIN으로 보완한다. 기존 `name`·`email`·주소·직함 GIN은 유지하고, 낮은 선택도의 `major`·`industry`에는 인덱스를 추가하지 않는다. `CREATE/DROP INDEX CONCURRENTLY`는 migration의 autocommit block 안에서 수행하며, 운영 migration을 외부 트랜잭션으로 감싸지 않는다.
 - **예정 기능**: 인증(예: OAuth2, SSO), 권한 레이어, 감사 로깅, 웹훅 등은 추후 설계 항목으로 남겨둔다.
 

@@ -30,6 +30,9 @@ pnpm exec commitlint --from origin/main --to HEAD --config docs/commitlint.confi
 # 빈 PostgreSQL 서비스에서 최초 revision부터 upgrade/check/catalog readback
 DATABASE_URL=postgresql+psycopg://app:devpass@localhost:5434/appdb_test \
   .venv/bin/python ops/ci/migration_gate.py --require-empty
+# 이미 upgrade된 DB의 무변경 catalog/version readback만 필요한 경우
+DATABASE_URL=postgresql+psycopg://app:devpass@localhost:5434/appdb_test \
+  .venv/bin/python ops/ci/migration_gate.py --readback-only
 .venv/bin/ruff check apps/api
 .venv/bin/python -m pyright --project pyrightconfig.json
 .venv/bin/pytest -q
@@ -88,22 +91,41 @@ bash ops/ci/apply_main_branch_protection.sh              # 기본: ginishuh/soge
 bash ops/ci/apply_main_branch_protection.sh OWNER/REPO   # 다른 포크
 ```
 
-Draft PR은 job이 skip되므로 Ready 전환 후 CI가 녹색인지 확인한다. `python` job의 migration gate는 테스트 fixture와 독립적으로 빈 PostgreSQL에서 실행되며, `alembic_version`, `pg_extension`, `pg_indexes` readback까지 통과해야 한다.
+Draft PR은 job이 skip되므로 Ready 전환 후 CI가 녹색인지 확인한다. `python` job의
+migration gate는 테스트 fixture와 독립적으로 빈 PostgreSQL에서 실행되며,
+`alembic_version`, `pg_extension`, `pg_class`/`pg_index`/`pg_am`/`pg_attribute`/
+`pg_opclass` 구조적 catalog readback까지 통과해야 한다. 운영 readback도 같은
+Python gate의 `--readback-only` 경로를 사용하므로 API 이미지 안에서 별도 `psql`
+명령을 유지하지 않는다.
 
 ## Alembic migration/schema drift gate (D5)
 
 `ops/ci/migration_gate.py`가 D5의 authoritative schema gate다.
 
 - `--require-empty`: public table이 없는 PostgreSQL에서 `alembic upgrade head`를 실행한다.
+- `--readback-only`: upgrade와 `alembic check`를 생략하고 current/head, extension,
+  기대 index catalog만 읽는다. DB mutation이 없는 운영 readback 전용 모드다.
 - upgrade 직후 `alembic check`를 실행해 현재 모델 metadata와 migration-created catalog의 drift를 검출한다. 모델에 표현 가능한 기존 PostgreSQL 인덱스는 metadata에 선언했고, 일반 drift를 숨기는 `include_object`/`compare_index` blanket 예외는 두지 않았다.
-- `alembic_version`가 단일 head인지, `pg_trgm` extension이 존재하는지, 기존 5개와 D5의 2개 GIN trgm index 이름·operator class가 `pg_indexes`에서 일치하는지 확인한다.
-- `tests/api/test_migration_gate.py`의 negative regression은 정상 모델의 컬럼·테이블·인덱스가 migration에 누락되었을 때 Alembic comparator가 각각 `add_column`·`add_table`·`add_index`를 반환하는 것을 고정한다.
+- `alembic_version`가 단일 head인지, `pg_trgm` extension이 존재하는지, 기존 5개와 D5의 2개 GIN trgm index가 public `members`의 기대 column에 있고 `gin_trgm_ops`를 사용하며 `indisvalid`·`indisready`·`indislive`인지 구조적으로 확인한다. `pg_indexes.indexdef` 문자열 포함 여부로 PASS를 만들지 않는다.
+- `tests/api/test_migration_gate.py`는 전용 disposable PostgreSQL에 repository `apps/api/migrations/env.py`, `models.Base.metadata`, 실제 gate subprocess를 연결한다. 정상 head를 적용한 뒤 unmigrated column/table/index를 주입하면 실제 `alembic check`가 실패하고, 실패한 concurrent index catalog도 readback gate가 nonzero가 되는 것을 고정한다.
 - 기존 schema DB에는 `--require-empty` 없이 같은 upgrade를 적용하고 current/catalog를 readback한다. 역사적으로 남은 별도 인덱스는 삭제하거나 gate에서 숨기지 않고 별도 drift로 기록한다. 따라서 기존 local `appdb`의 `signup_activation_issue_logs` 추가 index 4개가 있으면 authoritative `alembic check`는 의도적으로 FAIL하며, D5에서 임의로 정렬하지 않는다.
+
+`--require-empty`를 local에서 다시 실행할 때는 매번 정확한 disposable DB를
+drop/create한다. `CREATE/DROP INDEX CONCURRENTLY`가 포함된
+`autocommit_block()`에서 여러 pending revision 중 뒤 revision이 실패하면 앞선
+revision이 부분 커밋된 상태와 중간 `alembic current`가 남을 수 있다. 실패 후에는
+current와 invalid/not-ready index를 먼저 readback하고, 이름이 남은 invalid index를
+`IF NOT EXISTS`로 덮으려 하지 말고 정확한 index만 concurrent drop 후 재실행한다.
+
+관측된 CI 영향은 migration gate 약 1.6초, Python job 약 4분 15초였고 병렬화·캐시
+구조 변경은 하지 않았다.
 
 ## 훅 통합 테스트
 
 ```bash
 bash ops/ci/test_githooks.sh
+# cloud-migrate fixed-entrypoint and shell-argument contract
+bash ops/ci/test_cloud_migrate.sh
 # 또는
 make test-hooks
 ```

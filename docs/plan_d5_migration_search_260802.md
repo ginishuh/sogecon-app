@@ -124,3 +124,33 @@ local `appdb`에는 D5 범위 밖의 과거 `signup_activation_issue_logs` 단�
   항목으로 확인해야 한다.
 - `CONCURRENTLY`는 lock을 줄이지만 build 시간이 들고 invalid index 재시도 시
   catalog 확인이 필요하다. 이번 검증은 운영 DB에 적용하지 않았다.
+
+## Review follow-up — 2026-08-02
+
+PR #287의 후속 review에서 확인된 운영 진입점·readback·regression 범위만 보완했다.
+
+- old exact head `895d9e68e66f04f60e30ad10d1d0633cccd63620`에서
+  `cloud-migrate.sh`를 실제 API image로 실행했을 때 image의 고정
+  `infra/api-entrypoint.sh`가 인수 `bash -lc "alembic ..."`를 무시하고 uvicorn을
+  시작했다. 12초 timeout 뒤에도 Alembic one-shot process가 되지 않는 P1을
+  재현했다. 수정은 `cloud-migrate.sh`의 `--entrypoint /bin/sh`와 `-lc`뿐이며,
+  API runtime entrypoint 전역 동작은 바꾸지 않았다.
+- API image에 `ops/ci/migration_gate.py`를 포함하고, 운영 readback은 같은 image를
+  `--entrypoint /bin/sh -lc 'python ops/ci/migration_gate.py --readback-only'`로
+  실행한다. 이 모드는 upgrade/check를 하지 않고 current/head, `pg_trgm`,
+  table/column/method/opclass 및 `indisvalid`/`indisready`/`indislive` catalog만
+  읽는다. `pg_indexes.indexdef` 문자열 파싱은 제거했다.
+- negative regression은 SQLite 합성 comparator를 제거하고 전용 disposable
+  PostgreSQL DB를 생성한다. repository `migrations/env.py`와 `models.Base.metadata`
+  를 통한 실제 gate subprocess가 정상 head 뒤 주입한 column/table/index drift를
+  nonzero로 거부한다. duplicate value로 실패한 `CREATE UNIQUE INDEX CONCURRENTLY`
+  가 남긴 invalid/wrong-method index도 readback-only gate가 거부한 뒤 DB를
+  drop하여 정리한다.
+- local actual browser E2E는 이번 변경이 API/Web 화면과 검색 결과 계약을 건드리지
+  않는 migration/ops-only 수정이고 이전 exact head에서 real local API+DB browser
+  flow가 PASS했으므로 재실행하지 않았다. 대신 실제 API image에서 disposable
+  PostgreSQL로 migration exit 0, Alembic head, extension/index flag readback과
+  `/healthz` smoke를 별도로 수행한다.
+- `autocommit_block()`에서 뒤 revision이 실패하면 앞선 revision이 커밋된 부분 적용
+  상태와 중간 current가 남을 수 있다. invalid index는 `IF NOT EXISTS`로 덮지 않고
+  exact catalog 확인 → `DROP INDEX CONCURRENTLY` → retry → readback 순서를 따른다.
