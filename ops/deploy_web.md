@@ -54,6 +54,7 @@ NEXT_PUBLIC_SITE_URL=https://www.example.com \
 PUSH_IMAGES=0 ./ops/cloud-build.sh
 API_IMAGE=local/sogecon/alumni-api:<태그> WEB_IMAGE=local/sogecon/alumni-web:<태그> \
   API_ENV_FILE=/etc/secrets/api.env WEB_ENV_FILE=/etc/secrets/web.env \
+  DOCKER_NETWORK=sogecon_net \
   ./ops/cloud-start.sh
 ```
 

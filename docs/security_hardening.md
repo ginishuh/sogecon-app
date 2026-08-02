@@ -10,7 +10,7 @@
   - 파일 600줄 초과 차단
 - Python: `ruff`(복잡도/버그베어/pyupgrade), `pyright` strict, `pytest`(PR CI)
 - 취약점 스캔: `bandit -r apps/api`, `pip-audit`(두 requirements 모두)
-- Web: `pnpm -C apps/web lint`, `pnpm -C apps/web test`, `pnpm -C apps/web build`, `pnpm -C apps/web audit --audit-level=high`
+- Web: `pnpm -C apps/web lint`, `pnpm -C apps/web test`, `NEXT_PUBLIC_WEB_API_BASE=https://api.example.com pnpm -C apps/web build`, `pnpm -C apps/web audit --audit-level=high`
 - SAST: Semgrep 기본 규칙(`p/ci`)
 - 비밀 탐지: Gitleaks
 

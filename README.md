@@ -245,15 +245,15 @@ REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
 
   # 2) 마이그레이션(최초/스키마 변경 시)
   API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:<tag> \
-  ENV_FILE=.env.api ./ops/cloud-migrate.sh
+  ENV_FILE=.env.api DOCKER_NETWORK=sogecon_net ./ops/cloud-migrate.sh
 
   # 3) 재기동
   API_IMAGE=ghcr.io/<owner>/<repo>/alumni-api:<tag> \
   WEB_IMAGE=ghcr.io/<owner>/<repo>/alumni-web:<tag> \
-  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web DOCKER_NETWORK=sogecon_net \
   ./ops/cloud-start.sh
   ```
-- 원클릭 full-Docker 스크립트(서버): `scripts/deploy-vps.sh -t <tag> --pull-images -e .env.api -w .env.web --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
+- 원클릭 full-Docker 스크립트(서버): `scripts/deploy-vps.sh -t <tag> --pull-images --network sogecon_net -e .env.api -w .env.web --api-health https://api.<도메인>/healthz --web-health https://<도메인>/`
 - 리버스 프록시: Nginx 예시는 `ops/nginx-examples/` 참고(127.0.0.1:3000/3001로 프록시, TLS는 Nginx에서 처리).
 
 ### 보안 헤더/CSP 주의

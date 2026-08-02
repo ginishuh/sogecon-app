@@ -65,10 +65,11 @@ PNPM_VERSION=10.17.1 \
   --skip-migrate \
   --env "$API_ENV" \
   --web-env "$WEB_ENV" \
-  --uploads "$TMP_DIR/uploads" \
-  --network d6-contract-network
+  --uploads "$TMP_DIR/uploads"
 
 grep -qF -- 'build --build-arg NEXT_PUBLIC_WEB_API_BASE=https://api.example.com' "$FAKE_DOCKER_LOG"
+grep -qF -- 'network inspect sogecon_net' "$FAKE_DOCKER_LOG"
+grep -qF -- '--network sogecon_net' "$FAKE_DOCKER_LOG"
 [[ ! -e "$MARKER" ]]
 
 : >"$FAKE_DOCKER_LOG"

@@ -6,7 +6,7 @@ set -euo pipefail
 #
 # Required: API_IMAGE, WEB_IMAGE
 # Optional: API_ENV_FILE, WEB_ENV_FILE, API_CONTAINER, WEB_CONTAINER,
-# API_PORT, WEB_PORT, UPLOADS_DIR, DOCKER_NETWORK, RELEASE
+# API_PORT, WEB_PORT, UPLOADS_DIR, DOCKER_NETWORK(default: sogecon_net), RELEASE
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "docker 명령이 필요합니다." >&2
@@ -23,7 +23,7 @@ WEB_CONTAINER=${WEB_CONTAINER:-alumni-web}
 API_PORT=${API_PORT:-3001}
 WEB_PORT=${WEB_PORT:-3000}
 UPLOADS_DIR=${UPLOADS_DIR:-/var/lib/sogecon/uploads}
-DOCKER_NETWORK=${DOCKER_NETWORK:-bridge}
+DOCKER_NETWORK=${DOCKER_NETWORK:-sogecon_net}
 RELEASE=${RELEASE:-$(date +%Y%m%d%H%M%S)}
 
 API_MEMORY=${API_MEMORY:-768m}

@@ -39,6 +39,7 @@ describe('API base selection', () => {
 
   it('does not invent a production localhost fallback', () => {
     expect(() => resolveApiBase({
+      publicBase: '',
       isBrowser: false,
       nodeEnv: 'production',
     })).toThrow('NEXT_PUBLIC_WEB_API_BASE');
@@ -52,6 +53,7 @@ describe('API base selection', () => {
       currentHostname: '192.0.2.20',
     })).toBe('http://192.0.2.20:3001');
     expect(resolveApiBase({
+      publicBase: '',
       isBrowser: false,
       nodeEnv: 'test',
     })).toBe('http://localhost:3001');

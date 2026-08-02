@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const path = require('node:path');
 const { PHASE_PRODUCTION_BUILD } = require('next/constants');
-const { validateProductionWebApiBase } = require('./lib/build-config');
+const {
+  getPublicApiImageRemotePattern,
+  validateProductionWebApiBase,
+} = require('./lib/build-config');
 
 // Bundle analyzer: pnpm -C apps/web analyze (Webpack 전용)
 // 런타임에서는 devDependency가 없으므로 조건부 로드
@@ -27,9 +30,12 @@ const remoteDomainsEnv = (process.env.NEXT_PUBLIC_IMAGE_DOMAINS || '')
   .map((d) => d.trim())
   .filter(Boolean);
 
+const publicApiImagePattern = getPublicApiImageRemotePattern();
+
 const imageRemotePatterns = [
   { protocol: 'http', hostname: 'localhost', port: '3001' },
   { protocol: 'http', hostname: '127.0.0.1', port: '3001' },
+  ...(publicApiImagePattern ? [publicApiImagePattern] : []),
   ...remoteDomainsEnv.map((hostname) => ({ protocol: 'https', hostname })),
 ];
 

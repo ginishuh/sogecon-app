@@ -15,6 +15,15 @@ function parseAbsoluteHttpUrl(value) {
   }
 }
 
+function rejectUnsupportedUrlParts(url) {
+  if (url.username || url.password) {
+    throw new Error('NEXT_PUBLIC_WEB_API_BASE must not include user credentials.');
+  }
+  if (url.href.includes('?') || url.href.includes('#')) {
+    throw new Error('NEXT_PUBLIC_WEB_API_BASE must not include a query string or fragment.');
+  }
+}
+
 function isExplicitLocalHttp(url, allowInsecureLocalApi) {
   if (url.protocol !== 'http:') return false;
   if (allowInsecureLocalApi !== '1') return false;
@@ -37,6 +46,7 @@ function validateProductionWebApiBase({
   }
 
   const parsed = parseAbsoluteHttpUrl(value);
+  rejectUnsupportedUrlParts(parsed);
 
   const isHttps = parsed.protocol === 'https:';
   const isExplicitLocalHttpValue = isExplicitLocalHttp(parsed, allowInsecureLocalApi);
@@ -51,4 +61,22 @@ function validateProductionWebApiBase({
   return value;
 }
 
-module.exports = { LOOPBACK_HOSTS, validateProductionWebApiBase };
+function getPublicApiImageRemotePattern(apiBase = process.env.NEXT_PUBLIC_WEB_API_BASE) {
+  const value = typeof apiBase === 'string' ? apiBase.trim() : '';
+  if (!value) return null;
+
+  const parsed = parseAbsoluteHttpUrl(value);
+  rejectUnsupportedUrlParts(parsed);
+
+  return {
+    protocol: parsed.protocol.slice(0, -1),
+    hostname: normalizedHostname(parsed),
+    ...(parsed.port ? { port: parsed.port } : {}),
+  };
+}
+
+module.exports = {
+  LOOPBACK_HOSTS,
+  getPublicApiImageRemotePattern,
+  validateProductionWebApiBase,
+};

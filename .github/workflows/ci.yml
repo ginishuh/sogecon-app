@@ -160,8 +160,6 @@ jobs:
     needs: repo-guards
     if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
-    env:
-      NEXT_PUBLIC_WEB_API_BASE: https://api.example.com
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -198,6 +196,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-
       - name: Build
+        env:
+          NEXT_PUBLIC_WEB_API_BASE: https://api.example.com
         run: pnpm -C apps/web build
       - name: Accessibility smoke (axe)
         run: pnpm -C apps/web exec vitest run __tests__/a11y-smoke.test.tsx --silent

@@ -10,7 +10,7 @@ set -euo pipefail
 #       [--env .env.api] [--web-env .env.web] \
 #       [--web-api-base https://api.example.com] \
 #       [--skip-migrate] [--seed-admin] [--uploads /var/lib/sogecon/uploads] \
-#       [--api-health URL] [--web-health URL]
+#       [--network sogecon_net] [--api-health URL] [--web-health URL]
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
@@ -20,7 +20,7 @@ IMAGE_PREFIX="${IMAGE_PREFIX_DEFAULT}"
 ENV_FILE=".env.api"
 WEB_ENV_FILE=".env.web"
 UPLOADS_DIR="/var/lib/sogecon/uploads"
-NET_NAME=""
+NET_NAME="sogecon_net"
 DO_MIGRATE=1
 DO_SEED_ADMIN=0
 API_HEALTH=""
