@@ -27,12 +27,24 @@ pnpm -C apps/web install
 .venv/bin/python ops/ci/guards.py
 .venv/bin/python ops/ci/check_versions.py
 pnpm exec commitlint --from origin/main --to HEAD --config docs/commitlint.config.cjs
-# 빈 PostgreSQL 서비스에서 최초 revision부터 upgrade/check/catalog readback
-DATABASE_URL=postgresql+psycopg://app:devpass@localhost:5434/appdb_test \
+# D5 전용 disposable PostgreSQL만 사용한다. appdb/appdb_test/운영 DB는 금지.
+# 기존 DB가 있으면 먼저 정확한 이름만 drop하고 같은 이름으로 create한다.
+D5_DATABASE_URL=postgresql+psycopg://app:devpass@localhost:5434/d5_migration_gate_local
+docker compose --profile dev exec -T postgres_test psql -U app -d postgres \
+  -c 'DROP DATABASE IF EXISTS d5_migration_gate_local'
+docker compose --profile dev exec -T postgres_test psql -U app -d postgres \
+  -c 'CREATE DATABASE d5_migration_gate_local'
+D5_DATABASE_URL="$D5_DATABASE_URL" \
+  DATABASE_URL="$D5_DATABASE_URL" \
   .venv/bin/python ops/ci/migration_gate.py --require-empty
-# 이미 upgrade된 DB의 무변경 catalog/version readback만 필요한 경우
-DATABASE_URL=postgresql+psycopg://app:devpass@localhost:5434/appdb_test \
+# upgrade 후 같은 disposable DB의 version/extension/index catalog만 readback
+D5_DATABASE_URL="$D5_DATABASE_URL" \
+  DATABASE_URL="$D5_DATABASE_URL" \
   .venv/bin/python ops/ci/migration_gate.py --readback-only
+docker compose --profile dev exec -T postgres_test psql -U app -d postgres \
+  -c 'DROP DATABASE IF EXISTS d5_migration_gate_local'
+# GitHub CI는 service host/port를 workflow가 주입한다. 위 localhost URL을 CI에 복사하지 않는다.
+# canonical 운영 절차: docs/agent_runbook_vps.md의 D5 migration/readback 절
 .venv/bin/ruff check apps/api
 .venv/bin/python -m pyright --project pyrightconfig.json
 .venv/bin/pytest -q
@@ -106,8 +118,8 @@ Python gate의 `--readback-only` 경로를 사용하므로 API 이미지 안에�
 - `--readback-only`: upgrade와 `alembic check`를 생략하고 current/head, extension,
   기대 index catalog만 읽는다. DB mutation이 없는 운영 readback 전용 모드다.
 - upgrade 직후 `alembic check`를 실행해 현재 모델 metadata와 migration-created catalog의 drift를 검출한다. 모델에 표현 가능한 기존 PostgreSQL 인덱스는 metadata에 선언했고, 일반 drift를 숨기는 `include_object`/`compare_index` blanket 예외는 두지 않았다.
-- `alembic_version`가 단일 head인지, `pg_trgm` extension이 존재하는지, 기존 5개와 D5의 2개 GIN trgm index가 public `members`의 기대 column에 있고 `gin_trgm_ops`를 사용하며 `indisvalid`·`indisready`·`indislive`인지 구조적으로 확인한다. `pg_indexes.indexdef` 문자열 포함 여부로 PASS를 만들지 않는다.
-- `tests/api/test_migration_gate.py`는 전용 disposable PostgreSQL에 repository `apps/api/migrations/env.py`, `models.Base.metadata`, 실제 gate subprocess를 연결한다. 정상 head를 적용한 뒤 unmigrated column/table/index를 주입하면 실제 `alembic check`가 실패하고, 실패한 concurrent index catalog도 readback gate가 nonzero가 되는 것을 고정한다.
+- `alembic_version`가 단일 head인지, `pg_trgm` extension이 존재하는지, 기존 5개와 D5의 2개 GIN trgm index가 public `members`의 기대 column에 있고 `gin_trgm_ops`를 사용하며 `pg_index.indpred IS NULL`, `indisvalid`·`indisready`·`indislive`인지 구조적으로 확인한다. `pg_indexes.indexdef` 문자열 포함 여부로 PASS를 만들지 않는다.
+- `tests/api/test_migration_gate.py`는 전용 disposable PostgreSQL에 repository `apps/api/migrations/env.py`, `models.Base.metadata`, 실제 gate subprocess를 연결한다. 정상 head를 적용한 뒤 unmigrated column/table/index를 주입하면 실제 `alembic check`가 실패하고, 실패한 concurrent index와 valid same-name partial index도 readback gate가 nonzero가 되는 것을 고정한다.
 - 기존 schema DB에는 `--require-empty` 없이 같은 upgrade를 적용하고 current/catalog를 readback한다. 역사적으로 남은 별도 인덱스는 삭제하거나 gate에서 숨기지 않고 별도 drift로 기록한다. 따라서 기존 local `appdb`의 `signup_activation_issue_logs` 추가 index 4개가 있으면 authoritative `alembic check`는 의도적으로 FAIL하며, D5에서 임의로 정렬하지 않는다.
 
 `--require-empty`를 local에서 다시 실행할 때는 매번 정확한 disposable DB를

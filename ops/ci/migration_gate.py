@@ -48,6 +48,7 @@ INDEX_CATALOG_QUERY = text(
             AS column_names,
         array_agg(operator_class.opcname ORDER BY index_keys.ordinality)
             AS operator_classes,
+        (index_meta.indpred IS NULL) AS is_full_index,
         index_meta.indisvalid,
         index_meta.indisready,
         index_meta.indislive
@@ -82,6 +83,7 @@ INDEX_CATALOG_QUERY = text(
         index_class.relname,
         table_class.relname,
         access_method.amname,
+        (index_meta.indpred IS NULL),
         index_meta.indisvalid,
         index_meta.indisready,
         index_meta.indislive
@@ -175,6 +177,8 @@ def _index_problems(index_name: str, row: RowMapping) -> list[str]:
     operator_classes = _catalog_array(row, "operator_classes")
     if operator_classes != ["gin_trgm_ops"]:
         problems.append(f"opclasses={operator_classes!r}")
+    if not bool(row["is_full_index"]):
+        problems.append("full_index=false")
     for flag in ("indisvalid", "indisready", "indislive"):
         if not bool(row[flag]):
             problems.append(f"{flag}=false")

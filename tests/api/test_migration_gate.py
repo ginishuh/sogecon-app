@@ -130,6 +130,17 @@ def _create_invalid_company_index(target: Engine) -> None:
             )
 
 
+def _create_partial_company_index(target: Engine) -> None:
+    with target.execution_options(isolation_level="AUTOCOMMIT").connect() as connection:
+        connection.execute(
+            text(
+                "CREATE INDEX idx_members_company_trgm "
+                "ON public.members USING gin "
+                "(company gin_trgm_ops) WHERE false"
+            )
+        )
+
+
 def _cleanup_invalid_company_index(target: Engine) -> None:
     with target.execution_options(isolation_level="AUTOCOMMIT").connect() as connection:
         connection.execute(
@@ -193,6 +204,12 @@ def test_repository_migration_gate_detects_postgresql_drift() -> None:
             "indisvalid=false" in invalid_output
             or "method='btree'" in invalid_output
         )
+
+        _cleanup_invalid_company_index(target)
+        _create_partial_company_index(target)
+        partial_index = _run_gate(database_url, "--readback-only")
+        assert partial_index.returncode != 0, _output(partial_index)
+        assert "full_index=false" in _output(partial_index)
     finally:
         if target is not None:
             _cleanup_invalid_company_index(target)

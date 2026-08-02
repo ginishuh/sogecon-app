@@ -154,3 +154,28 @@ PR #287의 후속 review에서 확인된 운영 진입점·readback·regression 
 - `autocommit_block()`에서 뒤 revision이 실패하면 앞선 revision이 커밋된 부분 적용
   상태와 중간 current가 남을 수 있다. invalid index는 `IF NOT EXISTS`로 덮지 않고
   exact catalog 확인 → `DROP INDEX CONCURRENTLY` → retry → readback 순서를 따른다.
+
+## Review follow-up — partial index false-PASS 및 영문 운영 절차
+
+- Sol P2는 유효하다. expected name/table/column/GIN/opclass와
+  valid/ready/live만 확인하면 `WHERE false` partial index가 같은 이름을
+  선점한 경우 migration `IF NOT EXISTS`와 readback이 false PASS할 수 있다.
+- `ops/ci/migration_gate.py`는 `pg_index.indpred IS NULL`을
+  `is_full_index`로 구조적으로 읽고 모든 expected index에 full-index 계약을
+  강제한다. partial, invalid, not-ready, not-live, wrong-method 상태는 모두
+  nonzero다.
+- 실제 repository Alembic path의 disposable PostgreSQL regression은 정상 head와
+  일반 column/table/index drift, 실패한 invalid/wrong-method concurrent index,
+  valid same-name GIN partial index를 각각 gate 실패로 확인한다. partial fixture는
+  `idx_members_company_trgm ... WHERE false`이며 finally에서 정확히 제거한다.
+- Grok P3에 따라 CI 문서의 상단 local 예시는 공유 `appdb_test`를 제거하고
+  `d5_migration_gate_local` drop/create/readback/drop로 정렬했다. CI service
+  connection과 localhost local disposable connection을 혼동하지 않도록 명시했다.
+- Sol P3에 따라 `docs/agent_runbook_vps_en.md`를 한국어 SSOT의 D5 핵심과
+  동기화했다. 영어 절차에도 script의 entrypoint override, 동일 API image
+  `--readback-only`, full-index/valid-ready-live 계약, invalid/partial same-name
+  cleanup, partial application, disposable-only `--require-empty`가 포함된다.
+- full local pytest는 전용 disposable DB에서 기존 D4 auth/fixture-order failure
+  1건(`302 passed, 1 failed`)이 있었고, 동일 fresh DB의 D4 authority file
+  `13 passed`, D5 regression `1 passed`로 분리 확인했다. D5 범위 밖 테스트를
+  변경하지 않고 exact-head CI에서 전체 suite 결론을 확인한다.

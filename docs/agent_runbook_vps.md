@@ -90,7 +90,8 @@ one-shot migration으로 종료되게 한다. 인덱스 build 중에는 lock·bu
 version과 검색 catalog를 readback한다. `--readback-only`는 upgrade와
 `alembic check`를 건너뛰고 DB를 변경하지 않으며, Alembic current/head,
 `pg_trgm`, 기대 index의 public table·column·access method·operator class와
-`indisvalid`·`indisready`·`indislive`를 PostgreSQL catalog에서 구조적으로
+`pg_index.indpred IS NULL`, `indisvalid`·`indisready`·`indislive`를
+PostgreSQL catalog에서 구조적으로
 확인한다. API 이미지 내부에서 `psql`을 호출하거나 `pg_indexes.indexdef`
 문자열을 파싱하지 않는다.
 
