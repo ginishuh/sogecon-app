@@ -30,7 +30,7 @@ jobs:
         id: pnpm-version
         run: echo "version=$(scripts/resolve_pnpm_version.sh)" >> $GITHUB_OUTPUT
       - name: Setup PNPM
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: ${{ steps.pnpm-version.outputs.version }}
       - uses: actions/setup-node@v4
