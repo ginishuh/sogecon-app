@@ -1,5 +1,5 @@
-fastapi==0.139.0
-uvicorn[standard]==0.51.0
+fastapi==0.141.1
+uvicorn[standard]==0.52.1
 sqlalchemy==2.0.51
 psycopg[binary]==3.3.4
 alembic==1.18.5
@@ -12,5 +12,5 @@ email-validator==2.3.0
 pywebpush==2.3.0
 cryptography==50.0.0
 Pillow==12.3.0
-sentry-sdk[starlette]==2.64.0
+sentry-sdk[starlette]==2.66.1
 apscheduler==3.11.3
