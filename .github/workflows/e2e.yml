@@ -25,7 +25,7 @@ jobs:
       WEB_BUILD_ALLOW_INSECURE_LOCAL_API: "1"
       E2E_MOCK_API_CONTROL_URL: http://127.0.0.1:3001
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Resolve PNPM version
         id: pnpm-version
         run: echo "version=$(scripts/resolve_pnpm_version.sh)" >> $GITHUB_OUTPUT
