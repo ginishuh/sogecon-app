@@ -103,7 +103,10 @@ export HEALTH_TIMEOUT=120
 : >"$FAKE_DOCKER_LOG"
 run_start >"$TMP_DIR/inherited-health-timeout.out" 2>&1
 grep -qF -- '--health-timeout 5s' "$FAKE_DOCKER_LOG"
-! grep -qF -- '--health-timeout 120' "$FAKE_DOCKER_LOG"
+if grep -qF -- '--health-timeout 120' "$FAKE_DOCKER_LOG"; then
+  echo 'inherited HEALTH_TIMEOUT leaked into the Docker health duration' >&2
+  exit 1
+fi
 export CONTAINER_HEALTH_TIMEOUT=17s
 : >"$FAKE_DOCKER_LOG"
 run_start >"$TMP_DIR/container-health-timeout.out" 2>&1
@@ -151,7 +154,10 @@ if run_start >"$TMP_DIR/missing-image.out" 2>&1; then
   echo 'missing image unexpectedly passed' >&2
   exit 1
 fi
-! grep -qE '^(stop|rm) ' "$FAKE_DOCKER_LOG"
+if grep -qE '^(stop|rm) ' "$FAKE_DOCKER_LOG"; then
+  echo 'missing-image preflight stopped or removed an existing container' >&2
+  exit 1
+fi
 
 # Supplied env-file preflight also fails before an existing container is stopped.
 export FAKE_DOCKER_MODE=success
@@ -164,7 +170,10 @@ if run_start >"$TMP_DIR/missing-env.out" 2>&1; then
   exit 1
 fi
 grep -qF 'API_ENV_FILE' "$TMP_DIR/missing-env.out"
-! grep -qE '^(stop|rm) ' "$FAKE_DOCKER_LOG"
+if grep -qE '^(stop|rm) ' "$FAKE_DOCKER_LOG"; then
+  echo 'missing-env-file preflight stopped or removed an existing container' >&2
+  exit 1
+fi
 unset API_ENV_OVERRIDE FAKE_DOCKER_EXISTING_CONTAINERS
 
 for mode in missing-health unhealthy; do
@@ -176,7 +185,10 @@ for mode in missing-health unhealthy; do
     exit 1
   fi
   grep -qF 'recent logs (max 40 lines)' "$TMP_DIR/${mode}.out"
-  ! grep -qF 'supersecret' "$TMP_DIR/${mode}.out"
+  if grep -qF 'supersecret' "$TMP_DIR/${mode}.out"; then
+    echo "${mode} health failure leaked an unredacted secret" >&2
+    exit 1
+  fi
   grep -qF '***' "$TMP_DIR/${mode}.out"
 done
 

@@ -41,6 +41,9 @@ jobs:
         run: pnpm -C apps/web build
 
       - name: Start server
+        env:
+          NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
+          WEB_BUILD_ALLOW_INSECURE_LOCAL_API: "1"
         run: pnpm -C apps/web start &
 
       - name: Wait for server

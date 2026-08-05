@@ -170,7 +170,10 @@ if PNPM_VERSION=10.17.1 \
   exit 1
 fi
 grep -qF 'NEXT_PUBLIC_WEB_API_BASE is required for local Web image build' "$TMP_DIR/missing.out"
-! grep -qF 'build ' "$FAKE_DOCKER_LOG"
+if grep -qF 'build ' "$FAKE_DOCKER_LOG"; then
+  echo 'missing NEXT_PUBLIC_WEB_API_BASE unexpectedly triggered a Docker build' >&2
+  exit 1
+fi
 
 if HEALTH_TIMEOUT=5s \
   bash "$ROOT/scripts/deploy-vps.sh" \

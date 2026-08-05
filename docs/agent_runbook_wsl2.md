@@ -1,10 +1,14 @@
 # WSL2 로컬 환경 — VPS와 동일 배포 흐름 미러링
 
 본 문서는 WSL2 로컬에서 Docker 기반 VPS mirror 흐름을 재현하는 방법을
-설명합니다. 실제 VPS의 주 토폴로지는 API `alumni-api`와 PostgreSQL
-`sogecon-db`만 Docker이고, Web은 `/srv/www/sogecon/current` standalone
-release를 사용하는 `sogecon-web` systemd 서비스입니다. 운영 시크릿은 절대
-커밋하지 말고, 로컬에서는 개발용 값이나 테스트 전용 값만 사용하세요.
+설명합니다. operator-confirmed current state는 API `alumni-api`와 PostgreSQL
+`sogecon-db`가 Docker이고 Web은 `/srv/www/sogecon/current` standalone
+release를 사용하는 `sogecon-web` systemd 서비스인 구성입니다. 승인된
+near-term target은 API/Web/PostgreSQL full Docker이며, `ops/cloud-start.sh`의
+full-container guard가 target entry point입니다. Web standalone systemd
+release는 cutover rollback fallback으로 보존하며 target primary로 바꾸지
+않습니다. 운영 시크릿은 절대 커밋하지 말고, 로컬에서는 개발용 값이나 테스트
+전용 값만 사용하세요.
 
 ## 전제 조건
 - Docker Desktop + WSL2 통합 활성화, `docker run` 사용 가능
@@ -19,11 +23,13 @@ release를 사용하는 `sogecon-web` systemd 서비스입니다. 운영 시크�
 make db-up   # root compose(dev): dev 5433 + test 5434
 ```
 
-## 2) 로컬 Docker Web mirror → 마이그레이션 → 재기동
-- 로컬에서 태그를 지정해 Docker Web 지원 경로를 재현합니다. 예: `e29de67`
-- 실제 VPS Web primary release는 HTTPS build → `ops/web-deploy.sh` →
-  `systemctl` → public URL 확인 순서이며, 이 절의 `cloud-start.sh`는 그
-  대안입니다.
+## 2) Near-term target 로컬 full-Docker Web mirror → 마이그레이션 → 재기동
+- 로컬에서 태그를 지정해 승인된 full-Docker target 경로를 재현합니다. 예:
+  `e29de67`
+- 이 절의 `cloud-start.sh`는 API healthy 후 Web healthy를 보장하는 target
+  entry point입니다. 실제 VPS의 current-state systemd standalone Web은
+  이 mirror 명령으로 변경되지 않으며, cutover rollback fallback으로
+  보존합니다.
 - production Web image build에는 브라우저가 사용할 공개 HTTPS API base를
   반드시 명시합니다. `API_INTERNAL_URL`은 실행 시 서버 fetch 전용이며 빌드
   인자로 사용하지 않습니다.
