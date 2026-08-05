@@ -22,6 +22,7 @@ jobs:
     env:
       WEB_BASE_URL: http://127.0.0.1:3000
       NEXT_PUBLIC_WEB_API_BASE: http://127.0.0.1:3001
+      WEB_BUILD_ALLOW_INSECURE_LOCAL_API: "1"
       E2E_MOCK_API_CONTROL_URL: http://127.0.0.1:3001
     steps:
       - uses: actions/checkout@v4

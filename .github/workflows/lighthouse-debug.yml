@@ -33,12 +33,17 @@ jobs:
         run: pnpm -C apps/web install --frozen-lockfile
 
       - name: Build (web)
+        env:
+          NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
+          WEB_BUILD_ALLOW_INSECURE_LOCAL_API: "1"
+          NEXT_PUBLIC_RELAX_CSP: "1"
+          NEXT_PUBLIC_ENABLE_SW: "0"
         run: pnpm -C apps/web build
 
       - name: Start server
         env:
-          NEXT_PUBLIC_RELAX_CSP: "1"
-          NEXT_PUBLIC_ENABLE_SW: "0"
+          NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
+          WEB_BUILD_ALLOW_INSECURE_LOCAL_API: "1"
         run: pnpm -C apps/web start &
 
       - name: Wait for server
@@ -74,9 +79,6 @@ jobs:
           LHCI_COLLECT__SETTINGS__DISABLE_STORAGE_RESET: false
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 120000
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_LOAD: 120000
-          NEXT_PUBLIC_RELAX_CSP: "1"
-          NEXT_PUBLIC_ENABLE_SW: "0"
-          NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
 
       - name: Lighthouse CI (debug desktop)
         id: lhci_desktop
@@ -91,9 +93,6 @@ jobs:
           LHCI_COLLECT__SETTINGS__DISABLE_STORAGE_RESET: false
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_FCP: 120000
           LHCI_COLLECT__SETTINGS__MAX_WAIT_FOR_LOAD: 120000
-          NEXT_PUBLIC_RELAX_CSP: "1"
-          NEXT_PUBLIC_ENABLE_SW: "0"
-          NEXT_PUBLIC_WEB_API_BASE: "http://localhost:3000"
 
       - name: Attach debug note
         if: ${{ always() }}

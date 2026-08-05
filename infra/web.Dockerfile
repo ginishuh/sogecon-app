@@ -33,6 +33,7 @@ ARG NEXT_PUBLIC_ANALYTICS_ID=""
 ARG NEXT_PUBLIC_ENABLE_SW=""
 ARG NEXT_PUBLIC_RELAX_CSP=""
 ARG NEXT_PUBLIC_IMAGE_DOMAINS=""
+ARG WEB_BUILD_ALLOW_INSECURE_LOCAL_API=""
 
 ENV NEXT_PUBLIC_WEB_API_BASE=${NEXT_PUBLIC_WEB_API_BASE} \
     NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL} \
@@ -40,26 +41,42 @@ ENV NEXT_PUBLIC_WEB_API_BASE=${NEXT_PUBLIC_WEB_API_BASE} \
     NEXT_PUBLIC_ANALYTICS_ID=${NEXT_PUBLIC_ANALYTICS_ID} \
     NEXT_PUBLIC_ENABLE_SW=${NEXT_PUBLIC_ENABLE_SW} \
     NEXT_PUBLIC_RELAX_CSP=${NEXT_PUBLIC_RELAX_CSP} \
-    NEXT_PUBLIC_IMAGE_DOMAINS=${NEXT_PUBLIC_IMAGE_DOMAINS}
+    NEXT_PUBLIC_IMAGE_DOMAINS=${NEXT_PUBLIC_IMAGE_DOMAINS} \
+    WEB_BUILD_ALLOW_INSECURE_LOCAL_API=${WEB_BUILD_ALLOW_INSECURE_LOCAL_API}
 
+# Next's standalone output already contains the production dependency closure
+# and embeds the build-time Next configuration. Preserve that exact artifact
+# instead of starting a separate `next start` server that re-reads runtime
+# configuration.
 RUN pnpm -C apps/web build \
-    && pnpm --filter web deploy --prod --legacy /opt/app_web
+    && mkdir -p /opt/app_web/apps/web/.next \
+    && cp -a apps/web/.next/standalone/. /opt/app_web/ \
+    && cp -a apps/web/.next/static /opt/app_web/apps/web/.next/static \
+    && if [ -d apps/web/public ]; then cp -a apps/web/public /opt/app_web/apps/web/public; fi \
+    && chmod -R a+rX /opt/app_web
 
 FROM node:${NODE_VERSION}-slim AS runtime
 
 ENV NODE_ENV=production \
-    NEXT_TELEMETRY_DISABLED=1
+    NEXT_TELEMETRY_DISABLED=1 \
+    HOSTNAME=0.0.0.0 \
+    PORT=3000
 
 RUN adduser --disabled-password --gecos "" webuser
 
-WORKDIR /app/apps/web
+WORKDIR /app
 
-# Copy self-contained deployment that includes node_modules
-COPY --from=build /opt/app_web /app/apps/web
+# Keep the generated standalone directory layout. Its server lives at
+# /app/apps/web/server.js and resolves public/static assets relative to it.
+COPY --from=build --chown=webuser:webuser /opt/app_web /app
 
 USER webuser
 
 EXPOSE 3000
 
-# Avoid requiring pnpm in runtime; call Next directly
-CMD ["node", "node_modules/next/dist/bin/next", "start", "-p", "3000"]
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=9 \
+  CMD node -e "fetch('http://127.0.0.1:3000/').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1))"
+
+# Run the generated standalone entrypoint so build-time public configuration
+# remains authoritative at runtime.
+CMD ["node", "apps/web/server.js"]

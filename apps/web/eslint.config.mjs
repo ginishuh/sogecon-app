@@ -38,7 +38,7 @@ export default [
 
   // JS config files (no type info) — relax TS unsafe rules here only
   {
-    files: ['**/*.config.js', 'next.config.js'],
+    files: ['**/*.config.js', 'next.config.js', 'lib/build-config.js'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
       // 사용하지 않는 변수는 경고가 아닌 에러로 취급(가드레일 준수)

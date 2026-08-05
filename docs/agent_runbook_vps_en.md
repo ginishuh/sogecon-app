@@ -1,6 +1,21 @@
 # VPS Agent Runbook (for Docker + Nginx servers)
 
-This runbook helps an on‑box agent (Codex CLI/Claude) deploy and redeploy the app on a VPS. The default path builds images directly on the VPS.
+This runbook helps an on‑box agent (Codex CLI/Claude) deploy and redeploy the app on a VPS.
+
+## Operational topology and primary control flow
+
+- API: Docker container `alumni-api`
+- PostgreSQL: Docker container `sogecon-db`
+- Web: systemd service `sogecon-web`, running the standalone release at
+  `/srv/www/sogecon/current`; Web is not a Docker service on the current VPS.
+- `compose.yaml` is local dev/test only. VPS operational containers are managed
+  by `docker run` deployment scripts.
+
+The operator-confirmed current state is a systemd standalone Web release with
+Docker API/PostgreSQL until migration. The accepted near-term target is full
+Docker for API, Web, and PostgreSQL. The existing D6 full-container guards in
+`cloud-start.sh` are the target entry point; the standalone systemd release is
+preserved as a cutover rollback fallback, not the target primary architecture.
 
 ## Requirements
 - Docker installed
@@ -22,35 +37,127 @@ sudo mkdir -p /var/lib/sogecon/uploads
 sudo chown 1000:1000 /var/lib/sogecon/uploads
 ```
 
-## 2) Deploy path A — on-box local build (recommended, no `deploy-vps`)
+## 2) Target deploy path — full Docker (API + Web + PostgreSQL)
 Checklist (quick)
-- [ ] Dedicated network exists (`sogecon_net`)
 - [ ] `.env.api` uses container DNS in `DATABASE_URL` (e.g., `sogecon-db`)
-- [ ] `git pull` → local build → migrate → restart order
-- [ ] Health 200 (allow warm‑up ≤90s)
+- [ ] Build/pull the Web image with an HTTPS `NEXT_PUBLIC_WEB_API_BASE`
+- [ ] Prepare `API_INTERNAL_URL=http://alumni-api:3001` or the approved Docker-network runtime value
+- [ ] Preflight images, env files, and network before stopping/disabling `sogecon-web`
+- [ ] Use `ops/cloud-start.sh` and confirm API healthy before Web healthy
+- [ ] Read back API/Web health and representative browser flows
+
+### 2.1 Current state and rollback fallback
+
+The operator-confirmed current Web release is preserved through the standalone
+systemd path below until cutover. Use it for pre-cutover verification or
+rollback; it is not the target primary path.
+
 ```bash
 cd /srv/sogecon-app
 git pull --ff-only origin main
 
+NEXT_PUBLIC_WEB_API_BASE=https://api.<domain> \
+  pnpm -C apps/web install
+NEXT_PUBLIC_WEB_API_BASE=https://api.<domain> \
+  pnpm -C apps/web build
+
+RELEASE_BASE=/srv/www/sogecon SERVICE_NAME=sogecon-web \
+  REPO_ROOT=/srv/sogecon-app CI=1 bash ops/web-deploy.sh
+systemctl is-active --quiet sogecon-web
+curl -fsS https://<domain>/
+```
+
+`ops/web-deploy.sh` switches `/srv/www/sogecon/current` to a standalone release
+and restarts systemd. This worker did not access production endpoints; any
+recorded 200 result is operator-provided current-state evidence.
+
+### 2.2 Full-Docker cutover procedure
+
+Perform the actual migration only as a separately approved operations task:
+
+1. Build the Web image with `NEXT_PUBLIC_WEB_API_BASE=https://api.<domain>` or
+   pull the exact release-tagged Web image.
+2. Put `API_INTERNAL_URL=http://alumni-api:3001` in `.env.web`, prepare the
+   API/Web env files and Docker network, then run image inspect, env-file
+   existence checks, and network inspect.
+3. Only after that preflight, stop and disable `sogecon-web` at the cutover
+   point. Do not stop systemd before preflight.
+4. Run `API_IMAGE=... WEB_IMAGE=... API_ENV_FILE=.env.api
+   WEB_ENV_FILE=.env.web DOCKER_NETWORK=sogecon_net bash ops/cloud-start.sh`.
+   The `API_INTERNAL_URL` value is read from `.env.web`; the existing
+   full-container preflight and API→Web health guard remain active.
+5. Verify API/Web health endpoints and representative browser flows. This PR
+   performs no production migration or production readback.
+
+For rollback, stop/remove the Web container, restore the preserved
+`/srv/www/sogecon/current` symlink/release, and run
+`systemctl enable --now sogecon-web` to re-enable the systemd fallback.
+
+### D6 cloud-start resource and health guard defaults
+
+`ops/cloud-start.sh` preflights both images, supplied env files, and the Docker
+network before stopping any existing container. It applies these overrideable
+defaults to both actual `docker run` commands:
+
+| service | memory | cpus | pids-limit |
+| --- | --- | --- | --- |
+| API | `768m` | `1.0` | `256` |
+| Web | `512m` | `1.0` | `256` |
+
+Both services also use the `json-file` driver with `max-size=10m` and
+`max-file=5`, `no-new-privileges=true`, `cap-drop ALL`,
+`restart unless-stopped`, and loopback-only host publication. Health defaults
+are interval/timeout/retries/start-period `10s/5s/9/15s`; Web is not started
+until API is healthy, and both services must become healthy within 120 seconds.
+
+Missing health, `unhealthy`, `exited`, `dead`, or timeout exits nonzero and prints
+only concise inspect state plus the most recent 40 log lines. It does not inspect
+or print the complete environment/configuration, and known env-file/database
+values are redacted from the bounded logs. It does not automatically roll back
+the database or silently restore containers.
+
+The deploy wrapper's `HEALTH_TIMEOUT` is an integer number of external curl
+wait seconds. Docker healthcheck duration uses the distinct
+`CONTAINER_HEALTH_TIMEOUT` variable (default `5s`).
+
+For tuning, override only the required values:
+
+```bash
+API_MEMORY=1g WEB_CPUS=1.5 HEALTH_WAIT_TIMEOUT=180 \
+  API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net bash ops/cloud-start.sh
+```
+
+Operational readback should use `docker inspect` for `User`,
+`HostConfig.Memory/NanoCpus/PidsLimit`, `LogConfig`, `SecurityOpt`, `CapDrop`,
+`State.Health`, `RestartPolicy`, `NetworkSettings.Ports`, `Mounts`, and
+`NetworkSettings.Networks`. On failure, rerun the same script with the exact
+previous D6+ API/Web image tags and the current D6+ `cloud-start.sh`. D6+
+rollback requires images that contain HEALTHCHECK definitions and the
+image/script pair is a matched release set. For a pre-D6 image without
+HEALTHCHECK, use the corresponding pre-D6 deployment script/release checkout
+instead. Both images becoming healthy is authoritative rollback completion
+evidence.
+
+### Full-Docker target local-build command
+
+```bash
 TAG=$(git rev-parse --short HEAD)
 IMAGE_PREFIX=local/sogecon
 API_IMAGE="${IMAGE_PREFIX}/alumni-api:${TAG}"
 WEB_IMAGE="${IMAGE_PREFIX}/alumni-web:${TAG}"
-
-docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
-
-IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" bash ops/cloud-build.sh
-ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net bash ops/cloud-migrate.sh
+IMAGE_TAG="$TAG" IMAGE_PREFIX=local/sogecon \
+  NEXT_PUBLIC_WEB_API_BASE=https://api.<domain> \
+  bash ops/cloud-build.sh
+ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net \
+  bash ops/cloud-migrate.sh
 API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
   API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
-  DOCKER_NETWORK=sogecon_net \
-  bash ops/cloud-start.sh
-
-curl -fsS https://api.<domain>/healthz
-curl -fsS https://<domain>/
+  DOCKER_NETWORK=sogecon_net bash ops/cloud-start.sh
 ```
 
-## 3) Deploy path B — pull from external registry (optional, no `deploy-vps`)
+## 3) Full-Docker target path B — pull from external registry
 Use this path only when you explicitly need a registry.
 ```bash
 cd /srv/sogecon-app
@@ -144,9 +251,11 @@ production, or a VPS operational database.
 - Cross‑site domains: `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true` (HTTPS required).
 - Location: `.env.api` → applied by `SessionMiddleware` in `apps/api/main.py`.
 
-## 6) Web without container (Next.js standalone + systemd + Nginx)
+## 6) Web standalone rollback fallback (Next.js standalone + systemd + Nginx)
 
-Run the Next.js `standalone` build as a systemd service. DB/API containers remain unchanged.
+The operator-confirmed pre-migration state and full-Docker Web rollback use the
+Next.js `standalone` build as a systemd service. The permanent near-term target
+primary is full Docker, not this systemd path.
 
 One‑time setup
 - Pin Node: `asdf plugin add nodejs && asdf install nodejs 24.12.0 && asdf global nodejs 24.12.0`
@@ -165,7 +274,7 @@ sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart
 ```
 
 Deploy steps
-1) Build at repo root: `pnpm -C apps/web install && pnpm -C apps/web build`
+1) Build at repo root: `NEXT_PUBLIC_WEB_API_BASE=https://api.<domain> pnpm -C apps/web install && NEXT_PUBLIC_WEB_API_BASE=https://api.<domain> pnpm -C apps/web build`
 2) Rollout + symlink switch: `bash ops/web-deploy.sh` (env: `RELEASE_BASE`, `SERVICE_NAME`)
 3) Verify: `systemctl status sogecon-web` (active), `curl -i http://127.0.0.1:3000/` (200)
 

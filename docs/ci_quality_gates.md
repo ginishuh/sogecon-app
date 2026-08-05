@@ -2,6 +2,30 @@
 
 로컬 Git 훅과 GitHub Actions PR CI의 책임 분리·재현 명령을 정리한다. 상위 Epic: #174.
 
+## D6 Web build와 container command negative gates
+
+- `pnpm -C apps/web build`는 `apps/web/next.config.js`의 production phase에서
+  `NEXT_PUBLIC_WEB_API_BASE`를 검증한다. missing/blank, malformed 또는 relative,
+  HTTP는 실패하며, `WEB_BUILD_ALLOW_INSECURE_LOCAL_API=1`이어도 loopback HTTP만
+  허용한다. 일반 Web CI build는 deterministic `https://api.example.com`을 사용한다.
+- 의도적인 local production E2E/Lighthouse build만 다음처럼 escape hatch를 함께
+  지정한다. `next dev`에는 이 값이 필요 없다.
+
+```bash
+NEXT_PUBLIC_WEB_API_BASE=http://127.0.0.1:3001 \
+WEB_BUILD_ALLOW_INSECURE_LOCAL_API=1 pnpm -C apps/web build
+```
+
+- 다음 명령은 실제 `docker run` 인자, image/env/network preflight, API→Web health
+  순서, missing/unhealthy health 실패, bounded redacted logs를 검증한다.
+
+```bash
+bash ops/ci/test_cloud_start.sh
+bash ops/ci/test_deploy_vps.sh
+```
+
+`repo-guards` job은 `test_cloud_migrate.sh`와 함께 이 command contract를 실행한다.
+
 ## 설계 원칙
 
 | 계층 | 목표 시간 | 역할 |
@@ -50,7 +74,7 @@ docker compose --profile dev exec -T postgres_test psql -U app -d postgres \
 .venv/bin/pytest -q
 pnpm -C apps/web lint
 pnpm -C apps/web test
-pnpm -C apps/web build
+NEXT_PUBLIC_WEB_API_BASE=https://api.example.com pnpm -C apps/web build
 .venv/bin/python scripts/export_openapi.py && pnpm -C packages/schemas run gen-dts
 git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 ```

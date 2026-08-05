@@ -43,6 +43,10 @@ jobs:
         run: bash ops/ci/test_githooks.sh
       - name: Cloud migration command contract
         run: bash ops/ci/test_cloud_migrate.sh
+      - name: Cloud start command contract
+        run: bash ops/ci/test_cloud_start.sh
+      - name: VPS deploy command contract
+        run: bash ops/ci/test_deploy_vps.sh
       - name: Enforce standardized versions
         run: python ops/ci/check_versions.py
       - name: Validate Dependabot policy
@@ -192,6 +196,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-
       - name: Build
+        env:
+          NEXT_PUBLIC_WEB_API_BASE: https://api.example.com
         run: pnpm -C apps/web build
       - name: Accessibility smoke (axe)
         run: pnpm -C apps/web exec vitest run __tests__/a11y-smoke.test.tsx --silent

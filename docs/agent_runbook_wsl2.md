@@ -1,9 +1,19 @@
 # WSL2 로컬 환경 — VPS와 동일 배포 흐름 미러링
 
-본 문서는 WSL2 로컬에서 VPS 프로덕션 배포 흐름(로컬 이미지 빌드 → DB 마이그레이션 → 컨테이너 재기동 → 헬스체크)을 그대로 재현하는 방법을 설명합니다. 운영 시크릿은 절대 커밋하지 말고, 로컬에서는 개발용 값이나 테스트 전용 값만 사용하세요.
+본 문서는 WSL2 로컬에서 Docker 기반 VPS mirror 흐름을 재현하는 방법을
+설명합니다. operator-confirmed current state는 API `alumni-api`와 PostgreSQL
+`sogecon-db`가 Docker이고 Web은 `/srv/www/sogecon/current` standalone
+release를 사용하는 `sogecon-web` systemd 서비스인 구성입니다. 승인된
+near-term target은 API/Web/PostgreSQL full Docker이며, `ops/cloud-start.sh`의
+full-container guard가 target entry point입니다. Web standalone systemd
+release는 cutover rollback fallback으로 보존하며 target primary로 바꾸지
+않습니다. 운영 시크릿은 절대 커밋하지 말고, 로컬에서는 개발용 값이나 테스트
+전용 값만 사용하세요.
 
 ## 전제 조건
-- Docker Desktop + WSL2 통합 활성화, `docker compose` 사용 가능
+- Docker Desktop + WSL2 통합 활성화, `docker run` 사용 가능
+- `compose.yaml`은 로컬 dev/test 전용이며 이 mirror 절차는 `ops/cloud-*.sh`
+  Docker 스크립트를 사용합니다.
 - API/Web 런타임 env 파일 준비
   - `cp .env.api.example .env.api` 후 `DATABASE_URL`을 로컬 PG로 맞춤(권장: `postgresql+psycopg://app:devpass@localhost:5433/appdb`)
   - `cp .env.web.example .env.web` (옵션; 공개 `NEXT_PUBLIC_*`는 빌드타임 고정)
@@ -13,8 +23,16 @@
 make db-up   # root compose(dev): dev 5433 + test 5434
 ```
 
-## 2) 로컬 빌드 → 마이그레이션 → 재기동(`deploy-vps` 미사용)
-- 로컬에서 태그를 지정해 VPS 동형 흐름으로 실행합니다. 예: `e29de67`
+## 2) Near-term target 로컬 full-Docker Web mirror → 마이그레이션 → 재기동
+- 로컬에서 태그를 지정해 승인된 full-Docker target 경로를 재현합니다. 예:
+  `e29de67`
+- 이 절의 `cloud-start.sh`는 API healthy 후 Web healthy를 보장하는 target
+  entry point입니다. 실제 VPS의 current-state systemd standalone Web은
+  이 mirror 명령으로 변경되지 않으며, cutover rollback fallback으로
+  보존합니다.
+- production Web image build에는 브라우저가 사용할 공개 HTTPS API base를
+  반드시 명시합니다. `API_INTERNAL_URL`은 실행 시 서버 fetch 전용이며 빌드
+  인자로 사용하지 않습니다.
 ```
 cd /home/<user>/sogecon-app
 export TAG=e29de67
@@ -24,7 +42,9 @@ export WEB_IMAGE="${IMAGE_PREFIX}/alumni-web:${TAG}"
 
 docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
 
-IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" bash ops/cloud-build.sh
+IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" \
+  NEXT_PUBLIC_WEB_API_BASE=https://api.example.com \
+  bash ops/cloud-build.sh
 ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net bash ops/cloud-migrate.sh
 API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
   API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
@@ -36,9 +56,9 @@ curl -I http://localhost:3000/
 ```
 
 동작 내용:
-- `ops/cloud-build.sh`로 `local/sogecon/alumni-{api,web}:<TAG>` 로컬 이미지 빌드
+- `ops/cloud-build.sh`로 `local/sogecon/alumni-{api,web}:<TAG>` Docker mirror 이미지 빌드
 - `ops/cloud-migrate.sh`로 Alembic `upgrade head` 실행(`.env.api` 또는 `DATABASE_URL` 사용)
-- `ops/cloud-start.sh`로 API/Web 컨테이너 재기동(포트: 127.0.0.1:3001/3000)
+- `ops/cloud-start.sh`로 API/Web mirror 컨테이너 재기동(포트: 127.0.0.1:3001/3000)
 - 선택적으로 헬스 체크 수행
 
 ## 3) 트러블슈팅
@@ -57,7 +77,9 @@ export TAG=<commit-sha>
 export IMAGE_PREFIX=local/sogecon
 export API_IMAGE="${IMAGE_PREFIX}/alumni-api:${TAG}"
 export WEB_IMAGE="${IMAGE_PREFIX}/alumni-web:${TAG}"
-IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" bash ops/cloud-build.sh
+IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" \
+  NEXT_PUBLIC_WEB_API_BASE=https://api.example.com \
+  bash ops/cloud-build.sh
 ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net bash ops/cloud-migrate.sh
 API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web DOCKER_NETWORK=sogecon_net bash ops/cloud-start.sh
 curl -I http://localhost:3001/healthz

@@ -2,7 +2,22 @@
 
 > English version: `docs/agent_runbook_vps_en.md`
 
-본 문서는 VPS에 레포를 클론한 뒤 에이전트(Codex CLI/Claude)가 안전하게 배포/재배포 작업을 수행할 수 있도록 표준 절차를 제공합니다. 기본 배포는 서버에서 로컬 이미지를 빌드하는 방식입니다.
+본 문서는 VPS에 레포를 클론한 뒤 에이전트(Codex CLI/Claude)가 안전하게 배포/재배포 작업을 수행할 수 있도록 표준 절차를 제공합니다.
+
+## 운영 토폴로지와 주 제어 흐름
+
+- API: Docker 컨테이너 `alumni-api`
+- PostgreSQL: Docker 컨테이너 `sogecon-db`
+- Web: Docker가 아닌 systemd 서비스 `sogecon-web`; `/srv/www/sogecon/current`
+  standalone 릴리스에서 실행
+- `compose.yaml`은 로컬 dev/test 전용입니다. VPS 운영 컨테이너는
+  `docker run` 기반 운영 스크립트로 관리합니다.
+
+operator-confirmed current state는 migration 전까지 Web이 standalone
+systemd release이고 API/PostgreSQL이 Docker인 구성입니다. 대표가 결정한
+near-term target은 API/Web/PostgreSQL full Docker 구성입니다. 기존 D6
+`cloud-start.sh` full-container guard를 target entry point로 사용하며,
+standalone systemd release는 cutover 중 rollback fallback으로 보존합니다.
 
 ## 요구 사항
 - Docker 설치
@@ -24,14 +39,108 @@ sudo mkdir -p /var/lib/sogecon/uploads
 sudo chown 1000:1000 /var/lib/sogecon/uploads
 ```
 
-## 2) 배포 경로 A — 서버 로컬 빌드(권장, `deploy-vps` 미사용)
+## 2) Target 배포 경로 — full Docker(API + Web + PostgreSQL)
 체크리스트(요약)
-- [ ] 전용 네트워크 존재(`sogecon_net`)
 - [ ] `.env.api`에 `DATABASE_URL=postgresql+psycopg://…@sogecon-db:5432/…`
-- [ ] `git pull` → 로컬 빌드 → 마이그레이션 → 재기동 순서
-- [ ] 헬스체크 200(워밍업 ≤90s 허용)
+- [ ] Web image를 HTTPS `NEXT_PUBLIC_WEB_API_BASE`로 build/pull
+- [ ] `API_INTERNAL_URL=http://alumni-api:3001` 등 Docker network runtime 값 준비
+- [ ] image/env/network preflight 후에만 `sogecon-web` stop/disable
+- [ ] `ops/cloud-start.sh`로 API healthy → Web healthy 순서 확인
+- [ ] API/Web health와 representative browser flow readback
 
-### 2.1 D4 게시글 공개성 배포 전 read-only audit
+### 2.1 Migration 전 current state 및 rollback fallback
+
+현재 operator-confirmed Web release는 아래 standalone 경로로 보존한다.
+full-Docker cutover 전 확인하거나 rollback할 때 사용하며 target primary로
+간주하지 않는다.
+
+```bash
+cd /srv/sogecon-app
+git pull --ff-only origin main
+
+NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인> \
+  pnpm -C apps/web install
+NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인> \
+  pnpm -C apps/web build
+
+RELEASE_BASE=/srv/www/sogecon SERVICE_NAME=sogecon-web \
+  REPO_ROOT=/srv/sogecon-app CI=1 bash ops/web-deploy.sh
+systemctl is-active --quiet sogecon-web
+curl -fsS https://<도메인>/
+```
+
+`ops/web-deploy.sh`가 `/srv/www/sogecon/current`를 standalone release로
+전환하고 systemd 서비스를 재시작한다. 이 worker는 운영 endpoint를 직접
+확인하지 않았으며, 확인 결과를 기록할 때는 operator-provided current-state
+evidence로 구분한다.
+
+### 2.2 Full-Docker cutover 절차
+
+실제 migration은 별도 승인된 운영 작업에서만 수행한다. 순서는 다음과 같다.
+
+1. `NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인>`을 지정해 Web image를
+   build하거나 정확한 release tag의 Web image를 pull한다.
+2. `.env.web`에 `API_INTERNAL_URL=http://alumni-api:3001`을 넣고 API/Web env
+   file, Docker network를 준비한 뒤 `docker image inspect`, env-file 존재 확인,
+   `docker network inspect`를 먼저 수행한다.
+3. preflight가 통과한 뒤 cutover 시점에만 `sogecon-web` systemd를 stop/disable
+   한다. preflight 전에 systemd를 중지하지 않는다.
+4. `API_IMAGE=... WEB_IMAGE=... API_ENV_FILE=.env.api
+   WEB_ENV_FILE=.env.web DOCKER_NETWORK=sogecon_net
+   bash ops/cloud-start.sh`를 실행한다. script의 기존 full-container
+   preflight와 API→Web health guard를 유지한다.
+5. API/Web health endpoint와 대표 browser flow를 확인한다. 이 PR에서는 이
+   migration과 production readback을 수행하지 않는다.
+
+rollback 시에는 Web container를 stop/rm하고, 보존한 이전
+`/srv/www/sogecon/current` symlink/release를 복구한 뒤
+`systemctl enable --now sogecon-web`으로 systemd fallback을 재활성화한다.
+
+### D6 cloud-start resource/health guard defaults
+
+`ops/cloud-start.sh`는 image와 supplied env file, Docker network를 먼저
+preflight한 뒤 기존 컨테이너를 중지한다. 두 실제 `docker run`에 다음 기본값을
+적용하며 모두 환경변수로 override할 수 있다.
+
+| 대상 | memory | cpus | pids-limit |
+| --- | --- | --- | --- |
+| API | `768m` | `1.0` | `256` |
+| Web | `512m` | `1.0` | `256` |
+
+공통으로 `json-file` `max-size=10m`, `max-file=5`,
+`no-new-privileges=true`, `cap-drop ALL`, `restart unless-stopped`,
+loopback-only publication을 적용한다. image healthcheck의 interval/timeout/
+retries/start-period 기본값은 `10s/5s/9/15s`이고, API가 healthy가 되기 전에는
+Web을 시작하지 않는다. 두 서비스 모두 120초 안에 healthy가 되어야 성공한다.
+
+health가 없거나 `unhealthy`, `exited`, `dead`이거나 timeout이면 nonzero로
+종료하며 제한된 inspect state와 최근 40줄 로그만 출력한다. env/config 전체를
+inspect하지 않고 알려진 env-file/database 값은 로그에서 가린다. 자동 DB rollback이나
+기존 컨테이너 복구는 하지 않는다.
+
+`scripts/deploy-vps.sh`의 `HEALTH_TIMEOUT`은 외부 `curl` 재시도 횟수(정수 초)다.
+Docker healthcheck duration은 `CONTAINER_HEALTH_TIMEOUT`(기본 `5s`)으로만
+조정한다.
+
+리소스 튜닝 예:
+
+```bash
+API_MEMORY=1g WEB_CPUS=1.5 HEALTH_WAIT_TIMEOUT=180 \
+  API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
+  API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
+  DOCKER_NETWORK=sogecon_net bash ops/cloud-start.sh
+```
+
+운영 readback은 `docker inspect`에서 `User`, `HostConfig.Memory/NanoCpus/PidsLimit`,
+`LogConfig`, `SecurityOpt`, `CapDrop`, `State.Health`, `RestartPolicy`,
+`NetworkSettings.Ports`, `Mounts`, `NetworkSettings.Networks`를 확인한다.
+실패 시 D6+ HEALTHCHECK가 포함된 정확한 이전 API/Web image tag를 현재
+`cloud-start.sh`에 넣어 재실행한다. pre-D6 이미지처럼 HEALTHCHECK가 없는
+태그로 롤백해야 하면 해당 이미지와 함께 배포된 pre-D6 deployment script/release
+checkout으로 롤백한다. D6+ 롤백은 두 이미지와 D6+ `cloud-start.sh`가 matched
+release set이며, 두 이미지 모두 healthy라는 성공 출력이 완료 증거다.
+
+### 2.3 D4 게시글 공개성 배포 전 read-only audit
 
 D4의 공개성 계약은 board 4종은 `published_at`과 무관하게 공개하고,
 `notice`/`news` 및 레거시·미지 카테고리는 발행일시가 현재 시각 이하일 때만
@@ -137,6 +246,11 @@ DATABASE_URL=postgresql+psycopg://app:devpass@localhost:5434/d5_migration_gate_l
 마지막으로 전용 DB를 drop하고, migration 실패 시 남은 invalid index와 중간
 `alembic current`를 배포 기록에 남긴다.
 
+### Full-Docker target 전체 명령
+
+다음 image build/start 흐름은 target full-Docker 운영 경로다. 실제 실행은
+별도 승인된 migration 작업에서만 수행한다.
+
 ```bash
 cd /srv/sogecon-app
 git pull --ff-only origin main
@@ -148,8 +262,17 @@ export WEB_IMAGE="${IMAGE_PREFIX}/alumni-web:${TAG}"
 
 docker network inspect sogecon_net >/dev/null 2>&1 || docker network create sogecon_net
 
-IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" bash ops/cloud-build.sh
+IMAGE_TAG="$TAG" IMAGE_PREFIX="$IMAGE_PREFIX" \
+  NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인> \
+  bash ops/cloud-build.sh
 ENV_FILE=.env.api API_IMAGE="$API_IMAGE" DOCKER_NETWORK=sogecon_net bash ops/cloud-migrate.sh
+docker image inspect "$API_IMAGE" "$WEB_IMAGE"
+test -f .env.api && test -f .env.web
+grep -q '^API_INTERNAL_URL=http://alumni-api:3001$' .env.web
+docker network inspect sogecon_net >/dev/null
+# cutover point: only after the preflight above
+sudo systemctl stop sogecon-web
+sudo systemctl disable sogecon-web
 API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
   API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web \
   DOCKER_NETWORK=sogecon_net \
@@ -159,7 +282,7 @@ curl -fsS https://api.<도메인>/healthz
 curl -fsS https://<도메인>/
 ```
 
-## 3) 배포 경로 B — 외부 레지스트리 이미지 pull(선택, `deploy-vps` 미사용)
+## 3) Full-Docker target 경로 B — 외부 레지스트리 pull
 레지스트리를 반드시 써야 하는 경우에만 사용합니다.
 ```bash
 cd /srv/sogecon-app
@@ -201,9 +324,11 @@ API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
 - 별도 도메인(교차 사이트): `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true` (HTTPS 필수)
 - 설정 위치: `.env.api` → `apps/api/main.py`의 `SessionMiddleware`에 반영됨
 
-## 5) 웹 비컨테이너(Next.js standalone + systemd + Nginx)
+## 5) Web standalone rollback fallback(Next.js standalone + systemd + Nginx)
 
-컨테이너 대신 Next.js `standalone` 산출물을 systemd 서비스로 구동합니다. DB/API는 기존 컨테이너 구성을 유지합니다.
+현재 operator-confirmed migration 전 상태와 full-Docker Web rollback을 위해
+Next.js `standalone` 산출물을 systemd 서비스로 보존합니다. full-Docker target의
+영구 primary는 이 systemd 경로가 아닙니다.
 
 사전 준비(1회)
 - Node 고정 설치: `asdf plugin add nodejs && asdf install nodejs 24.12.0 && asdf global nodejs 24.12.0`
@@ -222,7 +347,7 @@ sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart
 ```
 
 배포 절차
-1. 레포 루트에서 웹 빌드: `pnpm -C apps/web install && pnpm -C apps/web build`
+1. 레포 루트에서 웹 빌드: `NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인> pnpm -C apps/web install && NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인> pnpm -C apps/web build`
 2. 산출물 전개/링크 전환: `bash ops/web-deploy.sh` (환경변수: `RELEASE_BASE`, `SERVICE_NAME` 커스터마이즈 가능)
 3. 상태 확인: `systemctl status sogecon-web` (active), `curl -i http://127.0.0.1:3000/` (200)
 

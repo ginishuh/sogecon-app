@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const path = require('node:path');
+const { PHASE_PRODUCTION_BUILD } = require('next/constants');
+const {
+  allowsLocalApiImageOptimization,
+  getPublicApiImageRemotePattern,
+  validateProductionWebApiBase,
+} = require('./lib/build-config');
 
 // Bundle analyzer: pnpm -C apps/web analyze (Webpack 전용)
 // 런타임에서는 devDependency가 없으므로 조건부 로드
@@ -25,21 +31,16 @@ const remoteDomainsEnv = (process.env.NEXT_PUBLIC_IMAGE_DOMAINS || '')
   .map((d) => d.trim())
   .filter(Boolean);
 
+const publicApiImagePattern = getPublicApiImageRemotePattern();
+
 const imageRemotePatterns = [
   { protocol: 'http', hostname: 'localhost', port: '3001' },
   { protocol: 'http', hostname: '127.0.0.1', port: '3001' },
+  ...(publicApiImagePattern ? [publicApiImagePattern] : []),
   ...remoteDomainsEnv.map((hostname) => ({ protocol: 'https', hostname })),
 ];
 
-const apiHostname = (() => {
-  try {
-    return new URL(process.env.NEXT_PUBLIC_WEB_API_BASE || '').hostname;
-  } catch {
-    return '';
-  }
-})();
-
-const allowLocalImageOptimization = apiHostname === 'localhost' || apiHostname === '127.0.0.1';
+const allowLocalImageOptimization = allowsLocalApiImageOptimization();
 
 const nextConfig = {
   poweredByHeader: false,
@@ -81,4 +82,9 @@ const nextConfig = {
   },
 };
 
-module.exports = withBundleAnalyzer(nextConfig);
+module.exports = (phase) => {
+  if (phase === PHASE_PRODUCTION_BUILD) {
+    validateProductionWebApiBase();
+  }
+  return withBundleAnalyzer(nextConfig);
+};

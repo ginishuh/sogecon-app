@@ -4,6 +4,13 @@
 - FastAPI 백엔드(`apps/api`)를 프로덕션 환경에 안전하게 배포하고, 실패 시 빠르게 롤백하기 위한 표준 운영 문서를 정의한다.
 - 데이터베이스는 PostgreSQL 16만 지원한다(루트 `compose.yaml`). 모든 환경에서 `postgresql+psycopg://` 스킴을 사용한다.
 
+Operator-confirmed current state is API `alumni-api` and PostgreSQL
+`sogecon-db` in Docker with Web on the `sogecon-web` systemd standalone
+release until cutover. The accepted near-term target is full Docker for API,
+Web, and PostgreSQL using the existing D6 `ops/cloud-start.sh` guards.
+`compose.yaml` remains local dev/test only. The standalone release is retained
+as the Web rollback fallback during migration.
+
 ## 2. 필수 환경 변수
 - `APP_ENV`: `dev` / `test` / `staging` / `prod` (빈 값·그 외 값은 기동 실패)
 - `DATABASE_URL`: SQLAlchemy 접속 문자열 (예: `postgresql+psycopg://user:pass@host:5432/db`)
@@ -39,17 +46,35 @@
 5. 다른 터미널에서 헬스 체크: `curl -I http://localhost:3001/healthz` → `200 OK`
 6. 종료 후 해당 일자의 `docs/dev_log_YYMMDD.md`에 검증 결과 기록
 
-## 4. 배포 절차 (예시)
+## 4. Target full-Docker 배포 절차 (예시)
 1. `main` 병합 → CI에서 `pytest`, `pyright`, `ruff` 성공 확인
-2. 컨테이너 이미지 빌드: `IMAGE_PREFIX=registry/alumni PUSH_IMAGES=1 ./ops/cloud-build.sh`
+2. API/Web 이미지 빌드/게시: `IMAGE_PREFIX=registry/alumni NEXT_PUBLIC_WEB_API_BASE=https://api.example.com PUSH_IMAGES=1 ./ops/cloud-build.sh`
    - (로컬/CI가 ARM이고 서버가 AMD64면) `PLATFORMS=linux/amd64 USE_BUILDX=1`를 함께 지정
 3. DB 마이그레이션 적용: `API_IMAGE=registry/alumni-api:<태그> ENV_FILE=/etc/secrets/api.env ./ops/cloud-migrate.sh`
 4. (선택) 관리자 bootstrap 시드: `API_IMAGE=registry/alumni-api:<태그> ENV_FILE=/etc/secrets/api.env ./ops/cloud-seed-admin.sh`
-5. 서비스 재시작: `API_IMAGE=... WEB_IMAGE=registry/alumni-web:<태그> API_ENV_FILE=/etc/secrets/api.env WEB_ENV_FILE=/etc/secrets/web.env ./ops/cloud-start.sh`
-6. 프로빙: `curl https://api.sogangeconomics.com/healthz` 응답 확인, 주요 엔드포인트 스팟 체크
+5. API/Web env file과 Docker network를 준비하고 `.env.web`에
+   `API_INTERNAL_URL=http://alumni-api:3001` 같은 network runtime 값을 설정한다.
+6. `docker image inspect`로 정확한 API/Web image를 확인하고, env-file 존재와 network를 먼저 검사한다.
+7. preflight 이후 cutover 시점에만 `sudo systemctl stop sogecon-web && sudo systemctl disable sogecon-web`을 실행한다.
+8. 다음 full-container entry point로 API→Web 순서와 health guard를 적용한다.
+
+   ```bash
+   API_IMAGE=registry/alumni-api:<태그> WEB_IMAGE=registry/alumni-web:<태그> \
+     API_ENV_FILE=/etc/secrets/api.env WEB_ENV_FILE=/etc/secrets/web.env \
+     DOCKER_NETWORK=sogecon_net \
+     ./ops/cloud-start.sh
+   ```
+
+9. API/Web health endpoint와 representative browser flow를 readback한다. 이 PR에서는 production migration/readback을 실행하지 않는다.
 
 > 참고: `API_ENV_FILE`에는 `DATABASE_URL`, `JWT_SECRET`, `PUSH_*`, `SENTRY_*` 등 필수 시크릿을 포함한다. 컨테이너 업로드 볼륨은 `UPLOADS_DIR=/var/lib/sogecon/uploads` 로 기본 설정되어 있으며, 필요 시 커스터마이즈한다.
 > 관리자 bootstrap 시드를 실행할 경우 `SEED_PROD_ADMIN001_VALUE`를 `.env.api`에 설정해야 한다.
+
+`API_INTERNAL_URL`은 Web server fetch 전용 runtime 값이며
+`NEXT_PUBLIC_WEB_API_BASE`를 대체하지 않는다. Web rollback 시에는 Web
+container를 stop/rm하고 보존한 `/srv/www/sogecon/current` symlink/release를
+복구한 뒤 `systemctl enable --now sogecon-web`으로 standalone fallback을
+재활성화한다.
 
 ## 5. 모니터링 & 알림
 - 구조화 로그(JSON Lines) 수집 시스템에 배포 버전 태그
@@ -57,7 +82,15 @@
 - 향후 `/__health` 라우트 추가 시, DB/외부 의존성 체크 포함 예정 (후속 작업)
 
 ## 6. 롤백 전략
-- `ops/rollback.md` 문서를 참조하여 이전 이미지/커밋으로 즉시 배포 전환
+- D6+ HEALTHCHECK가 포함된 정확한 이전 API/Web 이미지 태그는 현재
+  `ops/cloud-start.sh`로 다시 실행한다. 이미지와 스크립트는 matched release
+  set이어야 하며, pre-D6 HEALTHCHECK 없는 이미지로 롤백할 때는 해당 pre-D6
+  deployment script/release checkout을 함께 사용한다. 두 이미지가 모두
+  healthy라는 성공 결과가 rollback의 권위 있는 완료 증거다.
+- Web rollback은 Web container를 stop/rm하고 `ops/web-rollback.sh`로 이전
+  standalone release symlink를 복구한 뒤 `systemctl enable --now sogecon-web`로
+  systemd fallback을 재활성화한다.
+- 자동 데이터베이스 rollback이나 기존 컨테이너의 silent restore는 수행하지 않는다.
 - DB 마이그레이션 롤백이 필요한 경우 `alembic downgrade <revision>` 실행 (사전 백업 필수)
 - 실패 원인: `journalctl -u alumni-api`, 애플리케이션 로그, Sentry 등으로 분석
 
@@ -76,7 +109,7 @@
    - 쿠키: `COOKIE_SAMESITE=lax`(기본), `COOKIE_SECURE=true`
 3) 마이그레이션/기동
    - `API_IMAGE=... ENV_FILE=.env.api ./ops/cloud-migrate.sh`
-   - `API_IMAGE=... WEB_IMAGE=... API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web ./ops/cloud-start.sh`
+   - `API_IMAGE=... WEB_IMAGE=... API_ENV_FILE=.env.api WEB_ENV_FILE=.env.web DOCKER_NETWORK=sogecon_net ./ops/cloud-start.sh`로 full-container를 기동하고 `/healthz`를 확인
 4) 프록시: `api.sogangeconomics.com` → `127.0.0.1:3001`(예시 Nginx는 `ops/nginx-examples/` 참고). `TRUSTED_PROXY_IPS`에 해당 hop을 반드시 등록
 5) 헬스체크: `GET https://api.sogangeconomics.com/healthz` → 200
 

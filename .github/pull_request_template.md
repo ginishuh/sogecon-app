@@ -49,7 +49,7 @@
   - [ ] 파괴적 변경(락/다운타임 가능)이면 라벨과 설명을 PR 본문에 명시
   - [ ] 레이트리밋/보안 헤더 영향 검토(변경 시 `docs/security_hardening.md` 반영)
 - Web
-  - [ ] 로컬 `pnpm -C apps/web build` 성공(경고/에러 없음)
+  - [ ] 로컬 `NEXT_PUBLIC_WEB_API_BASE=https://api.example.com pnpm -C apps/web build` 성공(경고/에러 없음)
   - [ ] ESLint(Flat config) 통과, 우회 주석 없음
   - [ ] Tailwind 유틸/토큰 사용 검증(필요 시 스냅샷 첨부)
 - 보안/컴플라이언스
