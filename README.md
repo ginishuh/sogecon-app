@@ -266,7 +266,7 @@ REPO_ROOT=/srv/sogecon-app/_tmp/web-standalone-<sha7> bash ./ops/web-deploy.sh
 - Google Analytics: `NEXT_PUBLIC_ANALYTICS_ID`가 설정되면 `https://www.googletagmanager.com` 스크립트와 `https://www.google-analytics.com` 전송 도메인이 자동 허용됩니다.
 
 #### 운영 체크리스트
-- [ ] `NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인> pnpm -C apps/web build` 후 `pnpm -C apps/web start` + reverse proxy 구성에서 브라우저 DevTools → Network 헤더로 CSP 적용 상태를 확인합니다.
+- [ ] `NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인> pnpm -C apps/web build` 후 `NEXT_PUBLIC_WEB_API_BASE=https://api.<도메인> pnpm -C apps/web start` + reverse proxy 구성에서 브라우저 DevTools → Network 헤더로 CSP 적용 상태를 확인합니다.
 - [ ] `style-src 'unsafe-inline'`을 그대로 둘 경우, 인라인 스타일 삽입이 필요한 컴포넌트만 사용하는지(Next 빌트인 스타일 태그) 정기적으로 점검하고 별도 인라인 스니펫을 추가하지 않도록 리뷰합니다.
 - [ ] relax 모드(`NEXT_PUBLIC_RELAX_CSP=1`)는 개발/사내 환경에서만 사용하고, 운영에서는 제거했는지 배포 전 체크합니다.
 

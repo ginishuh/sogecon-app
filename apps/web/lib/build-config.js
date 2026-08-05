@@ -1,7 +1,16 @@
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
 
+function normalizeHostname(hostname) {
+  return hostname.toLowerCase().replace(/^\[|\]$/g, '');
+}
+
 function normalizedHostname(url) {
-  return url.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  return normalizeHostname(url.hostname);
+}
+
+function remotePatternHostname(url) {
+  const hostname = normalizeHostname(url.hostname);
+  return hostname.includes(':') ? `[${hostname}]` : hostname;
 }
 
 function parseAbsoluteHttpUrl(value) {
@@ -70,14 +79,14 @@ function getPublicApiImageRemotePattern(apiBase = process.env.NEXT_PUBLIC_WEB_AP
 
   return {
     protocol: parsed.protocol.slice(0, -1),
-    hostname: normalizedHostname(parsed),
+    hostname: remotePatternHostname(parsed),
     ...(parsed.port ? { port: parsed.port } : {}),
   };
 }
 
 function allowsLocalApiImageOptimization(apiBase = process.env.NEXT_PUBLIC_WEB_API_BASE) {
   const pattern = getPublicApiImageRemotePattern(apiBase);
-  return pattern !== null && LOOPBACK_HOSTS.has(pattern.hostname);
+  return pattern !== null && LOOPBACK_HOSTS.has(normalizeHostname(pattern.hostname));
 }
 
 module.exports = {

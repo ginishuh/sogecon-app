@@ -149,6 +149,13 @@ else
     value=${WEB_BUILD_PUBLIC_ENV[$key]:-}
     [[ -n "$value" ]] && WEB_BUILD_ENV+=("$key=$value")
   done
+
+  # The supplied .env.web (plus the explicit API-base option) is authoritative
+  # for these build-time values. Remove every allowlisted key before invoking
+  # cloud-build so stale values from the parent shell cannot become build args.
+  for key in "${WEB_BUILD_PUBLIC_KEYS[@]}"; do
+    unset "$key"
+  done
   env "${WEB_BUILD_ENV[@]}" bash "$ROOT_DIR/ops/cloud-build.sh"
 fi
 

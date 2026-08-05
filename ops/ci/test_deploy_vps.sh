@@ -47,6 +47,8 @@ chmod 755 "$FAKE_BIN/docker"
 API_ENV="$TMP_DIR/api.env"
 WEB_ENV="$TMP_DIR/web.env"
 MISSING_WEB_ENV="$TMP_DIR/missing-web.env"
+PARTIAL_WEB_ENV="$TMP_DIR/partial-web.env"
+EMPTY_BASE_WEB_ENV="$TMP_DIR/empty-base-web.env"
 MARKER="$TMP_DIR/should-not-exist"
 printf '%s\n' 'DATABASE_URL=postgresql://app:devpass@db:5432/appdb' >"$API_ENV"
 cat >"$WEB_ENV" <<EOF
@@ -60,6 +62,11 @@ NEXT_PUBLIC_RELAX_CSP=1
 NEXT_PUBLIC_IMAGE_DOMAINS=cdn.example.com
 EOF
 printf '%s\n' 'NEXT_PUBLIC_SITE_URL=https://www.example.com' >"$MISSING_WEB_ENV"
+cat >"$PARTIAL_WEB_ENV" <<'EOF'
+NEXT_PUBLIC_WEB_API_BASE=https://api.partial.example.com
+NEXT_PUBLIC_RELAX_CSP=
+EOF
+printf '%s\n' 'NEXT_PUBLIC_WEB_API_BASE=' >"$EMPTY_BASE_WEB_ENV"
 
 export FAKE_DOCKER_LOG="$TMP_DIR/docker.log"
 export PATH="$FAKE_BIN:$PATH"
@@ -83,6 +90,55 @@ grep -qF -- '--build-arg NEXT_PUBLIC_IMAGE_DOMAINS=cdn.example.com' "$FAKE_DOCKE
 grep -qF -- 'network inspect sogecon_net' "$FAKE_DOCKER_LOG"
 grep -qF -- '--network sogecon_net' "$FAKE_DOCKER_LOG"
 [[ ! -e "$MARKER" ]]
+
+# Allowlisted values from the parent shell must not leak into the artifact when
+# the file omits them or explicitly clears one. The file's API base remains the
+# authoritative value even when the parent exports a stale base.
+: >"$FAKE_DOCKER_LOG"
+NEXT_PUBLIC_WEB_API_BASE=https://stale-api.example.com \
+NEXT_PUBLIC_SITE_URL=https://stale-site.example.com \
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=stale-vapid \
+NEXT_PUBLIC_ANALYTICS_ID=stale-analytics \
+NEXT_PUBLIC_ENABLE_SW=stale-sw \
+NEXT_PUBLIC_RELAX_CSP=1 \
+NEXT_PUBLIC_IMAGE_DOMAINS=stale-images.example.com \
+PNPM_VERSION=10.17.1 \
+  bash "$ROOT/scripts/deploy-vps.sh" \
+  --tag d6-contract-parent-env \
+  --local-build \
+  --skip-migrate \
+  --env "$API_ENV" \
+  --web-env "$PARTIAL_WEB_ENV" \
+  --uploads "$TMP_DIR/parent-env-uploads"
+grep -qF -- 'build --build-arg NEXT_PUBLIC_WEB_API_BASE=https://api.partial.example.com' "$FAKE_DOCKER_LOG"
+if grep -qF -- 'stale' "$FAKE_DOCKER_LOG"; then
+  echo 'stale parent public build value leaked into Docker build args' >&2
+  exit 1
+fi
+if grep -qF -- '--build-arg NEXT_PUBLIC_RELAX_CSP=' "$FAKE_DOCKER_LOG"; then
+  echo 'explicit empty NEXT_PUBLIC_RELAX_CSP produced a Docker build arg' >&2
+  exit 1
+fi
+[[ ! -e "$MARKER" ]]
+
+: >"$FAKE_DOCKER_LOG"
+if NEXT_PUBLIC_WEB_API_BASE=https://stale-api.example.com \
+  PNPM_VERSION=10.17.1 \
+  bash "$ROOT/scripts/deploy-vps.sh" \
+  --tag d6-contract-empty-api \
+  --local-build \
+  --skip-migrate \
+  --env "$API_ENV" \
+  --web-env "$EMPTY_BASE_WEB_ENV" \
+  --uploads "$TMP_DIR/empty-api-uploads" >"$TMP_DIR/empty-api.out" 2>&1; then
+  echo 'explicit empty NEXT_PUBLIC_WEB_API_BASE unexpectedly passed' >&2
+  exit 1
+fi
+grep -qF 'NEXT_PUBLIC_WEB_API_BASE is required for local Web image build' "$TMP_DIR/empty-api.out"
+if grep -qF -- 'build ' "$FAKE_DOCKER_LOG"; then
+  echo 'explicit empty NEXT_PUBLIC_WEB_API_BASE recorded a Docker build' >&2
+  exit 1
+fi
 
 # An explicit API-base override wins only for that one key. Other allowlisted
 # public build values continue to come from the safely parsed file.

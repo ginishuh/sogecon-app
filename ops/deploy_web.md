@@ -30,7 +30,7 @@ local dev/test only.
 ## 3. 로컬 검증 (필수)
 1. 의존성 설치: `pnpm install`
 2. 빌드 확인: `NEXT_PUBLIC_WEB_API_BASE=https://api.example.com pnpm -C apps/web build`
-3. 런타임 확인: `pnpm -C apps/web start`
+3. 런타임 확인: `NEXT_PUBLIC_WEB_API_BASE=https://api.example.com pnpm -C apps/web start`
    - 다른 터미널에서 `curl -I http://localhost:3000/` 로 200 응답 확인
    - 검증 완료 후 `Ctrl+C` 로 종료
 4. 로컬 production artifact가 loopback API를 의도적으로 사용할 때만 `NEXT_PUBLIC_WEB_API_BASE=http://127.0.0.1:3001 WEB_BUILD_ALLOW_INSECURE_LOCAL_API=1 pnpm -C apps/web build`를 사용한다. `next dev`에는 escape hatch가 필요 없다.

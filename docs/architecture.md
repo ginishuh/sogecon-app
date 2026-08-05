@@ -105,7 +105,8 @@
 
 ## 배포 및 환경 구성
 - **개발 환경**: `make web-dev`(포트 3000), `make api-dev`(포트 3001). 필요 시 `make db-up`으로 PostgreSQL 16 컨테이너 기동.
-- **Web API URL 계약(D6)**: `NEXT_PUBLIC_WEB_API_BASE`는 Next production build 때 검증되고 브라우저 번들에 고정되는 공개 API URL이다. production에서는 비어 있거나 malformed/relative URL, query/fragment/userinfo, HTTP URL을 거부하며 HTTPS만 허용한다. API가 제공하는 media hostname과 명시적 port는 Next Image remote pattern에 자동 반영한다. 단, `WEB_BUILD_ALLOW_INSECURE_LOCAL_API=1`을 직접 수행하는 local/test build에서만 `http://localhost`, `http://127.0.0.1`, `http://[::1]`을 허용한다. 이 escape hatch는 일반 `ops/cloud-build.sh` 운영 경로에서 전달하지 않는다.
+- **Web API URL 계약(D6)**: `NEXT_PUBLIC_WEB_API_BASE`는 Next production build 때 검증되고 브라우저 번들에 고정되는 공개 API URL이다. production에서는 비어 있거나 malformed/relative URL, query/fragment/userinfo, HTTP URL을 거부하며 HTTPS만 허용한다. API가 제공하는 media hostname과 명시적 port는 Next Image remote pattern에 자동 반영한다. IPv6 loopback은 로컬 판정에서는 정규화한 `::1`로 비교하지만, remote pattern에는 Next/Node 요청 hostname 형식인 `[::1]`을 유지한다. 단, `WEB_BUILD_ALLOW_INSECURE_LOCAL_API=1`을 직접 수행하는 local/test build에서만 `http://localhost`, `http://127.0.0.1`, `http://[::1]`을 허용한다. 이 escape hatch는 일반 `ops/cloud-build.sh` 운영 경로에서 전달하지 않는다.
+- **VPS Web build 환경 권위(D6)**: `scripts/deploy-vps.sh --local-build`의 허용된 7개 `NEXT_PUBLIC_*` build key는 inert `.env.web`과 명시적 `--web-api-base` 값만 사용한다. 해당 key들은 부모 셸에서 먼저 제거되므로, `.env.web`의 누락 또는 명시적 empty가 stale parent value를 build artifact로 전달하지 않는다. `.env.web`은 source/eval하지 않는다.
 - **Server-only API URL**: `API_INTERNAL_URL`은 Next 서버가 Docker 내부 API를 찾을 때만 사용하는 런타임 URL이다. 브라우저는 항상 `NEXT_PUBLIC_WEB_API_BASE`를 사용하며 `API_INTERNAL_URL`을 읽지 않는다. 개발·test에서만 public URL이 없거나 loopback이면 current-host/localhost fallback과 rewriting을 허용하고, production에서는 fallback으로 `http://<host>:3001`을 만들지 않는다.
 - **환경 변수**: `.env.example`을 최신화해 필수 설정 목록을 유지. 실제 `.env`는 커밋 금지.
 - **프로덕션 가정**: API와 웹을 분리 배포하되, 공통 인증 게이트웨이(Nginx, CloudFront 등) 뒤에 배치. 데이터베이스는 매니지드 PostgreSQL 사용을 권장.

@@ -54,6 +54,16 @@ describe('production Web API build configuration', () => {
     });
   });
 
+  it('keeps IPv6 brackets for Next remote patterns while normalizing loopback checks', () => {
+    const apiBase = 'http://[::1]:3001';
+    expect(getPublicApiImageRemotePattern(apiBase)).toEqual({
+      protocol: 'http',
+      hostname: '[::1]',
+      port: '3001',
+    });
+    expect(allowsLocalApiImageOptimization(apiBase)).toBe(true);
+  });
+
   it.each(['http://localhost:3001', 'http://127.0.0.1:3001', 'http://[::1]:3001'])('accepts explicit HTTP loopback escape: %s', (apiBase) => {
     expect(validateProductionWebApiBase({ apiBase, allowInsecureLocalApi: '1' })).toBe(apiBase);
   });
