@@ -44,7 +44,7 @@ jobs:
         run: pnpm -C apps/web install --frozen-lockfile
       - name: Setup Chrome
         id: chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
       - name: Build web
