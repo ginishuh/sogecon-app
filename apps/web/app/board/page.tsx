@@ -259,8 +259,18 @@ function BoardPageInner() {
     return () => window.clearTimeout(handle);
   }, [search]);
 
+  const listParams = useMemo(() => {
+    const baseParams = {
+      limit: PAGE_SIZE,
+      ...(debouncedSearch ? { q: debouncedSearch.slice(0, 100) } : {}),
+    };
+    return category === 'all'
+      ? { ...baseParams, categories: [...BOARD_POST_CATEGORIES] }
+      : { ...baseParams, category };
+  }, [category, debouncedSearch]);
+
   const query = useInfiniteQuery<Post[]>({
-    queryKey: postKeys.list('board', { category, q: debouncedSearch || undefined }),
+    queryKey: postKeys.infiniteList(listParams),
     initialPageParam: 0,
     queryFn: ({ pageParam }) => {
       const baseParams = {

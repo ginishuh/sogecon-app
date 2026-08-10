@@ -43,7 +43,7 @@ export default function EditPostPage() {
   });
 
   const { data: post, isLoading, isError } = useQuery({
-    queryKey: postKeys.detail(postId),
+    queryKey: adminPostKeys.preview(postId),
     queryFn: () => getAdminPostPreview(postId),
     enabled: canLoadPost(canManagePosts, postId),
   });

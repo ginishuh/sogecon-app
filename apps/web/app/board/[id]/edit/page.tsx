@@ -52,7 +52,7 @@ export default function BoardEditPage() {
   const postId = Number(params.id);
 
   const { data: post, isLoading, isError } = useQuery({
-    queryKey: postKeys.detail(postId),
+    queryKey: postKeys.publicDetail(postId),
     queryFn: () => getPost(postId),
     enabled: !Number.isNaN(postId),
   });

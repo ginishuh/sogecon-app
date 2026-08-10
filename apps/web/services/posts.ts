@@ -9,7 +9,7 @@ export type ListPostsParams = {
   limit?: number;
   offset?: number;
   category?: string;
-  categories?: string[];
+  categories?: readonly string[];
   q?: string;
 };
 
