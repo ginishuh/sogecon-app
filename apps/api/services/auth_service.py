@@ -51,6 +51,7 @@ class CurrentMember:
     """멤버 세션 정보."""
     student_id: str
     id: int | None = None
+    email: str | None = None
 
 
 @dataclass
@@ -293,6 +294,7 @@ async def require_member(
         return CurrentMember(
             student_id=user.student_id,
             id=user.id if isinstance(user.id, int) else None,
+            email=user.email,
         )
     raise HTTPException(status_code=401, detail="unauthorized")
 
