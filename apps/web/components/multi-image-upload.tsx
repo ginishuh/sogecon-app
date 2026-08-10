@@ -11,7 +11,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 
 import { ApiError } from '../lib/api';
-import { uploadImage } from '../services/uploads';
+import { deleteUpload, filenameFromUploadUrl, uploadImage } from '../services/uploads';
 
 export type MultiImageUploadProps = {
   /** 메인(커버) 이미지 URL */
@@ -302,7 +302,18 @@ export function MultiImageUpload({
   );
 
   const handleRemove = useCallback(
-    (url: string) => {
+    async (url: string) => {
+      const filename = filenameFromUploadUrl(url);
+      if (filename) {
+        try {
+          await deleteUpload(filename);
+        } catch (err) {
+          if (err instanceof ApiError) {
+            console.error(err.message);
+          }
+        }
+      }
+
       const newImages = images.filter((img) => img !== url);
       onImagesChange(newImages);
 

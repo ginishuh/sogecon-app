@@ -2372,7 +2372,7 @@
           "uploads"
         ],
         "summary": "Upload Image",
-        "description": "\uc774\ubbf8\uc9c0 \ud30c\uc77c \uc5c5\ub85c\ub4dc.\n\n- \uc778\uc99d\ub41c \ud68c\uc6d0\ub9cc \uc811\uadfc \uac00\ub2a5\n- \uc9c0\uc6d0 \ud615\uc2dd: JPEG, PNG, WebP, GIF\n- \ucd5c\ub300 \ud06c\uae30: 5MB (\uc124\uc815 \uac00\ub2a5)\n- \uc790\ub3d9 \ub9ac\uc0ac\uc774\uc988: 1920px \uc774\ud558\ub85c \uc870\uc815\n- GIF: \uc560\ub2c8\uba54\uc774\uc158\uc740 \uccab \ud504\ub808\uc784\ub9cc \uc800\uc7a5 (\uc815\uc9c0 \uc774\ubbf8\uc9c0\ub85c \ubcc0\ud658)",
+        "description": "\uc774\ubbf8\uc9c0 \ud30c\uc77c \uc5c5\ub85c\ub4dc.",
         "operationId": "upload_image_uploads_images_post",
         "requestBody": {
           "content": {
@@ -2394,6 +2394,42 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/uploads/images/{filename}": {
+      "delete": {
+        "tags": [
+          "uploads"
+        ],
+        "summary": "Delete Image",
+        "description": "\ubcf8\uc778 \uc18c\uc720 \uc5c5\ub85c\ub4dc \uc774\ubbf8\uc9c0 \uc0ad\uc81c (idempotent).",
+        "operationId": "delete_image_uploads_images__filename__delete",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Filename"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",

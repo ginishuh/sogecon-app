@@ -136,6 +136,14 @@ class _LimiterProto(Protocol):
 _consume_cache: dict[str, Callable[[Request], None]] = {}
 
 
+def get_member_id_for_rate_limit(request: Request) -> str:
+    """Authenticated member id for per-member upload limits."""
+    member_id = getattr(request.state, "rate_limit_member_id", None)
+    if member_id is None:
+        return "member:anonymous"
+    return f"member:{member_id}"
+
+
 def consume_limit(limiter: Limiter, request: Request, limit_value: str) -> None:
     """요청 단위 레이트리밋 토큰 소비.
 

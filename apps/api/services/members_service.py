@@ -1,32 +1,27 @@
 from __future__ import annotations
 
 import io
-import secrets
 import time
 from collections import OrderedDict
 from collections.abc import Sequence
-from pathlib import Path
 from typing import Never, cast
 
-from PIL import Image, UnidentifiedImageError
+from fastapi import UploadFile
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.datastructures import Headers
 
 from .. import models, schemas
-from ..config import get_settings
 from ..errors import AlreadyExistsError, ApiError
 from ..repositories import members as members_repo
+from . import upload_service as upload_service_module
 from .activation_service import create_member_activation_token
 from .roles_service import (
     normalize_assignable_roles,
     parse_roles,
     serialize_roles,
 )
-
-_ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP"}
-_INITIAL_JPEG_QUALITY = 85
-_MIN_JPEG_QUALITY = 50
 
 _MEMBER_COUNT_CACHE_TTL = 30.0
 _MEMBER_COUNT_CACHE_MAX = 64
@@ -66,74 +61,6 @@ def _raise_member_conflict_from_integrity_error(exc: IntegrityError) -> Never:
             detail="Student ID already in use",
         ) from exc
     raise exc
-
-
-def _load_and_normalize_image(file_bytes: bytes) -> Image.Image:
-    try:
-        image = Image.open(io.BytesIO(file_bytes))
-    except UnidentifiedImageError as exc:
-        raise ApiError(
-            code="avatar_invalid_image",
-            detail="이미지 형식을 인식할 수 없습니다.",
-            status=422,
-        ) from exc
-
-    if image.format not in _ALLOWED_IMAGE_FORMATS:
-        raise ApiError(
-            code="avatar_unsupported_format",
-            detail="JPG, PNG, WEBP 형식만 업로드할 수 있습니다.",
-            status=422,
-        )
-
-    image.load()
-    if image.mode not in {"RGB", "L", "RGBA"}:
-        image = image.convert("RGBA")
-    if image.mode == "RGBA":
-        background = Image.new("RGBA", image.size, (255, 255, 255, 255))
-        background.paste(image, mask=image.split()[-1])
-        return background.convert("RGB")
-    if image.mode != "RGB":
-        return image.convert("RGB")
-    return image
-
-
-def _compress_to_jpeg(
-    image: Image.Image,
-    *,
-    max_pixels: int,
-    max_bytes: int,
-) -> bytes:
-    normalized = image.copy()
-    normalized.thumbnail((max_pixels, max_pixels))
-
-    buffer = io.BytesIO()
-    quality = _INITIAL_JPEG_QUALITY
-    while True:
-        buffer.seek(0)
-        buffer.truncate(0)
-        normalized.save(buffer, format="JPEG", optimize=True, quality=quality)
-        if buffer.tell() <= max_bytes or quality <= _MIN_JPEG_QUALITY:
-            break
-        quality -= 5
-
-    data = buffer.getvalue()
-    if len(data) > max_bytes:
-        raise ApiError(
-            code="avatar_compress_failed",
-            detail="이미지를 100KB 이하로 압축할 수 없습니다.",
-            status=422,
-        )
-    return data
-
-
-def _remove_previous_avatar(previous_path: str | None, media_root: Path) -> None:
-    if not previous_path:
-        return
-    old_file = media_root / previous_path
-    try:
-        old_file.unlink()
-    except FileNotFoundError:
-        pass
 
 
 async def list_members(
@@ -423,49 +350,15 @@ async def update_member_avatar(
     file_bytes: bytes,
     filename_hint: str | None = None,
 ) -> models.Member:
-    settings = get_settings()
-    if not file_bytes:
-        raise ApiError(
-            code="avatar_empty",
-            detail="이미지 파일이 비어 있습니다.",
-            status=422,
-        )
-    if len(file_bytes) > settings.avatar_max_upload_bytes:
-        raise ApiError(
-            code="avatar_too_large_raw",
-            detail="업로드 파일 크기가 허용 범위를 초과했습니다.",
-            status=422,
-        )
-    image = _load_and_normalize_image(file_bytes)
-    avatar_bytes = _compress_to_jpeg(
-        image,
-        max_pixels=settings.avatar_max_pixels,
-        max_bytes=settings.avatar_max_bytes,
+    """Legacy entry point — delegates to upload_service bounded pipeline."""
+    upload = UploadFile(
+        file=io.BytesIO(file_bytes),
+        filename=filename_hint or "avatar.jpg",
+        headers=Headers({"content-type": "image/jpeg"}),
     )
-
-    media_root = Path(settings.media_root)
-    storage_dir = media_root / "avatars"
-    storage_dir.mkdir(parents=True, exist_ok=True)
-
-    suffix = Path(filename_hint or "avatar.jpg").suffix.lower() or ".jpg"
-    if suffix not in {".jpg", ".jpeg"}:
-        suffix = ".jpg"
-    new_filename = (
-        f"member_{member_id}_{int(time.time())}_{secrets.token_hex(4)}{suffix}"
+    return await upload_service_module.upload_member_avatar(
+        db, member_id=member_id, upload=upload
     )
-    relative_path = f"avatars/{new_filename}"
-    file_path = storage_dir / new_filename
-    file_path.write_bytes(avatar_bytes)
-
-    member = await members_repo.get_member(db, member_id)
-    previous_path = getattr(member, "avatar_path", None)
-    setattr(member, "avatar_path", relative_path)
-    await db.commit()
-    await db.refresh(member)
-
-    _remove_previous_avatar(previous_path, media_root)
-
-    return member
 
 
 async def create_member_direct(

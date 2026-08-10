@@ -11,7 +11,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 
 import { ApiError } from '../lib/api';
-import { uploadImage } from '../services/uploads';
+import { deleteUpload, filenameFromUploadUrl, uploadImage } from '../services/uploads';
 
 export type ImageUploadProps = {
   /** 업로드 완료 시 URL 전달 */
@@ -50,6 +50,20 @@ function ImagePreview({
   onRemove?: () => void;
   disabled?: boolean;
 }) {
+  const handleRemove = useCallback(async () => {
+    const filename = filenameFromUploadUrl(src);
+    if (filename) {
+      try {
+        await deleteUpload(filename);
+      } catch (err) {
+        if (err instanceof ApiError) {
+          console.error(err.message);
+        }
+      }
+    }
+    onRemove?.();
+  }, [onRemove, src]);
+
   return (
     <div className="relative rounded-lg overflow-hidden border border-neutral-border">
       <div
@@ -63,7 +77,7 @@ function ImagePreview({
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            onRemove();
+            void handleRemove();
           }}
           className="absolute right-2 top-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2"
           aria-label="이미지 삭제"

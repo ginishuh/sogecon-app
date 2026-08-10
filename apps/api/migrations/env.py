@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from apps.api import models, models_support  # noqa: E402
+from apps.api import models, models_support, models_upload  # noqa: E402
 from apps.api.config import get_settings  # noqa: E402
 
 config = context.config
@@ -28,6 +28,8 @@ config.set_main_option("sqlalchemy.url", _safe_url)
 
 if models_support.SupportTicket.metadata is not models.Base.metadata:
     raise RuntimeError("SupportTicket must use the shared SQLAlchemy metadata")
+if models_upload.UploadAsset.metadata is not models.Base.metadata:
+    raise RuntimeError("UploadAsset must use the shared SQLAlchemy metadata")
 
 target_metadata = models.Base.metadata
 
