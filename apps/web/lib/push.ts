@@ -50,6 +50,57 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   return outputArray;
 }
 
+function bytesEqual(left: Uint8Array, right: Uint8Array): boolean {
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i += 1) {
+    if (left[i] !== right[i]) return false;
+  }
+  return true;
+}
+
+export function subscriptionMatchesVapidKey(
+  sub: PushSubscription,
+  vapidPublicKey: string,
+): boolean {
+  const expected = urlBase64ToUint8Array(vapidPublicKey);
+  const actual = sub.options?.applicationServerKey;
+  if (!actual) return false;
+  const actualBytes =
+    actual instanceof Uint8Array ? actual : new Uint8Array(actual);
+  return bytesEqual(actualBytes, expected);
+}
+
+export async function getCurrentSubscription(): Promise<PushSubscription | null> {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
+  if (!isServiceWorkerEnabled()) return null;
+
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) return null;
+  return await reg.pushManager.getSubscription();
+}
+
+export type StaleVapidMigrationResult = 'not_stale' | 'migrated' | 'retry_later';
+
+export async function migrateStaleVapidSubscription(
+  vapidPublicKey: string,
+  deleteServer: (endpoint: string) => Promise<void>,
+): Promise<StaleVapidMigrationResult> {
+  const current = await getCurrentSubscription();
+  if (!current) return 'not_stale';
+  if (subscriptionMatchesVapidKey(current, vapidPublicKey)) return 'not_stale';
+
+  const endpoint = current.endpoint;
+  try {
+    await deleteServer(endpoint);
+  } catch {
+    return 'retry_later';
+  }
+
+  const ok = await current.unsubscribe().catch(() => false);
+  if (!ok) return 'retry_later';
+  return 'migrated';
+}
+
 export async function ensureServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
   if (!isServiceWorkerEnabled()) return null;
@@ -63,15 +114,6 @@ export async function ensureServiceWorker(): Promise<ServiceWorkerRegistration |
     console.info('Service worker registration failed', error);
     return null;
   }
-}
-
-export async function getCurrentSubscription(): Promise<PushSubscription | null> {
-  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
-  if (!isServiceWorkerEnabled()) return null;
-
-  const reg = await navigator.serviceWorker.getRegistration();
-  if (!reg) return null;
-  return await reg.pushManager.getSubscription();
 }
 
 export async function subscribePushWithReason(vapidPublicKey: string): Promise<SubscribeAttemptResult> {
