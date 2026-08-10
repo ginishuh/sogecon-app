@@ -59,11 +59,18 @@ def test_compare_vapid_keypair_reports_unknown_for_incomplete_pair() -> None:
     assert result.status is CompareStatus.UNKNOWN
 
 
-def test_compare_database_url_matches_on_shared_credentials_only() -> None:
-    legacy = "postgresql+psycopg://appuser:secretpass@old-host:5432/sogecon"
-    current = "postgresql+psycopg://appuser:secretpass@new-host:5432/sogecon"
+def test_compare_database_url_matches_when_password_reused_across_users() -> None:
+    legacy = "postgresql+psycopg://old-user:secretpass@old-host:5432/sogecon"
+    current = "postgresql+psycopg://new-user:secretpass@new-host:5432/sogecon"
     result = compare_secret_values("DATABASE_URL", legacy, current)
     assert result.status is CompareStatus.MATCH
+
+
+def test_compare_database_url_reports_unknown_when_password_missing() -> None:
+    legacy = "postgresql+psycopg://user@host:5432/sogecon"
+    current = "postgresql+psycopg://user:secretpass@host:5432/sogecon"
+    result = compare_secret_values("DATABASE_URL", legacy, current)
+    assert result.status is CompareStatus.UNKNOWN
 
 
 def test_compare_database_url_reports_different_password() -> None:

@@ -111,7 +111,7 @@ def _compare_normalized_text(
     return SecretComparison(name, status)
 
 
-def _database_url_credentials(url: str | None) -> bytes | None:
+def _database_url_password(url: str | None) -> bytes | None:
     if url is None:
         return None
     raw = url.strip()
@@ -123,11 +123,10 @@ def _database_url_credentials(url: str | None) -> bytes | None:
         return None
     if not parsed.scheme:
         return None
-    user = unquote(parsed.username or "")
     password = unquote(parsed.password or "")
-    if not user and not password:
+    if not password:
         return None
-    return f"{user}\0{password}".encode()
+    return password.encode()
 
 
 def _compare_database_url(
@@ -135,13 +134,13 @@ def _compare_database_url(
     legacy: str | None,
     current: str | None,
 ) -> SecretComparison:
-    legacy_cred = _database_url_credentials(legacy)
-    current_cred = _database_url_credentials(current)
-    if legacy_cred is None or current_cred is None:
+    legacy_password = _database_url_password(legacy)
+    current_password = _database_url_password(current)
+    if legacy_password is None or current_password is None:
         return SecretComparison(name, CompareStatus.UNKNOWN)
     status = (
         CompareStatus.MATCH
-        if secrets.compare_digest(legacy_cred, current_cred)
+        if secrets.compare_digest(legacy_password, current_password)
         else CompareStatus.DIFFERENT
     )
     return SecretComparison(name, status)

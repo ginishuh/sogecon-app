@@ -79,20 +79,26 @@ export async function getCurrentSubscription(): Promise<PushSubscription | null>
   return await reg.pushManager.getSubscription();
 }
 
-export type StaleVapidClearResult =
-  | { cleared: false }
-  | { cleared: true; endpoint: string };
+export type StaleVapidMigrationResult = 'not_stale' | 'migrated' | 'retry_later';
 
-export async function clearStaleVapidSubscription(
+export async function migrateStaleVapidSubscription(
   vapidPublicKey: string,
-): Promise<StaleVapidClearResult> {
+  deleteServer: (endpoint: string) => Promise<void>,
+): Promise<StaleVapidMigrationResult> {
   const current = await getCurrentSubscription();
-  if (!current) return { cleared: false };
-  if (subscriptionMatchesVapidKey(current, vapidPublicKey)) return { cleared: false };
+  if (!current) return 'not_stale';
+  if (subscriptionMatchesVapidKey(current, vapidPublicKey)) return 'not_stale';
+
   const endpoint = current.endpoint;
+  try {
+    await deleteServer(endpoint);
+  } catch {
+    return 'retry_later';
+  }
+
   const ok = await current.unsubscribe().catch(() => false);
-  if (!ok) return { cleared: false };
-  return { cleared: true, endpoint };
+  if (!ok) return 'retry_later';
+  return 'migrated';
 }
 
 export async function ensureServiceWorker(): Promise<ServiceWorkerRegistration | null> {

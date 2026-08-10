@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { AuthStatus } from './useAuth';
-import { ensureServiceWorker, getCurrentSubscription, clearStaleVapidSubscription, subscriptionToResult } from '../lib/push';
+import { ensureServiceWorker, getCurrentSubscription, migrateStaleVapidSubscription, subscriptionToResult } from '../lib/push';
 import { isServiceWorkerEnabled } from '../lib/sw';
 import { deleteSubscription, saveSubscription } from '../services/notifications';
 
@@ -27,13 +27,14 @@ export function usePushSync(authStatus: AuthStatus, source: SourceTag) {
       await ensureServiceWorker();
       const vapid = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
       if (vapid) {
-        const migration = await clearStaleVapidSubscription(vapid);
+        const outcome = await migrateStaleVapidSubscription(vapid, deleteSubscription);
         if (cancelled) return;
-        if (migration.cleared) {
-          await deleteSubscription(migration.endpoint).catch((e) => {
-            console.warn(`[push-vapid-migrate] failed to delete stale server subscription (${source})`, e);
-          });
+        if (outcome === 'migrated') {
           setSubscribed(false);
+          return;
+        }
+        if (outcome === 'retry_later') {
+          console.warn(`[push-vapid-migrate] stale migration deferred (${source})`);
           return;
         }
       }
