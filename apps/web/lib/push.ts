@@ -79,14 +79,20 @@ export async function getCurrentSubscription(): Promise<PushSubscription | null>
   return await reg.pushManager.getSubscription();
 }
 
+export type StaleVapidClearResult =
+  | { cleared: false }
+  | { cleared: true; endpoint: string };
+
 export async function clearStaleVapidSubscription(
   vapidPublicKey: string,
-): Promise<boolean> {
+): Promise<StaleVapidClearResult> {
   const current = await getCurrentSubscription();
-  if (!current) return false;
-  if (subscriptionMatchesVapidKey(current, vapidPublicKey)) return false;
-  await current.unsubscribe().catch(() => false);
-  return true;
+  if (!current) return { cleared: false };
+  if (subscriptionMatchesVapidKey(current, vapidPublicKey)) return { cleared: false };
+  const endpoint = current.endpoint;
+  const ok = await current.unsubscribe().catch(() => false);
+  if (!ok) return { cleared: false };
+  return { cleared: true, endpoint };
 }
 
 export async function ensureServiceWorker(): Promise<ServiceWorkerRegistration | null> {

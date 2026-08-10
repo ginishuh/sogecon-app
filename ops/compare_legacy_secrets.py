@@ -8,11 +8,22 @@ import sys
 from pathlib import Path
 
 from ops.secret_exposure import (
+    CompareStatus,
+    SecretComparison,
     compare_legacy_env,
     inventory_env_names,
     load_dotenv_file,
     parse_dotenv,
 )
+
+
+def comparison_exit_code(results: list[SecretComparison]) -> int:
+    if not results:
+        return 1
+    for item in results:
+        if item.status in {CompareStatus.MATCH, CompareStatus.UNKNOWN}:
+            return 1
+    return 0
 
 
 def _load_git_file(rev: str, path: str) -> str:
@@ -62,10 +73,15 @@ def main() -> int:
         print("--current is required unless --inventory-only", file=sys.stderr)
         return 2
 
+    if not args.current.is_file():
+        print(f"current file not found: {args.current}", file=sys.stderr)
+        return 2
+
     current_values = load_dotenv_file(args.current)
-    for item in compare_legacy_env(legacy_values, current_values):
+    results = compare_legacy_env(legacy_values, current_values)
+    for item in results:
         print(f"{item.name}={item.status.value}")
-    return 0
+    return comparison_exit_code(results)
 
 
 if __name__ == "__main__":

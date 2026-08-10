@@ -4,6 +4,12 @@ vi.mock('../lib/sw', () => ({
   isServiceWorkerEnabled: () => true,
 }));
 
+const deleteSubscription = vi.fn().mockResolvedValue(undefined);
+vi.mock('../services/notifications', () => ({
+  deleteSubscription,
+  saveSubscription: vi.fn(),
+}));
+
 import {
   clearStaleVapidSubscription,
   subscriptionMatchesVapidKey,
@@ -14,9 +20,9 @@ function bytesToVapidPublicKey(bytes: Uint8Array): string {
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
-function makeSubscription(bytes: Uint8Array): PushSubscription {
+function makeSubscription(bytes: Uint8Array, endpoint = 'https://example.com/push/1'): PushSubscription {
   return {
-    endpoint: 'https://example.com/push/1',
+    endpoint,
     options: { applicationServerKey: bytes },
     unsubscribe: vi.fn().mockResolvedValue(true),
   } as unknown as PushSubscription;
@@ -38,7 +44,7 @@ describe('subscriptionMatchesVapidKey', () => {
 });
 
 describe('clearStaleVapidSubscription', () => {
-  it('unsubscribes stale browser subscription without re-requesting permission', async () => {
+  it('unsubscribes stale browser subscription and returns endpoint on success', async () => {
     const staleBytes = Uint8Array.from([1, 2, 3]);
     const currentKey = bytesToVapidPublicKey(Uint8Array.from([9, 9, 9]));
     const stale = makeSubscription(staleBytes);
@@ -53,9 +59,38 @@ describe('clearStaleVapidSubscription', () => {
       },
     });
 
-    const cleared = await clearStaleVapidSubscription(currentKey);
-    expect(cleared).toBe(true);
+    const result = await clearStaleVapidSubscription(currentKey);
+    expect(result).toEqual({ cleared: true, endpoint: 'https://example.com/push/1' });
     expect(stale.unsubscribe).toHaveBeenCalledTimes(1);
     vi.unstubAllGlobals();
+  });
+
+  it('returns cleared=false when browser unsubscribe fails', async () => {
+    const staleBytes = Uint8Array.from([1, 2, 3]);
+    const currentKey = bytesToVapidPublicKey(Uint8Array.from([9, 9, 9]));
+    const stale = makeSubscription(staleBytes);
+    stale.unsubscribe = vi.fn().mockResolvedValue(false);
+    const reg = {
+      pushManager: {
+        getSubscription: vi.fn().mockResolvedValue(stale),
+      },
+    };
+    vi.stubGlobal('navigator', {
+      serviceWorker: {
+        getRegistration: vi.fn().mockResolvedValue(reg),
+      },
+    });
+
+    const result = await clearStaleVapidSubscription(currentKey);
+    expect(result).toEqual({ cleared: false });
+    vi.unstubAllGlobals();
+  });
+});
+
+describe('stale VAPID migration server cleanup', () => {
+  it('deleteSubscription is available for actor-owned stale endpoint removal', async () => {
+    const endpoint = 'https://example.com/push/stale';
+    await deleteSubscription(endpoint);
+    expect(deleteSubscription).toHaveBeenCalledWith(endpoint);
   });
 });

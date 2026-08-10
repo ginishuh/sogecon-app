@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 from typing import Final
+from urllib.parse import unquote, urlparse
 
 _LEGACY_SECRET_KEYS: Final = (
     "JWT_SECRET",
@@ -110,11 +111,50 @@ def _compare_normalized_text(
     return SecretComparison(name, status)
 
 
+def _database_url_credentials(url: str | None) -> bytes | None:
+    if url is None:
+        return None
+    raw = url.strip()
+    if not raw:
+        return None
+    try:
+        parsed = urlparse(raw)
+    except ValueError:
+        return None
+    if not parsed.scheme:
+        return None
+    user = unquote(parsed.username or "")
+    password = unquote(parsed.password or "")
+    if not user and not password:
+        return None
+    return f"{user}\0{password}".encode()
+
+
+def _compare_database_url(
+    name: str,
+    legacy: str | None,
+    current: str | None,
+) -> SecretComparison:
+    legacy_cred = _database_url_credentials(legacy)
+    current_cred = _database_url_credentials(current)
+    if legacy_cred is None or current_cred is None:
+        return SecretComparison(name, CompareStatus.UNKNOWN)
+    status = (
+        CompareStatus.MATCH
+        if secrets.compare_digest(legacy_cred, current_cred)
+        else CompareStatus.DIFFERENT
+    )
+    return SecretComparison(name, status)
+
+
 def compare_secret_values(
     name: str,
     legacy: str | None,
     current: str | None,
 ) -> SecretComparison:
+    if name == "DATABASE_URL":
+        return _compare_database_url(name, legacy, current)
+
     if name == "JWT_SECRET":
         return _compare_normalized_text(
             name,
@@ -146,23 +186,21 @@ def compare_vapid_keypair(
     legacy: dict[str, str],
     current: dict[str, str],
 ) -> SecretComparison:
-    public = compare_secret_values(
-        "VAPID_PUBLIC_KEY",
-        legacy.get("VAPID_PUBLIC_KEY"),
-        current.get("VAPID_PUBLIC_KEY"),
-    )
-    private = compare_secret_values(
-        "VAPID_PRIVATE_KEY",
-        legacy.get("VAPID_PRIVATE_KEY"),
-        current.get("VAPID_PRIVATE_KEY"),
-    )
-    if CompareStatus.UNKNOWN in {public.status, private.status}:
+    legacy_pub = _normalize_vapid(legacy.get("VAPID_PUBLIC_KEY"))
+    legacy_priv = _normalize_vapid(legacy.get("VAPID_PRIVATE_KEY"))
+    current_pub = _normalize_vapid(current.get("VAPID_PUBLIC_KEY"))
+    current_priv = _normalize_vapid(current.get("VAPID_PRIVATE_KEY"))
+
+    if not legacy_pub or not legacy_priv or not current_pub or not current_priv:
         return SecretComparison("VAPID_KEYPAIR", CompareStatus.UNKNOWN)
-    if (
-        public.status == CompareStatus.MATCH
-        and private.status == CompareStatus.MATCH
-    ):
+
+    pub_match = secrets.compare_digest(legacy_pub, current_pub)
+    priv_match = secrets.compare_digest(legacy_priv, current_priv)
+
+    if priv_match:
         return SecretComparison("VAPID_KEYPAIR", CompareStatus.MATCH)
+    if pub_match:
+        return SecretComparison("VAPID_KEYPAIR", CompareStatus.UNKNOWN)
     return SecretComparison("VAPID_KEYPAIR", CompareStatus.DIFFERENT)
 
 

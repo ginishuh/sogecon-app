@@ -11,6 +11,7 @@ from ops.secret_exposure import (
     CompareStatus,
     compare_legacy_env,
     compare_secret_values,
+    compare_vapid_keypair,
     parse_dotenv,
 )
 
@@ -34,6 +35,44 @@ def test_compare_secret_values_reports_different_for_kek_bytes() -> None:
     assert result.status is CompareStatus.DIFFERENT
 
 
+def test_compare_vapid_keypair_reports_match_when_private_key_reused() -> None:
+    result = compare_vapid_keypair(
+        {"VAPID_PUBLIC_KEY": "pub-legacy", "VAPID_PRIVATE_KEY": "shared-private"},
+        {"VAPID_PUBLIC_KEY": "pub-current", "VAPID_PRIVATE_KEY": "shared-private"},
+    )
+    assert result.status is CompareStatus.MATCH
+
+
+def test_compare_vapid_keypair_unknown_when_public_match_private_diff() -> None:
+    result = compare_vapid_keypair(
+        {"VAPID_PUBLIC_KEY": "shared-public", "VAPID_PRIVATE_KEY": "priv-legacy"},
+        {"VAPID_PUBLIC_KEY": "shared-public", "VAPID_PRIVATE_KEY": "priv-current"},
+    )
+    assert result.status is CompareStatus.UNKNOWN
+
+
+def test_compare_vapid_keypair_reports_unknown_for_incomplete_pair() -> None:
+    result = compare_vapid_keypair(
+        {"VAPID_PUBLIC_KEY": "pub-only"},
+        {"VAPID_PUBLIC_KEY": "pub-only", "VAPID_PRIVATE_KEY": "priv"},
+    )
+    assert result.status is CompareStatus.UNKNOWN
+
+
+def test_compare_database_url_matches_on_shared_credentials_only() -> None:
+    legacy = "postgresql+psycopg://appuser:secretpass@old-host:5432/sogecon"
+    current = "postgresql+psycopg://appuser:secretpass@new-host:5432/sogecon"
+    result = compare_secret_values("DATABASE_URL", legacy, current)
+    assert result.status is CompareStatus.MATCH
+
+
+def test_compare_database_url_reports_different_password() -> None:
+    legacy = "postgresql+psycopg://appuser:oldpass@host:5432/sogecon"
+    current = "postgresql+psycopg://appuser:newpass@host:5432/sogecon"
+    result = compare_secret_values("DATABASE_URL", legacy, current)
+    assert result.status is CompareStatus.DIFFERENT
+
+
 def test_compare_legacy_env_includes_vapid_keypair_summary() -> None:
     key = base64.b64encode(b"x" * 32).decode()
     legacy = {
@@ -52,6 +91,67 @@ def test_compare_legacy_env_includes_vapid_keypair_summary() -> None:
     assert results["JWT_SECRET"] is CompareStatus.DIFFERENT
     assert results["PUSH_KEK"] is CompareStatus.MATCH
     assert results["VAPID_KEYPAIR"] is CompareStatus.DIFFERENT
+
+
+def test_compare_legacy_secrets_cli_exits_zero_only_when_all_different(
+    tmp_path: Path,
+) -> None:
+    legacy = tmp_path / "legacy.env"
+    current = tmp_path / "current.env"
+    legacy.write_text(
+        "JWT_SECRET=legacy-only-secret-32-characters-min\n",
+        encoding="utf-8",
+    )
+    current.write_text(
+        "JWT_SECRET=current-only-secret-32-characters-min\n",
+        encoding="utf-8",
+    )
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ops.compare_legacy_secrets",
+            "--legacy",
+            str(legacy),
+            "--current",
+            str(current),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        cwd=Path(__file__).resolve().parents[2],
+    )
+    assert proc.returncode == 0
+    assert "JWT_SECRET=DIFFERENT" in proc.stdout
+
+
+def test_compare_legacy_secrets_cli_exits_nonzero_when_match_present(
+    tmp_path: Path,
+) -> None:
+    secret = "shared-secret-jwt-32-characters-minimum"
+    legacy = tmp_path / "legacy.env"
+    current = tmp_path / "current.env"
+    legacy.write_text(f"JWT_SECRET={secret}\n", encoding="utf-8")
+    current.write_text(f"JWT_SECRET={secret}\n", encoding="utf-8")
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ops.compare_legacy_secrets",
+            "--legacy",
+            str(legacy),
+            "--current",
+            str(current),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        cwd=Path(__file__).resolve().parents[2],
+    )
+    assert proc.returncode == 1
+    assert "JWT_SECRET=MATCH" in proc.stdout
 
 
 def test_compare_legacy_secrets_cli_outputs_status_only(tmp_path: Path) -> None:
