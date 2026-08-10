@@ -7,10 +7,12 @@ import time
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
 from ..db import get_db
+from ..errors import ApiError
 from ..ratelimit import consume_limit, get_client_ip_for_rate_limit
 from ..repositories import support_tickets as tickets_repo
 from ..routers.auth import (
@@ -105,17 +107,24 @@ async def contact(
         return {"status": "accepted"}
 
     client_ip = get_client_ip_for_rate_limit(request)
-    await tickets_repo.create_ticket(
-        db,
-        {
-            "member_email": member.email,
-            "subject": payload.subject,
-            "body": payload.body,
-            "contact": payload.contact,
-            "client_ip": client_ip if client_ip != "unknown" else None,
-        },
-    )
-    _record_successful_submission(ident, digest, now)
+    try:
+        await tickets_repo.create_ticket(
+            db,
+            {
+                "member_email": member.email,
+                "subject": payload.subject,
+                "body": payload.body,
+                "contact": payload.contact,
+                "client_ip": client_ip if client_ip != "unknown" else None,
+            },
+        )
+    except SQLAlchemyError:
+        raise ApiError(
+            code="support_ticket_persist_failed",
+            detail="문의 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+            status=500,
+        ) from None
+    _record_successful_submission(ident, digest, time.monotonic())
     return {"status": "accepted"}
 
 

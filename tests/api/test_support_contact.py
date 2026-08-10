@@ -9,6 +9,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 
 from apps.api import models, models_support
 from apps.api.db import get_db
@@ -214,11 +215,17 @@ def test_support_contact_cooldown_does_not_extend_ttl() -> None:
 
 
 def test_support_contact_db_failure_leaves_no_cooldown(
-    admin_login: TestClient, monkeypatch: pytest.MonkeyPatch
+    admin_login: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
+    subject = "DB실패민감제목"
+    body = "DB실패민감본문입니다."
+    contact = "010-5555-4444"
     payload = {
-        "subject": "DB 실패",
-        "body": "commit 실패 후 재시도가 저장되어야 합니다.",
+        "subject": subject,
+        "body": body,
+        "contact": contact,
     }
     original = tickets_repo.create_ticket
     calls = {"count": 0}
@@ -226,7 +233,15 @@ def test_support_contact_db_failure_leaves_no_cooldown(
     async def flaky_create(*args: object, **kwargs: object) -> object:
         calls["count"] += 1
         if calls["count"] == 1:
-            raise RuntimeError("simulated commit failure")
+            raise IntegrityError(
+                (
+                    "INSERT INTO support_tickets "
+                    "(subject, body, contact) "
+                    "VALUES (:subject, :body, :contact)"
+                ),
+                {"subject": subject, "body": body, "contact": contact},
+                Exception("simulated db failure"),
+            )
         return await original(*args, **kwargs)
 
     monkeypatch.setattr(tickets_repo, "create_ticket", flaky_create)
@@ -234,14 +249,43 @@ def test_support_contact_db_failure_leaves_no_cooldown(
     before = _count_support_tickets()
     no_raise = TestClient(app, raise_server_exceptions=False)
     no_raise.cookies.update(admin_login.cookies)
-    failed = no_raise.post("/support/contact", json=payload)
+    with caplog.at_level("DEBUG"):
+        failed = no_raise.post("/support/contact", json=payload)
     assert failed.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert failed.json()["code"] == "support_ticket_persist_failed"
     assert _count_support_tickets() == before
     assert support_router._recent == {}
+
+    combined = "\n".join(record.getMessage() for record in caplog.records)
+    assert subject not in combined
+    assert body not in combined
+    assert contact not in combined
 
     retry = admin_login.post("/support/contact", json=payload)
     assert retry.status_code == HTTPStatus.ACCEPTED
     assert _count_support_tickets() == before + 1
+
+
+def test_support_contact_records_cooldown_after_commit_time(
+    admin_login: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    support_router.reset_cooldown_cache_for_tests()
+    times = iter([100.0, 250.0])
+
+    def fake_monotonic() -> float:
+        return next(times, 250.0)
+
+    monkeypatch.setattr(support_router.time, "monotonic", fake_monotonic)
+
+    payload = {
+        "subject": "commit 시각",
+        "body": "cooldown은 commit 완료 시각을 기록해야 합니다.",
+    }
+    res = admin_login.post("/support/contact", json=payload)
+    assert res.status_code == HTTPStatus.ACCEPTED
+    assert len(support_router._recent) == 1
+    committed_at = next(iter(support_router._recent.values()))[0]
+    assert committed_at == 250.0
 
 
 def test_support_contact_different_members_same_ip_do_not_share_cooldown(
