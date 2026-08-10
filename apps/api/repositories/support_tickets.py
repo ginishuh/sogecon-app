@@ -27,7 +27,6 @@ async def create_ticket(db: AsyncSession, data: TicketCreate) -> SupportTicket:
     )
     db.add(row)
     await db.commit()
-    await db.refresh(row)
     return row
 
 

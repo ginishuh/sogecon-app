@@ -45,7 +45,7 @@ def check_package_json() -> None:
             "@tailwindcss/postcss": "4.3.2",
             "axe-core": "4.12.1",
             "baseline-browser-mapping": "2.10.42",
-            "postcss": "8.5.18",
+            "postcss": "8.5.26",
             "puppeteer": "24.43.1",
             "tailwindcss": "4.3.2",
             "vitest": "4.1.10",
@@ -120,7 +120,7 @@ def check_workspace_package_manager() -> None:
 
     expected_overrides = {
         "js-yaml": "4.2.0",
-        "postcss": "8.5.18",
+        "postcss": "8.5.26",
         "sharp": "0.35.3",
     }
     overrides = data.get("pnpm", {}).get("overrides", {})

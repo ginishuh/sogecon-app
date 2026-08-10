@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-import logging
+import hashlib
 import re
 import time
-from datetime import UTC, datetime
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
 from ..db import get_db
+from ..errors import ApiError
 from ..ratelimit import consume_limit, get_client_ip_for_rate_limit
 from ..repositories import support_tickets as tickets_repo
 from ..routers.auth import (
@@ -25,9 +25,10 @@ from ..routers.auth import (
 router = APIRouter(prefix="/support", tags=["support"])
 limiter = Limiter(key_func=get_client_ip_for_rate_limit)
 
-# 최근 중복/쿨다운 체크(간단 메모리)
-_recent: dict[str, tuple[float, str]] = {}
+# process-local duplicate suppression (best-effort; not exactly-once across workers)
 _COOLDOWN_SEC = 60.0
+_COOLDOWN_MAX_ENTRIES = 1024
+_recent: dict[str, tuple[float, str]] = {}
 _BLOCKLIST = re.compile(r"(viagra|casino|loan|bet|bitcoin|crypto|porn)", re.I)
 
 
@@ -38,11 +39,57 @@ class ContactPayload(BaseModel):
     hp: str | None = None  # honeypot
 
 
+def _payload_digest(payload: ContactPayload) -> str:
+    canonical = f"{payload.subject}\n{payload.body}\n{payload.contact or ''}"
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _cooldown_ident(member_id: int | None) -> str:
+    if member_id is None:
+        return "member:unknown"
+    return f"member:{member_id}"
+
+
+def _purge_cooldown(now: float) -> None:
+    expired = [
+        key
+        for key, (committed_at, _) in _recent.items()
+        if (now - committed_at) >= _COOLDOWN_SEC
+    ]
+    for key in expired:
+        del _recent[key]
+    overflow = len(_recent) - _COOLDOWN_MAX_ENTRIES
+    if overflow <= 0:
+        return
+    for key, _ in sorted(_recent.items(), key=lambda item: item[1][0])[:overflow]:
+        del _recent[key]
+
+
+def _is_duplicate_submission(ident: str, digest: str, now: float) -> bool:
+    _purge_cooldown(now)
+    prev = _recent.get(ident)
+    if prev is None:
+        return False
+    committed_at, prev_digest = prev
+    if prev_digest != digest:
+        return False
+    return (now - committed_at) < _COOLDOWN_SEC
+
+
+def _record_successful_submission(ident: str, digest: str, now: float) -> None:
+    _recent[ident] = (now, digest)
+    _purge_cooldown(now)
+
+
+def reset_cooldown_cache_for_tests() -> None:
+    _recent.clear()
+
+
 @router.post("/contact", status_code=202)
 async def contact(
     payload: ContactPayload,
     request: Request,
-    _m: CurrentMember = Depends(require_member),
+    member: CurrentMember = Depends(require_member),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, str]:
     consume_limit(limiter, request, get_settings().rate_limit_support)
@@ -53,52 +100,31 @@ async def contact(
     ):
         return {"status": "accepted"}
 
-    # 최근 동일 사용자(또는 세션 IP) 중복/쿨다운 드롭
-    host = get_client_ip_for_rate_limit(request)
-    email = getattr(_m, "email", "") or ""
-    ident = f"{host}|{email}"
-    h = f"{payload.subject}\n{payload.body}"
+    ident = _cooldown_ident(member.id)
+    digest = _payload_digest(payload)
     now = time.monotonic()
-    t_prev, h_prev = _recent.get(ident, (0.0, ""))
-    if h_prev == h and (now - t_prev) < _COOLDOWN_SEC:
-        _recent[ident] = (now, h)
+    if _is_duplicate_submission(ident, digest, now):
         return {"status": "accepted"}
-    _recent[ident] = (now, h)
 
-    # DB 티켓 저장
-    await tickets_repo.create_ticket(
-        db,
-        {
-            "member_email": (getattr(_m, "email", None) if _m else None),
-            "subject": payload.subject,
-            "body": payload.body,
-            "contact": payload.contact,
-            "client_ip": host if host != "unknown" else None,
-        },
-    )
-
-    # 개발 단계: 파일 로그로 보관(간단 로테이션)
-    logs_dir = Path("logs")
-    logs_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(UTC).isoformat()
-    line = (
-        f"{ts}\t{payload.subject}\t{payload.contact or ''}\n{payload.body}\n---\n"
-    )
-    log_path = logs_dir / "support.log"
+    client_ip = get_client_ip_for_rate_limit(request)
     try:
-        if log_path.exists() and log_path.stat().st_size > 1 * 1024 * 1024:
-            backup = logs_dir / "support.log.1"
-            if backup.exists():
-                backup.unlink()
-            log_path.replace(backup)
-    except (OSError, PermissionError) as e:
-        logging.getLogger(__name__).warning("support.log rotation failed: %s", e)
-    prev = (
-        log_path.read_text(encoding="utf-8", errors="ignore")
-        if log_path.exists()
-        else ""
-    )
-    log_path.write_text(prev + line, encoding="utf-8")
+        await tickets_repo.create_ticket(
+            db,
+            {
+                "member_email": member.email,
+                "subject": payload.subject,
+                "body": payload.body,
+                "contact": payload.contact,
+                "client_ip": client_ip if client_ip != "unknown" else None,
+            },
+        )
+    except SQLAlchemyError:
+        raise ApiError(
+            code="support_ticket_persist_failed",
+            detail="문의 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+            status=500,
+        ) from None
+    _record_successful_submission(ident, digest, time.monotonic())
     return {"status": "accepted"}
 
 

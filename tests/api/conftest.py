@@ -20,6 +20,7 @@ from apps.api.db import get_db
 from apps.api.main import app
 from apps.api.routers.notifications import limiter_notifications
 from apps.api.routers.support import limiter as limiter_support
+from apps.api.routers.support import reset_cooldown_cache_for_tests
 from apps.api.services.auth_service import limiter_login
 
 
@@ -37,6 +38,7 @@ def enable_rate_limit(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, 
 @pytest.fixture(autouse=True)
 def reset_rate_limiters() -> Generator[None, None, None]:
     """테스트 간 레이트리밋 카운터 누적을 방지한다."""
+    reset_cooldown_cache_for_tests()
     limiters = [
         getattr(app.state, "limiter", None),
         limiter_login,
