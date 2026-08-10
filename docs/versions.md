@@ -57,7 +57,7 @@
 - eslint-plugin-promise: 7.3.0
 - tailwindcss: 4.3.2
 - @tailwindcss/postcss: 4.3.2
-- postcss: 8.5.16
+- postcss: 8.5.26
 - @testing-library/jest-dom: 6.9.1
 - @testing-library/react: 16.3.2
 - @types/node: 24.13.3
@@ -78,9 +78,9 @@
   - js-yaml: 4.2.0
     - 근거: commitlint·ESLint 계열의 전이 범위가 GHSA-h67p-54hq-rp68에 취약한 4.1.1도 선택하므로 수정 버전으로 강제합니다.
     - 제거 조건: 모든 상위 패키지가 js-yaml 4.2.0 이상만 선택하는 범위로 갱신되면 제거합니다.
-  - postcss: 8.5.16
-    - 근거: Next.js 16.2.10이 PostCSS 8.4.31을 직접 고정하므로 GHSA-qx2v-qp2m-jg93의 수정 버전으로 강제합니다.
-    - 제거 조건: Next.js가 postcss 8.5.10 이상만 선택하는 범위로 갱신되면 제거합니다.
+  - postcss: 8.5.26
+    - 근거: Next.js 16.2.x가 PostCSS 8.4.31을 직접 고정하므로 GHSA-qx2v-qp2m-jg93·GHSA-fxqj-rqcc-2cmp 수정 버전으로 강제합니다. 8.5.26은 전이 `nanoid ^3.3.17`을 요구해 GHSA-28wg·GHSA-2v37도 함께 해소합니다.
+    - 제거 조건: Next.js가 postcss 8.5.23 이상만 선택하는 범위로 갱신되면 제거합니다.
 
 그 밖의 전이 의존성은 상위 패키지의 호환 범위와 lockfile로 관리합니다. 임시 override가 다시 필요하면 취약점 또는 호환성 근거, 영향받는 상위 패키지, 제거 조건을 이 문서와 PR에 기록해야 합니다.
 
