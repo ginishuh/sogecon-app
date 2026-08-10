@@ -11,7 +11,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 
 import { ApiError } from '../lib/api';
-import { deleteUpload, filenameFromUploadUrl, uploadImage } from '../services/uploads';
+import { uploadImage } from '../services/uploads';
 
 export type ImageUploadProps = {
   /** 업로드 완료 시 URL 전달 */
@@ -20,6 +20,8 @@ export type ImageUploadProps = {
   value?: string | null;
   /** 이미지 제거 */
   onRemove?: () => void;
+  /** 제거 전 서버 삭제 처리. false면 UI 제거를 취소한다. */
+  onBeforeRemove?: (url: string) => Promise<boolean>;
   /** 비활성화 */
   disabled?: boolean;
   /** 추가 클래스 */
@@ -44,25 +46,23 @@ function validateFile(file: File): string | null {
 function ImagePreview({
   src,
   onRemove,
+  onBeforeRemove,
   disabled,
 }: {
   src: string;
   onRemove?: () => void;
+  onBeforeRemove?: (url: string) => Promise<boolean>;
   disabled?: boolean;
 }) {
   const handleRemove = useCallback(async () => {
-    const filename = filenameFromUploadUrl(src);
-    if (filename) {
-      try {
-        await deleteUpload(filename);
-      } catch (err) {
-        if (err instanceof ApiError) {
-          console.error(err.message);
-        }
+    if (onBeforeRemove) {
+      const allowed = await onBeforeRemove(src);
+      if (!allowed) {
+        return;
       }
     }
     onRemove?.();
-  }, [onRemove, src]);
+  }, [onBeforeRemove, onRemove, src]);
 
   return (
     <div className="relative rounded-lg overflow-hidden border border-neutral-border">
@@ -145,7 +145,14 @@ function DropzoneContent({ isUploading, isDragging }: { isUploading: boolean; is
   );
 }
 
-export function ImageUpload({ onUpload, value, onRemove, disabled = false, className = '' }: ImageUploadProps) {
+export function ImageUpload({
+  onUpload,
+  value,
+  onRemove,
+  onBeforeRemove,
+  disabled = false,
+  className = '',
+}: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -199,7 +206,6 @@ export function ImageUpload({ onUpload, value, onRemove, disabled = false, class
       if (file) {
         void handleUpload(file);
       }
-      // 같은 파일 재선택 허용
       e.target.value = '';
     },
     [handleUpload],
@@ -225,11 +231,15 @@ export function ImageUpload({ onUpload, value, onRemove, disabled = false, class
   const stateClasses = isDragging ? 'border-brand-500 bg-brand-50' : 'border-neutral-border hover:border-brand-400 bg-surface-raised';
   const disabledClasses = isInteractive ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed';
 
-  // 이미지가 있으면 미리보기 표시
   if (value) {
     return (
       <div className={className}>
-        <ImagePreview src={value} onRemove={onRemove} disabled={disabled} />
+        <ImagePreview
+          src={value}
+          onRemove={onRemove}
+          onBeforeRemove={onBeforeRemove}
+          disabled={disabled}
+        />
       </div>
     );
   }

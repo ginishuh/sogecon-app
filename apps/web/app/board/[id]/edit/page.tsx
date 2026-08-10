@@ -113,7 +113,9 @@ export default function BoardEditPage() {
         loadingLabel="수정 중..."
         isPending={mutation.isPending}
         error={getErrorMessage(mutation.error)}
-        onSubmit={(data) => mutation.mutate(data)}
+        onSubmit={async (data) => {
+          await mutation.mutateAsync(data);
+        }}
         onCancel={() => router.push(`/board/${postId}`)}
         hideCategory={isBoardCategory(post.category)}
         hidePublication={isBoardCategory(post.category)}

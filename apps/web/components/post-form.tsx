@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MultiImageUpload } from './multi-image-upload';
 import type { Post } from '../services/posts';
+import { collectImageUrls, useUploadLifecycle } from '../lib/upload-lifecycle';
 
 export type PostFormData = {
   title: string;
@@ -20,7 +21,7 @@ type PostFormProps = {
   loadingLabel?: string;
   isPending?: boolean;
   error?: string | null;
-  onSubmit: (data: PostFormData) => void;
+  onSubmit: (data: PostFormData) => void | Promise<void>;
   onCancel?: () => void;
   /** 관리자 전용 옵션 숨김 (카테고리, 공개 상태, 상단 고정) - 일반 사용자 수정 시 */
   hideAdminOptions?: boolean;
@@ -240,7 +241,55 @@ export function PostForm({
   hidePublication = false,
 }: PostFormProps) {
   const state = usePostFormState(initialData);
-  const handleSubmit = () => onSubmit(state.getData());
+  const [imageError, setImageError] = useState<string | null>(null);
+  const initialImageUrls = useMemo(() => {
+    const init = getInitialValues(initialData);
+    return collectImageUrls(init.coverImage, init.images);
+  }, [initialData]);
+  const uploadLifecycle = useUploadLifecycle(initialImageUrls);
+
+  const handleBeforeRemove = useCallback(
+    async (url: string) => {
+      const result = await uploadLifecycle.removeUpload(url);
+      if (!result.ok) {
+        setImageError(result.error ?? '이미지 삭제에 실패했습니다.');
+        return false;
+      }
+      setImageError(null);
+      return true;
+    },
+    [uploadLifecycle],
+  );
+
+  const handleRegisterUpload = useCallback(
+    (url: string) => {
+      uploadLifecycle.registerUpload(url);
+    },
+    [uploadLifecycle],
+  );
+
+  const handleSubmit = useCallback(async () => {
+    try {
+      await Promise.resolve(onSubmit(state.getData()));
+      const commit = await uploadLifecycle.commitPendingDeletes();
+      if (!commit.ok) {
+        setImageError(commit.error ?? '이미지 정리에 실패했습니다.');
+        return;
+      }
+      uploadLifecycle.finalizeSuccessfulSubmit();
+      setImageError(null);
+    } catch {
+      // mutation error는 상위 error prop으로 표시
+    }
+  }, [onSubmit, state, uploadLifecycle]);
+
+  const handleCancel = useCallback(async () => {
+    await uploadLifecycle.discardSession(
+      collectImageUrls(state.coverImage, state.images),
+    );
+    setImageError(null);
+    onCancel?.();
+  }, [onCancel, state.coverImage, state.images, uploadLifecycle]);
 
   return (
     <div className="space-y-4">
@@ -261,14 +310,18 @@ export function PostForm({
         images={state.images}
         onCoverChange={state.setCoverImage}
         onImagesChange={state.setImages}
+        onUploaded={handleRegisterUpload}
+        onBeforeRemove={handleBeforeRemove}
         disabled={isPending}
         maxImages={getMaxImages()}
       />
       <ContentField value={state.content} onChange={state.setContent} />
-      <PostFormError error={error} />
+      <PostFormError error={error ?? imageError} />
       <FormButtons
-        onCancel={onCancel}
-        onSubmit={handleSubmit}
+        onCancel={onCancel ? handleCancel : undefined}
+        onSubmit={() => {
+          void handleSubmit();
+        }}
         isPending={isPending}
         disabled={isSubmitDisabled(state.title, state.content)}
         submitLabel={submitLabel}
@@ -329,6 +382,8 @@ function ImageField({
   images,
   onCoverChange,
   onImagesChange,
+  onUploaded,
+  onBeforeRemove,
   disabled,
   maxImages,
 }: {
@@ -336,6 +391,8 @@ function ImageField({
   images: string[];
   onCoverChange: (v: string | null) => void;
   onImagesChange: (v: string[]) => void;
+  onUploaded: (url: string) => void;
+  onBeforeRemove: (url: string) => Promise<boolean>;
   disabled: boolean;
   maxImages: number;
 }) {
@@ -349,6 +406,8 @@ function ImageField({
         images={images}
         onCoverChange={onCoverChange}
         onImagesChange={onImagesChange}
+        onUploaded={onUploaded}
+        onBeforeRemove={onBeforeRemove}
         disabled={disabled}
         maxImages={maxImages}
       />

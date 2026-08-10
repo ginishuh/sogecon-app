@@ -113,6 +113,56 @@ def validate_mime_and_extension(
     return ext
 
 
+def _open_and_validate_image(
+    file_bytes: bytes,
+    *,
+    config: ImagePipelineConfig,
+    errors: ImageProcessErrorCodes,
+) -> Image.Image:
+    try:
+        image = Image.open(io.BytesIO(file_bytes))
+    except (
+        UnidentifiedImageError,
+        DecompressionBombError,
+        OSError,
+        SyntaxError,
+        ValueError,
+    ) as exc:
+        raise ApiError(
+            code=errors.invalid_data,
+            detail="이미지 파일을 읽을 수 없습니다.",
+            status=422,
+        ) from exc
+
+    if image.format not in {"JPEG", "PNG", "WEBP", "GIF"}:
+        raise ApiError(
+            code=errors.unsupported_format,
+            detail="JPG, PNG, WEBP 형식만 업로드할 수 있습니다.",
+            status=422,
+        )
+    if image.format == "GIF" and not config.allow_gif:
+        raise ApiError(
+            code=errors.unsupported_format,
+            detail="JPG, PNG, WEBP 형식만 업로드할 수 있습니다.",
+            status=422,
+        )
+
+    width, height = image.size
+    if width <= 0 or height <= 0:
+        raise ApiError(
+            code=errors.invalid_data,
+            detail="이미지 파일을 읽을 수 없습니다.",
+            status=422,
+        )
+    if width * height > config.decode_max_pixels:
+        raise ApiError(
+            code=errors.decode_too_large,
+            detail="이미지 해상도가 허용 범위를 초과했습니다.",
+            status=422,
+        )
+    return image
+
+
 def process_image_bytes(
     file_bytes: bytes,
     ext: str,
@@ -123,42 +173,10 @@ def process_image_bytes(
     previous_max_pixels = Image.MAX_IMAGE_PIXELS
     Image.MAX_IMAGE_PIXELS = config.decode_max_pixels
     try:
-        try:
-            image = Image.open(io.BytesIO(file_bytes))
-        except (
-            UnidentifiedImageError,
-            DecompressionBombError,
-            OSError,
-            SyntaxError,
-            ValueError,
-        ) as exc:
-            raise ApiError(
-                code=errors.invalid_data,
-                detail="이미지 파일을 읽을 수 없습니다.",
-                status=422,
-            ) from exc
-
-        if image.format not in {"JPEG", "PNG", "WEBP", "GIF"}:
-            raise ApiError(
-                code=errors.unsupported_format,
-                detail="JPG, PNG, WEBP 형식만 업로드할 수 있습니다.",
-                status=422,
-            )
-        if image.format == "GIF" and not config.allow_gif:
-            raise ApiError(
-                code=errors.unsupported_format,
-                detail="JPG, PNG, WEBP 형식만 업로드할 수 있습니다.",
-                status=422,
-            )
-
+        image = _open_and_validate_image(
+            file_bytes, config=config, errors=errors
+        )
         image.load()
-        width, height = image.size
-        if width * height > config.decode_max_pixels:
-            raise ApiError(
-                code=errors.decode_too_large,
-                detail="이미지 해상도가 허용 범위를 초과했습니다.",
-                status=422,
-            )
 
         if config.jpeg_only:
             normalized = _normalize_for_avatar(image)

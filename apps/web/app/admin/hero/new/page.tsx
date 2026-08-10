@@ -67,7 +67,9 @@ export default function AdminHeroNewPage() {
           loadingLabel="생성 중..."
           isPending={mutation.isPending}
           error={mutation.error ? '생성 중 오류가 발생했습니다.' : null}
-          onSubmit={(payload) => mutation.mutate(payload)}
+          onSubmit={async (payload) => {
+            await mutation.mutateAsync(payload);
+          }}
           onCancel={() => router.push('/admin/hero')}
         />
       </section>

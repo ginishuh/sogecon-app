@@ -74,7 +74,9 @@ export default function AdminNewPostPage() {
           loadingLabel="생성 중..."
           isPending={mutation.isPending}
           error={mutation.error ? '생성 중 오류가 발생했습니다.' : null}
-          onSubmit={(data) => mutation.mutate(data)}
+          onSubmit={async (data) => {
+            await mutation.mutateAsync(data);
+          }}
           onCancel={() => router.push('/admin/posts')}
         />
       </div>

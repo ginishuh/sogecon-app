@@ -6,6 +6,7 @@ import asyncio
 import io
 from http import HTTPStatus
 from pathlib import Path
+from unittest.mock import patch
 
 import bcrypt
 import httpx
@@ -13,6 +14,7 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 from sqlalchemy import func, select
+from sqlalchemy.exc import SQLAlchemyError
 
 from apps.api import config, models
 from apps.api.db import get_db
@@ -159,13 +161,10 @@ def test_upload_image_decode_pixels_exceeded(
 ) -> None:
     monkeypatch.setenv("IMAGE_DECODE_MAX_PIXELS", "10000")
     config.reset_settings_cache()
-    data = _jpeg_bytes((200, 200))
+    data = _jpeg_bytes((101, 101))
     res = member_login.post("/uploads/images", files=_upload_file(data=data))
     assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert res.json().get("code") in {
-        "image_decode_too_large",
-        "invalid_image_data",
-    }
+    assert res.json().get("code") == "image_decode_too_large"
 
 
 def test_upload_image_exact_size_limit_ok_and_plus_one_413(
@@ -495,6 +494,28 @@ async def test_concurrent_upload_quota_race(
         statuses = sorted(res.status_code for res in results)
         assert statuses.count(HTTPStatus.OK) == 1
         assert statuses.count(HTTPStatus.CONFLICT) == 1
+
+
+def test_delete_image_db_failure_restores_file(
+    member_login: TestClient, media_root: Path
+) -> None:
+    uploaded = member_login.post("/uploads/images", files=_upload_file())
+    assert uploaded.status_code == HTTPStatus.OK
+    filename = uploaded.json()["filename"]
+    path = media_root / "images" / filename
+    assert path.is_file()
+
+    with patch(
+        "apps.api.services.upload_service.upload_assets_repo.delete_asset",
+        side_effect=SQLAlchemyError("db down"),
+    ):
+        try:
+            member_login.delete(f"/uploads/images/{filename}")
+        except SQLAlchemyError:
+            pass
+
+    assert path.is_file()
+    assert _asset_count() == 1
 
 
 @pytest.mark.anyio("asyncio")

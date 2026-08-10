@@ -85,7 +85,9 @@ export default function AdminHeroEditPage() {
             loadingLabel="수정 중..."
             isPending={mutation.isPending}
             error={mutation.error ? '수정 중 오류가 발생했습니다.' : null}
-            onSubmit={(payload) => mutation.mutate(payload)}
+            onSubmit={async (payload) => {
+              await mutation.mutateAsync(payload);
+            }}
             onCancel={() => router.push('/admin/hero')}
           />
         )}

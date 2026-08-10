@@ -11,7 +11,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 
 import { ApiError } from '../lib/api';
-import { deleteUpload, filenameFromUploadUrl, uploadImage } from '../services/uploads';
+import { uploadImage } from '../services/uploads';
 
 export type MultiImageUploadProps = {
   /** 메인(커버) 이미지 URL */
@@ -22,6 +22,10 @@ export type MultiImageUploadProps = {
   onCoverChange: (url: string | null) => void;
   /** 이미지 배열 변경 */
   onImagesChange: (urls: string[]) => void;
+  /** 업로드 직후 등록(스테이징 추적) */
+  onUploaded?: (url: string) => void;
+  /** 제거 전 서버 삭제 처리. false면 UI 제거를 취소한다. */
+  onBeforeRemove?: (url: string) => Promise<boolean>;
   /** 비활성화 */
   disabled?: boolean;
   /** 최대 이미지 개수 */
@@ -249,6 +253,8 @@ export function MultiImageUpload({
   images,
   onCoverChange,
   onImagesChange,
+  onUploaded,
+  onBeforeRemove,
   disabled = false,
   maxImages = 10,
 }: MultiImageUploadProps) {
@@ -273,6 +279,7 @@ export function MultiImageUpload({
       try {
         const result = await uploadImage(file);
         const newUrl = result.url;
+        onUploaded?.(newUrl);
 
         // 첫 번째 이미지는 자동으로 커버로 설정
         if (!coverImage && images.length === 0) {
@@ -291,7 +298,7 @@ export function MultiImageUpload({
         setIsUploading(false);
       }
     },
-    [coverImage, images, onCoverChange, onImagesChange],
+    [coverImage, images, onCoverChange, onImagesChange, onUploaded],
   );
 
   const handleSetMain = useCallback(
@@ -303,14 +310,10 @@ export function MultiImageUpload({
 
   const handleRemove = useCallback(
     async (url: string) => {
-      const filename = filenameFromUploadUrl(url);
-      if (filename) {
-        try {
-          await deleteUpload(filename);
-        } catch (err) {
-          if (err instanceof ApiError) {
-            console.error(err.message);
-          }
+      if (onBeforeRemove) {
+        const allowed = await onBeforeRemove(url);
+        if (!allowed) {
+          return;
         }
       }
 
@@ -324,7 +327,7 @@ export function MultiImageUpload({
         onCoverChange(nextCover);
       }
     },
-    [coverImage, images, onCoverChange, onImagesChange],
+    [coverImage, images, onCoverChange, onImagesChange, onBeforeRemove],
   );
 
   return (

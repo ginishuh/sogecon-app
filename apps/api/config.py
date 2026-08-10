@@ -8,8 +8,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _APP_ENV_ALLOWED = frozenset({"dev", "test", "staging", "prod"})
 _JWT_MIN_LEN = 32
-# staging/prod 이미지 업로드 한도 상한 (오타로 보호 해제 방지)
-_IMAGE_MAX_UPLOAD_BYTES_CAP = 50_000_000  # 50MB
+# staging/prod 이미지 업로드 한도 상한 (제품 정책 5MB + multipart overhead는 proxy 담당)
+_IMAGE_MAX_UPLOAD_BYTES_CAP = 5_000_000  # 5MB
 _IMAGE_MAX_PIXELS_CAP = 10_000
 
 

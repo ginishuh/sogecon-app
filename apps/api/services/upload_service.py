@@ -138,18 +138,28 @@ async def delete_post_image(
         return
 
     media_root = Path(settings.media_root)
-    file_path = media_root / asset.path
-    await upload_assets_repo.delete_asset(db, asset)
+    file_path = media_root / str(asset.path)
+    tombstone: Path | None = None
+    if file_path.exists():
+        tombstone = file_path.with_name(
+            f".delete_{secrets.token_hex(8)}_{file_path.name}"
+        )
+        file_path.rename(tombstone)
+
     try:
+        await upload_assets_repo.delete_asset(db, asset)
         await db.commit()
     except SQLAlchemyError:
         await db.rollback()
+        if tombstone is not None and tombstone.exists() and not file_path.exists():
+            tombstone.rename(file_path)
         raise
 
-    try:
-        file_path.unlink()
-    except FileNotFoundError:
-        pass
+    if tombstone is not None:
+        try:
+            tombstone.unlink()
+        except OSError:
+            pass
 
 
 async def upload_member_avatar(
