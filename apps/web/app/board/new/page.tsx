@@ -9,7 +9,7 @@ import { ImageUpload } from '../../../components/image-upload';
 import { useAuth } from '../../../hooks/useAuth';
 import { ApiError } from '../../../lib/api';
 import { getBoardCategoryInfo } from '../../../lib/community';
-import { useUploadLifecycle } from '../../../lib/upload-lifecycle';
+import { useDiscardUploadsOnLeave, useUploadLifecycle } from '../../../lib/upload-lifecycle';
 import { adminPostKeys, postKeys } from '../../../lib/query-keys';
 import { createPost } from '../../../services/posts';
 
@@ -31,6 +31,10 @@ export default function BoardNewPage() {
   const [error, setError] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const uploadLifecycle = useUploadLifecycle([]);
+  useDiscardUploadsOnLeave(
+    uploadLifecycle.discardSession,
+    () => (coverImage ? [coverImage] : []),
+  );
 
   const handleBeforeRemove = useCallback(
     async (url: string) => {

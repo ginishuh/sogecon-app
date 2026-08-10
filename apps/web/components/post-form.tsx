@@ -3,7 +3,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MultiImageUpload } from './multi-image-upload';
 import type { Post } from '../services/posts';
-import { collectImageUrls, useUploadLifecycle } from '../lib/upload-lifecycle';
+import {
+  collectImageUrls,
+  useDiscardUploadsOnLeave,
+  useUploadLifecycle,
+} from '../lib/upload-lifecycle';
 
 export type PostFormData = {
   title: string;
@@ -247,6 +251,10 @@ export function PostForm({
     return collectImageUrls(init.coverImage, init.images);
   }, [initialData]);
   const uploadLifecycle = useUploadLifecycle(initialImageUrls);
+  useDiscardUploadsOnLeave(
+    uploadLifecycle.discardSession,
+    () => collectImageUrls(state.coverImage, state.images),
+  );
 
   const handleBeforeRemove = useCallback(
     async (url: string) => {

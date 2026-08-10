@@ -109,6 +109,39 @@ export function useUploadLifecycle(initialUrls: readonly string[]) {
   };
 }
 
+/** SPA 이탈·새로고침 시 staged 업로드를 best-effort로 정리한다. */
+export function useDiscardUploadsOnLeave(
+  discardSession: (currentUrls: readonly string[]) => Promise<void>,
+  getCurrentUrls: () => readonly string[],
+): void {
+  const discardRef = useRef(discardSession);
+  const getUrlsRef = useRef(getCurrentUrls);
+  discardRef.current = discardSession;
+  getUrlsRef.current = getCurrentUrls;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    const runDiscard = () => {
+      void discardRef.current(getUrlsRef.current());
+    };
+
+    const onPageHide = () => {
+      runDiscard();
+    };
+    window.addEventListener('pagehide', onPageHide);
+
+    return () => {
+      window.removeEventListener('pagehide', onPageHide);
+      timerRef.current = setTimeout(runDiscard, 0);
+    };
+  }, []);
+}
+
 export function collectImageUrls(
   coverImage: string | null,
   images: readonly string[],

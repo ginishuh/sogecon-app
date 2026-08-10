@@ -154,6 +154,7 @@ def test_upload_image_mime_extension_mismatch_rejected(
     assert res.json().get("code") == "invalid_image_extension"
 
 
+@pytest.mark.filterwarnings("ignore::PIL.Image.DecompressionBombWarning")
 def test_upload_image_decode_pixels_exceeded(
     member_login: TestClient,
     media_root: Path,
@@ -516,6 +517,33 @@ def test_delete_image_db_failure_restores_file(
 
     assert path.is_file()
     assert _asset_count() == 1
+
+
+def test_delete_image_unlink_failure_leaves_tombstone(
+    member_login: TestClient, media_root: Path
+) -> None:
+    uploaded = member_login.post("/uploads/images", files=_upload_file())
+    assert uploaded.status_code == HTTPStatus.OK
+    filename = uploaded.json()["filename"]
+    original = media_root / "images" / filename
+    assert original.is_file()
+
+    original_unlink = Path.unlink
+
+    def unlink_tombstone_fails(self: Path, missing_ok: bool = False) -> None:
+        if self.name.startswith(".delete_"):
+            raise OSError("disk full")
+        original_unlink(self, missing_ok=missing_ok)
+
+    with patch.object(Path, "unlink", unlink_tombstone_fails):
+        res = member_login.delete(f"/uploads/images/{filename}")
+
+    assert res.status_code == HTTPStatus.NO_CONTENT
+    assert _asset_count() == 0
+    assert not original.exists()
+    tombstones = list((media_root / "images").glob(f".delete_*_{filename}"))
+    assert len(tombstones) == 1
+    assert tombstones[0].is_file()
 
 
 @pytest.mark.anyio("asyncio")

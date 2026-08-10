@@ -15,7 +15,11 @@ import { ImageUpload } from './image-upload';
 import { Button } from './ui/button';
 import { FIELD_CONTROL } from './ui/styles';
 import type { CreateHeroItemPayload, HeroItem, HeroTargetType } from '../services/hero';
-import { collectImageUrls, useUploadLifecycle } from '../lib/upload-lifecycle';
+import {
+  collectImageUrls,
+  useDiscardUploadsOnLeave,
+  useUploadLifecycle,
+} from '../lib/upload-lifecycle';
 
 export type HeroItemFormData = {
   target_type: HeroTargetType;
@@ -317,6 +321,10 @@ export function HeroItemForm({
     [initialData],
   );
   const uploadLifecycle = useUploadLifecycle(initialImageUrls);
+  useDiscardUploadsOnLeave(
+    uploadLifecycle.discardSession,
+    () => collectImageUrls(form.image_override, []),
+  );
 
   const handleBeforeRemove = useCallback(
     async (url: string) => {
