@@ -14,6 +14,7 @@ Exit non-zero on violations; print a concise report.
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from collections.abc import Iterable
 from pathlib import Path
@@ -203,6 +204,24 @@ def check_agent_harness() -> list[str]:
     return violations
 
 
+TRACKED_RUNTIME_LOGS = ("api.log",)
+
+
+def check_no_tracked_runtime_logs() -> list[str]:
+    violations: list[str] = []
+    for name in TRACKED_RUNTIME_LOGS:
+        proc = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", name],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode == 0:
+            violations.append(f"{name} must not be tracked in git")
+    return violations
+
+
 def check_workflow_policies() -> list[str]:
     """필수 E2E가 다시 soft-fail로 약화되지 않게 검증한다."""
     if not E2E_WORKFLOW.is_file():
@@ -224,6 +243,7 @@ def check_workflow_policies() -> list[str]:
 
 def main() -> int:
     all_violations = check_agent_harness()
+    all_violations.extend(check_no_tracked_runtime_logs())
     all_violations.extend(check_workflow_policies())
     for path in iter_code_files():
         all_violations.extend(check_banned_comments(path))

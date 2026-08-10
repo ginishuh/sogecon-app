@@ -31,12 +31,19 @@ from typing import Final
 
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from apps.api import models
-from apps.api.db import SessionLocal
+from apps.api.config import get_settings
 
 PREFIX: Final = "enc:v1:"
+
+
+def _open_sync_session() -> Session:
+    engine = create_engine(get_settings().database_url, pool_pre_ping=True)
+    factory = sessionmaker(bind=engine)
+    return factory()
 
 
 @dataclass
@@ -86,6 +93,46 @@ def _dec_with(key: bytes, ciphertext: str) -> str:
 
 def _hash_endpoint(endpoint_plain: str) -> str:
     return hashlib.sha256(endpoint_plain.encode()).hexdigest()
+
+
+def verify_new_key_only(db: Session, new_key: bytes) -> tuple[int, int]:
+    """모든 암호화 row를 new KEK만으로 검증한다. (checked, failed) 반환."""
+    checked = 0
+    failed = 0
+    rows = db.query(models.PushSubscription).order_by(
+        models.PushSubscription.id.asc()
+    )
+    for row in rows:
+        checked += 1
+        try:
+            if not _is_encrypted(str(row.endpoint)):
+                failed += 1
+                continue
+            ep_pt = _dec_with(new_key, str(row.endpoint))
+            k_pt = _dec_with(new_key, str(row.p256dh))
+            a_pt = _dec_with(new_key, str(row.auth))
+        except (InvalidTag, RuntimeError):
+            failed += 1
+            continue
+        if _hash_endpoint(ep_pt) != str(row.endpoint_hash):
+            failed += 1
+            continue
+        if not ep_pt or not k_pt or not a_pt:
+            failed += 1
+    return checked, failed
+
+
+def _decode_single_key(name: str) -> bytes:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        raise RuntimeError(f"환경변수 {name} 가 비어있습니다")
+    try:
+        decoded = base64.b64decode(raw)
+    except (binascii.Error, ValueError) as exc:
+        raise RuntimeError(f"{name} base64 디코드 실패") from exc
+    if len(decoded) not in (16, 24, 32):
+        raise RuntimeError(f"{name} 길이가 AES 키 길이가 아닙니다")
+    return decoded
 
 
 def rekey_once(
@@ -142,13 +189,33 @@ def main() -> None:
         description="Re-key push_subscriptions to a new KEK"
     )
     p.add_argument(
+        "--verify-new-only",
+        action="store_true",
+        help="REKEY_NEW_PUSH_KEK 또는 PUSH_KEK만으로 전체 row 복호화·hash 검증",
+    )
+    p.add_argument(
         "--dry-run", action="store_true", help="DB 갱신 없이 스캔/비교만 수행"
     )
     p.add_argument("--limit", type=int, default=None, help="처리 행 수 제한(기본 전체)")
     args = p.parse_args()
 
+    if args.verify_new_only:
+        key_name = (
+            "REKEY_NEW_PUSH_KEK"
+            if os.environ.get("REKEY_NEW_PUSH_KEK", "").strip()
+            else "PUSH_KEK"
+        )
+        new_key = _decode_single_key(key_name)
+        with _open_sync_session() as db:
+            checked, failed = verify_new_key_only(db, new_key)
+        status = "PASS" if failed == 0 else "FAIL"
+        print(f"checked={checked} failed={failed} status={status}")
+        if status != "PASS":
+            raise SystemExit(1)
+        return
+
     keys = _require_keys_from_env()
-    with SessionLocal() as db:
+    with _open_sync_session() as db:
         scanned, updated = rekey_once(db, keys, dry_run=args.dry_run, limit=args.limit)
         print(f"scanned={scanned} updated={updated} dry_run={args.dry_run}")
 

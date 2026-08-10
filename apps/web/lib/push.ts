@@ -50,6 +50,45 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   return outputArray;
 }
 
+function bytesEqual(left: Uint8Array, right: Uint8Array): boolean {
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i += 1) {
+    if (left[i] !== right[i]) return false;
+  }
+  return true;
+}
+
+export function subscriptionMatchesVapidKey(
+  sub: PushSubscription,
+  vapidPublicKey: string,
+): boolean {
+  const expected = urlBase64ToUint8Array(vapidPublicKey);
+  const actual = sub.options?.applicationServerKey;
+  if (!actual) return false;
+  const actualBytes =
+    actual instanceof Uint8Array ? actual : new Uint8Array(actual);
+  return bytesEqual(actualBytes, expected);
+}
+
+export async function getCurrentSubscription(): Promise<PushSubscription | null> {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
+  if (!isServiceWorkerEnabled()) return null;
+
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) return null;
+  return await reg.pushManager.getSubscription();
+}
+
+export async function clearStaleVapidSubscription(
+  vapidPublicKey: string,
+): Promise<boolean> {
+  const current = await getCurrentSubscription();
+  if (!current) return false;
+  if (subscriptionMatchesVapidKey(current, vapidPublicKey)) return false;
+  await current.unsubscribe().catch(() => false);
+  return true;
+}
+
 export async function ensureServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
   if (!isServiceWorkerEnabled()) return null;
@@ -63,15 +102,6 @@ export async function ensureServiceWorker(): Promise<ServiceWorkerRegistration |
     console.info('Service worker registration failed', error);
     return null;
   }
-}
-
-export async function getCurrentSubscription(): Promise<PushSubscription | null> {
-  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
-  if (!isServiceWorkerEnabled()) return null;
-
-  const reg = await navigator.serviceWorker.getRegistration();
-  if (!reg) return null;
-  return await reg.pushManager.getSubscription();
 }
 
 export async function subscribePushWithReason(vapidPublicKey: string): Promise<SubscribeAttemptResult> {
