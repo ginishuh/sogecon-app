@@ -2,3 +2,6 @@
 # payload.password가 generic-api-key로 오탐됨
 5a2f17d3656567c5870bbe762d19c695b9a03c07:apps/api/routers/auth.py:generic-api-key:82
 5a2f17d3656567c5870bbe762d19c695b9a03c07:apps/api/routers/auth.py:generic-api-key:90
+# secret_exposure 회귀 테스트 fixture (이미 머지된 커밋 이력)
+7c0b65e6f54a8247b23f33d29e1b3e59753d1441:tests/ops/test_secret_exposure.py:generic-api-key:40
+7c0b65e6f54a8247b23f33d29e1b3e59753d1441:tests/ops/test_secret_exposure.py:generic-api-key:63

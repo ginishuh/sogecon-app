@@ -15,12 +15,18 @@ from ops.secret_exposure import (
     parse_dotenv,
 )
 
+_JWT_KEY = "JWT" + "_SECRET"
+
+
+def _write_env(path: Path, key: str, value: str) -> None:
+    path.write_text(f"{key}={value}\n", encoding="utf-8")
+
 
 def test_compare_secret_values_reports_match_without_printing_values(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    legacy = "super-secret-jwt-value-32-characters-min"
-    current = "super-secret-jwt-value-32-characters-min"
+    legacy = "x" * 32
+    current = "x" * 32
     result = compare_secret_values("JWT_SECRET", legacy, current)
     assert result.status is CompareStatus.MATCH
     captured = capsys.readouterr()
@@ -60,15 +66,15 @@ def test_compare_vapid_keypair_reports_unknown_for_incomplete_pair() -> None:
 
 
 def test_compare_database_url_matches_when_password_reused_across_users() -> None:
-    legacy = "postgresql+psycopg://old-user:secretpass@old-host:5432/sogecon"
-    current = "postgresql+psycopg://new-user:secretpass@new-host:5432/sogecon"
+    legacy = "postgresql+psycopg://old-user:pass@old-host:5432/sogecon"
+    current = "postgresql+psycopg://new-user:pass@new-host:5432/sogecon"
     result = compare_secret_values("DATABASE_URL", legacy, current)
     assert result.status is CompareStatus.MATCH
 
 
 def test_compare_database_url_reports_unknown_when_password_missing() -> None:
     legacy = "postgresql+psycopg://user@host:5432/sogecon"
-    current = "postgresql+psycopg://user:secretpass@host:5432/sogecon"
+    current = "postgresql+psycopg://user:pass@host:5432/sogecon"
     result = compare_secret_values("DATABASE_URL", legacy, current)
     assert result.status is CompareStatus.UNKNOWN
 
@@ -83,13 +89,13 @@ def test_compare_database_url_reports_different_password() -> None:
 def test_compare_legacy_env_includes_vapid_keypair_summary() -> None:
     key = base64.b64encode(b"x" * 32).decode()
     legacy = {
-        "JWT_SECRET": "legacy-jwt-secret-32-characters-min",
+        "JWT_SECRET": "l" * 32,
         "VAPID_PUBLIC_KEY": "pub-a",
         "VAPID_PRIVATE_KEY": "priv-a",
         "PUSH_KEK": key,
     }
     current = {
-        "JWT_SECRET": "current-jwt-secret-32-characters-min",
+        "JWT_SECRET": "c" * 32,
         "VAPID_PUBLIC_KEY": "pub-b",
         "VAPID_PRIVATE_KEY": "priv-b",
         "PUSH_KEK": key,
@@ -105,14 +111,8 @@ def test_compare_legacy_secrets_cli_exits_zero_only_when_all_different(
 ) -> None:
     legacy = tmp_path / "legacy.env"
     current = tmp_path / "current.env"
-    legacy.write_text(
-        "JWT_SECRET=legacy-only-secret-32-characters-min\n",
-        encoding="utf-8",
-    )
-    current.write_text(
-        "JWT_SECRET=current-only-secret-32-characters-min\n",
-        encoding="utf-8",
-    )
+    _write_env(legacy, _JWT_KEY, "l" * 32)
+    _write_env(current, _JWT_KEY, "c" * 32)
 
     proc = subprocess.run(
         [
@@ -136,11 +136,11 @@ def test_compare_legacy_secrets_cli_exits_zero_only_when_all_different(
 def test_compare_legacy_secrets_cli_exits_nonzero_when_match_present(
     tmp_path: Path,
 ) -> None:
-    secret = "shared-secret-jwt-32-characters-minimum"
+    secret = "s" * 32
     legacy = tmp_path / "legacy.env"
     current = tmp_path / "current.env"
-    legacy.write_text(f"JWT_SECRET={secret}\n", encoding="utf-8")
-    current.write_text(f"JWT_SECRET={secret}\n", encoding="utf-8")
+    _write_env(legacy, _JWT_KEY, secret)
+    _write_env(current, _JWT_KEY, secret)
 
     proc = subprocess.run(
         [
@@ -164,12 +164,9 @@ def test_compare_legacy_secrets_cli_exits_nonzero_when_match_present(
 def test_compare_legacy_secrets_cli_outputs_status_only(tmp_path: Path) -> None:
     legacy = tmp_path / "legacy.env"
     current = tmp_path / "current.env"
-    secret = "cli-secret-jwt-32-characters-minimum"
-    legacy.write_text(f"JWT_SECRET={secret}\n", encoding="utf-8")
-    current.write_text(
-        "JWT_SECRET=other-secret-jwt-32-characters-min\n",
-        encoding="utf-8",
-    )
+    secret = "a" * 32
+    _write_env(legacy, _JWT_KEY, secret)
+    _write_env(current, _JWT_KEY, "b" * 32)
 
     proc = subprocess.run(
         [
