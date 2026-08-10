@@ -129,8 +129,19 @@ export default function PostsPage() {
     setCategory(urlCategory);
   }, [urlCategory]);
 
+  const listParams = useMemo(() => {
+    const base = {
+      limit: 20,
+      offset: 0,
+    } as const;
+    if (category === 'all') {
+      return { ...base, categories: ['notice', 'news'] as const };
+    }
+    return { ...base, category };
+  }, [category]);
+
   const query = useQuery<Post[]>({
-    queryKey: postKeys.list('feed', { limit: 20, offset: 0, category }),
+    queryKey: postKeys.list(listParams),
     queryFn: () => {
       if (category === 'all') {
         return listPosts({ limit: 20, categories: ['notice', 'news'] });

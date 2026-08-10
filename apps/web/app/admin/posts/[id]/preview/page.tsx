@@ -7,13 +7,13 @@ import { AdminAuthState } from '../../../../../components/admin-auth-state';
 import { PostDetailContent } from '../../../../../components/post-detail-content';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { ApiError } from '../../../../../lib/api';
-import { postKeys } from '../../../../../lib/query-keys';
+import { adminPostKeys } from '../../../../../lib/query-keys';
 import { hasPermissionSession } from '../../../../../lib/rbac';
 import { getAdminPostPreview } from '../../../../../services/posts';
 
 function PreviewBody({ postId, showAdminActions }: { postId: number; showAdminActions: boolean }) {
   const query = useQuery({
-    queryKey: postKeys.detail(postId),
+    queryKey: adminPostKeys.preview(postId),
     queryFn: () => getAdminPostPreview(postId),
     enabled: Number.isFinite(postId),
     retry: false,

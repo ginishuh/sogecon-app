@@ -29,7 +29,7 @@ function formatDate(dateStr: string): string {
 
 export function HomeNoticeList() {
   const { data: posts, isLoading, isError } = useQuery<Post[]>({
-    queryKey: postKeys.list('home', { category: 'notice', limit: 5 }),
+    queryKey: postKeys.list({ category: 'notice', limit: 5 }),
     queryFn: () => listPosts({ category: 'notice', limit: 5 })
   });
 

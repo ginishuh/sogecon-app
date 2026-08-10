@@ -202,14 +202,14 @@ function NewsColumn({ query }: { query: ReturnType<typeof useNewsQuery> }) {
 
 function useNoticeQuery() {
   return useQuery<Post[]>({
-    queryKey: postKeys.list('home', { category: 'notice', limit: NOTICE_LIMIT }),
+    queryKey: postKeys.list({ category: 'notice', limit: NOTICE_LIMIT }),
     queryFn: () => listPosts({ category: 'notice', limit: NOTICE_LIMIT }),
   });
 }
 
 function useNewsQuery() {
   return useQuery<Post[]>({
-    queryKey: postKeys.list('home', { category: 'news', limit: NEWS_LIMIT }),
+    queryKey: postKeys.list({ category: 'news', limit: NEWS_LIMIT }),
     queryFn: () => listPosts({ category: 'news', limit: NEWS_LIMIT }),
   });
 }
