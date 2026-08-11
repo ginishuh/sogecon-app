@@ -26,6 +26,8 @@ type PostFormProps = {
   isPending?: boolean;
   error?: string | null;
   onSubmit: (data: PostFormData) => void | Promise<void>;
+  /** mutation + attached 이미지 lifecycle 완료 후 toast/navigation 등 */
+  onLifecycleCommitted?: () => void | Promise<void>;
   onCancel?: () => void;
   /** 관리자 전용 옵션 숨김 (카테고리, 공개 상태, 상단 고정) - 일반 사용자 수정 시 */
   hideAdminOptions?: boolean;
@@ -239,6 +241,7 @@ export function PostForm({
   isPending = false,
   error = null,
   onSubmit,
+  onLifecycleCommitted,
   onCancel,
   hideAdminOptions = false,
   hideCategory = false,
@@ -286,10 +289,11 @@ export function PostForm({
       }
       uploadLifecycle.finalizeSuccessfulSubmit();
       setImageError(null);
+      await Promise.resolve(onLifecycleCommitted?.());
     } catch {
       // mutation error는 상위 error prop으로 표시
     }
-  }, [onSubmit, state, uploadLifecycle]);
+  }, [onLifecycleCommitted, onSubmit, state, uploadLifecycle]);
 
   const handleCancel = useCallback(async () => {
     await uploadLifecycle.discardSession(

@@ -11,6 +11,7 @@ from ..post_visibility import is_post_public, post_public_href
 from ..repositories import events as events_repo
 from ..repositories import hero_items as hero_items_repo
 from ..repositories import posts as posts_repo
+from . import upload_service
 
 
 async def _get_posts_by_ids(
@@ -169,7 +170,22 @@ async def update_admin_hero_item(
     )
     if payload.target_type is not None or payload.target_id is not None:
         await _ensure_target_exists(db, target_type=next_type, target_id=next_id)
-    return await hero_items_repo.update_hero_item(db, hero_item_id, payload)
+    old_paths = upload_service.collect_managed_image_paths(
+        image_override=cast(str | None, current.image_override),
+    )
+    new_override = (
+        payload.image_override
+        if "image_override" in payload.model_fields_set
+        else cast(str | None, current.image_override)
+    )
+    new_paths = upload_service.collect_managed_image_paths(
+        image_override=new_override,
+    )
+    item = await hero_items_repo.update_hero_item(db, hero_item_id, payload)
+    await upload_service.cleanup_removed_image_paths(
+        db, old_paths=old_paths, new_paths=new_paths
+    )
+    return item
 
 
 async def delete_admin_hero_item(db: AsyncSession, hero_item_id: int) -> int:

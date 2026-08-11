@@ -143,12 +143,14 @@ describe('PostForm upload lifecycle', () => {
     expect(deleteUpload).not.toHaveBeenCalled();
   });
 
-  it('remove then successful update deletes attached image', async () => {
+  it('remove then successful update does not client-delete attached image', async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const onLifecycleCommitted = vi.fn();
     render(
       <PostForm
         initialData={samplePost()}
         onSubmit={onSubmit}
+        onLifecycleCommitted={onLifecycleCommitted}
         onCancel={vi.fn()}
       />,
     );
@@ -160,7 +162,31 @@ describe('PostForm upload lifecycle', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '저장' }));
     await waitFor(() => {
-      expect(deleteUpload).toHaveBeenCalledWith('attached.jpg');
+      expect(onSubmit).toHaveBeenCalled();
+      expect(onLifecycleCommitted).toHaveBeenCalled();
+    });
+    expect(deleteUpload).not.toHaveBeenCalled();
+  });
+
+  it('calls onLifecycleCommitted after onSubmit resolves', async () => {
+    const order: string[] = [];
+    const onSubmit = vi.fn(async () => {
+      order.push('submit');
+    });
+    const onLifecycleCommitted = vi.fn(() => {
+      order.push('committed');
+    });
+    render(
+      <PostForm
+        initialData={samplePost({ content: '본문' })}
+        onSubmit={onSubmit}
+        onLifecycleCommitted={onLifecycleCommitted}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+    await waitFor(() => {
+      expect(order).toEqual(['submit', 'committed']);
     });
   });
 

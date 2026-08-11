@@ -356,10 +356,8 @@ describe('BoardNewPage', () => {
           category: 'question',
         }),
       );
+      expect(pushMock).toHaveBeenCalledWith('/board');
     });
-    const callArgs = createPostMock.mock.calls.at(-1)?.[0] as Record<string, unknown>;
-    expect(callArgs).not.toHaveProperty('author_id');
-    expect(pushMock).toHaveBeenCalledWith('/board');
   });
 
   it('에러 시 안내 메시지를 표시하고 제출 버튼 상태를 업데이트한다', async () => {

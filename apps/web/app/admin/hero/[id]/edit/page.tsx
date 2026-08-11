@@ -38,12 +38,6 @@ export default function AdminHeroEditPage() {
   const mutation = useMutation({
     mutationFn: (payload: CreateHeroItemPayload) =>
       updateAdminHeroItem(heroItemId, payload),
-    onSuccess: () => {
-      show('배너가 수정되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: ['admin-hero'] });
-      void queryClient.invalidateQueries({ queryKey: ['admin-hero-item', heroItemId] });
-      router.push('/admin/hero');
-    },
     onError: (e: unknown) => {
       if (e instanceof ApiError) {
         show(apiErrorToMessage(e.code, e.message), { type: 'error' });
@@ -87,6 +81,12 @@ export default function AdminHeroEditPage() {
             error={mutation.error ? '수정 중 오류가 발생했습니다.' : null}
             onSubmit={async (payload) => {
               await mutation.mutateAsync(payload);
+            }}
+            onLifecycleCommitted={() => {
+              show('배너가 수정되었습니다.', { type: 'success' });
+              void queryClient.invalidateQueries({ queryKey: ['admin-hero'] });
+              void queryClient.invalidateQueries({ queryKey: ['admin-hero-item', heroItemId] });
+              router.push('/admin/hero');
             }}
             onCancel={() => router.push('/admin/hero')}
           />

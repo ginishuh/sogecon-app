@@ -11,6 +11,7 @@ from ..post_owner_schemas import PostOwnerUpdate
 from ..post_visibility import BOARD_POST_CATEGORIES
 from ..repositories import members as members_repo
 from ..repositories import posts as posts_repo
+from . import upload_service
 
 
 def _require_board_category(category: str) -> str:
@@ -106,8 +107,8 @@ async def update_admin_post(
     payload: schemas.PostUpdate,
 ) -> models.Post:
     """관리자가 게시물을 수정할 때 사용."""
+    current = await posts_repo.get_post(db, post_id)
     if "category" in payload.model_fields_set:
-        current = await posts_repo.get_post(db, post_id)
         current_is_board = current.category in BOARD_POST_CATEGORIES
         next_is_board = payload.category in BOARD_POST_CATEGORIES
         if current_is_board != next_is_board:
@@ -119,7 +120,29 @@ async def update_admin_post(
                 ),
                 status=422,
             )
-    return await posts_repo.update_post(db, post_id, payload)
+    old_paths = upload_service.collect_managed_image_paths(
+        cover_image=cast(str | None, current.cover_image),
+        images=cast(list[str] | None, current.images),
+    )
+    new_cover = (
+        payload.cover_image
+        if "cover_image" in payload.model_fields_set
+        else cast(str | None, current.cover_image)
+    )
+    new_images = (
+        payload.images
+        if "images" in payload.model_fields_set
+        else cast(list[str] | None, current.images)
+    )
+    new_paths = upload_service.collect_managed_image_paths(
+        cover_image=new_cover,
+        images=new_images,
+    )
+    post = await posts_repo.update_post(db, post_id, payload)
+    await upload_service.cleanup_removed_image_paths(
+        db, old_paths=old_paths, new_paths=new_paths
+    )
+    return post
 
 
 def _require_member_board_owner(post: models.Post, member_id: int) -> None:
@@ -146,7 +169,29 @@ async def update_member_post(
     admin_payload = schemas.PostUpdate(
         **payload.model_dump(exclude_unset=True),
     )
-    return await posts_repo.update_post(db, post_id, admin_payload)
+    old_paths = upload_service.collect_managed_image_paths(
+        cover_image=cast(str | None, post.cover_image),
+        images=cast(list[str] | None, post.images),
+    )
+    new_cover = (
+        admin_payload.cover_image
+        if "cover_image" in admin_payload.model_fields_set
+        else cast(str | None, post.cover_image)
+    )
+    new_images = (
+        admin_payload.images
+        if "images" in admin_payload.model_fields_set
+        else cast(list[str] | None, post.images)
+    )
+    new_paths = upload_service.collect_managed_image_paths(
+        cover_image=new_cover,
+        images=new_images,
+    )
+    updated = await posts_repo.update_post(db, post_id, admin_payload)
+    await upload_service.cleanup_removed_image_paths(
+        db, old_paths=old_paths, new_paths=new_paths
+    )
+    return updated
 
 
 async def delete_member_post(

@@ -38,6 +38,8 @@ type HeroItemFormProps = {
   isPending?: boolean;
   error?: string | null;
   onSubmit: (payload: CreateHeroItemPayload) => void | Promise<void>;
+  /** mutation + attached 이미지 lifecycle 완료 후 toast/navigation 등 */
+  onLifecycleCommitted?: () => void | Promise<void>;
   onCancel?: () => void;
 };
 
@@ -101,6 +103,7 @@ type HeroSubmitContext = {
   canSubmit: boolean;
   form: HeroItemFormData;
   onSubmit: (payload: CreateHeroItemPayload) => void | Promise<void>;
+  onLifecycleCommitted?: () => void | Promise<void>;
   uploadLifecycle: ReturnType<typeof useUploadLifecycle>;
   setImageError: (error: string | null) => void;
 };
@@ -111,6 +114,7 @@ async function handleHeroFormSubmit(
     canSubmit,
     form,
     onSubmit,
+    onLifecycleCommitted,
     uploadLifecycle,
     setImageError,
   }: HeroSubmitContext,
@@ -126,6 +130,7 @@ async function handleHeroFormSubmit(
     }
     uploadLifecycle.finalizeSuccessfulSubmit();
     setImageError(null);
+    await Promise.resolve(onLifecycleCommitted?.());
   } catch {
     // 상위 mutation error prop으로 표시
   }
@@ -311,6 +316,7 @@ export function HeroItemForm({
   isPending = false,
   error = null,
   onSubmit,
+  onLifecycleCommitted,
   onCancel,
 }: HeroItemFormProps) {
   const [form, setForm] = useState<HeroItemFormData>(() => toInitial(initialData));
@@ -377,6 +383,7 @@ export function HeroItemForm({
           canSubmit,
           form,
           onSubmit,
+          onLifecycleCommitted,
           uploadLifecycle,
           setImageError,
         });

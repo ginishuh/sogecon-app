@@ -34,12 +34,6 @@ export default function AdminNewPostPage() {
 
   const mutation = useMutation({
     mutationFn: (data: PostFormData) => createPost(toCreatePayload(data)),
-    onSuccess: () => {
-      show('게시물이 생성되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
-      void queryClient.invalidateQueries({ queryKey: postKeys.all });
-      router.push('/admin/posts');
-    },
     onError: (e: unknown) => {
       if (e instanceof ApiError) {
         show(apiErrorToMessage(e.code, e.message), { type: 'error' });
@@ -76,6 +70,12 @@ export default function AdminNewPostPage() {
           error={mutation.error ? '생성 중 오류가 발생했습니다.' : null}
           onSubmit={async (data) => {
             await mutation.mutateAsync(data);
+          }}
+          onLifecycleCommitted={() => {
+            show('게시물이 생성되었습니다.', { type: 'success' });
+            void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
+            void queryClient.invalidateQueries({ queryKey: postKeys.all });
+            router.push('/admin/posts');
           }}
           onCancel={() => router.push('/admin/posts')}
         />

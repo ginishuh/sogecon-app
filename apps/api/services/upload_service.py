@@ -15,6 +15,8 @@ from .. import models
 from ..bounded_reader import read_bounded_upload
 from ..config import get_settings
 from ..errors import ApiError
+from ..media_utils import normalize_media_path
+from ..models_upload import UploadAsset
 from ..repositories import members as members_repo
 from ..repositories import upload_assets as upload_assets_repo
 from . import image_pipeline
@@ -122,21 +124,31 @@ async def upload_post_image(
     return url, new_filename
 
 
-async def delete_post_image(
-    db: AsyncSession,
+def collect_managed_image_paths(
     *,
-    member_id: int,
-    filename: str,
-) -> None:
-    """Delete an owned post image. Idempotent when already removed."""
-    _validate_image_filename(filename)
-    settings = get_settings()
-    asset = await upload_assets_repo.get_image_asset_by_filename(
-        db, member_id=member_id, filename=filename
-    )
-    if asset is None:
-        return
+    cover_image: str | None = None,
+    images: list[str] | None = None,
+    image_override: str | None = None,
+) -> set[str]:
+    """Return managed upload paths (images/{safe_filename}) from media fields."""
+    paths: set[str] = set()
+    values: list[str | None] = [cover_image, image_override]
+    if images:
+        values.extend(images)
+    for value in values:
+        if not value:
+            continue
+        relative_path = normalize_media_path(value)
+        if relative_path is None or not relative_path.startswith("images/"):
+            continue
+        filename = relative_path.rsplit("/", 1)[-1]
+        if _SAFE_IMAGE_FILENAME.match(filename):
+            paths.add(relative_path)
+    return paths
 
+
+async def _delete_image_asset(db: AsyncSession, asset: UploadAsset) -> None:
+    settings = get_settings()
     media_root = Path(settings.media_root)
     file_path = media_root / str(asset.path)
     tombstone: Path | None = None
@@ -160,6 +172,46 @@ async def delete_post_image(
             tombstone.unlink()
         except OSError:
             pass
+
+
+async def delete_image_asset_by_path(
+    db: AsyncSession,
+    *,
+    relative_path: str,
+) -> None:
+    """Delete a managed upload asset by storage path (resource lifecycle authority)."""
+    asset = await upload_assets_repo.get_image_asset_by_path(
+        db, relative_path=relative_path
+    )
+    if asset is None:
+        return
+    await _delete_image_asset(db, asset)
+
+
+async def cleanup_removed_image_paths(
+    db: AsyncSession,
+    *,
+    old_paths: set[str],
+    new_paths: set[str],
+) -> None:
+    for relative_path in old_paths - new_paths:
+        await delete_image_asset_by_path(db, relative_path=relative_path)
+
+
+async def delete_post_image(
+    db: AsyncSession,
+    *,
+    member_id: int,
+    filename: str,
+) -> None:
+    """Delete an owned post image. Idempotent when already removed."""
+    _validate_image_filename(filename)
+    asset = await upload_assets_repo.get_image_asset_by_filename(
+        db, member_id=member_id, filename=filename
+    )
+    if asset is None:
+        return
+    await _delete_image_asset(db, asset)
 
 
 async def upload_member_avatar(

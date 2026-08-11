@@ -64,15 +64,7 @@ export function useUploadLifecycle(initialUrls: readonly string[]) {
   }, []);
 
   const commitPendingDeletes = useCallback(async (): Promise<UploadRemoveResult> => {
-    for (const url of [...pendingDeleteRef.current]) {
-      try {
-        await deleteUploadUrl(url);
-        pendingDeleteRef.current.delete(url);
-        initialRef.current.delete(url);
-      } catch (err) {
-        return { ok: false, error: toErrorMessage(err) };
-      }
-    }
+    pendingDeleteRef.current.clear();
     return { ok: true };
   }, []);
 

@@ -57,14 +57,6 @@ export default function BoardNewPage() {
         category,
         cover_image: coverImage,
       }),
-    onSuccess: () => {
-      setError(null);
-      setImageError(null);
-      uploadLifecycle.finalizeSuccessfulSubmit();
-      void queryClient.invalidateQueries({ queryKey: postKeys.all });
-      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
-      router.push('/board');
-    },
     onError: (err: unknown) => {
       if (err instanceof ApiError) {
         if (err.status === 401 || err.status === 403) {
@@ -80,6 +72,22 @@ export default function BoardNewPage() {
 
   const isSubmitting = mutate.isPending;
   const isDisabled = isSubmitting || !title.trim() || !content.trim();
+
+  const handleSubmit = useCallback(async () => {
+    if (isSubmitting || !title.trim() || !content.trim()) return;
+    try {
+      await mutate.mutateAsync();
+      uploadLifecycle.finalizeSuccessfulSubmit();
+      setError(null);
+      setImageError(null);
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
+      router.push('/board');
+    } catch {
+      // onError에서 처리
+    }
+  }, [content, isSubmitting, mutate, queryClient, router, title, uploadLifecycle]);
+
   const categoryInfo = getBoardCategoryInfo(category);
 
   if (status === 'loading') {
@@ -130,8 +138,7 @@ export default function BoardNewPage() {
         className="space-y-4"
         onSubmit={(event) => {
           event.preventDefault();
-          if (isDisabled) return;
-          mutate.mutate();
+          void handleSubmit();
         }}
       >
         <label className="block text-sm text-text-secondary">

@@ -546,6 +546,38 @@ def test_delete_image_unlink_failure_leaves_tombstone(
     assert tombstones[0].is_file()
 
 
+def test_admin_update_removes_author_upload_asset(
+    member_login: TestClient, admin_login: TestClient, media_root: Path
+) -> None:
+    uploaded = member_login.post("/uploads/images", files=_upload_file())
+    assert uploaded.status_code == HTTPStatus.OK
+    body = uploaded.json()
+    url = body["url"]
+    filename = body["filename"]
+
+    created = member_login.post(
+        "/posts/",
+        json={
+            "title": "이미지 글",
+            "content": "본문",
+            "category": "discussion",
+            "cover_image": url,
+        },
+    )
+    assert created.status_code == HTTPStatus.CREATED
+    post_id = created.json()["id"]
+    assert _asset_count() == 1
+
+    updated = admin_login.patch(
+        f"/posts/{post_id}",
+        json={"cover_image": None},
+    )
+    assert updated.status_code == HTTPStatus.OK
+    assert updated.json()["cover_image"] is None
+    assert _asset_count() == 0
+    assert not (media_root / "images" / filename).exists()
+
+
 @pytest.mark.anyio("asyncio")
 async def test_avatar_upload_rate_limit_429(
     member_login: TestClient,

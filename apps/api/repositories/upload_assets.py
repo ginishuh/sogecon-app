@@ -68,5 +68,16 @@ async def get_image_asset_by_filename(
     return result.scalars().first()
 
 
+async def get_image_asset_by_path(
+    db: AsyncSession, *, relative_path: str
+) -> UploadAsset | None:
+    stmt = select(UploadAsset).where(
+        UploadAsset.kind == "image",
+        UploadAsset.path == relative_path,
+    )
+    result = await db.execute(stmt)
+    return result.scalars().first()
+
+
 async def delete_asset(db: AsyncSession, asset: UploadAsset) -> None:
     await db.delete(asset)

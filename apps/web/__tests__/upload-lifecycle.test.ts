@@ -37,7 +37,7 @@ describe('useUploadLifecycle', () => {
     vi.useRealTimers();
   });
 
-  it('defers delete for attached urls until commit', async () => {
+  it('defers server delete for attached urls until resource update', async () => {
     const { result } = renderHook(() => useUploadLifecycle([ATTACHED]));
 
     let allowed = false;
@@ -52,7 +52,7 @@ describe('useUploadLifecycle', () => {
     await act(async () => {
       await result.current.commitPendingDeletes();
     });
-    expect(deleteUpload).toHaveBeenCalledWith('attached.jpg');
+    expect(deleteUpload).not.toHaveBeenCalled();
   });
 
   it('deletes staged urls immediately and blocks remove on failure', async () => {
@@ -96,31 +96,19 @@ describe('useUploadLifecycle', () => {
     expect(deleteUpload).not.toHaveBeenCalled();
   });
 
-  it('commitPendingDeletes reports failure without clearing remaining urls', async () => {
+  it('commitPendingDeletes clears pending state without server delete', async () => {
     const { result } = renderHook(() => useUploadLifecycle([ATTACHED]));
 
     await act(async () => {
       await result.current.removeUpload(ATTACHED);
     });
 
-    vi.mocked(deleteUpload).mockRejectedValueOnce(
-      new ApiError(500, '삭제 실패', 'upload_delete_failed'),
-    );
-
-    let commit: { ok: boolean; error?: string } = { ok: true };
-    await act(async () => {
-      commit = await result.current.commitPendingDeletes();
-    });
-
-    expect(commit.ok).toBe(false);
-    expect(commit.error).toBe('삭제 실패');
-
-    vi.mocked(deleteUpload).mockResolvedValueOnce(undefined);
+    let commit: { ok: boolean; error?: string } = { ok: false };
     await act(async () => {
       commit = await result.current.commitPendingDeletes();
     });
     expect(commit.ok).toBe(true);
-    expect(deleteUpload).toHaveBeenCalledTimes(2);
+    expect(deleteUpload).not.toHaveBeenCalled();
   });
 
   it('discards staged urls after real unmount', async () => {
