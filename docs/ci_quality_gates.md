@@ -89,7 +89,7 @@ git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 | `web` | **eslint**, **vitest 전체**, build, a11y smoke, bundle, pnpm audit |
 | `secrets-scan` | gitleaks |
 | `semgrep` | Semgrep `p/ci` |
-| `e2e` (별도 workflow) | Puppeteer E2E — 실패 시 PR을 차단하는 hard gate |
+| `e2e` (별도 workflow) | Puppeteer E2E — 실패 시 PR을 차단하는 hard gate (실행 authority: `.github/workflows/e2e.yml`, 에이전트 상세: `docs/agent_runbook_e2e.md` §5) |
 | `analyze` (CodeQL) | JS/TS + Python — PR + main + **매주 월요일 07:00 UTC** |
 
 ## main 브랜치 추가 검사
