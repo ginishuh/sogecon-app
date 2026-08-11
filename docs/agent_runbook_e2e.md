@@ -201,7 +201,7 @@ curl -fsS http://localhost:3001/healthz | grep -q '"ok":true'   # API — /healt
 
 1. `pnpm -C apps/web install --frozen-lockfile` (`PNPM_ALLOW_RUN_SCRIPTS: puppeteer`)
 2. Chrome setup (`browser-actions/setup-chrome`)
-3. **Web production build:** `pnpm -C apps/web build`  
+3. **Web production build:** `pnpm -C apps/web build`
    - env: `WEB_BASE_URL=http://127.0.0.1:3000`, `NEXT_PUBLIC_WEB_API_BASE=http://127.0.0.1:3001`, `WEB_BUILD_ALLOW_INSECURE_LOCAL_API=1`
 4. **Mock API** background: `node apps/web/e2e/mock-api-server.mjs` → `:3001`
 5. **Web production start:** `pnpm -C apps/web start` → `:3000`
