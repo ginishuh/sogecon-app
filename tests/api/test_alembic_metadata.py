@@ -2,14 +2,17 @@ import importlib
 
 import sqlalchemy as sa
 
-from apps.api import models, models_support
+from apps.api import models, models_support, models_upload
 
 
 def test_support_ticket_table_is_registered_for_alembic() -> None:
     assert models_support.SupportTicket.__table__ is models.Base.metadata.tables[
         "support_tickets"
     ]
-    assert {"members", "posts", "events", "support_tickets"} <= set(
+    assert models_upload.UploadAsset.__table__ is models.Base.metadata.tables[
+        "upload_assets"
+    ]
+    assert {"members", "posts", "events", "support_tickets", "upload_assets"} <= set(
         models.Base.metadata.tables
     )
 

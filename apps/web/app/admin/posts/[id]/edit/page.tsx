@@ -50,12 +50,6 @@ export default function EditPostPage() {
 
   const mutation = useMutation({
     mutationFn: (data: PostFormData) => updatePost(postId, buildPostUpdatePayload(data, post, true)),
-    onSuccess: () => {
-      show('게시물이 수정되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: postKeys.all });
-      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
-      router.push('/admin/posts');
-    },
     onError: (e: unknown) => {
       if (e instanceof ApiError) {
         show(apiErrorToMessage(e.code, e.message), { type: 'error' });
@@ -119,7 +113,15 @@ export default function EditPostPage() {
               error={mutation.error ? '수정 중 오류가 발생했습니다.' : null}
               hideCategory={isBoardCategory(post.category) || post.category === 'hero'}
               hidePublication={isBoardCategory(post.category)}
-              onSubmit={(data) => mutation.mutate(data)}
+              onSubmit={async (data) => {
+                await mutation.mutateAsync(data);
+              }}
+              onLifecycleCommitted={() => {
+                show('게시물이 수정되었습니다.', { type: 'success' });
+                void queryClient.invalidateQueries({ queryKey: postKeys.all });
+                void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
+                router.push('/admin/posts');
+              }}
               onCancel={() => router.push('/admin/posts')}
             />
           </>

@@ -19,8 +19,12 @@ from apps.api.config import reset_settings_cache
 from apps.api.db import get_db
 from apps.api.main import app
 from apps.api.routers.notifications import limiter_notifications
+from apps.api.routers.profile import limiter_ip as limiter_avatar_ip
+from apps.api.routers.profile import limiter_member as limiter_avatar_member
 from apps.api.routers.support import limiter as limiter_support
 from apps.api.routers.support import reset_cooldown_cache_for_tests
+from apps.api.routers.uploads import limiter_ip as limiter_upload_ip
+from apps.api.routers.uploads import limiter_member as limiter_upload_member
 from apps.api.services.auth_service import limiter_login
 
 
@@ -44,6 +48,10 @@ def reset_rate_limiters() -> Generator[None, None, None]:
         limiter_login,
         limiter_notifications,
         limiter_support,
+        limiter_upload_ip,
+        limiter_upload_member,
+        limiter_avatar_ip,
+        limiter_avatar_member,
     ]
     for limiter in limiters:
         if limiter is not None:

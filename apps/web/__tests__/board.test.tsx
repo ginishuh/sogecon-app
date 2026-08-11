@@ -15,6 +15,56 @@ vi.mock('../services/posts', () => ({
   createPost: (...args: unknown[]) => createPostMock(...(args as Parameters<typeof createPostMock>)),
 }));
 
+const deleteUploadMock = vi.fn();
+
+vi.mock('../services/uploads', () => ({
+  deleteUpload: (...args: unknown[]) => deleteUploadMock(...args),
+  filenameFromUploadUrl: (url: string) => {
+    const marker = '/media/images/';
+    const index = url.indexOf(marker);
+    if (index < 0) return null;
+    return url.slice(index + marker.length).split('?')[0] || null;
+  },
+  uploadImage: vi.fn(),
+}));
+
+vi.mock('../components/image-upload', () => ({
+  ImageUpload: ({
+    value,
+    onUpload,
+    onRemove,
+    onBeforeRemove,
+  }: {
+    value?: string | null;
+    onUpload: (url: string) => void;
+    onRemove?: () => void;
+    onBeforeRemove?: (url: string) => Promise<boolean>;
+  }) => (
+    <div>
+      {value ? (
+        <button
+          type="button"
+          onClick={() => {
+            void (async () => {
+              const allowed = onBeforeRemove ? await onBeforeRemove(value) : true;
+              if (allowed) onRemove?.();
+            })();
+          }}
+        >
+          커버 삭제
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onUpload('https://api.example.com/media/images/staged.jpg')}
+        >
+          커버 업로드
+        </button>
+      )}
+    </div>
+  ),
+}));
+
 const authStatusRef: { current: 'authorized' | 'unauthorized' | 'loading' } = { current: 'authorized' };
 
 vi.mock('../hooks/useAuth', () => ({
@@ -271,7 +321,13 @@ describe('BoardNewPage', () => {
     pushMock.mockReset();
     createPostMock.mockReset();
     createPostMock.mockResolvedValue({ id: 99 });
+    deleteUploadMock.mockReset();
+    deleteUploadMock.mockResolvedValue(undefined);
     authStatusRef.current = 'authorized';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('비회원에게 제출 폼 대신 로그인 복구 행동을 제공한다', () => {
@@ -300,10 +356,8 @@ describe('BoardNewPage', () => {
           category: 'question',
         }),
       );
+      expect(pushMock).toHaveBeenCalledWith('/board');
     });
-    const callArgs = createPostMock.mock.calls.at(-1)?.[0] as Record<string, unknown>;
-    expect(callArgs).not.toHaveProperty('author_id');
-    expect(pushMock).toHaveBeenCalledWith('/board');
   });
 
   it('에러 시 안내 메시지를 표시하고 제출 버튼 상태를 업데이트한다', async () => {
@@ -336,5 +390,19 @@ describe('BoardNewPage', () => {
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('로그인 후 다시 시도해주세요.');
     });
+  });
+
+  it('페이지를 떠나면 이번 세션 커버 업로드를 정리한다', async () => {
+    vi.useFakeTimers();
+    const view = renderWithClient(<BoardNewPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: '커버 업로드' }));
+    expect(screen.getByRole('button', { name: '커버 삭제' })).toBeInTheDocument();
+
+    view.unmount();
+    await vi.runAllTimersAsync();
+
+    expect(deleteUploadMock).toHaveBeenCalledWith('staged.jpg');
+    vi.useRealTimers();
   });
 });

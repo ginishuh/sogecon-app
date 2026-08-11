@@ -211,6 +211,7 @@ async def create_post(
                 db,
                 payload,
                 admin_student_id=admin.student_id,
+                actor_member_id=admin.id,
             )
         else:
             # admin 등급은 게시물 관리 권한을 자동 상속하지 않는다. 다만
@@ -222,15 +223,23 @@ async def create_post(
     return schemas.PostRead.model_validate(post)
 
 
+def _actor_member_id(user: CurrentUser) -> int:
+    if user.id is None:
+        raise HTTPException(status_code=500, detail="member_id_missing")
+    return user.id
+
+
 @router.patch("/{post_id}", response_model=schemas.PostRead)
 async def update_post(
     post_id: int,
     payload: schemas.PostUpdate,
     db: AsyncSession = Depends(get_db),
-    _admin: CurrentUser = Depends(_require_post_admin),
+    admin: CurrentUser = Depends(_require_post_admin),
 ) -> schemas.PostRead:
     """게시물 수정 (관리자 전용)."""
-    post = await posts_service.update_admin_post(db, post_id, payload)
+    post = await posts_service.update_admin_post(
+        db, post_id, payload, actor_member_id=_actor_member_id(admin)
+    )
     post_read = schemas.PostRead.model_validate(post)
     post_read.author_name = post.author.name if post.author else None
     post_read.comment_count = await posts_repo.get_comment_count(db, cast(int, post.id))
@@ -241,8 +250,10 @@ async def update_post(
 async def delete_post(
     post_id: int,
     db: AsyncSession = Depends(get_db),
-    _admin: CurrentUser = Depends(_require_post_admin),
+    admin: CurrentUser = Depends(_require_post_admin),
 ) -> dict[str, bool | int]:
     """게시물 삭제 (관리자 전용)."""
-    deleted_id = await posts_service.delete_admin_post(db, post_id)
+    deleted_id = await posts_service.delete_admin_post(
+        db, post_id, actor_member_id=_actor_member_id(admin)
+    )
     return {"ok": True, "deleted_id": deleted_id}

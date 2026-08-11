@@ -3,12 +3,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { ImageUpload } from '../../../components/image-upload';
 import { useAuth } from '../../../hooks/useAuth';
 import { ApiError } from '../../../lib/api';
 import { getBoardCategoryInfo } from '../../../lib/community';
+import { useDiscardUploadsOnLeave, useUploadLifecycle } from '../../../lib/upload-lifecycle';
 import { adminPostKeys, postKeys } from '../../../lib/query-keys';
 import { createPost } from '../../../services/posts';
 
@@ -28,6 +29,25 @@ export default function BoardNewPage() {
   const [category, setCategory] = useState<(typeof BOARD_CATEGORY_OPTIONS)[number]['value']>('discussion');
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const uploadLifecycle = useUploadLifecycle([]);
+  useDiscardUploadsOnLeave(
+    uploadLifecycle.discardSession,
+    () => (coverImage ? [coverImage] : []),
+  );
+
+  const handleBeforeRemove = useCallback(
+    async (url: string) => {
+      const result = await uploadLifecycle.removeUpload(url);
+      if (!result.ok) {
+        setImageError(result.error ?? '이미지 삭제에 실패했습니다.');
+        return false;
+      }
+      setImageError(null);
+      return true;
+    },
+    [uploadLifecycle],
+  );
 
   const mutate = useMutation({
     mutationFn: () =>
@@ -37,12 +57,6 @@ export default function BoardNewPage() {
         category,
         cover_image: coverImage,
       }),
-    onSuccess: () => {
-      setError(null);
-      void queryClient.invalidateQueries({ queryKey: postKeys.all });
-      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
-      router.push('/board');
-    },
     onError: (err: unknown) => {
       if (err instanceof ApiError) {
         if (err.status === 401 || err.status === 403) {
@@ -58,6 +72,22 @@ export default function BoardNewPage() {
 
   const isSubmitting = mutate.isPending;
   const isDisabled = isSubmitting || !title.trim() || !content.trim();
+
+  const handleSubmit = useCallback(async () => {
+    if (isSubmitting || !title.trim() || !content.trim()) return;
+    try {
+      await mutate.mutateAsync();
+      uploadLifecycle.finalizeSuccessfulSubmit();
+      setError(null);
+      setImageError(null);
+      void queryClient.invalidateQueries({ queryKey: postKeys.all });
+      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
+      router.push('/board');
+    } catch {
+      // onError에서 처리
+    }
+  }, [content, isSubmitting, mutate, queryClient, router, title, uploadLifecycle]);
+
   const categoryInfo = getBoardCategoryInfo(category);
 
   if (status === 'loading') {
@@ -108,8 +138,7 @@ export default function BoardNewPage() {
         className="space-y-4"
         onSubmit={(event) => {
           event.preventDefault();
-          if (isDisabled) return;
-          mutate.mutate();
+          void handleSubmit();
         }}
       >
         <label className="block text-sm text-text-secondary">
@@ -145,8 +174,12 @@ export default function BoardNewPage() {
           <span className="block text-sm text-text-secondary">커버 이미지 (선택)</span>
           <ImageUpload
             value={coverImage}
-            onUpload={setCoverImage}
+            onUpload={(url) => {
+              uploadLifecycle.registerUpload(url);
+              setCoverImage(url);
+            }}
             onRemove={() => setCoverImage(null)}
+            onBeforeRemove={handleBeforeRemove}
             disabled={isSubmitting}
           />
         </div>
@@ -173,6 +206,7 @@ export default function BoardNewPage() {
           {isSubmitting ? '등록하는 중…' : '게시글 등록하기'}
         </button>
         {error ? <p role="alert" aria-live="polite" className="text-sm text-state-error">{error}</p> : null}
+        {imageError ? <p role="alert" aria-live="polite" className="text-sm text-state-error">{imageError}</p> : null}
       </form>
     </section>
   );

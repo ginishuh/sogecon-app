@@ -23,11 +23,6 @@ export default function AdminHeroNewPage() {
 
   const mutation = useMutation({
     mutationFn: (payload: CreateHeroItemPayload) => createAdminHeroItem(payload),
-    onSuccess: () => {
-      show('배너가 생성되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: ['admin-hero'] });
-      router.push('/admin/hero');
-    },
     onError: (e: unknown) => {
       if (e instanceof ApiError) {
         show(apiErrorToMessage(e.code, e.message), { type: 'error' });
@@ -67,7 +62,14 @@ export default function AdminHeroNewPage() {
           loadingLabel="생성 중..."
           isPending={mutation.isPending}
           error={mutation.error ? '생성 중 오류가 발생했습니다.' : null}
-          onSubmit={(payload) => mutation.mutate(payload)}
+          onSubmit={async (payload) => {
+            await mutation.mutateAsync(payload);
+          }}
+          onLifecycleCommitted={() => {
+            show('배너가 생성되었습니다.', { type: 'success' });
+            void queryClient.invalidateQueries({ queryKey: ['admin-hero'] });
+            router.push('/admin/hero');
+          }}
           onCancel={() => router.push('/admin/hero')}
         />
       </section>

@@ -8,8 +8,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _APP_ENV_ALLOWED = frozenset({"dev", "test", "staging", "prod"})
 _JWT_MIN_LEN = 32
-# staging/prod 이미지 업로드 한도 상한 (오타로 보호 해제 방지)
-_IMAGE_MAX_UPLOAD_BYTES_CAP = 50_000_000  # 50MB
+# staging/prod 이미지 업로드 한도 상한 (제품 정책 5MB + multipart overhead는 proxy 담당)
+_IMAGE_MAX_UPLOAD_BYTES_CAP = 5_000_000  # 5MB
 _IMAGE_MAX_PIXELS_CAP = 10_000
 
 
@@ -62,6 +62,12 @@ class Settings(BaseSettings):
     rate_limit_post_create: str = Field(
         default="5/minute", alias="RATE_LIMIT_POST_CREATE"
     )
+    rate_limit_image_upload: str = Field(
+        default="20/minute", alias="RATE_LIMIT_IMAGE_UPLOAD"
+    )
+    rate_limit_avatar_upload: str = Field(
+        default="10/minute", alias="RATE_LIMIT_AVATAR_UPLOAD"
+    )
     # 신뢰할 수 있는 프록시 IP 목록 (X-Forwarded-For 신뢰 경계)
     # 콤마로 구분된 IP 목록. 비어있으면 XFF를 무시하고 client.host 사용.
     trusted_proxy_ips: str = Field(default="", alias="TRUSTED_PROXY_IPS")
@@ -92,6 +98,16 @@ class Settings(BaseSettings):
         default=5_000_000, alias="IMAGE_MAX_UPLOAD_BYTES"
     )  # 5MB
     image_max_pixels: int = Field(default=1920, alias="IMAGE_MAX_PIXELS")
+    image_decode_max_pixels: int = Field(
+        default=25_000_000, alias="IMAGE_DECODE_MAX_PIXELS"
+    )
+    image_quota_count: int = Field(default=50, alias="IMAGE_QUOTA_COUNT")
+    image_quota_bytes: int = Field(
+        default=100_000_000, alias="IMAGE_QUOTA_BYTES"
+    )
+    avatar_decode_max_pixels: int = Field(
+        default=4_000_000, alias="AVATAR_DECODE_MAX_PIXELS"
+    )
 
     # Observability / Sentry
     sentry_dsn: str = Field(default="", alias="SENTRY_DSN")
@@ -191,6 +207,14 @@ class Settings(BaseSettings):
         if self.image_max_upload_bytes <= 0 or self.image_max_pixels <= 0:
             raise ValueError(
                 "IMAGE_MAX_UPLOAD_BYTES and IMAGE_MAX_PIXELS must be positive"
+            )
+        if self.image_decode_max_pixels <= 0 or self.avatar_decode_max_pixels <= 0:
+            raise ValueError(
+                "IMAGE_DECODE_MAX_PIXELS and AVATAR_DECODE_MAX_PIXELS must be positive"
+            )
+        if self.image_quota_count <= 0 or self.image_quota_bytes <= 0:
+            raise ValueError(
+                "IMAGE_QUOTA_COUNT and IMAGE_QUOTA_BYTES must be positive"
             )
         if self.app_env in {"staging", "prod"}:
             if self.image_max_upload_bytes > _IMAGE_MAX_UPLOAD_BYTES_CAP:

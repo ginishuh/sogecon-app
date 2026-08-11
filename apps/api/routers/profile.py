@@ -2,16 +2,25 @@ from __future__ import annotations
 
 from typing import cast
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, Request, UploadFile
+from slowapi import Limiter
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status as http_status
 
 from .. import schemas
+from ..config import get_settings
 from ..db import get_db
-from ..services import members_service, profile_change_service
+from ..ratelimit import (
+    consume_limit,
+    get_client_ip_for_rate_limit,
+    get_member_id_for_rate_limit,
+)
+from ..services import members_service, profile_change_service, upload_service
 from .auth import CurrentMember, require_member
 
 router = APIRouter(prefix="/me", tags=["me"])
+limiter_ip = Limiter(key_func=get_client_ip_for_rate_limit)
+limiter_member = Limiter(key_func=get_member_id_for_rate_limit)
 
 
 @router.get("/", response_model=schemas.MemberRead)
@@ -37,18 +46,20 @@ async def update_me(
 
 @router.post("/avatar", response_model=schemas.MemberRead)
 async def upload_avatar(
+    request: Request,
     avatar: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
     m: CurrentMember = Depends(require_member),
 ) -> schemas.MemberRead:
     row = await members_service.get_member_by_student_id(db, m.student_id)
-    file_bytes = await avatar.read()
-    await avatar.close()
-    updated = await members_service.update_member_avatar(
+    settings = get_settings()
+    request.state.rate_limit_member_id = row.id
+    consume_limit(limiter_ip, request, settings.rate_limit_avatar_upload)
+    consume_limit(limiter_member, request, settings.rate_limit_avatar_upload)
+    updated = await upload_service.upload_member_avatar(
         db,
         member_id=cast(int, row.id),
-        file_bytes=file_bytes,
-        filename_hint=avatar.filename,
+        upload=avatar,
     )
     return schemas.MemberRead.model_validate(updated)
 

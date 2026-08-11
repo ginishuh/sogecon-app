@@ -23,7 +23,7 @@ as the Web rollback fallback during migration.
 - `PUSH_ENCRYPT_AT_REST`, `PUSH_KEK`: 푸시 구독 암호화 옵션
 - (선택) 관리자 bootstrap 시드: `SEED_PROD_ADMIN001_VALUE`
 - `MEDIA_ROOT`, `MEDIA_URL_BASE`: 업로드 경로 (기본값 사용 가능)
-- `IMAGE_MAX_UPLOAD_BYTES`, `IMAGE_MAX_PIXELS`: 게시글 커버 등 이미지 업로드 한도 (양수 필수; staging/prod는 각각 50MB·10000px 상한)
+- `IMAGE_MAX_UPLOAD_BYTES`, `IMAGE_MAX_PIXELS`: 게시글 커버 등 이미지 업로드 한도 (양수 필수; staging/prod는 각각 5MB·10000px 상한, Nginx `client_max_body_size`는 8m 이상 권장)
 - Sentry/관측: `SENTRY_DSN`, `RELEASE`, `SENTRY_TRACES_SAMPLE_RATE`(기본 0.05), `SENTRY_PROFILES_SAMPLE_RATE`(기본 0.0), `SENTRY_SEND_DEFAULT_PII`(필요 시 `true`)
 - CI/CD 시크릿 스토리지에 위 값을 저장하고 배포 시 주입한다.
 

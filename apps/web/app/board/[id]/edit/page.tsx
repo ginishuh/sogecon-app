@@ -67,12 +67,6 @@ export default function BoardEditPage() {
       }
       return updateBoardPost(postId, buildBoardPostOwnerUpdatePayload(data));
     },
-    onSuccess: () => {
-      show('게시글이 수정되었습니다.', { type: 'success' });
-      void queryClient.invalidateQueries({ queryKey: postKeys.all });
-      void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
-      router.push(`/board/${postId}`);
-    },
     onError: createErrorHandler(show),
   });
 
@@ -113,7 +107,15 @@ export default function BoardEditPage() {
         loadingLabel="수정 중..."
         isPending={mutation.isPending}
         error={getErrorMessage(mutation.error)}
-        onSubmit={(data) => mutation.mutate(data)}
+        onSubmit={async (data) => {
+          await mutation.mutateAsync(data);
+        }}
+        onLifecycleCommitted={() => {
+          show('게시글이 수정되었습니다.', { type: 'success' });
+          void queryClient.invalidateQueries({ queryKey: postKeys.all });
+          void queryClient.invalidateQueries({ queryKey: adminPostKeys.all });
+          router.push(`/board/${postId}`);
+        }}
         onCancel={() => router.push(`/board/${postId}`)}
         hideCategory={isBoardCategory(post.category)}
         hidePublication={isBoardCategory(post.category)}
