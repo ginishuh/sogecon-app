@@ -32,10 +32,12 @@ export function useUploadLifecycle(initialUrls: readonly string[]) {
   useEffect(() => {
     initialRef.current = new Set(initialUrls);
     stagedRef.current = new Set<string>(
-      [...stagedRef.current].filter((url) => !initialRef.current.has(url)),
+      Array.from(stagedRef.current).filter((url) => !initialRef.current.has(url)),
     );
     pendingDeleteRef.current = new Set<string>(
-      [...pendingDeleteRef.current].filter((url) => initialRef.current.has(url)),
+      Array.from(pendingDeleteRef.current).filter((url) =>
+        initialRef.current.has(url),
+      ),
     );
   }, [initialUrls]);
 
@@ -72,7 +74,7 @@ export function useUploadLifecycle(initialUrls: readonly string[]) {
     const current = new Set(currentUrls);
     pendingDeleteRef.current.clear();
 
-    const staged = [...stagedRef.current];
+    const staged = Array.from(stagedRef.current);
     await Promise.all(
       staged
         .filter((url) => current.has(url))
