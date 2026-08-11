@@ -40,11 +40,13 @@ vi.mock('../components/post-form', () => ({
     hideCategory,
     hidePublication,
     onSubmit,
+    onLifecycleCommitted,
   }: {
     hideAdminOptions?: boolean;
     hideCategory?: boolean;
     hidePublication?: boolean;
-    onSubmit?: (data: unknown) => void;
+    onSubmit?: (data: unknown) => Promise<void> | void;
+    onLifecycleCommitted?: () => void;
   }) => (
     <div
       data-testid="post-form"
@@ -54,15 +56,18 @@ vi.mock('../components/post-form', () => ({
     >
       <button
         type="button"
-        onClick={() => onSubmit?.({
-          title: '수정 제목',
-          content: '수정 본문',
-          category: 'notice',
-          pinned: true,
-          cover_image: null,
-          images: [],
-          published: true,
-        })}
+        onClick={async () => {
+          await onSubmit?.({
+            title: '수정 제목',
+            content: '수정 본문',
+            category: 'notice',
+            pinned: true,
+            cover_image: null,
+            images: [],
+            published: true,
+          });
+          onLifecycleCommitted?.();
+        }}
       >
         제출
       </button>
