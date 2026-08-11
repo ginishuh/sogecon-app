@@ -21,6 +21,7 @@ from apps.api.db import get_db
 from apps.api.errors import NotFoundError
 from apps.api.main import app
 from apps.api.models_upload import UploadAsset
+from apps.api.services import upload_service
 
 
 def _jpeg_bytes(size: tuple[int, int] = (80, 80)) -> bytes:
@@ -830,6 +831,90 @@ def test_post_update_restores_tombstone_on_api_error(
 
     refreshed = member_login.get(f"/posts/{post_id}")
     assert refreshed.json()["cover_image"] is not None
+
+
+@pytest.mark.anyio("asyncio")
+async def test_concurrent_attach_and_delete_no_dangling_reference(
+    member_login: TestClient,
+    media_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    uploaded = member_login.post("/uploads/images", files=_upload_file())
+    assert uploaded.status_code == HTTPStatus.OK
+    body = uploaded.json()
+    url = body["url"]
+    filename = body["filename"]
+
+    attach_validated = asyncio.Event()
+    delete_attempting = asyncio.Event()
+
+    original_validate = upload_service.validate_actor_owns_attach_paths
+
+    async def validate_then_hold(
+        db: object, *, actor_member_id: int, attach_paths: set[str]
+    ) -> None:
+        await original_validate(
+            db, actor_member_id=actor_member_id, attach_paths=attach_paths
+        )
+        attach_validated.set()
+        await asyncio.wait_for(delete_attempting.wait(), timeout=5.0)
+
+    monkeypatch.setattr(
+        "apps.api.services.upload_service.validate_actor_owns_attach_paths",
+        validate_then_hold,
+    )
+
+    transport = httpx.ASGITransport(app=app, client=("5.5.5.5", 9055))
+    async with httpx.AsyncClient(transport=transport, base_url="http://local") as hc:
+        login = await hc.post(
+            "/auth/member/login",
+            json={"student_id": "member001", "password": "memberpass"},
+        )
+        assert login.status_code == HTTPStatus.OK
+
+        async def create_post_task() -> httpx.Response:
+            return await hc.post(
+                "/posts/",
+                json={
+                    "title": "동시성 테스트",
+                    "content": "본문",
+                    "category": "discussion",
+                    "cover_image": url,
+                },
+            )
+
+        async def delete_task() -> httpx.Response:
+            await attach_validated.wait()
+            delete_attempting.set()
+            return await hc.delete(f"/uploads/images/{filename}")
+
+        create_res, delete_res = await asyncio.gather(
+            create_post_task(), delete_task()
+        )
+
+    if create_res.status_code in (HTTPStatus.CREATED, HTTPStatus.OK):
+        post_id = create_res.json()["id"]
+        assert delete_res.status_code == HTTPStatus.CONFLICT
+        assert delete_res.json().get("code") == "upload_asset_in_use"
+        assert (media_root / "images" / filename).is_file()
+        refreshed = member_login.get(f"/posts/{post_id}")
+        assert refreshed.json()["cover_image"] is not None
+        override = app.dependency_overrides.get(get_db)
+        assert override is not None
+        async for session in override():
+            stmt = select(func.count(UploadAsset.id))
+            assert int((await session.execute(stmt)).scalar_one()) == 1
+            break
+    else:
+        assert create_res.json().get("code") == "upload_asset_not_found"
+        assert delete_res.status_code == HTTPStatus.NO_CONTENT
+        assert not (media_root / "images" / filename).exists()
+        override = app.dependency_overrides.get(get_db)
+        assert override is not None
+        async for session in override():
+            stmt = select(func.count(UploadAsset.id))
+            assert int((await session.execute(stmt)).scalar_one()) == 0
+            break
 
 
 @pytest.mark.anyio("asyncio")

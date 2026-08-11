@@ -157,9 +157,11 @@ async def validate_actor_owns_attach_paths(
     actor_member_id: int,
     attach_paths: set[str],
 ) -> None:
-    for relative_path in attach_paths:
-        asset = await upload_assets_repo.get_image_asset_by_path(
-            db, relative_path=relative_path
+    if not attach_paths:
+        return
+    for relative_path in sorted(attach_paths):
+        asset = await upload_assets_repo.lock_image_asset_by_path(
+            db, relative_path
         )
         if asset is None:
             raise ApiError(
@@ -174,6 +176,16 @@ async def validate_actor_owns_attach_paths(
                 detail="다른 사용자의 이미지는 첨부할 수 없습니다.",
                 status=403,
             )
+
+
+async def _lock_transition_assets(
+    db: AsyncSession, transition: ResourceImageTransition
+) -> None:
+    attach_paths = transition.new_paths - transition.old_paths
+    detach_candidates = transition.old_paths - transition.new_paths
+    await upload_assets_repo.lock_image_assets_by_paths(
+        db, attach_paths | detach_candidates
+    )
 
 
 async def compute_deletable_image_paths(
@@ -244,6 +256,7 @@ async def apply_resource_image_lifecycle(
 ) -> None:
     """Validate attach ownership and atomically update resource + asset cleanup."""
     attach_paths = transition.new_paths - transition.old_paths
+    await _lock_transition_assets(db, transition)
     await validate_actor_owns_attach_paths(
         db,
         actor_member_id=transition.actor_member_id,
@@ -264,8 +277,8 @@ async def apply_resource_image_lifecycle(
         await apply_resource_update()
 
         for relative_path in paths_to_delete:
-            asset = await upload_assets_repo.get_image_asset_by_path(
-                db, relative_path=relative_path
+            asset = await upload_assets_repo.lock_image_asset_by_path(
+                db, relative_path
             )
             if asset is not None:
                 await upload_assets_repo.delete_asset(db, asset)
@@ -316,8 +329,7 @@ async def delete_post_image(
 ) -> None:
     """Delete an owned staged post image. Idempotent when already removed."""
     _validate_image_filename(filename)
-    await upload_assets_repo.lock_member(db, member_id)
-    asset = await upload_assets_repo.get_image_asset_by_filename(
+    asset = await upload_assets_repo.lock_image_asset_by_filename(
         db, member_id=member_id, filename=filename
     )
     if asset is None:

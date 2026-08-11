@@ -55,6 +55,49 @@ async def create_asset(
     return asset
 
 
+async def lock_image_asset_by_path(
+    db: AsyncSession, relative_path: str
+) -> UploadAsset | None:
+    stmt = (
+        select(UploadAsset)
+        .where(
+            UploadAsset.kind == "image",
+            UploadAsset.path == relative_path,
+        )
+        .with_for_update()
+    )
+    result = await db.execute(stmt)
+    return result.scalars().first()
+
+
+async def lock_image_assets_by_paths(
+    db: AsyncSession, relative_paths: set[str]
+) -> dict[str, UploadAsset]:
+    locked: dict[str, UploadAsset] = {}
+    for relative_path in sorted(relative_paths):
+        asset = await lock_image_asset_by_path(db, relative_path)
+        if asset is not None:
+            locked[relative_path] = asset
+    return locked
+
+
+async def lock_image_asset_by_filename(
+    db: AsyncSession, *, member_id: int, filename: str
+) -> UploadAsset | None:
+    relative_path = f"images/{filename}"
+    stmt = (
+        select(UploadAsset)
+        .where(
+            UploadAsset.owner_member_id == member_id,
+            UploadAsset.kind == "image",
+            UploadAsset.path == relative_path,
+        )
+        .with_for_update()
+    )
+    result = await db.execute(stmt)
+    return result.scalars().first()
+
+
 async def get_image_asset_by_filename(
     db: AsyncSession, *, member_id: int, filename: str
 ) -> UploadAsset | None:
