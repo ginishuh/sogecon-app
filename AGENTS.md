@@ -50,7 +50,7 @@
 
 - Live product E2E의 authority는 **mock이 아닌 real local API·DB를 통과하는지**다. `playwright-cli`가 headless여도 live다. OS·브라우저 창이 검증 대상일 때만 headed/visible을 별도 요구한다.
 - 두 트랙은 **서로 대체하지 않는다.** 변경 범위에 따라 둘 다 필요할 수 있다.
-- real API와 mock API는 기본적으로 **`:3001`을 동시에 점유하지 않는다.** mock regression 전 listener 소유(host uvicorn / Docker `api_dev` / mock)를 확인하고, 종료 시 **시작 전 runtime을 복원**한다 (`make api-stop`만으로 Docker API가 내려가지 않을 수 있음).
+- real API와 mock API는 기본적으로 **`:3001`을 동시에 점유하지 않는다.** CI-parity mock regression과 dev Web은 **`:3000`도 동시에 점유하지 않는다.** 트랙 전환 전 `:3000`/`:3001` listener 소유(host / Docker `*_dev` / mock)를 확인하고, 종료 시 **시작 전 runtime을 복원**한다 (`make api-stop`·`make web-stop`만으로 Docker listener가 내려가지 않을 수 있음).
 - 결과는 트랙을 구분해 **PASS / FAIL / INCONCLUSIVE**로 보고하고, 우회·미검증을 숨기지 않는다. 운영 URL·계정·DB는 명시 지시 없이 사용하지 않는다.
 - 상세 실행·preflight·CI parity·복원 절차: **`docs/agent_runbook_e2e.md`**. Playwright CLI 일반 사용법: `.agents/skills/playwright-cli/SKILL.md`.
 

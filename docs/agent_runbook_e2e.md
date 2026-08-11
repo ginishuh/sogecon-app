@@ -72,39 +72,73 @@ docker compose --profile dev ps    # api_dev / web_dev 여부
 | Docker `web_dev` | compose publish `127.0.0.1:3000:3000` |
 | Production `next start` | CI mock job, 로컬 parity 실행 시 |
 
-**규칙:** mock regression과 **real API는 `:3001`을 동시에 점유하지 않는다.** mock 실행 중 real API를 다른 방식으로 추가로 띄우거나 섞지 않는다.
+**규칙:**
+
+- mock regression과 **real API는 `:3001`을 동시에 점유하지 않는다.** mock 실행 중 real API를 다른 방식으로 추가로 띄우거나 섞지 않는다.
+- CI-parity mock regression(`pnpm start` production Web)과 **dev Web은 `:3000`을 동시에 점유하지 않는다.** live E2E 직후 `make dev-up`으로 `:3000`에 `pnpm dev`가 살아 있으면 mock 전환 시 **EADDRINUSE**가 난다.
 
 ### 3.1 시작 전·종료 후 복원 (필수 semantics)
 
-1. E2E 시작 전 `:3000`/`:3001` 상태와 **소유자**를 기록한다.
-2. mock regression 시 real API listener가 있으면 **mock 전에 제거**한다 (host **또는** Docker — 실제 소유에 맞게).
-3. 테스트 **성공·실패·중단** 모두 cleanup한다.
-4. 종료 시 **시작 전 상태로 복원**한다.
-   - 원래 API가 없었으면 **새 API를 켜지 않는다.**
-   - 원래 host API였으면 host API를 복원 (`make api-start` 등).
-   - 원래 Docker `api_dev`였으면 `docker compose --profile dev up -d api_dev` 등으로 복원.
-5. shell에서 mock을 띄웠다면 `trap`/`finally`로 mock PID 종료를 보장한다.
+트랙 전환(live ↔ mock)마다 **`:3000`과 `:3001` 둘 다** 시작 전 소유자를 기록하고, mock CI-parity 시작 전에 listener를 비운 뒤, 종료 시 **시작 전 상태로만** 복원한다.
 
-**주의:** `make api-stop` → mock → `make api-start`는 **host API가 원래 없던 환경**에서는 잘못된 복원이다.
+#### 기록 (시작 전)
 
-예시 (문서용 — mock만 임시 기동, 시작 전 host API만 있었던 경우):
+| 포트 | 소유 후보 | 기록 예 |
+| --- | --- | --- |
+| `:3000` | 없음 / host dev Web / Docker `web_dev` / (이미 production `next start`) | `host_web`, `docker_web_dev`, `none` |
+| `:3001` | 없음 / host real API / Docker `api_dev` / mock | `host_api`, `docker_api_dev`, `none` |
+
+#### mock CI-parity 시작 전 suspend (`:3000` + `:3001`)
+
+| 포트 | 현재 소유 | mock 전 처리 |
+| --- | --- | --- |
+| `:3000` | host dev Web (`pnpm dev`, `.web-dev.pid`) | `make web-stop` |
+| `:3000` | Docker `web_dev` | `docker compose --profile dev stop web_dev` |
+| `:3000` | 없음 | 그대로 |
+| `:3001` | host real API (uvicorn, `.api-dev.pid`) | `make api-stop` |
+| `:3001` | Docker `api_dev` | `docker compose --profile dev stop api_dev` |
+| `:3001` | 없음 | 그대로 |
+
+이후 §5.1 순서대로 mock API(`:3001`) + production `pnpm start`(`:3000`)를 기동한다.
+
+#### 종료·실패·중단 시 restore (둘 다)
+
+1. mock API·production Web PID를 먼저 종료한다 (`trap`/`finally` 권장).
+2. **시작 전에 기록한 소유자만** 복원한다. 원래 없던 runtime은 **새로 켜지 않는다.**
+
+| 시작 전 기록 | 복원 |
+| --- | --- |
+| `host_web=yes` | `make web-start` |
+| `docker_web_dev=yes` | `docker compose --profile dev up -d web_dev` |
+| `host_api=yes` | `make api-start` |
+| `docker_api_dev=yes` | `docker compose --profile dev up -d api_dev` |
+| `none` | 아무 것도 시작하지 않음 |
+
+**주의:** `make api-stop`/`make web-stop`은 **host pid 파일 기반**이다. Docker `api_dev`/`web_dev`는 `make *-stop`만으로는 안 멈출 수 있다. 반대로 `make api-start`/`make web-start`는 **원래 host runtime이 없었던 환경**에서 잘못된 복원이다.
+
+예시 (문서용 — live `make dev-up` 직후 mock CI-parity로 전환):
 
 ```bash
-# 시작 전 상태 기록 (예: host_api=yes, docker_api_dev=no)
+# 시작 전 상태 기록 (예: host_web=yes, host_api=yes, docker_*=no)
+make web-stop
 make api-stop
 MOCK_PID=""
+WEB_PID=""
 cleanup() {
+  if [ -n "$WEB_PID" ]; then kill "$WEB_PID" 2>/dev/null || true; fi
   if [ -n "$MOCK_PID" ]; then kill "$MOCK_PID" 2>/dev/null || true; fi
-  # 시작 전 host API가 있었을 때만:
+  # 시작 전 host runtime이 있었을 때만:
   make api-start
+  make web-start
 }
 trap cleanup EXIT INT TERM
 node apps/web/e2e/mock-api-server.mjs &
 MOCK_PID=$!
-# ... mock e2e ...
+# build + pnpm -C apps/web start → WEB_PID 기록
+# ... pnpm -C apps/web e2e ...
 ```
 
-Docker `api_dev`가 점유 중이었다면 `docker compose --profile dev stop api_dev` 후 mock, 복원 시 `up -d api_dev`로 되돌린다.
+Docker `api_dev`/`web_dev`가 점유 중이었다면 `docker compose --profile dev stop api_dev web_dev` 후 mock, 복원 시 `up -d`로 각각 되돌린다.
 
 ---
 
@@ -179,11 +213,11 @@ Mock API는 `127.0.0.1:3001`에 바인드한다 (`E2E_MOCK_API_PORT` 기본 `300
 
 ### 5.2 로컬에서 CI에 가깝게 돌릴 때
 
-1. §3 preflight — **`:3001` real listener 제거** (host **또는** Docker `api_dev`).
-2. 시작 전 runtime 상태 기록.
+1. §3 preflight — **`:3000`과 `:3001` listener 소유자 확인·기록**.
+2. §3.1 suspend — **`:3000` dev Web**(host `make web-stop` 또는 Docker `web_dev`)과 **`:3001` real API**(host `make api-stop` 또는 Docker `api_dev`)를 mock 전에 제거.
 3. CI와 동일 env로 **build → mock → start → e2e** (§5.1).
 4. `trap`/cleanup으로 mock·production web 종료.
-5. §3.1에 따라 **시작 전 상태로만** 복원.
+5. §3.1 restore — **`:3000`과 `:3001` 모두** 시작 전 상태로만 복원 (원래 없던 runtime은 새로 켜지 않음).
 
 로컬에서 `next dev`를 켠 채 mock만 바꿔 `pnpm e2e`를 돌리면 CI와 **환경이 다르다** (일부 spec 실패는 regression defect가 아닐 수 있음). authoritative 실패 판단은 **CI workflow 조건**을 우선한다.
 
@@ -199,7 +233,7 @@ Mock API는 `127.0.0.1:3001`에 바인드한다 (`E2E_MOCK_API_PORT` 기본 `300
 | --- | --- |
 | 업로드·auth·권한·실제 DB effect | Live product (`playwright-cli`) |
 | PR Web UI 회귀·onboarding·admin preview 등 mock spec | Mock regression (`pnpm e2e`, CI parity) |
-| 둘 다 | 순서 분리 + `:3001` 소유 교체 + 복원 |
+| 둘 다 | 순서 분리 + `:3000`/`:3001` 소유 교체 + 복원 |
 
 ---
 
@@ -211,11 +245,11 @@ make dev-status
 curl -fsS http://localhost:3001/healthz
 
 # Mock (CI env 예 — workflow e2e.yml 참고)
-# real :3001 비운 뒤에만
+# :3000 dev Web + :3001 real API 비운 뒤에만 (§3.1)
 WEB_BASE_URL=http://127.0.0.1:3000 \
 NEXT_PUBLIC_WEB_API_BASE=http://127.0.0.1:3001 \
 WEB_BUILD_ALLOW_INSECURE_LOCAL_API=1 \
 pnpm -C apps/web build
 ```
 
-Playwright CLI 설치·초기화는 skill 및 `AGENTS.md` 검증 절을 따른다.
+Playwright CLI 일반 설치·사용법은 `.agents/skills/playwright-cli/SKILL.md`를 따른다.
