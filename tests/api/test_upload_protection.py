@@ -16,7 +16,7 @@ from PIL import Image
 from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 
-from apps.api import config, models
+from apps.api import config, models, ratelimit
 from apps.api.db import get_db
 from apps.api.errors import NotFoundError
 from apps.api.main import app
@@ -831,6 +831,47 @@ def test_post_update_restores_tombstone_on_api_error(
 
     refreshed = member_login.get(f"/posts/{post_id}")
     assert refreshed.json()["cover_image"] is not None
+
+
+def test_delete_image_does_not_grow_rate_limit_consume_cache(
+    member_login: TestClient,
+    media_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("APP_ENV", "dev")
+    config.reset_settings_cache()
+    ratelimit._consume_cache.clear()
+
+    first = member_login.post("/uploads/images", files=_upload_file(name="one.jpg"))
+    second = member_login.post(
+        "/uploads/images", files=_upload_file(name="two.jpg")
+    )
+    assert first.status_code == HTTPStatus.OK
+    assert second.status_code == HTTPStatus.OK
+    filename_one = first.json()["filename"]
+    filename_two = second.json()["filename"]
+
+    cache_keys_after_upload = set(ratelimit._consume_cache.keys())
+    cache_size_after_upload = len(ratelimit._consume_cache)
+    assert cache_size_after_upload > 0
+
+    assert member_login.delete(f"/uploads/images/{filename_one}").status_code == 204
+    assert member_login.delete(f"/uploads/images/{filename_two}").status_code == 204
+    assert (
+        member_login.delete(
+            "/uploads/images/999999_abcdef0123456789.jpg"
+        ).status_code
+        == 204
+    )
+
+    assert len(ratelimit._consume_cache) == cache_size_after_upload
+    assert set(ratelimit._consume_cache.keys()) == cache_keys_after_upload
+    per_filename_delete_keys = [
+        key
+        for key in ratelimit._consume_cache
+        if key.split(":", 1)[1].startswith("uploads_images_")
+    ]
+    assert per_filename_delete_keys == []
 
 
 @pytest.mark.anyio("asyncio")

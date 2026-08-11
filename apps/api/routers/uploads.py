@@ -64,16 +64,11 @@ async def upload_image(
 
 @router.delete("/images/{filename}", status_code=http_status.HTTP_204_NO_CONTENT)
 async def delete_image(
-    request: Request,
     filename: str,
     member: CurrentMember = Depends(require_member),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """본인 소유 업로드 이미지 삭제 (idempotent)."""
-    settings = get_settings()
-    _apply_upload_rate_limits(
-        request, member, limit_value=settings.rate_limit_image_upload
-    )
     await upload_service.delete_post_image(
         db, member_id=_member_id(member), filename=filename
     )
