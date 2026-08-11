@@ -271,7 +271,7 @@ async def apply_resource_image_lifecycle(
                 await upload_assets_repo.delete_asset(db, asset)
 
         await db.commit()
-    except (OSError, SQLAlchemyError):
+    except (OSError, SQLAlchemyError, ApiError):
         await db.rollback()
         for file_path, tombstone in reversed(tombstones):
             _restore_tombstone(file_path, tombstone)
@@ -314,13 +314,24 @@ async def delete_post_image(
     member_id: int,
     filename: str,
 ) -> None:
-    """Delete an owned post image. Idempotent when already removed."""
+    """Delete an owned staged post image. Idempotent when already removed."""
     _validate_image_filename(filename)
+    await upload_assets_repo.lock_member(db, member_id)
     asset = await upload_assets_repo.get_image_asset_by_filename(
         db, member_id=member_id, filename=filename
     )
     if asset is None:
         return
+    relative_path = str(asset.path)
+    referenced = await upload_references_repo.is_managed_path_referenced(
+        db, relative_path
+    )
+    if referenced:
+        raise ApiError(
+            code="upload_asset_in_use",
+            detail="다른 게시물이나 히어로에서 사용 중인 이미지는 삭제할 수 없습니다.",
+            status=409,
+        )
     await _delete_image_asset(db, asset)
 
 

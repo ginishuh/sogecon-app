@@ -216,5 +216,25 @@ async def update_admin_hero_item(
     return updated_holder[0]
 
 
-async def delete_admin_hero_item(db: AsyncSession, hero_item_id: int) -> int:
-    return await hero_items_repo.delete_hero_item(db, hero_item_id)
+async def delete_admin_hero_item(
+    db: AsyncSession, hero_item_id: int, *, actor_member_id: int
+) -> int:
+    item = await hero_items_repo.get_hero_item(db, hero_item_id)
+    paths = upload_service.collect_managed_image_paths(
+        image_override=cast(str | None, item.image_override),
+    )
+
+    async def apply_delete() -> None:
+        await hero_items_repo.apply_hero_item_delete(db, hero_item_id)
+
+    await upload_service.apply_resource_image_lifecycle(
+        db,
+        upload_service.ResourceImageTransition(
+            actor_member_id=actor_member_id,
+            old_paths=paths,
+            new_paths=set(),
+            exclude_hero_id=hero_item_id,
+        ),
+        apply_delete,
+    )
+    return hero_item_id

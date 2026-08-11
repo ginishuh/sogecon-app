@@ -250,8 +250,10 @@ async def update_post(
 async def delete_post(
     post_id: int,
     db: AsyncSession = Depends(get_db),
-    _admin: CurrentUser = Depends(_require_post_admin),
+    admin: CurrentUser = Depends(_require_post_admin),
 ) -> dict[str, bool | int]:
     """게시물 삭제 (관리자 전용)."""
-    deleted_id = await posts_service.delete_admin_post(db, post_id)
+    deleted_id = await posts_service.delete_admin_post(
+        db, post_id, actor_member_id=_actor_member_id(admin)
+    )
     return {"ok": True, "deleted_id": deleted_id}

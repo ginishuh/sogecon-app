@@ -207,10 +207,17 @@ async def update_post(
     return post
 
 
-async def delete_post(db: AsyncSession, post_id: int) -> int:
-    """게시물을 삭제합니다. 삭제된 게시물 ID를 반환합니다."""
+async def apply_post_delete(db: AsyncSession, post_id: int) -> int:
+    """게시물 row를 세션에서 삭제한다. commit은 호출자가 수행한다."""
     post = await get_post(db, post_id)  # NotFoundError if not exist
     await db.delete(post)
+    await db.flush()
+    return post_id
+
+
+async def delete_post(db: AsyncSession, post_id: int) -> int:
+    """게시물을 삭제합니다. 삭제된 게시물 ID를 반환합니다."""
+    post_id = await apply_post_delete(db, post_id)
     await db.commit()
     return post_id
 

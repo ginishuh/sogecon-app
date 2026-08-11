@@ -246,6 +246,34 @@ async def update_member_post(
     )
 
 
+async def _delete_post_with_image_lifecycle(
+    db: AsyncSession,
+    *,
+    post_id: int,
+    post: models.Post,
+    actor_member_id: int,
+) -> int:
+    paths = _post_image_paths(
+        cast(str | None, post.cover_image),
+        cast(list[str] | None, post.images),
+    )
+
+    async def apply_delete() -> None:
+        await posts_repo.apply_post_delete(db, post_id)
+
+    await upload_service.apply_resource_image_lifecycle(
+        db,
+        upload_service.ResourceImageTransition(
+            actor_member_id=actor_member_id,
+            old_paths=paths,
+            new_paths=set(),
+            exclude_post_id=post_id,
+        ),
+        apply_delete,
+    )
+    return post_id
+
+
 async def delete_member_post(
     db: AsyncSession,
     post_id: int,
@@ -255,12 +283,19 @@ async def delete_member_post(
     """회원이 자기 board 게시글만 삭제한다."""
     post = await posts_repo.get_board_post(db, post_id)
     _require_member_board_owner(post, member_id)
-    return await posts_repo.delete_post(db, post_id)
+    return await _delete_post_with_image_lifecycle(
+        db, post_id=post_id, post=post, actor_member_id=member_id
+    )
 
 
-async def delete_admin_post(db: AsyncSession, post_id: int) -> int:
+async def delete_admin_post(
+    db: AsyncSession, post_id: int, *, actor_member_id: int
+) -> int:
     """관리자가 게시물을 삭제할 때 사용. 삭제된 게시물 ID를 반환."""
-    return await posts_repo.delete_post(db, post_id)
+    post = await posts_repo.get_post(db, post_id)
+    return await _delete_post_with_image_lifecycle(
+        db, post_id=post_id, post=post, actor_member_id=actor_member_id
+    )
 
 
 async def list_admin_posts_with_total(

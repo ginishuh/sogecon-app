@@ -123,9 +123,11 @@ async def update_admin_hero_item(
 async def delete_admin_hero_item(
     hero_item_id: int,
     db: AsyncSession = Depends(get_db),
-    _admin: CurrentUser = Depends(
+    admin: CurrentUser = Depends(
         require_permission("admin_hero", allow_admin_fallback=False)
     ),
 ) -> dict[str, bool | int]:
-    deleted_id = await hero_service.delete_admin_hero_item(db, hero_item_id)
+    deleted_id = await hero_service.delete_admin_hero_item(
+        db, hero_item_id, actor_member_id=_actor_member_id(admin)
+    )
     return {"ok": True, "deleted_id": deleted_id}

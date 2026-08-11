@@ -18,6 +18,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from apps.api import config, models
 from apps.api.db import get_db
+from apps.api.errors import NotFoundError
 from apps.api.main import app
 from apps.api.models_upload import UploadAsset
 
@@ -656,6 +657,179 @@ def test_post_update_rolls_back_when_asset_delete_fails(
     assert refreshed.json()["cover_image"] is not None
     assert (media_root / "images" / filename).is_file()
     assert _asset_count() == 1
+
+
+def test_member_post_delete_cleans_up_attached_assets(
+    member_login: TestClient, media_root: Path
+) -> None:
+    uploaded = member_login.post("/uploads/images", files=_upload_file())
+    assert uploaded.status_code == HTTPStatus.OK
+    body = uploaded.json()
+    url = body["url"]
+    filename = body["filename"]
+
+    created = member_login.post(
+        "/posts/",
+        json={
+            "title": "삭제 테스트",
+            "content": "본문",
+            "category": "discussion",
+            "cover_image": url,
+        },
+    )
+    assert created.status_code == HTTPStatus.CREATED
+    post_id = created.json()["id"]
+    assert _asset_count() == 1
+
+    deleted = member_login.delete(f"/board/posts/{post_id}")
+    assert deleted.status_code == HTTPStatus.OK
+    assert _asset_count() == 0
+    assert not (media_root / "images" / filename).exists()
+
+
+def test_admin_post_delete_cleans_up_attached_assets(
+    member_login: TestClient, admin_login: TestClient, media_root: Path
+) -> None:
+    uploaded = member_login.post("/uploads/images", files=_upload_file())
+    assert uploaded.status_code == HTTPStatus.OK
+    body = uploaded.json()
+    url = body["url"]
+    filename = body["filename"]
+
+    created = member_login.post(
+        "/posts/",
+        json={
+            "title": "관리자 삭제 테스트",
+            "content": "본문",
+            "category": "discussion",
+            "cover_image": url,
+        },
+    )
+    assert created.status_code == HTTPStatus.CREATED
+    post_id = created.json()["id"]
+
+    deleted = admin_login.delete(f"/posts/{post_id}")
+    assert deleted.status_code == HTTPStatus.OK
+    assert _asset_count() == 0
+    assert not (media_root / "images" / filename).exists()
+
+
+def test_hero_delete_cleans_up_image_override(
+    member_login: TestClient, admin_login: TestClient, media_root: Path
+) -> None:
+    uploaded = member_login.post("/uploads/images", files=_upload_file())
+    assert uploaded.status_code == HTTPStatus.OK
+    body = uploaded.json()
+    url = body["url"]
+    filename = body["filename"]
+
+    post = admin_login.post(
+        "/posts/",
+        json={
+            "title": "히어로 대상",
+            "content": "본문",
+            "category": "notice",
+            "published_at": "2020-01-01T00:00:00+00:00",
+        },
+    )
+    assert post.status_code in (HTTPStatus.CREATED, HTTPStatus.OK)
+    post_id = post.json()["id"]
+
+    hero = admin_login.post(
+        "/admin/hero/",
+        json={
+            "target_type": "post",
+            "target_id": post_id,
+            "enabled": True,
+            "image_override": url,
+        },
+    )
+    assert hero.status_code == HTTPStatus.CREATED
+    hero_item_id = hero.json()["id"]
+    assert _asset_count() == 1
+
+    deleted = admin_login.delete(f"/admin/hero/{hero_item_id}")
+    assert deleted.status_code == HTTPStatus.OK
+    assert _asset_count() == 0
+    assert not (media_root / "images" / filename).exists()
+
+
+def test_cannot_delete_in_use_image_via_generic_delete(
+    member_login: TestClient, media_root: Path
+) -> None:
+    uploaded = member_login.post("/uploads/images", files=_upload_file())
+    assert uploaded.status_code == HTTPStatus.OK
+    body = uploaded.json()
+    url = body["url"]
+    filename = body["filename"]
+
+    created = member_login.post(
+        "/posts/",
+        json={
+            "title": "첨부 이미지",
+            "content": "본문",
+            "category": "discussion",
+            "cover_image": url,
+        },
+    )
+    assert created.status_code == HTTPStatus.CREATED
+    post_id = created.json()["id"]
+
+    denied = member_login.delete(f"/uploads/images/{filename}")
+    assert denied.status_code == HTTPStatus.CONFLICT
+    assert denied.json().get("code") == "upload_asset_in_use"
+    assert (media_root / "images" / filename).is_file()
+    assert _asset_count() == 1
+
+    refreshed = member_login.get(f"/posts/{post_id}")
+    assert refreshed.status_code == HTTPStatus.OK
+    assert refreshed.json()["cover_image"] is not None
+
+
+def test_post_update_restores_tombstone_on_api_error(
+    member_login: TestClient, media_root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    uploaded = member_login.post("/uploads/images", files=_upload_file())
+    assert uploaded.status_code == HTTPStatus.OK
+    body = uploaded.json()
+    url = body["url"]
+    filename = body["filename"]
+
+    created = member_login.post(
+        "/posts/",
+        json={
+            "title": "tombstone 복구",
+            "content": "본문",
+            "category": "discussion",
+            "cover_image": url,
+        },
+    )
+    assert created.status_code == HTTPStatus.CREATED
+    post_id = created.json()["id"]
+    image_path = media_root / "images" / filename
+    assert image_path.is_file()
+
+    async def fail_apply_update(
+        _db: object, _post_id: int, _payload: object
+    ) -> models.Post:
+        raise NotFoundError(code="post_not_found", detail="gone")
+
+    monkeypatch.setattr(
+        "apps.api.services.posts_service.posts_repo.apply_post_update",
+        fail_apply_update,
+    )
+
+    res = member_login.patch(
+        f"/board/posts/{post_id}",
+        json={"cover_image": None},
+    )
+    assert res.status_code == HTTPStatus.NOT_FOUND
+    assert image_path.is_file()
+    assert list((media_root / "images").glob(f".delete_*_{filename}")) == []
+    assert _asset_count() == 1
+
+    refreshed = member_login.get(f"/posts/{post_id}")
+    assert refreshed.json()["cover_image"] is not None
 
 
 @pytest.mark.anyio("asyncio")

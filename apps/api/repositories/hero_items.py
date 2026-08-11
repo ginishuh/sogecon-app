@@ -94,6 +94,14 @@ async def update_hero_item(
     return item
 
 
+async def apply_hero_item_delete(db: AsyncSession, hero_item_id: int) -> int:
+    """히어로 row를 세션에서 삭제한다. commit은 호출자가 수행한다."""
+    item = await get_hero_item(db, hero_item_id)
+    await db.delete(item)
+    await db.flush()
+    return hero_item_id
+
+
 async def delete_hero_item(db: AsyncSession, hero_item_id: int) -> int:
     item = await get_hero_item(db, hero_item_id)
     await db.delete(item)
