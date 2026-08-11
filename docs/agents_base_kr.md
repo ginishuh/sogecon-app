@@ -36,6 +36,7 @@
 | lint, type, 복잡도, 파일 크기 | 각 설정 파일, `ops/ci/guards.py`, CI |
 | 훅과 CI 책임 | `docs/ci_quality_gates.md`, `.githooks`, `.github/workflows` |
 | 배포와 롤백 | `docs/agent_runbook_vps.md`, `ops` 스크립트 |
+| E2E (live·mock) | `docs/agent_runbook_e2e.md` (상세), `AGENTS.md` (계약) |
 | 커밋 형식 | `docs/commit_message_convention.md`, commit hook |
 
 ## 어댑터 원칙
