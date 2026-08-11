@@ -578,6 +578,86 @@ def test_admin_update_removes_author_upload_asset(
     assert not (media_root / "images" / filename).exists()
 
 
+def test_member_cannot_attach_other_members_image(
+    member_login: TestClient, media_root: Path
+) -> None:
+    _seed_member002()
+    uploaded = member_login.post("/uploads/images", files=_upload_file())
+    assert uploaded.status_code == HTTPStatus.OK
+    stolen_url = uploaded.json()["url"]
+
+    member_login.post("/auth/member/logout")
+    login = member_login.post(
+        "/auth/member/login",
+        json={"student_id": "member002", "password": "memberpass2"},
+    )
+    assert login.status_code == HTTPStatus.OK
+
+    denied = member_login.post(
+        "/posts/",
+        json={
+            "title": "타인 이미지 첨부",
+            "content": "본문",
+            "category": "discussion",
+            "cover_image": stolen_url,
+        },
+    )
+    assert denied.status_code == HTTPStatus.FORBIDDEN
+    assert denied.json().get("code") == "upload_asset_forbidden"
+    assert _asset_count() == 1
+
+
+def test_post_update_rolls_back_when_asset_delete_fails(
+    member_login: TestClient, media_root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    uploaded = member_login.post("/uploads/images", files=_upload_file())
+    assert uploaded.status_code == HTTPStatus.OK
+    body = uploaded.json()
+    url = body["url"]
+    filename = body["filename"]
+
+    created = member_login.post(
+        "/posts/",
+        json={
+            "title": "롤백 테스트",
+            "content": "본문",
+            "category": "discussion",
+            "cover_image": url,
+        },
+    )
+    assert created.status_code == HTTPStatus.CREATED
+    post_id = created.json()["id"]
+
+    async def fail_delete_asset(
+        _db: object, _asset: UploadAsset
+    ) -> None:
+        raise SQLAlchemyError("delete failed")
+
+    monkeypatch.setattr(
+        "apps.api.services.upload_service.upload_assets_repo.delete_asset",
+        fail_delete_asset,
+    )
+
+    try:
+        member_login.patch(
+            f"/board/posts/{post_id}",
+            json={
+                "title": "롤백 테스트",
+                "content": "본문",
+                "cover_image": None,
+                "images": [],
+            },
+        )
+    except SQLAlchemyError:
+        pass
+
+    refreshed = member_login.get(f"/posts/{post_id}")
+    assert refreshed.status_code == HTTPStatus.OK
+    assert refreshed.json()["cover_image"] is not None
+    assert (media_root / "images" / filename).is_file()
+    assert _asset_count() == 1
+
+
 @pytest.mark.anyio("asyncio")
 async def test_avatar_upload_rate_limit_429(
     member_login: TestClient,

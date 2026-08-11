@@ -182,17 +182,26 @@ async def get_comment_counts_batch(
     return {row[0]: row[1] for row in result.all()}
 
 
-async def update_post(
+async def apply_post_update(
     db: AsyncSession, post_id: int, payload: schemas.PostUpdate
 ) -> models.Post:
-    """게시물을 수정합니다. 요청에 포함된 필드만 업데이트합니다 (None 포함)."""
-    post = await get_post(db, post_id)  # NotFoundError if not exist
+    """게시물 필드를 세션에 반영한다. commit은 호출자가 수행한다."""
+    post = await get_post(db, post_id)
     update_data = payload.model_dump(exclude_unset=True, exclude={"unpublish"})
-    # unpublish=True면 published_at을 None으로 설정
     if payload.unpublish:
         update_data["published_at"] = None
     for field, value in update_data.items():
         setattr(post, field, value)
+    await db.flush()
+    await db.refresh(post)
+    return post
+
+
+async def update_post(
+    db: AsyncSession, post_id: int, payload: schemas.PostUpdate
+) -> models.Post:
+    """게시물을 수정합니다. 요청에 포함된 필드만 업데이트합니다 (None 포함)."""
+    post = await apply_post_update(db, post_id, payload)
     await db.commit()
     await db.refresh(post)
     return post

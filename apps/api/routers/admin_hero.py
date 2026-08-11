@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,6 +14,12 @@ from ..services import hero_service
 from .auth import CurrentUser, require_permission
 
 router = APIRouter(prefix="/admin/hero", tags=["admin-hero"])
+
+
+def _actor_member_id(user: CurrentUser) -> int:
+    if user.id is None:
+        raise HTTPException(status_code=500, detail="member_id_missing")
+    return user.id
 
 
 class AdminHeroQueryParams(BaseModel):
@@ -88,11 +94,13 @@ async def get_admin_hero_item(
 async def create_admin_hero_item(
     payload: schemas.HeroItemCreate,
     db: AsyncSession = Depends(get_db),
-    _admin: CurrentUser = Depends(
+    admin: CurrentUser = Depends(
         require_permission("admin_hero", allow_admin_fallback=False)
     ),
 ) -> schemas.HeroItemRead:
-    item = await hero_service.create_admin_hero_item(db, payload)
+    item = await hero_service.create_admin_hero_item(
+        db, payload, actor_member_id=_actor_member_id(admin)
+    )
     return schemas.HeroItemRead.model_validate(item)
 
 
@@ -101,11 +109,13 @@ async def update_admin_hero_item(
     hero_item_id: int,
     payload: schemas.HeroItemUpdate,
     db: AsyncSession = Depends(get_db),
-    _admin: CurrentUser = Depends(
+    admin: CurrentUser = Depends(
         require_permission("admin_hero", allow_admin_fallback=False)
     ),
 ) -> schemas.HeroItemRead:
-    item = await hero_service.update_admin_hero_item(db, hero_item_id, payload)
+    item = await hero_service.update_admin_hero_item(
+        db, hero_item_id, payload, actor_member_id=_actor_member_id(admin)
+    )
     return schemas.HeroItemRead.model_validate(item)
 
 

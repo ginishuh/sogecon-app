@@ -5,7 +5,10 @@ from __future__ import annotations
 import re
 import secrets
 import time
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 from fastapi import UploadFile
 from sqlalchemy.exc import SQLAlchemyError
@@ -19,6 +22,7 @@ from ..media_utils import normalize_media_path
 from ..models_upload import UploadAsset
 from ..repositories import members as members_repo
 from ..repositories import upload_assets as upload_assets_repo
+from ..repositories import upload_references as upload_references_repo
 from . import image_pipeline
 
 _SAFE_IMAGE_FILENAME = re.compile(
@@ -147,6 +151,136 @@ def collect_managed_image_paths(
     return paths
 
 
+async def validate_actor_owns_attach_paths(
+    db: AsyncSession,
+    *,
+    actor_member_id: int,
+    attach_paths: set[str],
+) -> None:
+    for relative_path in attach_paths:
+        asset = await upload_assets_repo.get_image_asset_by_path(
+            db, relative_path=relative_path
+        )
+        if asset is None:
+            raise ApiError(
+                code="upload_asset_not_found",
+                detail="첨부할 수 없는 이미지입니다.",
+                status=422,
+            )
+        owner_id = cast(int, asset.owner_member_id)
+        if owner_id != actor_member_id:
+            raise ApiError(
+                code="upload_asset_forbidden",
+                detail="다른 사용자의 이미지는 첨부할 수 없습니다.",
+                status=403,
+            )
+
+
+async def compute_deletable_image_paths(
+    db: AsyncSession,
+    *,
+    candidate_paths: set[str],
+    exclude_post_id: int | None = None,
+    exclude_hero_id: int | None = None,
+) -> set[str]:
+    deletable: set[str] = set()
+    for relative_path in candidate_paths:
+        referenced = await upload_references_repo.is_managed_path_referenced(
+            db,
+            relative_path,
+            exclude_post_id=exclude_post_id,
+            exclude_hero_id=exclude_hero_id,
+        )
+        if not referenced:
+            deletable.add(relative_path)
+    return deletable
+
+
+@dataclass(frozen=True)
+class ResourceImageTransition:
+    actor_member_id: int
+    old_paths: set[str]
+    new_paths: set[str]
+    exclude_post_id: int | None = None
+    exclude_hero_id: int | None = None
+
+
+def _media_file_path(relative_path: str) -> Path:
+    media_root = Path(get_settings().media_root)
+    return media_root / relative_path
+
+
+def _tombstone_managed_file(relative_path: str) -> tuple[Path, Path]:
+    file_path = _media_file_path(relative_path)
+    if not file_path.exists():
+        return file_path, file_path
+    tombstone = file_path.with_name(
+        f".delete_{secrets.token_hex(8)}_{file_path.name}"
+    )
+    file_path.rename(tombstone)
+    return file_path, tombstone
+
+
+def _restore_tombstone(file_path: Path, tombstone: Path) -> None:
+    if tombstone == file_path:
+        return
+    if tombstone.exists() and not file_path.exists():
+        tombstone.rename(file_path)
+
+
+def _unlink_tombstone(file_path: Path, tombstone: Path) -> None:
+    if tombstone == file_path:
+        return
+    try:
+        tombstone.unlink()
+    except OSError:
+        pass
+
+
+async def apply_resource_image_lifecycle(
+    db: AsyncSession,
+    transition: ResourceImageTransition,
+    apply_resource_update: Callable[[], Awaitable[None]],
+) -> None:
+    """Validate attach ownership and atomically update resource + asset cleanup."""
+    attach_paths = transition.new_paths - transition.old_paths
+    await validate_actor_owns_attach_paths(
+        db,
+        actor_member_id=transition.actor_member_id,
+        attach_paths=attach_paths,
+    )
+    paths_to_delete = await compute_deletable_image_paths(
+        db,
+        candidate_paths=transition.old_paths - transition.new_paths,
+        exclude_post_id=transition.exclude_post_id,
+        exclude_hero_id=transition.exclude_hero_id,
+    )
+
+    tombstones: list[tuple[Path, Path]] = []
+    try:
+        for relative_path in paths_to_delete:
+            tombstones.append(_tombstone_managed_file(relative_path))
+
+        await apply_resource_update()
+
+        for relative_path in paths_to_delete:
+            asset = await upload_assets_repo.get_image_asset_by_path(
+                db, relative_path=relative_path
+            )
+            if asset is not None:
+                await upload_assets_repo.delete_asset(db, asset)
+
+        await db.commit()
+    except (OSError, SQLAlchemyError):
+        await db.rollback()
+        for file_path, tombstone in reversed(tombstones):
+            _restore_tombstone(file_path, tombstone)
+        raise
+    else:
+        for file_path, tombstone in tombstones:
+            _unlink_tombstone(file_path, tombstone)
+
+
 async def _delete_image_asset(db: AsyncSession, asset: UploadAsset) -> None:
     settings = get_settings()
     media_root = Path(settings.media_root)
@@ -172,30 +306,6 @@ async def _delete_image_asset(db: AsyncSession, asset: UploadAsset) -> None:
             tombstone.unlink()
         except OSError:
             pass
-
-
-async def delete_image_asset_by_path(
-    db: AsyncSession,
-    *,
-    relative_path: str,
-) -> None:
-    """Delete a managed upload asset by storage path (resource lifecycle authority)."""
-    asset = await upload_assets_repo.get_image_asset_by_path(
-        db, relative_path=relative_path
-    )
-    if asset is None:
-        return
-    await _delete_image_asset(db, asset)
-
-
-async def cleanup_removed_image_paths(
-    db: AsyncSession,
-    *,
-    old_paths: set[str],
-    new_paths: set[str],
-) -> None:
-    for relative_path in old_paths - new_paths:
-        await delete_image_asset_by_path(db, relative_path=relative_path)
 
 
 async def delete_post_image(

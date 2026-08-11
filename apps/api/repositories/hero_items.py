@@ -73,13 +73,22 @@ async def create_hero_item(
     return item
 
 
-async def update_hero_item(
+async def apply_hero_item_update(
     db: AsyncSession, hero_item_id: int, payload: schemas.HeroItemUpdate
 ) -> models.HeroItem:
     item = await get_hero_item(db, hero_item_id)
     data = payload.model_dump(exclude_unset=True)
     for field, value in data.items():
         setattr(item, field, value)
+    await db.flush()
+    await db.refresh(item)
+    return item
+
+
+async def update_hero_item(
+    db: AsyncSession, hero_item_id: int, payload: schemas.HeroItemUpdate
+) -> models.HeroItem:
+    item = await apply_hero_item_update(db, hero_item_id, payload)
     await db.commit()
     await db.refresh(item)
     return item

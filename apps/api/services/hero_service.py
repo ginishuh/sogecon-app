@@ -146,16 +146,29 @@ async def _ensure_target_exists(
 
 
 async def create_admin_hero_item(
-    db: AsyncSession, payload: schemas.HeroItemCreate
+    db: AsyncSession,
+    payload: schemas.HeroItemCreate,
+    *,
+    actor_member_id: int,
 ) -> models.HeroItem:
     await _ensure_target_exists(
         db, target_type=payload.target_type, target_id=payload.target_id
+    )
+    attach_paths = upload_service.collect_managed_image_paths(
+        image_override=payload.image_override,
+    )
+    await upload_service.validate_actor_owns_attach_paths(
+        db, actor_member_id=actor_member_id, attach_paths=attach_paths
     )
     return await hero_items_repo.create_hero_item(db, payload)
 
 
 async def update_admin_hero_item(
-    db: AsyncSession, hero_item_id: int, payload: schemas.HeroItemUpdate
+    db: AsyncSession,
+    hero_item_id: int,
+    payload: schemas.HeroItemUpdate,
+    *,
+    actor_member_id: int,
 ) -> models.HeroItem:
     current = await hero_items_repo.get_hero_item(db, hero_item_id)
     next_type = (
@@ -181,11 +194,26 @@ async def update_admin_hero_item(
     new_paths = upload_service.collect_managed_image_paths(
         image_override=new_override,
     )
-    item = await hero_items_repo.update_hero_item(db, hero_item_id, payload)
-    await upload_service.cleanup_removed_image_paths(
-        db, old_paths=old_paths, new_paths=new_paths
+    updated_holder: list[models.HeroItem] = []
+
+    async def apply_update() -> None:
+        updated_holder.append(
+            await hero_items_repo.apply_hero_item_update(
+                db, hero_item_id, payload
+            )
+        )
+
+    await upload_service.apply_resource_image_lifecycle(
+        db,
+        upload_service.ResourceImageTransition(
+            actor_member_id=actor_member_id,
+            old_paths=old_paths,
+            new_paths=new_paths,
+            exclude_hero_id=hero_item_id,
+        ),
+        apply_update,
     )
-    return item
+    return updated_holder[0]
 
 
 async def delete_admin_hero_item(db: AsyncSession, hero_item_id: int) -> int:
