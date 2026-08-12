@@ -109,5 +109,7 @@ def test_me_update_invalid_payload_returns_422(
     res = member_login.put("/me/", json=payload)
     assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     body = res.json()
-    assert isinstance(body["detail"], list)
-    assert any(field in entry.get("loc", []) for entry in body["detail"])
+    assert body["code"] == "validation_error"
+    assert isinstance(body["detail"], str)
+    assert isinstance(body["errors"], list)
+    assert any(field in entry.get("loc", []) for entry in body["errors"])

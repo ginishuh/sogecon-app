@@ -16,6 +16,7 @@ from apps.api.db import get_db
 from apps.api.main import app
 from apps.api.repositories import support_tickets as tickets_repo
 from apps.api.routers import support as support_router
+from tests.api.problem_assertions import assert_problem_code
 
 
 @pytest.fixture()
@@ -89,7 +90,7 @@ def test_admin_can_list_support_tickets(admin_login: TestClient) -> None:
 def test_member_cannot_list_support_tickets(member_login: TestClient) -> None:
     res = member_login.get("/support/admin/tickets?limit=20")
     assert res.status_code == HTTPStatus.FORBIDDEN
-    assert res.json()["detail"] == "admin_permission_required"
+    assert_problem_code(res.json(), "admin_permission_required")
 
 
 def test_active_admin_session_refreshes_backfilled_support_role(
@@ -252,7 +253,7 @@ def test_support_contact_db_failure_leaves_no_cooldown(
     with caplog.at_level("DEBUG"):
         failed = no_raise.post("/support/contact", json=payload)
     assert failed.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-    assert failed.json()["code"] == "support_ticket_persist_failed"
+    assert_problem_code(failed.json(), "internal_error")
     assert _count_support_tickets() == before
     assert support_router._recent == {}
 

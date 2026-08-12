@@ -16,6 +16,7 @@ from apps.api.errors import ApiError
 from apps.api.main import app
 from apps.api.repositories import members as members_repo
 from apps.api.services import members_service
+from tests.api.problem_assertions import assert_problem_code
 
 
 def _run_in_test_session(
@@ -207,7 +208,7 @@ def test_existing_session_uses_current_roles_and_status(client: TestClient) -> N
         json={"roles": ["member"]},
     )
     assert demoted.status_code == HTTPStatus.FORBIDDEN
-    assert demoted.json()["detail"] == "super_admin_required"
+    assert_problem_code(demoted.json(), "super_admin_required")
 
     event_write = client.post(
         "/events/",

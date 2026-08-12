@@ -13,6 +13,17 @@ USER_FACING_DETAILS: dict[str, str] = {
     "super_admin_required": "최고 운영자 권한이 필요합니다.",
     "member_required": "회원 권한이 필요합니다.",
     "member_not_found": "회원 정보를 찾을 수 없습니다.",
+    "member_not_active": (
+        "아직 이용할 수 없는 계정입니다. 문의가 필요하면 사무국에 연락해 주세요."
+    ),
+    "member_pending_approval": (
+        "동문회 사무국에서 가입 신청을 확인 중입니다. "
+        "승인 안내를 받은 뒤 활성화를 진행해 주세요."
+    ),
+    "invalid_or_expired_activation_token": (
+        "활성화 링크가 올바르지 않거나 만료되었습니다."
+    ),
+    "activation_already_used": "이미 사용된 활성화 링크입니다.",
     "post_not_found": "게시글을 찾을 수 없습니다.",
     "event_not_found": "행사를 찾을 수 없습니다.",
     "validation_error": "입력값을 확인해 주세요.",

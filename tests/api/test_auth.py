@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from apps.api import models
 from apps.api.db import get_db
 from apps.api.main import app
+from tests.api.problem_assertions import assert_problem_code
 
 
 def _seed_admin(client: TestClient, student_id: str, password: str) -> int:
@@ -102,7 +103,7 @@ def test_login_success_and_protected_routes(client: TestClient) -> None:
 def test_login_failure(client: TestClient) -> None:
     res = client.post("/auth/login", json={"student_id": "none001", "password": "x"})
     assert res.status_code == HTTPStatus.UNAUTHORIZED
-    assert res.json()["detail"] == "login_failed"
+    assert_problem_code(res.json(), "login_failed")
     assert res.json()["code"] == "login_failed"
 
 
@@ -187,7 +188,7 @@ def test_login_pending_member_returns_pending_reason(client: TestClient) -> None
         json={"student_id": "pending001", "password": "pw"},
     )
     assert res.status_code == HTTPStatus.FORBIDDEN
-    assert res.json()["detail"] == "member_pending_approval"
+    assert_problem_code(res.json(), "member_pending_approval")
     assert res.json()["code"] == "member_pending_approval"
 
 
@@ -228,5 +229,5 @@ def test_login_inactive_with_wrong_password_returns_login_failed(
         json={"student_id": "inactive-oracle-001", "password": "wrong-password"},
     )
     assert res.status_code == HTTPStatus.UNAUTHORIZED
-    assert res.json()["detail"] == "login_failed"
+    assert_problem_code(res.json(), "login_failed")
     assert res.json()["code"] == "login_failed"

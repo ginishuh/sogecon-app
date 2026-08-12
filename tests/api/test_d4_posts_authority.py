@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.post_visibility import BOARD_POST_CATEGORIES
+from tests.api.problem_assertions import assert_problem_code
 
 
 def test_public_hides_notice_draft_and_future(admin_login: TestClient) -> None:
@@ -416,8 +417,8 @@ def test_admin_hero_can_read_preview_without_post_management(
         f"/posts/{post_id}", json={"title": "수정 거부"}
     )
     assert update_attempt.status_code == HTTPStatus.FORBIDDEN
-    assert update_attempt.json()["detail"] == "admin_permission_required"
+    assert_problem_code(update_attempt.json(), "admin_permission_required")
 
     delete_attempt = admin_login.delete(f"/posts/{post_id}")
     assert delete_attempt.status_code == HTTPStatus.FORBIDDEN
-    assert delete_attempt.json()["detail"] == "admin_permission_required"
+    assert_problem_code(delete_attempt.json(), "admin_permission_required")
