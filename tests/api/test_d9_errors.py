@@ -6,9 +6,17 @@ from http import HTTPStatus
 import httpx
 import pytest
 from fastapi.testclient import TestClient
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.requests import Request
 
-from apps.api.main import app
+from apps.api import models
+from apps.api.error_messages import (
+    USER_FACING_DETAILS,
+    code_and_detail_from_http_detail,
+)
+from apps.api.main import _handle_http_exception, app
 from apps.api.routers import notifications as router_mod
+from apps.api.routers.auth import require_member
 from apps.api.services.notifications_service import PushProvider
 
 
@@ -120,17 +128,92 @@ def test_openapi_operations_reference_problem_details_errors() -> None:
     assert checked > 0
 
 
+def test_code_and_detail_masks_internal_http_500_text() -> None:
+    code, detail = code_and_detail_from_http_detail(
+        "Member ID is None",
+        status=HTTPStatus.INTERNAL_SERVER_ERROR,
+    )
+    assert code == "internal_error"
+    assert detail == USER_FACING_DETAILS["internal_error"]
+    assert "Member" not in detail
+
+
+@pytest.mark.anyio
+async def test_http_exception_500_masks_internal_detail_and_request_id() -> None:
+    request = Request(
+        {
+            "type": "http",
+            "method": "GET",
+            "path": "/comments/1",
+            "headers": [],
+            "query_string": b"",
+            "server": ("testserver", 80),
+            "client": ("testclient", 50000),
+            "scheme": "http",
+            "http_version": "1.1",
+        }
+    )
+    request.state.request_id = "req-d9-http-500"
+    response = await _handle_http_exception(
+        request,
+        StarletteHTTPException(HTTPStatus.INTERNAL_SERVER_ERROR, "Member ID is None"),
+    )
+    body = json.loads(response.body)
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert body["code"] == "internal_error"
+    assert body["detail"] == USER_FACING_DETAILS["internal_error"]
+    assert body["request_id"] == "req-d9-http-500"
+    assert response.headers["x-request-id"] == "req-d9-http-500"
+    assert "Member" not in body["detail"]
+
+
+def test_api_error_500_masks_internal_code_and_request_id(
+    member_login: TestClient,
+) -> None:
+    async def _member_without_id() -> models.Member:
+        return models.Member(
+            id=None,
+            student_id="ghost-member",
+            email="ghost@test.example.com",
+            name="Ghost",
+            cohort=2024,
+            roles="member",
+            status="active",
+        )
+
+    app.dependency_overrides[require_member] = _member_without_id
+    try:
+        res = member_login.patch(
+            "/board/posts/1",
+            json={"title": "t", "content": "c"},
+        )
+        assert res.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+        data = res.json()
+        assert data["code"] == "internal_error"
+        assert data["detail"] == USER_FACING_DETAILS["internal_error"]
+        assert "member_id_missing" not in json.dumps(data)
+        request_id = res.headers.get("x-request-id")
+        assert request_id
+        assert data["request_id"] == request_id
+    finally:
+        app.dependency_overrides.pop(require_member, None)
+
+
 @pytest.mark.anyio
 async def test_rate_limit_returns_problem_details(
     admin_login: TestClient,
     enable_rate_limit: None,
 ) -> None:
     class _DummyProvider(PushProvider):
-        def send(self, sub, payload):  # type: ignore[no-untyped-def]
+        def send(
+            self, sub: models.PushSubscription, payload: dict[str, object]
+        ) -> tuple[bool, int | None]:
             return (True, 201)
 
-        async def send_async(self, sub, payload):  # type: ignore[no-untyped-def]
-            return (True, 201)
+        async def send_async(
+            self, sub: models.PushSubscription, payload: dict[str, object]
+        ) -> tuple[bool, int | None]:
+            return self.send(sub, payload)
 
     def _provider_override() -> _DummyProvider:
         return _DummyProvider()

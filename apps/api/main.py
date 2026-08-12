@@ -26,6 +26,7 @@ from .config import get_settings
 from .db import dispose_engine
 from .error_messages import (
     code_and_detail_from_http_detail,
+    public_problem_code_and_detail,
     user_detail_for_code,
 )
 from .errors import ApiError
@@ -354,16 +355,17 @@ def _status_for(exc: ApiError) -> int:
 @app.exception_handler(ApiError)
 async def _handle_api_error(request: Request, exc: ApiError) -> JSONResponse:
     status = _status_for(exc)
-    detail = (
-        exc.detail
-        if exc.detail and exc.detail != exc.code
-        else user_detail_for_code(exc.code, status=status)
+    internal_detail = exc.detail or exc.code
+    public_code, public_detail = public_problem_code_and_detail(
+        status=status,
+        code=exc.code,
+        detail=internal_detail if internal_detail != exc.code else None,
     )
     request_id = getattr(request.state, "request_id", None)
     body = problem_details_body(
         status=status,
-        code=exc.code,
-        detail=detail,
+        code=public_code,
+        detail=public_detail,
         request_id=request_id,
     )
     level = (
@@ -379,7 +381,7 @@ async def _handle_api_error(request: Request, exc: ApiError) -> JSONResponse:
         http_status=status,
         method=request.method,
         path=request.url.path,
-        detail=body["detail"],
+        detail=internal_detail,
         request_id=request_id,
     )
     if status >= HTTP_STATUS_SERVER_ERROR:
@@ -390,7 +392,7 @@ async def _handle_api_error(request: Request, exc: ApiError) -> JSONResponse:
                 "path": request.url.path,
                 "method": request.method,
                 "request_id": request_id,
-                "detail": body["detail"],
+                "detail": internal_detail,
                 "level": "error",
             }
         )
@@ -421,13 +423,38 @@ async def _handle_http_exception(
         exc.detail,
         status=exc.status_code,
     )
+    request_id = getattr(request.state, "request_id", None)
+    if exc.status_code >= HTTP_STATUS_SERVER_ERROR:
+        internal_detail = str(exc.detail)
+        log_json(
+            error_logger,
+            logging.ERROR,
+            "http_exception",
+            code=code,
+            http_status=exc.status_code,
+            method=request.method,
+            path=request.url.path,
+            detail=internal_detail,
+            request_id=request_id,
+        )
+        emit_error_event(
+            {
+                "code": code,
+                "status": exc.status_code,
+                "path": request.url.path,
+                "method": request.method,
+                "request_id": request_id,
+                "detail": internal_detail,
+                "level": "error",
+            }
+        )
     return _problem_json_response(
         request,
         problem_details_body(
             status=exc.status_code,
             code=code,
             detail=detail,
-            request_id=getattr(request.state, "request_id", None),
+            request_id=request_id,
         ),
         status=exc.status_code,
         headers=_http_exception_headers(exc),

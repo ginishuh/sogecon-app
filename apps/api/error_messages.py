@@ -55,11 +55,30 @@ def user_detail_for_code(code: str, *, status: int) -> str:
     return USER_FACING_DETAILS["http_error"]
 
 
+def public_problem_code_and_detail(
+    *,
+    status: int,
+    code: str,
+    detail: str | None = None,
+) -> tuple[str, str]:
+    """외부 Problem Details용 code/detail. 5xx는 항상 internal_error로 통일한다."""
+    if status >= HTTPStatus.INTERNAL_SERVER_ERROR:
+        return "internal_error", USER_FACING_DETAILS["internal_error"]
+    resolved_detail = (
+        detail
+        if detail and detail != code
+        else user_detail_for_code(code, status=status)
+    )
+    return code, resolved_detail
+
+
 def code_and_detail_from_http_detail(
     detail: object,
     *,
     status: int,
 ) -> tuple[str, str]:
+    if status >= HTTPStatus.INTERNAL_SERVER_ERROR:
+        return public_problem_code_and_detail(status=status, code="internal_error")
     if isinstance(detail, str) and detail.strip():
         text = detail.strip()
         lowered = text.lower()
@@ -67,6 +86,14 @@ def code_and_detail_from_http_detail(
         if framework is not None:
             return framework
         if looks_like_stable_code(text):
-            return text, user_detail_for_code(text, status=status)
-        return "http_error", text
-    return "http_error", user_detail_for_code("http_error", status=status)
+            return public_problem_code_and_detail(
+                status=status,
+                code=text,
+                detail=user_detail_for_code(text, status=status),
+            )
+        return public_problem_code_and_detail(
+            status=status,
+            code="http_error",
+            detail=text,
+        )
+    return public_problem_code_and_detail(status=status, code="http_error")
