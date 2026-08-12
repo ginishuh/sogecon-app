@@ -8,17 +8,34 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 ROUTERS_DIR = ROOT / "apps/api/routers"
 
+_FORBIDDEN_DB_ATTRS = frozenset(
+    {"execute", "commit", "rollback", "delete", "flush", "merge", "add", "refresh"}
+)
 
-def _is_forbidden_repo_module(module: str | None) -> bool:
+
+def _module_mentions_repositories(module: str | None, *, level: int = 0) -> bool:
     if not module:
         return False
+    if module == "repositories" or module.startswith("repositories."):
+        return level >= 1
     return module.endswith("repositories") or ".repositories." in module
 
 
-def _is_forbidden_models_module(module: str | None) -> bool:
-    if not module:
-        return False
-    return module in {"..models", "apps.api.models"} or module.endswith(".models")
+def _import_from_mentions_models(node: ast.ImportFrom) -> bool:
+    module = node.module
+    if module and (
+        module == "models"
+        or module.endswith(".models")
+        or module in {"apps.api.models"}
+    ):
+        if module == "models":
+            return node.level >= 1
+        return True
+    return any(alias.name == "models" for alias in node.names)
+
+
+def _import_mentions_repositories(node: ast.Import) -> bool:
+    return any("repositories" in alias.name for alias in node.names)
 
 
 def check_router_file(path: Path) -> list[str]:
@@ -26,19 +43,24 @@ def check_router_file(path: Path) -> list[str]:
     tree = ast.parse(path.read_text(encoding="utf-8"))
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
-            if _is_forbidden_repo_module(node.module):
+            if _module_mentions_repositories(node.module, level=node.level):
                 violations.append(
                     f"{path}:{node.lineno}: router must not import repositories"
                 )
-            if _is_forbidden_models_module(node.module):
+            if _import_from_mentions_models(node):
                 violations.append(
                     f"{path}:{node.lineno}: router must not import models"
                 )
+        if isinstance(node, ast.Import) and _import_mentions_repositories(node):
+            violations.append(
+                f"{path}:{node.lineno}: router must not import repositories"
+            )
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-            if node.func.attr == "refresh" and isinstance(node.func.value, ast.Name):
-                if node.func.value.id == "db":
+            if isinstance(node.func.value, ast.Name) and node.func.value.id == "db":
+                if node.func.attr in _FORBIDDEN_DB_ATTRS:
                     violations.append(
-                        f"{path}:{node.lineno}: router must not call db.refresh"
+                        f"{path}:{node.lineno}: router must not call db."
+                        f"{node.func.attr}"
                     )
     return violations
 

@@ -7218,6 +7218,136 @@
           "value"
         ],
         "title": "WebVitalEvent"
+      },
+      "ValidationErrorItem": {
+        "properties": {
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Loc",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Msg",
+            "type": "string"
+          },
+          "input": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Input"
+          },
+          "ctx": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ctx"
+          }
+        },
+        "required": [
+          "type",
+          "loc",
+          "msg"
+        ],
+        "title": "ValidationErrorItem",
+        "type": "object"
+      },
+      "ProblemDetails": {
+        "properties": {
+          "type": {
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Request Id"
+          },
+          "errors": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ValidationErrorItem"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Errors"
+          }
+        },
+        "required": [
+          "status",
+          "detail",
+          "code"
+        ],
+        "title": "ProblemDetailsResponse",
+        "type": "object"
+      }
+    },
+    "responses": {
+      "ProblemDetailsError": {
+        "description": "Problem Details error response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetails"
+            }
+          }
+        }
       }
     }
   }

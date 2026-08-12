@@ -2228,8 +2228,68 @@ export interface components {
              */
             ts?: number | null;
         };
+        /** ValidationErrorItem */
+        ValidationErrorItem: {
+            /** Type */
+            type: string;
+            /** Loc */
+            loc: (string | number)[];
+            /** Msg */
+            msg: string;
+            /**
+             * Input
+             * @default null
+             */
+            input: unknown | null;
+            /**
+             * Ctx
+             * @default null
+             */
+            ctx: {
+                [key: string]: string;
+            } | null;
+        };
+        /** ProblemDetailsResponse */
+        ProblemDetails: {
+            /**
+             * Type
+             * @default about:blank
+             */
+            type: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Status */
+            status: number;
+            /** Detail */
+            detail: string;
+            /** Code */
+            code: string;
+            /**
+             * Request Id
+             * @default null
+             */
+            request_id: string | null;
+            /**
+             * Errors
+             * @default null
+             */
+            errors: components["schemas"]["ValidationErrorItem"][] | null;
+        };
     };
-    responses: never;
+    responses: {
+        /** @description Problem Details error response */
+        ProblemDetailsError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ProblemDetails"];
+            };
+        };
+    };
     parameters: never;
     requestBodies: never;
     headers: never;

@@ -1,4 +1,4 @@
-// 공통 API 클라이언트 래퍼
+import { apiErrorToMessage } from './error-map';
 // - fetch 옵션 통일, 에러 포맷 처리, BASE_URL 주입
 
 const DEV_LIKE_ENVS = new Set(['development', 'test']);
@@ -92,12 +92,21 @@ export function resolveApiAssetUrl(value: string, options: ApiBaseResolutionOpti
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
+export type ValidationErrorItem = {
+  type: string;
+  loc: (string | number)[];
+  msg: string;
+  ctx?: Record<string, string>;
+};
+
 export type ProblemDetails = {
   type?: string;
   title?: string;
   status: number;
-  detail?: unknown;
+  detail: string;
   code?: string;
+  request_id?: string;
+  errors?: ValidationErrorItem[];
 };
 
 export class ApiError extends Error {
@@ -110,30 +119,17 @@ export class ApiError extends Error {
 async function parseError(res: Response): Promise<never> {
   try {
     const problem = (await res.json()) as ProblemDetails;
-    const msg = detailToMessage(problem.detail) ?? problem.title ?? `HTTP ${res.status}`;
+    const msg =
+      (typeof problem.detail === 'string' && problem.detail) ||
+      apiErrorToMessage(problem.code) ||
+      problem.title ||
+      `HTTP ${res.status}`;
     throw new ApiError(problem.status ?? res.status, msg, problem.code);
   } catch (e) {
     if (e instanceof ApiError) throw e;
     const text = await res.text().catch(() => '');
     throw new ApiError(res.status, text || `HTTP ${res.status}`);
   }
-}
-
-function detailToMessage(detail: unknown): string | undefined {
-  if (typeof detail === 'string' && detail) return detail;
-  if (!Array.isArray(detail)) return undefined;
-
-  for (const item of detail) {
-    if (!isRecord(item)) continue;
-    const message = item['msg'];
-    if (typeof message !== 'string' || !message) continue;
-    return message.replace(/^Value error,\s*/, '');
-  }
-  return undefined;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value != null;
 }
 
 async function parseOk<T>(res: Response): Promise<T | void> {
