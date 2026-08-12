@@ -21,7 +21,7 @@ USER_FACING_DETAILS: dict[str, str] = {
         "승인 안내를 받은 뒤 활성화를 진행해 주세요."
     ),
     "invalid_or_expired_activation_token": (
-        "활성화 링크가 올바르지 않거나 만료되었습니다."
+        "활성화 링크가 올바르지 않거나 만료되었습니다."  # nosec B105
     ),
     "activation_already_used": "이미 사용된 활성화 링크입니다.",
     "post_not_found": "게시글을 찾을 수 없습니다.",
