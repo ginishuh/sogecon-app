@@ -4,7 +4,12 @@
   "pythonVersion": "3.12",
   "stubPath": "apps/api/stubs",
   "include": [
-    "tests"
+    "tests",
+    "scripts",
+    "ops"
+  ],
+  "exclude": [
+    "apps/api/migrations/versions"
   ],
   "typeCheckingMode": "off",
   "reportMissingImports": "error",

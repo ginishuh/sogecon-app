@@ -161,16 +161,18 @@ current와 invalid/not-ready index를 먼저 readback하고, 이름이 남은 in
 - API/Web coverage baseline은 `ops/ci/coverage_baseline.json`에 고정하고
   `ops/ci/coverage_gate.py`가 pytest-cov JSON·vitest `coverage-summary.json`을
   readback한다. baseline 아래로 떨어지면 PR CI가 실패한다.
-- `ops/ci/pytest_guard.py`는 `apps/api/` production Python 변경 시 같은 PR의
-  `tests/**/*.py` 동반 변경을 요구한다. 기존 suite 수집만으로는 우회할 수 없다.
-- `ops/ci/guards.py`는 `tests/`·`scripts/` Python까지 금지 suppression을 검사한다.
-- Pyright는 `apps/api`(strict)와 `tests/`(import/undefined only,
+- `ops/ci/pytest_guard.py`는 `apps/api/` production Python 변경마다 같은 PR의
+  **관련** `tests/**/*.py` 동반 변경을 요구한다. 무관한 테스트 파일만 추가하는
+  우회는 허용하지 않으며, 변경 동작을 실제로 다루는 테스트인지 파일명·import/patch
+  힌트로 검증한다.
+- `ops/ci/guards.py`는 `tests/`·`scripts/`·루트 `*.py`·`ops/**/*.py` Python까지
+  금지 suppression을 검사한다.
+- Pyright는 `apps/api`(strict)와 `tests/`·`scripts/`·`ops/`(import/undefined only,
   `pyrightconfig.tests.json`)를 분리 실행한다.
 - comments/scheduler 대표 회귀는 `tests/api/test_comments.py`,
   `tests/api/test_scheduler.py`에 둔다.
-- 관측 baseline(2026-08-12): API lines **76%** (gate min 75), Web lines **57.79%**
-  (gate min 57). coverage 수집으로 Python job·Web unit test 단계가 각각 수십 초
-  늘 수 있으나, full gate는 PR Ready 시 1회만 수행한다.
+- 관측 baseline(2026-08-12, main@873766c 재측정): API lines **78.11%** (gate min 77),
+  Web lines **57.79%** (gate min 57, scope에 hooks/services/proxy.ts 포함).
 - Web/CI 변경 PR(D10 등)의 E2E는 mock regression(`docs/agent_runbook_e2e.md` §5)으로
   충분하다. live product E2E는 별도 product semantics 변경 시에만 추가한다.
 

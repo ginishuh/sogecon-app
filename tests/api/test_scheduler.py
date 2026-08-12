@@ -61,6 +61,45 @@ async def test_reclaim_stale_scheduled_notifications_logs_when_reclaimed() -> No
     reclaim.assert_awaited_once_with(session)
 
 
+@pytest.mark.asyncio
+async def test_process_scheduled_notifications_propagates_service_failure() -> None:
+    session = object()
+    session_ctx = AsyncMock()
+    session_ctx.__aenter__.return_value = session
+    session_ctx.__aexit__.return_value = False
+
+    with (
+        patch("apps.api.scheduler.AsyncSessionLocal", return_value=session_ctx),
+        patch(
+            "apps.api.scheduler.sched_svc.trigger_scheduled_notifications",
+            new_callable=AsyncMock,
+            side_effect=RuntimeError("scheduled delivery failed"),
+        ),
+        patch("apps.api.scheduler.PyWebPushProvider"),
+    ):
+        with pytest.raises(RuntimeError, match="scheduled delivery failed"):
+            await scheduler.process_scheduled_notifications()
+
+
+@pytest.mark.asyncio
+async def test_reclaim_stale_scheduled_notifications_propagates_failure() -> None:
+    session = object()
+    session_ctx = AsyncMock()
+    session_ctx.__aenter__.return_value = session
+    session_ctx.__aexit__.return_value = False
+
+    with (
+        patch("apps.api.scheduler.AsyncSessionLocal", return_value=session_ctx),
+        patch(
+            "apps.api.scheduler.sched_svc.reclaim_stale_scheduled_logs",
+            new_callable=AsyncMock,
+            side_effect=RuntimeError("reclaim failed"),
+        ),
+    ):
+        with pytest.raises(RuntimeError, match="reclaim failed"):
+            await scheduler.reclaim_stale_scheduled_notifications()
+
+
 def test_start_scheduler_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
     scheduler._state["scheduler"] = None
     monkeypatch.setenv("SCHEDULER_ENABLED", "false")
