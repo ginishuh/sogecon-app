@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import puppeteer, { Browser, Page, HTTPRequest } from 'puppeteer';
-import { WEB_BASE_URL } from './utils/env';
+import { WEB_BASE_URL, isApiUrl } from './utils/env';
 import { configureMockServer } from './utils/mockServer';
 
 let browser: Browser | null = null;
@@ -164,7 +164,7 @@ async function respondOnboardingApiRequest(
   routeResponders: Record<string, () => ReturnType<typeof jsonResponse>>
 ) {
   const url = new URL(request.url());
-  if (url.port !== '3001') return false;
+  if (!isApiUrl(url)) return false;
 
   if (request.method() === 'OPTIONS') {
     await request.respond({

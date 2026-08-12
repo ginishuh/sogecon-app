@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import cast
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
@@ -11,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
 from ..db import get_db
-from ..repositories import posts as posts_repo
+from ..post_query_filters import AdminPostFilters
 from ..services import posts_service
 from .auth import CurrentUser, require_any_permission, require_permission
 
@@ -58,7 +57,7 @@ async def list_admin_posts(
     ),
 ) -> AdminPostListResponse:
     """관리자용 게시물 목록 (비공개 포함)."""
-    filters: posts_repo.AdminPostFilters = {
+    filters: AdminPostFilters = {
         "category": params.category,
         "status": params.status,
         "q": params.q,
@@ -66,15 +65,7 @@ async def list_admin_posts(
     posts, total = await posts_service.list_admin_posts_with_total(
         db, limit=params.limit, offset=params.offset, filters=filters
     )
-    # N+1 방지: 배치로 댓글 수 조회
-    post_ids = [cast(int, p.id) for p in posts]
-    comment_counts = await posts_repo.get_comment_counts_batch(db, post_ids)
-    items: list[schemas.PostRead] = []
-    for post in posts:
-        post_read = schemas.PostRead.model_validate(post)
-        post_read.author_name = post.author.name if post.author else None
-        post_read.comment_count = comment_counts.get(cast(int, post.id), 0)
-        items.append(post_read)
+    items = await posts_service.list_admin_post_reads(db, posts)
     return AdminPostListResponse(items=items, total=total)
 
 
@@ -89,8 +80,4 @@ async def preview_admin_post(
     ),
 ) -> schemas.PostRead:
     """관리자 게시물 미리보기 (게시물 또는 hero 읽기 권한)."""
-    post = await posts_service.get_post(db, post_id)
-    post_read = schemas.PostRead.model_validate(post)
-    post_read.author_name = post.author.name if post.author else None
-    post_read.comment_count = await posts_repo.get_comment_count(db, cast(int, post.id))
-    return post_read
+    return await posts_service.get_admin_post_read(db, post_id)

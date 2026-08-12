@@ -4,6 +4,7 @@ import asyncio
 import json
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Protocol, cast
 
 from pywebpush import WebPushException, webpush
@@ -11,7 +12,7 @@ from requests.exceptions import RequestException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
-from ..crypto_utils import CryptoError, decrypt_str
+from ..crypto_utils import CryptoError, decrypt_str, is_push_encryption_effective
 from ..errors import ApiError
 from ..models import PushSubscription
 from ..repositories import notifications as repo
@@ -158,3 +159,68 @@ async def send_to_all(
     await send_logs.create_logs_batch(db, log_items)
     await repo.remove_by_endpoint_hashes(db, expired_hashes)
     return SendResult(accepted=accepted, failed=failed)
+
+
+@dataclass
+class SendLogReadData:
+    created_at: str
+    ok: bool
+    status_code: int | None
+    endpoint_tail: str | None
+
+
+@dataclass
+class NotificationStatsData:
+    active_subscriptions: int
+    recent_accepted: int
+    recent_failed: int
+    encryption_enabled: bool
+    range_label: str
+    failed_404: int | None
+    failed_410: int | None
+    failed_other: int | None
+
+
+async def list_recent_send_logs(
+    db: AsyncSession,
+    *,
+    limit: int,
+) -> list[SendLogReadData]:
+    rows = await send_logs.list_recent(db, limit=limit)
+    out: list[SendLogReadData] = []
+    for row in rows:
+        created_dt = cast(datetime | None, row.created_at)
+        out.append(
+            SendLogReadData(
+                created_at=created_dt.isoformat() if created_dt else "",
+                ok=bool(cast(int, row.ok)),
+                status_code=cast(int | None, row.status_code),
+                endpoint_tail=cast(str | None, row.endpoint_tail),
+            )
+        )
+    return out
+
+
+async def get_notification_stats(
+    db: AsyncSession,
+    *,
+    range_label: str,
+    cutoff: datetime,
+) -> NotificationStatsData:
+    active = await repo.count_active_subscriptions(db)
+    agg = await send_logs.aggregate_since(db, cutoff=cutoff)
+    settings = get_settings()
+    return NotificationStatsData(
+        active_subscriptions=active,
+        recent_accepted=agg.accepted,
+        recent_failed=agg.failed,
+        encryption_enabled=is_push_encryption_effective(settings),
+        range_label=range_label,
+        failed_404=agg.failed_404,
+        failed_410=agg.failed_410,
+        failed_other=agg.failed_other,
+    )
+
+
+async def prune_notification_logs(db: AsyncSession, *, days: int) -> int:
+    return await send_logs.prune_older_than_days(db, days=days)

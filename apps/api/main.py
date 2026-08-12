@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Literal, cast
 from urllib.parse import urlsplit
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sentry_sdk import get_current_scope
@@ -25,6 +26,7 @@ from .db import dispose_engine
 from .errors import ApiError
 from .logging_utils import emit_error_event, log_json, reset_request_id, set_request_id
 from .observability import init_sentry
+from .problem_details import code_from_http_detail, problem_details_body
 from .ratelimit import create_limiter
 from .routers import (
     admin_events,
@@ -191,9 +193,12 @@ def _rl_handler(request: Request, exc: Exception) -> Response:
         return response
     request_id = getattr(request.state, "request_id", None)
     status = HTTP_STATUS_SERVER_ERROR
-    body = {"detail": "Unhandled error", "code": "internal_error"}
-    if request_id:
-        body["request_id"] = request_id
+    body = problem_details_body(
+        status=status,
+        code="internal_error",
+        detail="Unhandled error",
+        request_id=request_id,
+    )
     log_json(
         error_logger,
         logging.ERROR,
@@ -247,15 +252,12 @@ def _status_for(exc: ApiError) -> int:
 async def _handle_api_error(request: Request, exc: ApiError) -> JSONResponse:
     status = _status_for(exc)
     request_id = getattr(request.state, "request_id", None)
-    body = {
-        "type": "about:blank",  # RFC7807 최소 구현
-        "title": "",
-        "status": status,
-        "detail": str(exc) or exc.code,
-        "code": exc.code,
-    }
-    if request_id:
-        body["request_id"] = request_id
+    body = problem_details_body(
+        status=status,
+        code=exc.code,
+        detail=str(exc) or exc.code,
+        request_id=request_id,
+    )
     level = (
         logging.ERROR
         if status >= HTTP_STATUS_SERVER_ERROR
@@ -291,6 +293,49 @@ async def _handle_api_error(request: Request, exc: ApiError) -> JSONResponse:
 
 # Keep a reference for static analyzers (decorator registers this handler)
 _ = _handle_api_error
+
+
+@app.exception_handler(HTTPException)
+async def _handle_http_exception(
+    request: Request,
+    exc: HTTPException,
+) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", None)
+    code, detail = code_from_http_detail(exc.detail)
+    body = problem_details_body(
+        status=exc.status_code,
+        code=code,
+        detail=detail,
+        request_id=request_id,
+    )
+    response = JSONResponse(body, status_code=exc.status_code)
+    if request_id:
+        response.headers.setdefault("X-Request-Id", request_id)
+    return response
+
+
+@app.exception_handler(RequestValidationError)
+async def _handle_validation_error(
+    request: Request,
+    exc: RequestValidationError,
+) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", None)
+    status = 422
+    body = problem_details_body(
+        status=status,
+        code="validation_error",
+        detail="validation failed",
+        request_id=request_id,
+    )
+    body["detail"] = exc.errors()
+    response = JSONResponse(body, status_code=status)
+    if request_id:
+        response.headers.setdefault("X-Request-Id", request_id)
+    return response
+
+
+_ = _handle_http_exception
+_ = _handle_validation_error
 
 
 app.include_router(members.router)

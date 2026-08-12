@@ -1,6 +1,6 @@
 import type { Page, HTTPRequest } from 'puppeteer';
 
-import { WEB_BASE_URL } from './env';
+import { WEB_BASE_URL, isApiUrl } from './env';
 
 type LocalMockSession = 'anonymous' | 'member' | 'admin' | 'admin_hero';
 let localMockSession: LocalMockSession = 'member';
@@ -15,7 +15,7 @@ const corsHeaders = {
 };
 
 async function respondCorsPreflight(request: HTTPRequest, url: URL): Promise<boolean> {
-  if (url.port !== '3001' || request.method() !== 'OPTIONS') return false;
+  if (!isApiUrl(url) || request.method() !== 'OPTIONS') return false;
   await request.respond({
     status: 204,
     headers: {
@@ -225,7 +225,7 @@ function isLocalBoardPostsList(url: URL): boolean {
 }
 
 async function respondOwnerPostDetailApi(request: HTTPRequest, url: URL): Promise<boolean> {
-  if (url.port !== '3001' || request.method() !== 'GET' || url.pathname !== '/posts/45') {
+  if (!isApiUrl(url) || request.method() !== 'GET' || url.pathname !== '/posts/45') {
     return false;
   }
   await request.respond({
@@ -240,7 +240,7 @@ async function respondOwnerPostDetailApi(request: HTTPRequest, url: URL): Promis
 }
 
 async function respondOwnerPostListApi(request: HTTPRequest, url: URL): Promise<boolean> {
-  if (url.port !== '3001' || request.method() !== 'GET' || url.pathname !== '/posts/') {
+  if (!isApiUrl(url) || request.method() !== 'GET' || url.pathname !== '/posts/') {
     return false;
   }
   const body = localOwnerPostDeleted || !isLocalBoardPostsList(url)
@@ -261,7 +261,7 @@ async function respondOwnerPostReadApi(request: HTTPRequest, url: URL): Promise<
 }
 
 async function respondOwnerPostPatchApi(request: HTTPRequest, url: URL): Promise<boolean> {
-  if (url.port !== '3001' || request.method() !== 'PATCH' || url.pathname !== '/board/posts/45') {
+  if (!isApiUrl(url) || request.method() !== 'PATCH' || url.pathname !== '/board/posts/45') {
     return false;
   }
   const body = JSON.parse(request.postData() ?? '{}') as Record<string, unknown>;
@@ -283,7 +283,7 @@ async function respondOwnerPostPatchApi(request: HTTPRequest, url: URL): Promise
 }
 
 async function respondOwnerPostDeleteApi(request: HTTPRequest, url: URL): Promise<boolean> {
-  if (url.port !== '3001' || request.method() !== 'DELETE' || url.pathname !== '/board/posts/45') {
+  if (!isApiUrl(url) || request.method() !== 'DELETE' || url.pathname !== '/board/posts/45') {
     return false;
   }
   localOwnerPostDeleted = true;
@@ -314,7 +314,7 @@ function applyAdminBoardPostPatchBody(body: Record<string, unknown>): void {
 }
 
 async function respondAdminBoardPostPatchApi(request: HTTPRequest, url: URL): Promise<boolean> {
-  if (url.port !== '3001' || request.method() !== 'PATCH' || url.pathname !== '/posts/44') {
+  if (!isApiUrl(url) || request.method() !== 'PATCH' || url.pathname !== '/posts/44') {
     return false;
   }
   const body = JSON.parse(request.postData() ?? '{}') as Record<string, unknown>;

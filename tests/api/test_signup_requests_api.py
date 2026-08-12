@@ -173,6 +173,54 @@ def test_admin_signup_review_approve_and_reject(
     assert reject_body["reject_reason"] == "학번 확인 불가"
 
 
+def test_admin_signup_search_q_with_literal_wildcards(admin_login: TestClient) -> None:
+    target = admin_login.post(
+        "/auth/member/signup",
+        json={
+            "student_id": "s116900",
+            "email": "s116900@test.example.com",
+            "name": "100%_exact",
+            "cohort": 2024,
+            "phone": "010-2900-0001",
+        },
+    )
+    assert target.status_code == HTTPStatus.CREATED
+
+    bait = admin_login.post(
+        "/auth/member/signup",
+        json={
+            "student_id": "s116901",
+            "email": "s116901@test.example.com",
+            "name": "1000Zexact",
+            "cohort": 2024,
+            "phone": "010-2900-0002",
+        },
+    )
+    assert bait.status_code == HTTPStatus.CREATED
+
+    other = admin_login.post(
+        "/auth/member/signup",
+        json={
+            "student_id": "s116902",
+            "email": "s116902@test.example.com",
+            "name": "다른 신청자",
+            "cohort": 2024,
+            "phone": "010-2900-0003",
+        },
+    )
+    assert other.status_code == HTTPStatus.CREATED
+
+    found = admin_login.get(
+        "/admin/signup-requests",
+        params={"q": "100%_exact", "status": "pending"},
+    )
+    assert found.status_code == HTTPStatus.OK
+    names = [item["name"] for item in found.json()["items"]]
+    assert "100%_exact" in names
+    assert "1000Zexact" not in names
+    assert "다른 신청자" not in names
+
+
 def test_admin_signup_reissue_token_and_logs(admin_login: TestClient) -> None:
     create_res = admin_login.post(
         "/auth/member/signup",

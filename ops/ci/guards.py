@@ -241,10 +241,25 @@ def check_workflow_policies() -> list[str]:
     return []
 
 
+def check_router_layer_guard() -> list[str]:
+    script = ROOT / "ops/ci/router_layer_guard.py"
+    proc = subprocess.run(
+        [sys.executable, str(script)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode == 0:
+        return []
+    output = proc.stdout.strip() or proc.stderr.strip()
+    return [output] if output else ["router_layer_guard failed"]
+
+
 def main() -> int:
     all_violations = check_agent_harness()
     all_violations.extend(check_no_tracked_runtime_logs())
     all_violations.extend(check_workflow_policies())
+    all_violations.extend(check_router_layer_guard())
     for path in iter_code_files():
         all_violations.extend(check_banned_comments(path))
         all_violations.extend(check_max_lines(path))
