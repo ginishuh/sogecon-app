@@ -25,6 +25,8 @@ USER_FACING_DETAILS: dict[str, str] = {
     ),
     "activation_already_used": "이미 사용된 활성화 링크입니다.",
     "post_not_found": "게시글을 찾을 수 없습니다.",
+    "comment_not_found": "댓글을 찾을 수 없습니다.",
+    "forbidden": "이 작업을 수행할 권한이 없습니다.",
     "event_not_found": "행사를 찾을 수 없습니다.",
     "validation_error": "입력값을 확인해 주세요.",
     "rate_limit_exceeded": "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
