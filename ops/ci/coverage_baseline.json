@@ -1,0 +1,14 @@
+{
+  "api": {
+    "line_percent_min": 77.0,
+    "package": "apps/api",
+    "measured_at": "2026-08-12",
+    "measured_note": "pytest --cov=apps/api on main@873766c + D10 fixes; TOTAL 78.11%"
+  },
+  "web": {
+    "lines_percent_min": 57.0,
+    "package": "apps/web",
+    "measured_at": "2026-08-12",
+    "measured_note": "vitest --coverage on main@873766c + D10 scope (app/components/hooks/lib/services/proxy.ts); lines 57.79% (3964 lines)"
+  }
+}

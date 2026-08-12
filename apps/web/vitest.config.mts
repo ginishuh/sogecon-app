@@ -9,5 +9,19 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     include: ['__tests__/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}'],
     globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'json-summary'],
+      reportsDirectory: './coverage',
+      include: [
+        'app/**/*.{ts,tsx}',
+        'components/**/*.{ts,tsx}',
+        'hooks/**/*.{ts,tsx}',
+        'lib/**/*.{ts,tsx}',
+        'services/**/*.{ts,tsx}',
+        'proxy.ts',
+      ],
+      exclude: ['**/*.d.ts', '**/*.test.{ts,tsx}', '**/node_modules/**'],
+    },
   },
 });

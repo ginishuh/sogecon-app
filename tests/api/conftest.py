@@ -5,6 +5,7 @@ import os
 from collections.abc import AsyncGenerator, Callable, Generator
 from http import HTTPStatus
 from pathlib import Path
+from typing import cast
 
 import httpx
 import pytest
@@ -13,6 +14,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from starlette.types import ASGIApp
 
 from apps.api import models
 from apps.api.config import reset_settings_cache
@@ -363,7 +365,7 @@ async def async_client(
 
     app.dependency_overrides[get_db] = override_get_db
 
-    transport = httpx.ASGITransport(app=app)  # type: ignore[arg-type]
+    transport = httpx.ASGITransport(app=cast(ASGIApp, app))
     async with httpx.AsyncClient(
         transport=transport, base_url="http://testserver"
     ) as ac:

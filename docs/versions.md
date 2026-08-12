@@ -32,6 +32,7 @@
 - pyright==1.1.411
 - pytest==9.1.1
 - pytest-asyncio==1.4.0
+- pytest-cov==7.1.0
 - httpx==0.28.1
 - bandit==1.9.4
 - PyYAML==6.0.3 (`ops/ci/check_dependabot.py` 설정 검증)
@@ -66,6 +67,7 @@
 - baseline-browser-mapping: 2.10.42
 - puppeteer: 24.43.1
 - vitest: 4.1.10
+- @vitest/coverage-v8: 4.1.10
 - jsdom: 29.1.1
 
 ## 워크스페이스 및 스키마

@@ -93,9 +93,11 @@ jobs:
           DATABASE_URL: postgresql+psycopg://app:devpass@localhost:5434/appdb_test
         run: python ops/ci/migration_gate.py --require-empty
       - name: Lint
-        run: ruff check apps/api
-      - name: Type check
+        run: ruff check apps/api tests ops/ci scripts
+      - name: Type check (API)
         run: python -m pyright --project pyrightconfig.json
+      - name: Type check (tests)
+        run: python -m pyright --project pyrightconfig.tests.json
       - name: Pytest collect guard
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
@@ -112,7 +114,11 @@ jobs:
             (echo > /dev/tcp/127.0.0.1/5434) >/dev/null 2>&1 && break || true
             sleep 1
           done
-          pytest -q
+          pytest -q \
+            --cov=apps/api \
+            --cov-report=json:coverage/api-coverage.json
+      - name: Coverage baseline gate (API)
+        run: python ops/ci/coverage_gate.py --api-only --api-report coverage/api-coverage.json
       - name: Security scan (bandit)
         run: bandit -r apps/api -x apps/api/migrations -q
       - name: Dependency audit (pip-audit)
@@ -184,10 +190,15 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - name: Install dependencies
         run: pnpm -C apps/web install --frozen-lockfile
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
       - name: Lint
         run: pnpm -C apps/web lint
       - name: Unit tests
-        run: pnpm -C apps/web test
+        run: pnpm -C apps/web exec vitest run --coverage
+      - name: Coverage baseline gate (Web)
+        run: python ops/ci/coverage_gate.py --web-only
       - name: Cache Next.js build
         uses: actions/cache@v6
         with:

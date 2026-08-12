@@ -5,6 +5,8 @@ node_modules/
 .next/
 dist/
 coverage/
+.coverage
+apps/web/coverage/
 .pytest_cache/
 .pnpm-store/
 .tsbuildinfo

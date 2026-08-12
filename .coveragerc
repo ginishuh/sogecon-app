@@ -1,0 +1,10 @@
+[run]
+source = apps/api
+omit =
+    apps/api/migrations/*
+    apps/api/stubs/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:

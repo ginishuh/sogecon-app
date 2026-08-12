@@ -1,0 +1,23 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.12",
+  "stubPath": "apps/api/stubs",
+  "include": [
+    "tests",
+    "scripts",
+    "ops"
+  ],
+  "exclude": [
+    "apps/api/migrations/versions"
+  ],
+  "typeCheckingMode": "off",
+  "reportMissingImports": "error",
+  "reportUndefinedVariable": "error",
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": ["apps"]
+    }
+  ]
+}

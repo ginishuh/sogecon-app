@@ -215,11 +215,16 @@ Mock API는 `127.0.0.1:3001`에 바인드한다 (`E2E_MOCK_API_PORT` 기본 `300
 
 1. §3 preflight — **`:3000`과 `:3001` listener 소유자 확인·기록**.
 2. §3.1 suspend — **`:3000` dev Web**(host `make web-stop` 또는 Docker `web_dev`)과 **`:3001` real API**(host `make api-stop` 또는 Docker `api_dev`)를 mock 전에 제거.
-3. CI와 동일 env로 **build → mock → start → e2e** (§5.1).
-4. `trap`/cleanup으로 mock·production web 종료.
-5. §3.1 restore — **`:3000`과 `:3001` 모두** 시작 전 상태로만 복원 (원래 없던 runtime은 새로 켜지 않음).
+3. CI와 동일 env로 **build → mock → start → e2e** (§5.1). **`pnpm start` 전에 `pnpm build`가 성공했는지 확인**한다. 한 줄에 `build && ... & start`를 섞으면 build가 끝나기 전에 start가 떠 `production-start-no-build-id`로 실패할 수 있다.
+4. **Chrome/Puppeteer:** CI는 `browser-actions/setup-chrome` + `PUPPETEER_EXECUTABLE_PATH`를 주입한다. 로컬은 아래 중 하나를 쓴다.
+   - (권장) 시스템 Chrome: `export PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable` (WSL/Linux에서 `which google-chrome-stable`로 확인)
+   - Puppeteer 번들 Chrome: `PNPM_ALLOW_RUN_SCRIPTS=puppeteer pnpm -C apps/web install` 후 `~/.cache/puppeteer`에 바이너리가 생겼는지 확인. pnpm 10은 기본적으로 install script를 막아 `Could not find Chrome`이 날 수 있다.
+5. `trap`/cleanup으로 mock·production web 종료.
+6. §3.1 restore — **`:3000`과 `:3001` 모두** 시작 전 상태로만 복원 (원래 없던 runtime은 새로 켜지 않음).
 
 로컬에서 `next dev`를 켠 채 mock만 바꿔 `pnpm e2e`를 돌리면 CI와 **환경이 다르다** (일부 spec 실패는 regression defect가 아닐 수 있음). authoritative 실패 판단은 **CI workflow 조건**을 우선한다.
+
+**D10 등 CI/품질 gate-only 변경**은 mock regression E2E(§5.1)로 충분하다. live `playwright-cli`는 product semantics·업로드·auth 변경 시에만 추가한다.
 
 ### 5.3 한계 (명시)
 
@@ -246,10 +251,12 @@ curl -fsS http://localhost:3001/healthz
 
 # Mock (CI env 예 — workflow e2e.yml 참고)
 # :3000 dev Web + :3001 real API 비운 뒤에만 (§3.1)
+export PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable   # 로컬 WSL/Linux 예시
 WEB_BASE_URL=http://127.0.0.1:3000 \
 NEXT_PUBLIC_WEB_API_BASE=http://127.0.0.1:3001 \
 WEB_BUILD_ALLOW_INSECURE_LOCAL_API=1 \
 pnpm -C apps/web build
+# build 성공 후: mock-api-server.mjs → pnpm start → pnpm -C apps/web e2e (§5.1)
 ```
 
 Playwright CLI 일반 설치·사용법은 `.agents/skills/playwright-cli/SKILL.md`를 따른다.
