@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import puppeteer, { Browser, HTTPRequest, Page } from 'puppeteer';
 
-import { WEB_BASE_URL } from './utils/env';
+import { WEB_BASE_URL, isApiUrl } from './utils/env';
 import { setLocalMockSession, setupDirectoryMocks } from './utils/mockApi';
 import { configureMockServer } from './utils/mockServer';
 
@@ -71,7 +71,7 @@ describe('Board post owner mutation (CDP E2E)', () => {
     const requests: Array<{ method: string; pathname: string }> = [];
     const recordRequest = (request: HTTPRequest) => {
       const url = new URL(request.url());
-      if (url.port === '3001') {
+      if (isApiUrl(url)) {
         requests.push({ method: request.method(), pathname: url.pathname });
       }
     };

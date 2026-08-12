@@ -14,6 +14,7 @@ from apps.api import models
 from apps.api.db import get_db
 from apps.api.main import app
 from apps.api.services.activation_service import create_member_activation_token
+from tests.api.problem_assertions import assert_problem_code
 
 
 def _run_in_test_session(fn: Callable[[AsyncSession], Awaitable[None]]) -> None:
@@ -90,7 +91,7 @@ def test_member_activate_invalid_token_401(admin_login: TestClient) -> None:
         json={"token": "bad", "password": "pw"},
     )
     assert res.status_code == HTTPStatus.UNAUTHORIZED
-    assert res.json()["detail"] == "invalid_or_expired_activation_token"
+    assert_problem_code(res.json(), "invalid_or_expired_activation_token")
 
 
 def test_member_activate_pending_blocked_401(admin_login: TestClient) -> None:
@@ -118,7 +119,7 @@ def test_member_activate_pending_blocked_401(admin_login: TestClient) -> None:
         json={"token": token, "password": "pw"},
     )
     assert res.status_code == HTTPStatus.UNAUTHORIZED
-    assert res.json()["detail"] == "invalid_or_expired_activation_token"
+    assert_problem_code(res.json(), "invalid_or_expired_activation_token")
 
 
 def test_member_activate_already_used_409(admin_login: TestClient) -> None:
@@ -133,7 +134,7 @@ def test_member_activate_already_used_409(admin_login: TestClient) -> None:
         "/auth/member/activate", json={"token": token, "password": "pw2"}
     )
     assert second.status_code == HTTPStatus.CONFLICT
-    assert second.json()["detail"] == "activation_already_used"
+    assert_problem_code(second.json(), "activation_already_used")
 
 
 def test_member_activate_expired_token_401(
@@ -152,7 +153,7 @@ def test_member_activate_expired_token_401(
         json={"token": token, "password": "pw"},
     )
     assert res.status_code == HTTPStatus.UNAUTHORIZED
-    assert res.json()["detail"] == "invalid_or_expired_activation_token"
+    assert_problem_code(res.json(), "invalid_or_expired_activation_token")
 
 
 def test_member_login_inactive_blocked(client: TestClient) -> None:
@@ -184,7 +185,7 @@ def test_member_login_inactive_blocked(client: TestClient) -> None:
         json={"student_id": "inactive001", "password": "pw"},
     )
     assert res.status_code == HTTPStatus.FORBIDDEN
-    assert res.json()["detail"] == "member_not_active"
+    assert_problem_code(res.json(), "member_not_active")
 
 
 def test_support_contact_rate_limit(

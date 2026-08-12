@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import puppeteer, { Browser, HTTPRequest, Page } from 'puppeteer';
 
-import { WEB_BASE_URL } from './utils/env';
+import { WEB_BASE_URL, isApiUrl } from './utils/env';
 import { setLocalMockSession, setupDirectoryMocks } from './utils/mockApi';
 import { configureMockServer } from './utils/mockServer';
 
@@ -166,7 +166,7 @@ describe('Admin post preview (CDP E2E)', () => {
     let patchBody: Record<string, unknown> | null = null;
     const recordRequest = (request: HTTPRequest) => {
       const url = new URL(request.url());
-      if (url.port === '3001' && request.method() === 'PATCH' && url.pathname === '/posts/44') {
+      if (isApiUrl(url) && request.method() === 'PATCH' && url.pathname === '/posts/44') {
         patchBody = JSON.parse(request.postData() ?? '{}') as Record<string, unknown>;
       }
     };
@@ -192,7 +192,7 @@ describe('Admin post preview (CDP E2E)', () => {
 
     const previewResponse = page.waitForResponse((response) => {
       const url = new URL(response.url());
-      return url.port === '3001'
+      return isApiUrl(url)
         && url.pathname === '/admin/posts/44/preview'
         && response.request().method() === 'GET';
     });
@@ -212,7 +212,7 @@ describe('Admin post preview (CDP E2E)', () => {
     let patchBody: Record<string, unknown> | null = null;
     const recordRequest = (request: HTTPRequest) => {
       const url = new URL(request.url());
-      if (url.port === '3001' && request.method() === 'PATCH' && url.pathname === '/posts/44') {
+      if (isApiUrl(url) && request.method() === 'PATCH' && url.pathname === '/posts/44') {
         patchBody = JSON.parse(request.postData() ?? '{}') as Record<string, unknown>;
       }
     };
@@ -242,7 +242,7 @@ describe('Admin post preview (CDP E2E)', () => {
 
       const previewResponse = page.waitForResponse((response) => {
         const url = new URL(response.url());
-        return url.port === '3001'
+        return isApiUrl(url)
           && url.pathname === '/admin/posts/44/preview'
           && response.request().method() === 'GET';
       });

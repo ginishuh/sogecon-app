@@ -7,13 +7,38 @@ describe('apiFetch 오류 정규화', () => {
     vi.unstubAllGlobals();
   });
 
-  it('Pydantic 422 detail 배열을 사용자 메시지로 변환한다', async () => {
+  it('Problem Details의 detail 문자열과 code를 사용한다', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue(
         new Response(
           JSON.stringify({
-            detail: [
+            type: 'about:blank',
+            status: 403,
+            code: 'admin_permission_required',
+            detail: '이 작업을 수행할 운영 권한이 없습니다.',
+          }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        )
+      )
+    );
+
+    await expect(apiFetch('/admin/signup-requests')).rejects.toEqual(
+      new ApiError(403, '이 작업을 수행할 운영 권한이 없습니다.', 'admin_permission_required')
+    );
+  });
+
+  it('422는 detail 문자열을 우선하고 errors extension은 파싱에 쓰지 않는다', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            type: 'about:blank',
+            status: 422,
+            code: 'validation_error',
+            detail: '입력값을 확인해 주세요.',
+            errors: [
               {
                 type: 'value_error',
                 loc: ['body', 'password'],
@@ -27,7 +52,7 @@ describe('apiFetch 오류 정규화', () => {
     );
 
     await expect(apiFetch('/auth/member/activate')).rejects.toEqual(
-      new ApiError(422, '비밀번호는 UTF-8 기준 72바이트 이하여야 합니다.')
+      new ApiError(422, '입력값을 확인해 주세요.', 'validation_error')
     );
   });
 

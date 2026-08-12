@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import models, schemas
 from ..errors import ApiError
 from ..post_owner_schemas import PostOwnerUpdate
+from ..post_query_filters import AdminPostFilters, PublicPostFilters
 from ..post_visibility import BOARD_POST_CATEGORIES
 from ..repositories import members as members_repo
 from ..repositories import posts as posts_repo
@@ -103,7 +104,7 @@ async def list_posts(
     *,
     limit: int,
     offset: int,
-    filters: posts_repo.PublicPostFilters | None = None,
+    filters: PublicPostFilters | None = None,
 ) -> Sequence[models.Post]:
     return await posts_repo.list_posts(
         db,
@@ -303,7 +304,7 @@ async def list_admin_posts_with_total(
     *,
     limit: int,
     offset: int,
-    filters: posts_repo.AdminPostFilters | None = None,
+    filters: AdminPostFilters | None = None,
 ) -> tuple[Sequence[models.Post], int]:
     """관리자용 게시물 목록 + 총 개수를 반환."""
     posts = await posts_repo.list_admin_posts(
@@ -311,3 +312,72 @@ async def list_admin_posts_with_total(
     )
     total = await posts_repo.count_posts(db, filters=filters)
     return posts, total
+
+
+def _post_read_from_model(post: models.Post, comment_count: int) -> schemas.PostRead:
+    post_read = schemas.PostRead.model_validate(post)
+    post_read.author_name = post.author.name if post.author else None
+    post_read.comment_count = comment_count
+    return post_read
+
+
+async def list_public_post_reads(
+    db: AsyncSession,
+    *,
+    limit: int,
+    offset: int,
+    filters: PublicPostFilters | None = None,
+) -> list[schemas.PostRead]:
+    posts = await list_posts(db, limit=limit, offset=offset, filters=filters)
+    post_ids = [cast(int, post.id) for post in posts]
+    comment_counts = await posts_repo.get_comment_counts_batch(db, post_ids)
+    return [
+        _post_read_from_model(
+            post,
+            comment_counts.get(cast(int, post.id), 0),
+        )
+        for post in posts
+    ]
+
+
+async def get_public_post_read(
+    db: AsyncSession,
+    post_id: int,
+    *,
+    record_view: bool,
+) -> schemas.PostRead:
+    post = await get_public_post(db, post_id)
+    if record_view:
+        await posts_repo.increment_view_count(db, post_id)
+        await db.refresh(post)
+    comment_count = await posts_repo.get_comment_count(db, cast(int, post.id))
+    return _post_read_from_model(post, comment_count)
+
+
+async def list_admin_post_reads(
+    db: AsyncSession,
+    posts: Sequence[models.Post],
+) -> list[schemas.PostRead]:
+    post_ids = [cast(int, post.id) for post in posts]
+    comment_counts = await posts_repo.get_comment_counts_batch(db, post_ids)
+    return [
+        _post_read_from_model(
+            post,
+            comment_counts.get(cast(int, post.id), 0),
+        )
+        for post in posts
+    ]
+
+
+async def get_admin_post_read(db: AsyncSession, post_id: int) -> schemas.PostRead:
+    post = await get_post(db, post_id)
+    comment_count = await posts_repo.get_comment_count(db, cast(int, post.id))
+    return _post_read_from_model(post, comment_count)
+
+
+async def post_read_after_mutation(
+    db: AsyncSession,
+    post: models.Post,
+) -> schemas.PostRead:
+    comment_count = await posts_repo.get_comment_count(db, cast(int, post.id))
+    return _post_read_from_model(post, comment_count)

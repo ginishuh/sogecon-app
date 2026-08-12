@@ -117,7 +117,9 @@ def test_admin_signup_review_approve_and_reject(
 
     forbidden_res = member_login.get("/admin/signup-requests")
     assert forbidden_res.status_code == HTTPStatus.FORBIDDEN
-    assert forbidden_res.json()["detail"] == "admin_permission_required"
+    forbidden_body = forbidden_res.json()
+    assert forbidden_body["code"] == "admin_permission_required"
+    assert forbidden_body["detail"] == "이 작업을 수행할 운영 권한이 없습니다."
 
     relogin_res = admin_login.post(
         "/auth/login",
@@ -171,6 +173,148 @@ def test_admin_signup_review_approve_and_reject(
     reject_body = reject_res.json()
     assert reject_body["status"] == "rejected"
     assert reject_body["reject_reason"] == "학번 확인 불가"
+
+
+def test_admin_signup_search_q_with_literal_wildcards(admin_login: TestClient) -> None:
+    target = admin_login.post(
+        "/auth/member/signup",
+        json={
+            "student_id": "s116900",
+            "email": "s116900@test.example.com",
+            "name": "100%_exact",
+            "cohort": 2024,
+            "phone": "010-2900-0001",
+        },
+    )
+    assert target.status_code == HTTPStatus.CREATED
+
+    bait = admin_login.post(
+        "/auth/member/signup",
+        json={
+            "student_id": "s116901",
+            "email": "s116901@test.example.com",
+            "name": "1000Zexact",
+            "cohort": 2024,
+            "phone": "010-2900-0002",
+        },
+    )
+    assert bait.status_code == HTTPStatus.CREATED
+
+    other = admin_login.post(
+        "/auth/member/signup",
+        json={
+            "student_id": "s116902",
+            "email": "s116902@test.example.com",
+            "name": "다른 신청자",
+            "cohort": 2024,
+            "phone": "010-2900-0003",
+        },
+    )
+    assert other.status_code == HTTPStatus.CREATED
+
+    found = admin_login.get(
+        "/admin/signup-requests",
+        params={"q": "100%_exact", "status": "pending"},
+    )
+    assert found.status_code == HTTPStatus.OK
+    names = [item["name"] for item in found.json()["items"]]
+    assert "100%_exact" in names
+    assert "1000Zexact" not in names
+    assert "다른 신청자" not in names
+
+
+def _create_pending_signup(
+    admin_login: TestClient,
+    *,
+    student_id: str,
+    name: str,
+    phone: str,
+) -> None:
+    res = admin_login.post(
+        "/auth/member/signup",
+        json={
+            "student_id": student_id,
+            "email": f"{student_id}@test.example.com",
+            "name": name,
+            "cohort": 2024,
+            "phone": phone,
+        },
+    )
+    assert res.status_code == HTTPStatus.CREATED
+
+
+def test_admin_signup_search_percent_literal(admin_login: TestClient) -> None:
+    _create_pending_signup(
+        admin_login, student_id="s116910", name="리터럴%타깃", phone="010-2910-0001"
+    )
+    _create_pending_signup(
+        admin_login, student_id="s116911", name="리터럴Z타깃", phone="010-2910-0002"
+    )
+    found = admin_login.get(
+        "/admin/signup-requests",
+        params={"q": "리터럴%", "status": "pending"},
+    )
+    names = [item["name"] for item in found.json()["items"]]
+    assert "리터럴%타깃" in names
+    assert "리터럴Z타깃" not in names
+
+
+def test_admin_signup_search_underscore_literal(admin_login: TestClient) -> None:
+    _create_pending_signup(
+        admin_login, student_id="s116912", name="밑줄_타깃", phone="010-2912-0001"
+    )
+    _create_pending_signup(
+        admin_login, student_id="s116913", name="밑줄X타깃", phone="010-2912-0002"
+    )
+    found = admin_login.get(
+        "/admin/signup-requests",
+        params={"q": "밑줄_타깃", "status": "pending"},
+    )
+    names = [item["name"] for item in found.json()["items"]]
+    assert "밑줄_타깃" in names
+    assert "밑줄X타깃" not in names
+
+
+def test_admin_signup_search_backslash_literal(admin_login: TestClient) -> None:
+    _create_pending_signup(
+        admin_login, student_id="s116914", name="역슬래시\\타깃", phone="010-2914-0001"
+    )
+    _create_pending_signup(
+        admin_login, student_id="s116915", name="역슬래시X타깃", phone="010-2914-0002"
+    )
+    found = admin_login.get(
+        "/admin/signup-requests",
+        params={"q": "역슬래시\\타깃", "status": "pending"},
+    )
+    names = [item["name"] for item in found.json()["items"]]
+    assert "역슬래시\\타깃" in names
+    assert "역슬래시X타깃" not in names
+
+
+def test_admin_signup_search_whitespace_only_q_ignored(admin_login: TestClient) -> None:
+    _create_pending_signup(
+        admin_login, student_id="s116914", name="공백검색대상", phone="010-2914-0001"
+    )
+    found = admin_login.get(
+        "/admin/signup-requests",
+        params={"q": "   ", "status": "pending"},
+    )
+    assert found.status_code == HTTPStatus.OK
+    assert found.json()["total"] >= 1
+
+
+def test_admin_signup_search_trim_and_total_match(admin_login: TestClient) -> None:
+    _create_pending_signup(
+        admin_login, student_id="s116915", name="유니코드α검색", phone="010-2915-0001"
+    )
+    found = admin_login.get(
+        "/admin/signup-requests",
+        params={"q": "  유니코드α검색  ", "status": "pending"},
+    )
+    body = found.json()
+    names = [item["name"] for item in body["items"]]
+    assert "유니코드α검색" in names
+    assert body["total"] == len(body["items"])
 
 
 def test_admin_signup_reissue_token_and_logs(admin_login: TestClient) -> None:
@@ -245,5 +389,7 @@ def test_member_signup_phone_required_422(client: TestClient) -> None:
     )
 
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    detail = response.json()["detail"]
-    assert any("phone" in str(err.get("loc", "")) for err in detail)
+    body = response.json()
+    assert body["code"] == "validation_error"
+    assert isinstance(body["errors"], list)
+    assert any("phone" in str(err.get("loc", "")) for err in body["errors"])

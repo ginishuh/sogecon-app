@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-from typing import cast
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
 from ..db import get_db
+from ..errors import ApiError
 from ..post_owner_schemas import PostOwnerUpdate
-from ..repositories import posts as posts_repo
 from ..services import posts_service
 from .auth import CurrentMember, require_member
 
@@ -19,7 +17,11 @@ router = APIRouter(prefix="/board/posts", tags=["board-posts"])
 
 def _member_id(member: CurrentMember) -> int:
     if member.id is None:
-        raise HTTPException(status_code=500, detail="member_id_missing")
+        raise ApiError(
+            code="member_id_missing",
+            detail="member_id_missing",
+            status=500,
+        )
     return member.id
 
 
@@ -37,10 +39,7 @@ async def update_board_post(
         payload,
         member_id=_member_id(member),
     )
-    post_read = schemas.PostRead.model_validate(post)
-    post_read.author_name = post.author.name if post.author else None
-    post_read.comment_count = await posts_repo.get_comment_count(db, cast(int, post.id))
-    return post_read
+    return await posts_service.post_read_after_mutation(db, post)
 
 
 @router.delete("/{post_id}")

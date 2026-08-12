@@ -4,16 +4,18 @@ import uuid
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Literal, cast
+from typing import Any, Literal, cast
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
 from sentry_sdk import get_current_scope
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -22,9 +24,20 @@ from starlette.types import ASGIApp
 
 from .config import get_settings
 from .db import dispose_engine
+from .error_messages import (
+    code_and_detail_from_http_detail,
+    public_problem_code_and_detail,
+    user_detail_for_code,
+)
 from .errors import ApiError
 from .logging_utils import emit_error_event, log_json, reset_request_id, set_request_id
 from .observability import init_sentry
+from .problem_details import (
+    ProblemDetailsResponse,
+    ValidationErrorItem,
+    problem_details_body,
+    validation_problem,
+)
 from .ratelimit import create_limiter
 from .routers import (
     admin_events,
@@ -70,6 +83,116 @@ request_logger = logging.getLogger("apps.api.request")
 error_logger = logging.getLogger("apps.api.error")
 
 HTTP_STATUS_SERVER_ERROR = 500
+HTTP_STATUS_TOO_MANY_REQUESTS = 429
+HTTP_STATUS_UNPROCESSABLE_ENTITY = 422
+
+_PROBLEM_ERROR_RESPONSE_REF: dict[str, str] = {
+    "$ref": "#/components/responses/ProblemDetailsError",
+}
+_PROBLEM_ERROR_STATUSES = frozenset(
+    {"400", "401", "403", "404", "409", "422", "429", "500"}
+)
+_OPENAPI_HTTP_METHODS = frozenset(
+    {"get", "post", "put", "patch", "delete", "options", "head", "trace"}
+)
+_LEGACY_OPENAPI_ERROR_SCHEMAS = frozenset(
+    {"HTTPValidationError", "ValidationError"}
+)
+
+
+def _wire_operation_problem_responses(schema: dict[str, object]) -> None:
+    paths = cast(dict[str, Any], schema.get("paths"))
+    if not paths:
+        return
+    for path_item_any in paths.values():
+        path_item = cast(dict[str, Any], path_item_any)
+        for method, operation_any in path_item.items():
+            if method not in _OPENAPI_HTTP_METHODS:
+                continue
+            operation = cast(dict[str, Any], operation_any)
+            responses_obj = operation.get("responses")
+            if not isinstance(responses_obj, dict):
+                responses_obj = {}
+                operation["responses"] = responses_obj
+            responses = cast(dict[str, Any], responses_obj)
+            for status in sorted(_PROBLEM_ERROR_STATUSES):
+                responses[status] = dict(_PROBLEM_ERROR_RESPONSE_REF)
+
+
+def _prune_legacy_openapi_error_schemas(schema: dict[str, object]) -> None:
+    components = cast(dict[str, Any], schema.get("components"))
+    if not components:
+        return
+    schemas = cast(dict[str, Any], components.get("schemas"))
+    if not schemas:
+        return
+    for name in _LEGACY_OPENAPI_ERROR_SCHEMAS:
+        schemas.pop(name, None)
+
+
+def _problem_json_response(
+    request: Request,
+    body: dict[str, object],
+    *,
+    status: int,
+    headers: dict[str, str] | None = None,
+) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", None)
+    if request_id and "request_id" not in body:
+        body = {**body, "request_id": request_id}
+    response = JSONResponse(body, status_code=status, headers=headers)
+    if request_id:
+        response.headers.setdefault("X-Request-Id", request_id)
+    return response
+
+
+def _install_openapi_problem_details() -> None:
+    def custom_openapi() -> dict[str, object]:
+        if app.openapi_schema:
+            return app.openapi_schema
+        schema = get_openapi(
+            title=app.title,
+            version=app.version,
+            routes=app.routes,
+        )
+        components = schema.setdefault("components", {})
+        schemas = components.setdefault("schemas", {})
+        validation_item_schema = ValidationErrorItem.model_json_schema(
+            ref_template="#/components/schemas/{model}",
+        )
+        validation_item_schema.pop("$defs", None)
+        schemas["ValidationErrorItem"] = validation_item_schema
+        problem_schema = ProblemDetailsResponse.model_json_schema(
+            ref_template="#/components/schemas/{model}",
+        )
+        problem_schema.pop("$defs", None)
+        errors_prop = cast(
+            dict[str, object],
+            problem_schema.get("properties", {}).get("errors", {}),
+        )
+        any_of = errors_prop.get("anyOf")
+        if isinstance(any_of, list) and any_of:
+            array_schema = cast(dict[str, object], any_of[0])
+            array_schema["items"] = {
+                "$ref": "#/components/schemas/ValidationErrorItem",
+            }
+        schemas["ProblemDetails"] = problem_schema
+        responses = components.setdefault("responses", {})
+        responses["ProblemDetailsError"] = {
+            "description": "Problem Details error response",
+            "content": {
+                "application/json": {
+                    "schema": {"$ref": "#/components/schemas/ProblemDetails"},
+                }
+            },
+        }
+        _wire_operation_problem_responses(schema)
+        _prune_legacy_openapi_error_schemas(schema)
+        app.openapi_schema = schema
+        return schema
+
+    setattr(app, "openapi", custom_openapi)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -172,28 +295,14 @@ app.add_middleware(SecurityHeadersMiddleware)
 limiter = create_limiter(settings)
 app.state.limiter = limiter
 def _rl_handler(request: Request, exc: Exception) -> Response:
-    if isinstance(exc, RateLimitExceeded):
-        response = _rate_limit_exceeded_handler(request, exc)
-        request_id = getattr(request.state, "request_id", None)
-        if request_id:
-            response.headers.setdefault("X-Request-Id", request_id)
-        log_json(
-            error_logger,
-            logging.WARNING,
-            "rate_limit_exceeded",
-            code="rate_limit_exceeded",
-            http_status=response.status_code,
-            method=request.method,
-            path=request.url.path,
-            detail=str(exc),
-            request_id=request_id,
-        )
-        return response
     request_id = getattr(request.state, "request_id", None)
     status = HTTP_STATUS_SERVER_ERROR
-    body = {"detail": "Unhandled error", "code": "internal_error"}
-    if request_id:
-        body["request_id"] = request_id
+    body = problem_details_body(
+        status=status,
+        code="internal_error",
+        detail=user_detail_for_code("internal_error", status=status),
+        request_id=request_id,
+    )
     log_json(
         error_logger,
         logging.ERROR,
@@ -246,16 +355,19 @@ def _status_for(exc: ApiError) -> int:
 @app.exception_handler(ApiError)
 async def _handle_api_error(request: Request, exc: ApiError) -> JSONResponse:
     status = _status_for(exc)
+    internal_detail = exc.detail or exc.code
+    public_code, public_detail = public_problem_code_and_detail(
+        status=status,
+        code=exc.code,
+        detail=internal_detail if internal_detail != exc.code else None,
+    )
     request_id = getattr(request.state, "request_id", None)
-    body = {
-        "type": "about:blank",  # RFC7807 최소 구현
-        "title": "",
-        "status": status,
-        "detail": str(exc) or exc.code,
-        "code": exc.code,
-    }
-    if request_id:
-        body["request_id"] = request_id
+    body = problem_details_body(
+        status=status,
+        code=public_code,
+        detail=public_detail,
+        request_id=request_id,
+    )
     level = (
         logging.ERROR
         if status >= HTTP_STATUS_SERVER_ERROR
@@ -269,7 +381,7 @@ async def _handle_api_error(request: Request, exc: ApiError) -> JSONResponse:
         http_status=status,
         method=request.method,
         path=request.url.path,
-        detail=body["detail"],
+        detail=internal_detail,
         request_id=request_id,
     )
     if status >= HTTP_STATUS_SERVER_ERROR:
@@ -280,7 +392,7 @@ async def _handle_api_error(request: Request, exc: ApiError) -> JSONResponse:
                 "path": request.url.path,
                 "method": request.method,
                 "request_id": request_id,
-                "detail": body["detail"],
+                "detail": internal_detail,
                 "level": "error",
             }
         )
@@ -289,8 +401,112 @@ async def _handle_api_error(request: Request, exc: ApiError) -> JSONResponse:
         response.headers.setdefault("X-Request-Id", request_id)
     return response
 
+
 # Keep a reference for static analyzers (decorator registers this handler)
 _ = _handle_api_error
+
+
+def _http_exception_headers(
+    exc: StarletteHTTPException,
+) -> dict[str, str] | None:
+    if not exc.headers:
+        return None
+    return {str(key): str(value) for key, value in exc.headers.items()}
+
+
+@app.exception_handler(StarletteHTTPException)
+async def _handle_http_exception(
+    request: Request,
+    exc: StarletteHTTPException,
+) -> JSONResponse:
+    code, detail = code_and_detail_from_http_detail(
+        exc.detail,
+        status=exc.status_code,
+    )
+    request_id = getattr(request.state, "request_id", None)
+    if exc.status_code >= HTTP_STATUS_SERVER_ERROR:
+        internal_detail = str(exc.detail)
+        log_json(
+            error_logger,
+            logging.ERROR,
+            "http_exception",
+            code=code,
+            http_status=exc.status_code,
+            method=request.method,
+            path=request.url.path,
+            detail=internal_detail,
+            request_id=request_id,
+        )
+        emit_error_event(
+            {
+                "code": code,
+                "status": exc.status_code,
+                "path": request.url.path,
+                "method": request.method,
+                "request_id": request_id,
+                "detail": internal_detail,
+                "level": "error",
+            }
+        )
+    return _problem_json_response(
+        request,
+        problem_details_body(
+            status=exc.status_code,
+            code=code,
+            detail=detail,
+            request_id=request_id,
+        ),
+        status=exc.status_code,
+        headers=_http_exception_headers(exc),
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def _handle_validation_error(
+    request: Request,
+    exc: RequestValidationError,
+) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", None)
+    body = validation_problem(errors=list(exc.errors()), request_id=request_id)
+    response = JSONResponse(body, status_code=HTTP_STATUS_UNPROCESSABLE_ENTITY)
+    if request_id:
+        response.headers.setdefault("X-Request-Id", request_id)
+    return response
+
+
+@app.exception_handler(RateLimitExceeded)
+async def _handle_rate_limit(
+    request: Request,
+    exc: RateLimitExceeded,
+) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", None)
+    status = HTTP_STATUS_TOO_MANY_REQUESTS
+    log_json(
+        error_logger,
+        logging.WARNING,
+        "rate_limit_exceeded",
+        code="rate_limit_exceeded",
+        http_status=status,
+        method=request.method,
+        path=request.url.path,
+        detail=str(exc),
+        request_id=request_id,
+    )
+    return _problem_json_response(
+        request,
+        problem_details_body(
+            status=status,
+            code="rate_limit_exceeded",
+            detail=user_detail_for_code("rate_limit_exceeded", status=status),
+            request_id=request_id,
+        ),
+        status=status,
+    )
+
+
+_ = _handle_http_exception
+_ = _handle_validation_error
+_ = _handle_rate_limit
 
 
 app.include_router(members.router)
@@ -312,3 +528,5 @@ app.include_router(admin_hero.router)
 app.include_router(admin_members.router)
 app.include_router(admin_signup_requests.router)
 app.include_router(admin_profile_changes.router)
+
+_install_openapi_problem_details()

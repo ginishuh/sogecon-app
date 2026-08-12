@@ -3,17 +3,15 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta, timezone
 from typing import Annotated, cast
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, HttpUrl
 from slowapi import Limiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.config import get_settings
-from apps.api.crypto_utils import is_push_encryption_effective
 from apps.api.db import get_db
+from apps.api.errors import ApiError
 from apps.api.ratelimit import consume_limit, get_client_ip_for_rate_limit
-from apps.api.repositories import notifications as subs_repo
-from apps.api.repositories import send_logs as logs_repo
 from apps.api.routers.auth import (
     CurrentMember,
     CurrentUser,
@@ -138,19 +136,18 @@ async def get_send_logs(
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
 ) -> list[SendLogRead]:
-    rows = await logs_repo.list_recent(db, limit=min(max(limit, 1), 200))
-    out: list[SendLogRead] = []
-    for r in rows:
-        created_dt = cast(datetime | None, r.created_at)
-        out.append(
-            SendLogRead(
-                created_at=created_dt.isoformat() if created_dt else "",
-                ok=bool(cast(int, r.ok)),
-                status_code=cast(int | None, r.status_code),
-                endpoint_tail=cast(str | None, r.endpoint_tail),
-            )
+    rows = await notif_svc.list_recent_send_logs(
+        db, limit=min(max(limit, 1), 200)
+    )
+    return [
+        SendLogRead(
+            created_at=row.created_at,
+            ok=row.ok,
+            status_code=row.status_code,
+            endpoint_tail=row.endpoint_tail,
         )
-    return out
+        for row in rows
+    ]
 
 
 class NotificationStats(BaseModel):
@@ -184,19 +181,21 @@ async def get_stats(
     )
     cutoff = datetime.now(UTC_TZ) - delta
 
-    active = await subs_repo.count_active_subscriptions(db)
-    agg = await logs_repo.aggregate_since(db, cutoff=cutoff)
-    settings = get_settings()
+    stats = await notif_svc.get_notification_stats(
+        db,
+        range_label=r,
+        cutoff=cutoff,
+    )
 
     return NotificationStats(
-        active_subscriptions=active,
-        recent_accepted=agg.accepted,
-        recent_failed=agg.failed,
-        encryption_enabled=is_push_encryption_effective(settings),
-        range=r,
-        failed_404=agg.failed_404,
-        failed_410=agg.failed_410,
-        failed_other=agg.failed_other,
+        active_subscriptions=stats.active_subscriptions,
+        recent_accepted=stats.recent_accepted,
+        recent_failed=stats.recent_failed,
+        encryption_enabled=stats.encryption_enabled,
+        range=stats.range_label,
+        failed_404=stats.failed_404,
+        failed_410=stats.failed_410,
+        failed_other=stats.failed_other,
     )
 
 
@@ -214,7 +213,7 @@ async def prune_logs(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, int | str]:
     days = max(1, int(payload.older_than_days))
-    n = await logs_repo.prune_older_than_days(db, days=days)
+    n = await notif_svc.prune_notification_logs(db, days=days)
     before = datetime.now(UTC_TZ) - timedelta(days=days)
     return {"deleted": n, "before": before.isoformat(), "older_than_days": days}
 
@@ -243,9 +242,12 @@ async def trigger_scheduled_notifications(
         try:
             target = date.fromisoformat(payload.target_date)
         except ValueError as e:
-            raise HTTPException(
-                status_code=400,
-                detail=f"잘못된 날짜 형식: {payload.target_date} (YYYY-MM-DD 필요)",
+            raise ApiError(
+                code="invalid_date_format",
+                detail=(
+                    f"잘못된 날짜 형식: {payload.target_date} (YYYY-MM-DD 필요)"
+                ),
+                status=400,
             ) from e
     else:
         target = datetime.now(KST).date()

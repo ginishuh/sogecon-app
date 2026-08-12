@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 
 from .. import models, schemas
+from . import escape_like
 
 
 def _build_conditions(
@@ -17,14 +18,16 @@ def _build_conditions(
 
     q = filters.get("q")
     if q:
-        like = f"%{q.strip()}%"
-        conditions.append(
-            or_(
-                models.SignupRequest.student_id.ilike(like),
-                models.SignupRequest.name.ilike(like),
-                models.SignupRequest.email.ilike(like),
+        qv = q.strip()
+        if qv:
+            like = f"%{escape_like(qv)}%"
+            conditions.append(
+                or_(
+                    models.SignupRequest.student_id.ilike(like, escape="\\"),
+                    models.SignupRequest.name.ilike(like, escape="\\"),
+                    models.SignupRequest.email.ilike(like, escape="\\"),
+                )
             )
-        )
 
     status = filters.get("status")
     if status is not None:

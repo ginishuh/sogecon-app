@@ -1421,11 +1421,6 @@ export interface components {
             /** Capacity */
             capacity?: number | null;
         };
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components["schemas"]["ValidationError"][];
-        };
         /** HeroItemCreate */
         HeroItemCreate: {
             /**
@@ -2161,19 +2156,6 @@ export interface components {
              */
             endpoint: string;
         };
-        /** ValidationError */
-        ValidationError: {
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-            /** Input */
-            input?: unknown;
-            /** Context */
-            ctx?: Record<string, never>;
-        };
         /** WebVitalEvent */
         WebVitalEvent: {
             /**
@@ -2228,8 +2210,68 @@ export interface components {
              */
             ts?: number | null;
         };
+        /** ValidationErrorItem */
+        ValidationErrorItem: {
+            /** Type */
+            type: string;
+            /** Loc */
+            loc: (string | number)[];
+            /** Msg */
+            msg: string;
+            /**
+             * Input
+             * @default null
+             */
+            input: unknown | null;
+            /**
+             * Ctx
+             * @default null
+             */
+            ctx: {
+                [key: string]: string;
+            } | null;
+        };
+        /** ProblemDetailsResponse */
+        ProblemDetails: {
+            /**
+             * Type
+             * @default about:blank
+             */
+            type: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Status */
+            status: number;
+            /** Detail */
+            detail: string;
+            /** Code */
+            code: string;
+            /**
+             * Request Id
+             * @default null
+             */
+            request_id: string | null;
+            /**
+             * Errors
+             * @default null
+             */
+            errors: components["schemas"]["ValidationErrorItem"][] | null;
+        };
     };
-    responses: never;
+    responses: {
+        /** @description Problem Details error response */
+        ProblemDetailsError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ProblemDetails"];
+            };
+        };
+    };
     parameters: never;
     requestBodies: never;
     headers: never;
@@ -2257,6 +2299,14 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_members_members__get: {
@@ -2288,15 +2338,14 @@ export interface operations {
                     "application/json": components["schemas"]["DirectoryMemberRead"][];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     count_members_members_count_get: {
@@ -2328,15 +2377,14 @@ export interface operations {
                     "application/json": components["schemas"]["MemberCount"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     get_member_members__member_id__get: {
@@ -2359,15 +2407,14 @@ export interface operations {
                     "application/json": components["schemas"]["DirectoryMemberRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_posts_posts__get: {
@@ -2394,15 +2441,14 @@ export interface operations {
                     "application/json": components["schemas"]["PostRead"][];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     create_post_posts__post: {
@@ -2427,15 +2473,14 @@ export interface operations {
                     "application/json": components["schemas"]["PostRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     get_post_posts__post_id__get: {
@@ -2458,15 +2503,14 @@ export interface operations {
                     "application/json": components["schemas"]["PostRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     delete_post_posts__post_id__delete: {
@@ -2491,15 +2535,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     update_post_posts__post_id__patch: {
@@ -2526,15 +2569,14 @@ export interface operations {
                     "application/json": components["schemas"]["PostRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     delete_board_post_board_posts__post_id__delete: {
@@ -2559,15 +2601,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     update_board_post_board_posts__post_id__patch: {
@@ -2594,15 +2635,14 @@ export interface operations {
                     "application/json": components["schemas"]["PostRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_comments_comments__get: {
@@ -2625,15 +2665,14 @@ export interface operations {
                     "application/json": components["schemas"]["CommentRead"][];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     create_comment_comments__post: {
@@ -2658,15 +2697,14 @@ export interface operations {
                     "application/json": components["schemas"]["CommentRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     delete_comment_comments__comment_id__delete: {
@@ -2687,15 +2725,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_events_events__get: {
@@ -2719,15 +2756,14 @@ export interface operations {
                     "application/json": components["schemas"]["EventRead"][];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     create_event_events__post: {
@@ -2752,15 +2788,14 @@ export interface operations {
                     "application/json": components["schemas"]["EventRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     get_event_events__event_id__get: {
@@ -2783,15 +2818,14 @@ export interface operations {
                     "application/json": components["schemas"]["EventRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     create_rsvp_events__event_id__rsvp_post: {
@@ -2818,15 +2852,14 @@ export interface operations {
                     "application/json": components["schemas"]["RSVPRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_rsvps_rsvps__get: {
@@ -2850,15 +2883,14 @@ export interface operations {
                     "application/json": components["schemas"]["RSVPRead"][];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     create_rsvp_rsvps__post: {
@@ -2883,15 +2915,14 @@ export interface operations {
                     "application/json": components["schemas"]["RSVPRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     get_rsvp_rsvps__member_id___event_id__get: {
@@ -2915,15 +2946,14 @@ export interface operations {
                     "application/json": components["schemas"]["RSVPRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     login_auth_login_post: {
@@ -2950,15 +2980,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     logout_endpoint_auth_logout_post: {
@@ -2977,6 +3006,14 @@ export interface operations {
                 };
                 content?: never;
             };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     me_auth_me_get: {
@@ -2999,6 +3036,14 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     member_login_auth_member_login_post: {
@@ -3025,15 +3070,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     member_signup_auth_member_signup_post: {
@@ -3058,15 +3102,14 @@ export interface operations {
                     "application/json": components["schemas"]["SignupRequestRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     member_logout_auth_member_logout_post: {
@@ -3085,6 +3128,14 @@ export interface operations {
                 };
                 content?: never;
             };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     member_me_auth_member_me_get: {
@@ -3107,6 +3158,14 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     member_activate_endpoint_auth_member_activate_post: {
@@ -3133,15 +3192,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     change_password_auth_member_change_password_post: {
@@ -3168,15 +3226,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     session_auth_session_get: {
@@ -3199,6 +3256,14 @@ export interface operations {
                     };
                 };
             };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_hero_slides_hero__get: {
@@ -3222,15 +3287,14 @@ export interface operations {
                     "application/json": components["schemas"]["HeroSlide"][];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     save_subscription_notifications_subscriptions_post: {
@@ -3253,15 +3317,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     delete_subscription_notifications_subscriptions_delete: {
@@ -3284,15 +3347,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     send_push_notifications_admin_notifications_send_post: {
@@ -3319,15 +3381,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     get_send_logs_notifications_admin_notifications_logs_get: {
@@ -3350,15 +3411,14 @@ export interface operations {
                     "application/json": components["schemas"]["SendLogRead"][];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     get_stats_notifications_admin_notifications_stats_get: {
@@ -3381,15 +3441,14 @@ export interface operations {
                     "application/json": components["schemas"]["NotificationStats"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     prune_logs_notifications_admin_notifications_prune_logs_post: {
@@ -3416,15 +3475,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     trigger_scheduled_notifications_notifications_admin_notifications_trigger_scheduled_post: {
@@ -3451,15 +3509,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     get_scheduled_logs_notifications_admin_notifications_scheduled_logs_get: {
@@ -3482,15 +3539,14 @@ export interface operations {
                     "application/json": components["schemas"]["ScheduledLogRead"][];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     contact_support_contact_post: {
@@ -3517,15 +3573,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_tickets_support_admin_tickets_get: {
@@ -3548,15 +3603,14 @@ export interface operations {
                     "application/json": components["schemas"]["TicketRead"][];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     get_me_me__get: {
@@ -3577,6 +3631,14 @@ export interface operations {
                     "application/json": components["schemas"]["MemberRead"];
                 };
             };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     update_me_me__put: {
@@ -3601,15 +3663,14 @@ export interface operations {
                     "application/json": components["schemas"]["MemberRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     upload_avatar_me_avatar_post: {
@@ -3634,15 +3695,14 @@ export interface operations {
                     "application/json": components["schemas"]["MemberRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_my_change_requests_me_change_requests_get: {
@@ -3663,6 +3723,14 @@ export interface operations {
                     "application/json": components["schemas"]["ProfileChangeRequestRead"][];
                 };
             };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     create_change_request_me_change_requests_post: {
@@ -3687,15 +3755,14 @@ export interface operations {
                     "application/json": components["schemas"]["ProfileChangeRequestRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     ingest_vitals_rum_vitals_post: {
@@ -3722,15 +3789,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     upload_image_uploads_images_post: {
@@ -3755,15 +3821,14 @@ export interface operations {
                     "application/json": components["schemas"]["ImageUploadResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     delete_image_uploads_images__filename__delete: {
@@ -3784,15 +3849,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_admin_posts_admin_posts__get: {
@@ -3819,15 +3883,14 @@ export interface operations {
                     "application/json": components["schemas"]["AdminPostListResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     preview_admin_post_admin_posts__post_id__preview_get: {
@@ -3850,15 +3913,14 @@ export interface operations {
                     "application/json": components["schemas"]["PostRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_admin_events_admin_events__get: {
@@ -3886,15 +3948,14 @@ export interface operations {
                     "application/json": components["schemas"]["AdminEventListResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     delete_admin_event_admin_events__event_id__delete: {
@@ -3915,15 +3976,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     update_admin_event_admin_events__event_id__patch: {
@@ -3950,15 +4010,14 @@ export interface operations {
                     "application/json": components["schemas"]["EventRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     get_member_rsvp_admin_events__event_id__rsvps__member_id__get: {
@@ -3982,15 +4041,14 @@ export interface operations {
                     "application/json": components["schemas"]["RSVPRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     upsert_member_rsvp_admin_events__event_id__rsvps__member_id__post: {
@@ -4018,15 +4076,14 @@ export interface operations {
                     "application/json": components["schemas"]["RSVPRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_admin_hero_items_admin_hero__get: {
@@ -4050,15 +4107,14 @@ export interface operations {
                     "application/json": components["schemas"]["AdminHeroListResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     create_admin_hero_item_admin_hero__post: {
@@ -4083,15 +4139,14 @@ export interface operations {
                     "application/json": components["schemas"]["HeroItemRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     lookup_admin_hero_items_admin_hero_lookup_post: {
@@ -4116,15 +4171,14 @@ export interface operations {
                     "application/json": components["schemas"]["HeroTargetLookupResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     get_admin_hero_item_admin_hero__hero_item_id__get: {
@@ -4147,15 +4201,14 @@ export interface operations {
                     "application/json": components["schemas"]["HeroItemRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     delete_admin_hero_item_admin_hero__hero_item_id__delete: {
@@ -4180,15 +4233,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     update_admin_hero_item_admin_hero__hero_item_id__patch: {
@@ -4215,15 +4267,14 @@ export interface operations {
                     "application/json": components["schemas"]["HeroItemRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_members_admin_admin_members__get: {
@@ -4250,15 +4301,14 @@ export interface operations {
                     "application/json": components["schemas"]["MemberRead"][];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     create_member_direct_admin_members__post: {
@@ -4283,15 +4333,14 @@ export interface operations {
                     "application/json": components["schemas"]["DirectMemberCreateResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     count_members_admin_admin_members_count_get: {
@@ -4317,15 +4366,14 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     get_member_admin_admin_members__member_id__get: {
@@ -4348,15 +4396,14 @@ export interface operations {
                     "application/json": components["schemas"]["MemberRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     update_member_admin_admin_members__member_id__patch: {
@@ -4383,15 +4430,14 @@ export interface operations {
                     "application/json": components["schemas"]["MemberRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     update_member_roles_admin_members__member_id__roles_patch: {
@@ -4418,15 +4464,14 @@ export interface operations {
                     "application/json": components["schemas"]["MemberRolesUpdateResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_signup_requests_admin_signup_requests__get: {
@@ -4452,15 +4497,14 @@ export interface operations {
                     "application/json": components["schemas"]["SignupRequestListResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     approve_signup_request_admin_signup_requests__signup_request_id__approve_post: {
@@ -4483,15 +4527,14 @@ export interface operations {
                     "application/json": components["schemas"]["SignupActivationIssueResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     reissue_signup_activation_token_admin_signup_requests__signup_request_id__reissue_token_post: {
@@ -4514,15 +4557,14 @@ export interface operations {
                     "application/json": components["schemas"]["SignupActivationIssueResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_signup_activation_token_logs_admin_signup_requests__signup_request_id__activation_token_logs_get: {
@@ -4547,15 +4589,14 @@ export interface operations {
                     "application/json": components["schemas"]["SignupActivationIssueLogListResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     reject_signup_request_admin_signup_requests__signup_request_id__reject_post: {
@@ -4582,15 +4623,14 @@ export interface operations {
                     "application/json": components["schemas"]["SignupRequestRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     list_profile_change_requests_admin_profile_change_requests__get: {
@@ -4616,15 +4656,14 @@ export interface operations {
                     "application/json": components["schemas"]["ProfileChangeRequestListResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     approve_profile_change_request_admin_profile_change_requests__request_id__approve_post: {
@@ -4647,15 +4686,14 @@ export interface operations {
                     "application/json": components["schemas"]["ProfileChangeRequestRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
     reject_profile_change_request_admin_profile_change_requests__request_id__reject_post: {
@@ -4682,15 +4720,14 @@ export interface operations {
                     "application/json": components["schemas"]["ProfileChangeRequestRead"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
         };
     };
 }

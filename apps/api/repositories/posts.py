@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TypedDict
 
 from sqlalchemy import ColumnElement, and_, desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,28 +8,13 @@ from sqlalchemy.orm import selectinload
 
 from .. import models, schemas
 from ..errors import NotFoundError
+from ..post_query_filters import AdminPostFilters, PublicPostFilters
 from ..post_visibility import (
     BOARD_POST_CATEGORIES,
     is_post_public,
     public_visibility_clause,
 )
 from . import escape_like
-
-
-class AdminPostFilters(TypedDict, total=False):
-    """관리자 게시물 목록 필터."""
-
-    category: str | None
-    status: str | None  # 'published' | 'scheduled' | 'draft' | None (all)
-    q: str | None
-
-
-class PublicPostFilters(TypedDict, total=False):
-    """공개 게시물 목록 필터."""
-
-    category: str | None
-    categories: Sequence[str] | None
-    q: str | None
 
 
 def _admin_non_board_category_clause() -> ColumnElement[bool]:

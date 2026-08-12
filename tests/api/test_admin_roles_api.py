@@ -15,6 +15,7 @@ from apps.api.db import get_db
 from apps.api.errors import ApiError
 from apps.api.main import app
 from apps.api.services import members_service
+from tests.api.problem_assertions import assert_problem_code
 
 
 def _run_in_test_session(coro: Callable[[AsyncSession], Awaitable[None]]) -> None:
@@ -181,7 +182,7 @@ def test_admin_without_super_admin_cannot_create_member_direct(
         },
     )
     assert create_res.status_code == HTTPStatus.FORBIDDEN
-    assert create_res.json()["detail"] == "super_admin_required"
+    assert_problem_code(create_res.json(), "super_admin_required")
 
 
 def test_create_member_direct_returns_conflict_when_already_exists(
@@ -221,7 +222,7 @@ def test_admin_without_super_admin_cannot_patch_roles(client: TestClient) -> Non
         json={"roles": ["admin", "admin_posts"]},
     )
     assert patch_res.status_code == HTTPStatus.FORBIDDEN
-    assert patch_res.json()["detail"] == "super_admin_required"
+    assert_problem_code(patch_res.json(), "super_admin_required")
 
 
 def test_super_admin_cannot_self_demote(admin_login: TestClient) -> None:
