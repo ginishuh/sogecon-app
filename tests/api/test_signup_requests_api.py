@@ -275,6 +275,22 @@ def test_admin_signup_search_underscore_literal(admin_login: TestClient) -> None
     assert "밑줄X타깃" not in names
 
 
+def test_admin_signup_search_backslash_literal(admin_login: TestClient) -> None:
+    _create_pending_signup(
+        admin_login, student_id="s116914", name="역슬래시\\타깃", phone="010-2914-0001"
+    )
+    _create_pending_signup(
+        admin_login, student_id="s116915", name="역슬래시X타깃", phone="010-2914-0002"
+    )
+    found = admin_login.get(
+        "/admin/signup-requests",
+        params={"q": "역슬래시\\타깃", "status": "pending"},
+    )
+    names = [item["name"] for item in found.json()["items"]]
+    assert "역슬래시\\타깃" in names
+    assert "역슬래시X타깃" not in names
+
+
 def test_admin_signup_search_whitespace_only_q_ignored(admin_login: TestClient) -> None:
     _create_pending_signup(
         admin_login, student_id="s116914", name="공백검색대상", phone="010-2914-0001"

@@ -4,7 +4,7 @@ import uuid
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Literal, cast
+from typing import Any, Literal, cast
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
@@ -85,6 +85,49 @@ HTTP_STATUS_SERVER_ERROR = 500
 HTTP_STATUS_TOO_MANY_REQUESTS = 429
 HTTP_STATUS_UNPROCESSABLE_ENTITY = 422
 
+_PROBLEM_ERROR_RESPONSE_REF: dict[str, str] = {
+    "$ref": "#/components/responses/ProblemDetailsError",
+}
+_PROBLEM_ERROR_STATUSES = frozenset(
+    {"400", "401", "403", "404", "409", "422", "429", "500"}
+)
+_OPENAPI_HTTP_METHODS = frozenset(
+    {"get", "post", "put", "patch", "delete", "options", "head", "trace"}
+)
+_LEGACY_OPENAPI_ERROR_SCHEMAS = frozenset(
+    {"HTTPValidationError", "ValidationError"}
+)
+
+
+def _wire_operation_problem_responses(schema: dict[str, object]) -> None:
+    paths = cast(dict[str, Any], schema.get("paths"))
+    if not paths:
+        return
+    for path_item_any in paths.values():
+        path_item = cast(dict[str, Any], path_item_any)
+        for method, operation_any in path_item.items():
+            if method not in _OPENAPI_HTTP_METHODS:
+                continue
+            operation = cast(dict[str, Any], operation_any)
+            responses_obj = operation.get("responses")
+            if not isinstance(responses_obj, dict):
+                responses_obj = {}
+                operation["responses"] = responses_obj
+            responses = cast(dict[str, Any], responses_obj)
+            for status in sorted(_PROBLEM_ERROR_STATUSES):
+                responses[status] = dict(_PROBLEM_ERROR_RESPONSE_REF)
+
+
+def _prune_legacy_openapi_error_schemas(schema: dict[str, object]) -> None:
+    components = cast(dict[str, Any], schema.get("components"))
+    if not components:
+        return
+    schemas = cast(dict[str, Any], components.get("schemas"))
+    if not schemas:
+        return
+    for name in _LEGACY_OPENAPI_ERROR_SCHEMAS:
+        schemas.pop(name, None)
+
 
 def _problem_json_response(
     request: Request,
@@ -142,6 +185,8 @@ def _install_openapi_problem_details() -> None:
                 }
             },
         }
+        _wire_operation_problem_responses(schema)
+        _prune_legacy_openapi_error_schemas(schema)
         app.openapi_schema = schema
         return schema
 

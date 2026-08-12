@@ -23,6 +23,30 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -203,14 +227,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -387,14 +425,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -429,14 +481,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -541,14 +607,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -580,14 +660,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -622,14 +716,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -673,14 +781,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -725,14 +847,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -778,14 +914,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -830,14 +980,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -877,14 +1041,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -917,14 +1095,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -953,14 +1145,28 @@
             "description": "Successful Response"
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1013,14 +1219,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -1052,14 +1272,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1094,14 +1328,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1146,14 +1394,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1206,14 +1468,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -1245,14 +1521,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1296,14 +1586,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1342,14 +1646,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1365,6 +1683,30 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1398,6 +1740,30 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1436,14 +1802,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1478,14 +1858,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1501,6 +1895,30 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1527,6 +1945,30 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1565,14 +2007,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1611,14 +2067,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1643,6 +2113,30 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1694,14 +2188,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1729,14 +2237,28 @@
             "description": "Successful Response"
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -1761,14 +2283,28 @@
             "description": "Successful Response"
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1806,14 +2342,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1853,14 +2403,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1896,14 +2460,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -1948,14 +2526,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2001,14 +2593,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2049,14 +2655,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2094,14 +2714,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2143,14 +2777,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2172,6 +2820,30 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -2203,14 +2875,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2244,14 +2930,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2277,6 +2977,30 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -2308,14 +3032,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2354,14 +3092,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2396,14 +3148,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2432,14 +3198,28 @@
             "description": "Successful Response"
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2539,14 +3319,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2582,14 +3376,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2711,14 +3519,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2763,14 +3585,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -2796,14 +3632,28 @@
             "description": "Successful Response"
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2858,14 +3708,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -2908,14 +3772,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -2964,14 +3842,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -3003,14 +3895,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3045,14 +3951,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3087,14 +4007,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -3137,14 +4071,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -3188,14 +4136,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3297,14 +4259,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -3337,14 +4313,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3407,14 +4397,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3450,14 +4454,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       },
@@ -3501,14 +4519,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3554,14 +4586,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3650,14 +4696,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3692,14 +4752,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3734,14 +4808,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3788,14 +4876,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3840,14 +4942,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3933,14 +5049,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -3975,14 +5105,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -4027,14 +5171,28 @@
             }
           },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
           }
         }
       }
@@ -4909,19 +6067,6 @@
         },
         "type": "object",
         "title": "EventUpdate"
-      },
-      "HTTPValidationError": {
-        "properties": {
-          "detail": {
-            "items": {
-              "$ref": "#/components/schemas/ValidationError"
-            },
-            "type": "array",
-            "title": "Detail"
-          }
-        },
-        "type": "object",
-        "title": "HTTPValidationError"
       },
       "HeroItemCreate": {
         "properties": {
@@ -7048,46 +8193,6 @@
           "endpoint"
         ],
         "title": "UnsubscribePayload"
-      },
-      "ValidationError": {
-        "properties": {
-          "loc": {
-            "items": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            },
-            "type": "array",
-            "title": "Location"
-          },
-          "msg": {
-            "type": "string",
-            "title": "Message"
-          },
-          "type": {
-            "type": "string",
-            "title": "Error Type"
-          },
-          "input": {
-            "title": "Input"
-          },
-          "ctx": {
-            "type": "object",
-            "title": "Context"
-          }
-        },
-        "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
-        "title": "ValidationError"
       },
       "WebVitalEvent": {
         "properties": {

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from http import HTTPStatus
 
 import httpx
@@ -85,6 +86,38 @@ def test_validation_error_serializes_value_error_ctx(
         ctx = item.get("ctx")
         if ctx is not None:
             assert all(isinstance(v, str) for v in ctx.values())
+
+
+def test_openapi_operations_reference_problem_details_errors() -> None:
+    schema = app.openapi()
+    paths = schema.get("paths")
+    assert isinstance(paths, dict)
+    problem_ref = "#/components/responses/ProblemDetailsError"
+    checked = 0
+    for path_item in paths.values():
+        if not isinstance(path_item, dict):
+            continue
+        for method, operation in path_item.items():
+            if method not in {
+                "get",
+                "post",
+                "put",
+                "patch",
+                "delete",
+                "options",
+                "head",
+                "trace",
+            }:
+                continue
+            if not isinstance(operation, dict):
+                continue
+            responses = operation.get("responses")
+            assert isinstance(responses, dict)
+            for status in ("400", "401", "403", "404", "409", "422", "429", "500"):
+                assert responses.get(status) == {"$ref": problem_ref}
+            assert "HTTPValidationError" not in json.dumps(responses)
+            checked += 1
+    assert checked > 0
 
 
 @pytest.mark.anyio
