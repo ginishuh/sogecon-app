@@ -1,0 +1,13 @@
+{
+  "api": {
+    "line_percent_min": 75.0,
+    "package": "apps/api",
+    "measured_at": "2026-08-12",
+    "measured_note": "pytest --cov=apps/api on main after D9; TOTAL 76%"
+  },
+  "web": {
+    "lines_percent_min": 57.0,
+    "measured_at": "2026-08-12",
+    "measured_note": "vitest --coverage on main after D9; lines 57.79%"
+  }
+}

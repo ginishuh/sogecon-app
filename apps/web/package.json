@@ -36,6 +36,7 @@
     "@types/react-dom": "19.2.3",
     "@typescript-eslint/eslint-plugin": "8.63.0",
     "@typescript-eslint/parser": "8.63.0",
+    "@vitest/coverage-v8": "4.1.10",
     "axe-core": "4.12.1",
     "baseline-browser-mapping": "2.10.42",
     "eslint": "9.39.5",

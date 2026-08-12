@@ -84,9 +84,9 @@ git diff --exit-code packages/schemas/openapi.json packages/schemas/index.d.ts
 | Job | 내용 |
 |-----|------|
 | `repo-guards` | guards, versions, **commitlint (hard)** |
-| `python` | 빈 PostgreSQL Alembic upgrade·schema drift·catalog gate, ruff, pyright, pytest, bandit, pip-audit |
+| `python` | 빈 PostgreSQL Alembic upgrade·schema drift·catalog gate, ruff, pyright(API+tests), pytest+coverage baseline, pytest guard, bandit, pip-audit |
 | `contract` | OpenAPI export + DTO drift |
-| `web` | **eslint**, **vitest 전체**, build, a11y smoke, bundle, pnpm audit |
+| `web` | **eslint**, **vitest 전체+coverage baseline**, build, a11y smoke, bundle, pnpm audit |
 | `secrets-scan` | gitleaks |
 | `semgrep` | Semgrep `p/ci` |
 | `e2e` (별도 workflow) | Puppeteer E2E — 실패 시 PR을 차단하는 hard gate (실행 authority: `.github/workflows/e2e.yml`, 에이전트 상세: `docs/agent_runbook_e2e.md` §5) |
@@ -155,6 +155,24 @@ current와 invalid/not-ready index를 먼저 readback하고, 이름이 남은 in
 
 관측된 CI 영향은 migration gate 약 1.6초, Python job 약 4분 15초였고 병렬화·캐시
 구조 변경은 하지 않았다.
+
+## D10 동작 품질 gate (#267)
+
+- API/Web coverage baseline은 `ops/ci/coverage_baseline.json`에 고정하고
+  `ops/ci/coverage_gate.py`가 pytest-cov JSON·vitest `coverage-summary.json`을
+  readback한다. baseline 아래로 떨어지면 PR CI가 실패한다.
+- `ops/ci/pytest_guard.py`는 `apps/api/` production Python 변경 시 같은 PR의
+  `tests/**/*.py` 동반 변경을 요구한다. 기존 suite 수집만으로는 우회할 수 없다.
+- `ops/ci/guards.py`는 `tests/`·`scripts/` Python까지 금지 suppression을 검사한다.
+- Pyright는 `apps/api`(strict)와 `tests/`(import/undefined only,
+  `pyrightconfig.tests.json`)를 분리 실행한다.
+- comments/scheduler 대표 회귀는 `tests/api/test_comments.py`,
+  `tests/api/test_scheduler.py`에 둔다.
+- 관측 baseline(2026-08-12): API lines **76%** (gate min 75), Web lines **57.79%**
+  (gate min 57). coverage 수집으로 Python job·Web unit test 단계가 각각 수십 초
+  늘 수 있으나, full gate는 PR Ready 시 1회만 수행한다.
+- Web/CI 변경 PR(D10 등)의 E2E는 mock regression(`docs/agent_runbook_e2e.md` §5)으로
+  충분하다. live product E2E는 별도 product semantics 변경 시에만 추가한다.
 
 ## 훅 통합 테스트
 

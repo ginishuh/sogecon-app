@@ -1,0 +1,18 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.12",
+  "stubPath": "apps/api/stubs",
+  "include": [
+    "tests"
+  ],
+  "typeCheckingMode": "off",
+  "reportMissingImports": "error",
+  "reportUndefinedVariable": "error",
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": ["apps"]
+    }
+  ]
+}

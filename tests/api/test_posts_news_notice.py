@@ -26,7 +26,8 @@ def _seed_author() -> int:
             db.add(m)
             await db.commit()
             await db.refresh(m)
-            return m.id  # type: ignore[return-value]
+            assert m.id is not None
+            return m.id
         raise RuntimeError("DB session not available")
 
     return asyncio.run(_do_seed())

@@ -28,6 +28,8 @@ CODE_GLOBS = [
     "packages/**/*.ts",
     "packages/**/*.tsx",
     "ops/**/*.py",
+    "tests/**/*.py",
+    "scripts/**/*.py",
 ]
 
 # Patterns to ban (regex). For Python broad-except, we allow inline noqa BLE001/E722.
@@ -118,6 +120,9 @@ def check_banned_comments(path: Path) -> list[str]:
 
 
 def check_max_lines(path: Path) -> list[str]:
+    # 테스트 파일은 회귀 시나리오 누적로 길어질 수 있어 line cap 대상에서 제외한다.
+    if str(path).startswith(str(ROOT / "tests")):
+        return []
     # Skip generated migration versions
     for ex in EXCLUDE_DIRS:
         if str(path).startswith(str(ex)):
