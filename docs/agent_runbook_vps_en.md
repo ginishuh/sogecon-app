@@ -4,18 +4,45 @@ This runbook helps an on‑box agent (Codex CLI/Claude) deploy and redeploy the 
 
 ## Operational topology and primary control flow
 
-- API: Docker container `alumni-api`
+- SSH host: `openclaw` or `sogecon` (`ubuntu@168.107.27.33`), repo `/srv/sogecon-app`
+- DNS: `sogangeconomics.com` / `www.sogangeconomics.com` /
+  `api.sogangeconomics.com` → openclaw. This host is production.
+- API: Docker container `alumni-api` (`127.0.0.1:3001`)
+- Web: Docker container `alumni-web` (`127.0.0.1:3000`)
 - PostgreSQL: Docker container `sogecon-db`
-- Web: systemd service `sogecon-web`, running the standalone release at
-  `/srv/www/sogecon/current`; Web is not a Docker service on the current VPS.
-- `compose.yaml` is local dev/test only. VPS operational containers are managed
-  by `docker run` deployment scripts.
+- nginx proxies both production and leftover preview vhosts to those loopback
+  ports.
+- `compose.yaml` is local dev/test only. Production containers are managed with
+  `scripts/deploy-vps.sh --local-build` → `ops/cloud-start.sh`.
 
-The operator-confirmed current state is a systemd standalone Web release with
-Docker API/PostgreSQL until migration. The accepted near-term target is full
-Docker for API, Web, and PostgreSQL. The existing D6 full-container guards in
-`cloud-start.sh` are the target entry point; the standalone systemd release is
-preserved as a cutover rollback fallback, not the target primary architecture.
+The public API URL is baked at Web image build time. Production build
+authority is the server `.env.web` value
+`NEXT_PUBLIC_WEB_API_BASE=https://api.sogangeconomics.com`. Pass
+`--web-api-base` only when intentionally baking a different host. Preview
+hosts (`sogecon-preview.ginishuh.kr`, `api-sogecon-preview.ginishuh.kr`) may
+point at the same containers but are not the deploy build baseline.
+
+The standalone systemd unit (`sogecon-web`) is a pre-full-Docker rollback
+fallback only. It is not the current production primary.
+
+### Canonical redeploy (openclaw)
+
+Do not pass `--web-api-base`. `.env.web` supplies the production API URL.
+
+```bash
+ssh openclaw   # or: ssh sogecon
+cd /srv/sogecon-app
+git fetch origin main
+git checkout --detach origin/main
+TAG=$(git rev-parse --short HEAD)
+bash scripts/deploy-vps.sh -t "$TAG" --local-build \
+  --network sogecon_net \
+  --uploads /var/lib/sogecon/uploads \
+  --api-health http://127.0.0.1:3001/healthz \
+  --web-health http://127.0.0.1:3000/
+curl -fsS https://api.sogangeconomics.com/healthz
+curl -fsS https://sogangeconomics.com/
+```
 
 ## Requirements
 - Docker installed

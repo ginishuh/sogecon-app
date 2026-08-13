@@ -8,7 +8,7 @@ set -euo pipefail
 # Usage:
 #   bash scripts/deploy-vps.sh -t <tag> [--prefix local/sogecon] [--local-build|--pull-images] \
 #       [--env .env.api] [--web-env .env.web] \
-#       [--web-api-base https://api.example.com] \
+#       [--web-api-base https://api.example.com] \  # omit on openclaw prod; .env.web is authority
 #       [--skip-migrate] [--seed-admin] [--uploads /var/lib/sogecon/uploads] \
 #       [--network sogecon_net] [--api-health URL] [--web-health URL]
 
