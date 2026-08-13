@@ -42,3 +42,28 @@ def test_mutable_action_ref_fails(tmp_path: Path) -> None:
     problems = check_action_pins.evaluate(tmp_path)
     assert problems
     assert any("owner/action@main" in item for item in problems)
+
+
+def test_yaml_workflow_mutable_ref_fails(tmp_path: Path) -> None:
+    workflow = tmp_path / ".github" / "workflows" / "ci.yaml"
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    workflow.write_text(
+        "jobs:\n  x:\n    steps:\n      - uses: owner/action@main\n",
+        encoding="utf-8",
+    )
+    problems = check_action_pins.evaluate(tmp_path)
+    assert problems
+    assert any("ci.yaml" in item and "owner/action@main" in item for item in problems)
+
+
+def test_sha_pin_without_version_comment_fails(tmp_path: Path) -> None:
+    workflow = tmp_path / ".github" / "workflows" / "ci.yml"
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    sha = "11d5960a326750d5838078e36cf38b85af677262"
+    workflow.write_text(
+        f"jobs:\n  x:\n    steps:\n      - uses: owner/action@{sha}\n",
+        encoding="utf-8",
+    )
+    problems = check_action_pins.evaluate(tmp_path)
+    assert problems
+    assert any("# vX.Y.Z" in item for item in problems)

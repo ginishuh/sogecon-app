@@ -36,7 +36,7 @@ pnpm -C apps/web dev
 - Do not commit secrets or production credentials to the repository.
 
 ## Testing
-- API: `pytest -q` (required).
+- API: `make test-api` (required).
 - Architecture, E2E, versions, and commit format: use the task table in `AGENTS.md`.
 
 ## Git Hooks
