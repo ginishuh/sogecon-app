@@ -220,8 +220,10 @@ export default function SignupPage() {
             label="학번"
             layout="inline"
             required
-            inputMode="numeric"
             autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             value={form.studentId}
             onChange={(e) => {
               const value = e.currentTarget.value;

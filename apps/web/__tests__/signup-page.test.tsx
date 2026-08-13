@@ -55,6 +55,32 @@ describe('SignupPage', () => {
     );
   });
 
+  it('학번은 s로 시작하는 값을 받고 숫자 키패드를 강제하지 않는다', async () => {
+    createSignupRequestMock.mockResolvedValueOnce({
+      id: 12,
+      student_id: 's47053',
+      status: 'pending',
+    });
+    renderWithProviders(<SignupPage />);
+
+    const studentIdInput = screen.getByLabelText('학번') as HTMLInputElement;
+    expect(studentIdInput.inputMode).not.toBe('numeric');
+
+    fireEvent.change(studentIdInput, { target: { value: 's47053' } });
+    fireEvent.change(screen.getByLabelText('이름'), { target: { value: '홍길동' } });
+    fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'member@example.com' } });
+    fireEvent.change(screen.getByLabelText('기수'), { target: { value: '58' } });
+    fireEvent.change(screen.getByLabelText('연락처'), { target: { value: '01012345678' } });
+    fireEvent.click(screen.getByRole('button', { name: '가입 정보 보내기' }));
+
+    await waitFor(() => {
+      expect(createSignupRequestMock).toHaveBeenCalledWith(
+        expect.objectContaining({ student_id: 's47053' }),
+      );
+    });
+    expect(studentIdInput.value).toBe('s47053');
+  });
+
   it('입력 변경 시 이벤트 객체 수명과 무관하게 값이 반영된다', () => {
     renderWithProviders(<SignupPage />);
 
