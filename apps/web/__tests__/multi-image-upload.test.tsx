@@ -8,7 +8,7 @@ describe('다중 이미지 썸네일 액션', () => {
     const onCoverChange = vi.fn();
     const onImagesChange = vi.fn();
 
-    render(
+    const { container } = render(
       <div style={{ width: 390 }}>
         <MultiImageUpload
           coverImage="/uploads/cover.webp"
@@ -18,6 +18,9 @@ describe('다중 이미지 썸네일 액션', () => {
         />
       </div>,
     );
+
+    expect(container.querySelector('.grid-cols-2')).not.toBeNull();
+    expect(container.querySelector('.grid-cols-3')).toBeNull();
 
     const setMain = screen.getByRole('button', { name: '메인 이미지로 지정' });
     const removeButtons = screen.getAllByRole('button', { name: '이미지 삭제' });
