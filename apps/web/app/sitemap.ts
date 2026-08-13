@@ -9,6 +9,8 @@ const staticPaths = [
   '/about/org',
   '/about/class-presidents',
   '/about/history',
+  '/about/programs',
+  '/about/programs/sogang-economics-award',
   '/directory',
   '/faq',
   '/privacy',

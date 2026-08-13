@@ -25,6 +25,7 @@ const ABOUT_LINKS: LinkItem[] = [
   { href: '/about/org', label: '조직도' },
   { href: '/about/class-presidents', label: '역대 원우회장' },
   { href: '/about/history', label: '연혁' },
+  { href: '/about/programs', label: '정규 행사' },
   { href: '/posts?category=notice', label: '공지사항' }
 ];
 
