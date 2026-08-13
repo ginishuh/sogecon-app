@@ -1,7 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG NODE_VERSION=24.12.0
-FROM node:${NODE_VERSION}-slim AS build
+FROM node:24.12.0-slim AS build
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
@@ -55,7 +54,7 @@ RUN pnpm -C apps/web build \
     && if [ -d apps/web/public ]; then cp -a apps/web/public /opt/app_web/apps/web/public; fi \
     && chmod -R a+rX /opt/app_web
 
-FROM node:${NODE_VERSION}-slim AS runtime
+FROM node:24.12.0-slim AS runtime
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \

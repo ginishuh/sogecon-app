@@ -5,8 +5,8 @@
 ![Static Badge](https://img.shields.io/badge/Python-3.12.3-3776AB?logo=python&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/Node-24.12.0-339933?logo=node.js&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/pnpm-10.17.1-F69220?logo=pnpm&logoColor=white)
-![Static Badge](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
-![Static Badge](https://img.shields.io/badge/FastAPI-0.120-009688?logo=fastapi)
+![Static Badge](https://img.shields.io/badge/Next.js-16.2.11-black?logo=next.js)
+![Static Badge](https://img.shields.io/badge/FastAPI-0.139.0-009688?logo=fastapi)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 <details>
@@ -36,7 +36,7 @@ Public monorepo for the Sogang GS Economics Alumni web service. Contains a Next.
 - 로컬 친화: Dockerized Postgres, `.venv` 표준, Makefile 유틸.
 - 모바일 웹 우선 · PWA/Web Push: 설치형 웹앱, 알림. 자세한 설계는 `docs/pwa_push.md`.
 - 품질 자동화: Git 훅/CI로 `ruff`·`pyright`·`pytest`·`pnpm build`·`gitleaks` 실행.
-- 표준화 버전: 런타임/도구 버전은 `docs/versions.md`에서 단일화 관리(SSOT).
+- 표준화 버전: manifest가 쓰기 권위이고 `docs/versions.md`는 검사된 projection이다.
 
 ## 저장소 구조
 ```
@@ -141,7 +141,7 @@ make schema-gen
 - 훅 스모크: `bash ops/ci/test_githooks.sh`
 - 단축키: `make test-api`, `make schema-gen` 등은 `Makefile` 참고.
 - CI: `.github/workflows/ci.yml` — commitlint(hard), API/Web 전체 검증, 보안 스캔. E2E·DTO·CodeQL은 별도 workflow.
-- 의존성 자동화: `.github/dependabot.yml`이 npm/pip/GitHub Actions를 월간 점검하며, 보안 업데이트·SLA·waiver 절차는 `docs/dependency_updates.md`를 따른다. 자동 병합은 사용하지 않는다.
+- 의존성 자동화: `.github/dependabot.yml`이 npm / pip / GitHub Actions / Docker / Docker Compose를 월간 점검하며, 보안 업데이트·SLA·waiver 절차는 `docs/dependency_updates.md`를 따른다. 자동 병합은 사용하지 않는다.
 
 ## 커밋/PR 규칙
 - Conventional Commits 필수: `type(scope): subject`(72자 이내). 타입/스코프는 `docs/commit_message_convention.md` 참고.

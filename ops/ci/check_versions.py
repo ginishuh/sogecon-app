@@ -2,10 +2,22 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+
+PIN_SCOPE_RE = re.compile(
+    r"^\s*<!--\s*pins:\s*([a-z0-9_.-]+/[a-zA-Z0-9_.-]+)\s*-->\s*$"
+)
+PIN_LINE_RE = re.compile(
+    r"^-\s+(\S+?)(?::\s+|==)(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.]+)?)(?:\s+.*)?$"
+)
+EXACT_NPM_RE = re.compile(r"^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.]+)?$")
+REQ_PIN_RE = re.compile(r"^([A-Za-z0-9_.\[\]-]+)==(\S+)\s*$")
+
+EXPECTED_ENGINES = {"node": "24.12.0", "pnpm": ">=10.17.1 <11"}
 
 
 def fail(msg: str) -> None:
@@ -13,213 +25,150 @@ def fail(msg: str) -> None:
     sys.exit(1)
 
 
-def check_package_json() -> None:
-    # apps/web specific deps pins
-    pkg_path = ROOT / "apps/web/package.json"
-    data = json.loads(pkg_path.read_text(encoding="utf-8"))
+def exact_npm_version(value: object) -> str | None:
+    if not isinstance(value, str) or not EXACT_NPM_RE.fullmatch(value):
+        return None
+    return value
+
+
+def collect_npm_section_pins(
+    data: dict[str, object], source: str, section: str
+) -> dict[str, str]:
+    pins: dict[str, str] = {}
+    raw = data.get(section, {})
+    if not isinstance(raw, dict):
+        return pins
+    for name, version in raw.items():
+        exact = exact_npm_version(version)
+        if exact is None:
+            continue
+        pins[f"{source}/{section}/{name}"] = exact
+    return pins
+
+
+def collect_manifest_pins(root: Path) -> dict[str, str]:
+    pins: dict[str, str] = {}
+
+    web = json.loads((root / "apps/web/package.json").read_text(encoding="utf-8"))
+    pins.update(collect_npm_section_pins(web, "web", "dependencies"))
+    pins.update(collect_npm_section_pins(web, "web", "devDependencies"))
+
+    workspace = json.loads((root / "package.json").read_text(encoding="utf-8"))
+    pins.update(collect_npm_section_pins(workspace, "root", "devDependencies"))
+    pnpm = workspace.get("pnpm")
+    if isinstance(pnpm, dict):
+        overrides = pnpm.get("overrides", {})
+        if isinstance(overrides, dict):
+            for name, version in overrides.items():
+                exact = exact_npm_version(version)
+                if exact is None:
+                    continue
+                pins[f"root/pnpm.overrides/{name}"] = exact
+
+    schemas = json.loads(
+        (root / "packages/schemas/package.json").read_text(encoding="utf-8")
+    )
+    pins.update(collect_npm_section_pins(schemas, "schemas", "devDependencies"))
+
+    for filename, section in (
+        ("requirements.txt", "requirements"),
+        ("requirements-dev.txt", "requirements-dev"),
+    ):
+        req_path = root / "apps/api" / filename
+        for line in req_path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            match = REQ_PIN_RE.fullmatch(stripped)
+            if match is None:
+                fail(f"apps/api/{filename} must use exact == pins: {stripped}")
+            pins[f"api/{section}/{match.group(1)}"] = match.group(2)
+    return pins
+
+
+def parse_doc_pins(text: str) -> dict[str, str]:
+    pins: dict[str, str] = {}
+    scope: str | None = None
+    for raw_line in text.splitlines():
+        scope_match = PIN_SCOPE_RE.search(raw_line)
+        if scope_match:
+            scope = scope_match.group(1)
+            continue
+        pin_match = PIN_LINE_RE.match(raw_line)
+        if pin_match is None or scope is None:
+            continue
+        name, version = pin_match.group(1), pin_match.group(2)
+        key = f"{scope}/{name}"
+        if key in pins:
+            fail(f"docs/versions.md duplicate pin {key}")
+        pins[key] = version
+    return pins
+
+
+def compare_pins(doc_pins: dict[str, str], manifest_pins: dict[str, str]) -> list[str]:
     problems: list[str] = []
+    doc_keys = set(doc_pins)
+    manifest_keys = set(manifest_pins)
+    for key in sorted(doc_keys - manifest_keys):
+        problems.append(f"docs/versions.md has pin {key} missing from manifest")
+    for key in sorted(manifest_keys - doc_keys):
+        problems.append(f"manifest pin {key} is missing from docs/versions.md")
+    for key in sorted(doc_keys & manifest_keys):
+        if doc_pins[key] != manifest_pins[key]:
+            problems.append(
+                f"{key} docs={doc_pins[key]!r} manifest={manifest_pins[key]!r}"
+            )
+    return problems
 
-    expected_deps = {
-        "dependencies": {
-            "@tanstack/react-query": "5.101.2",
-            "next": "16.2.11",
-            "react": "19.2.7",
-            "react-dom": "19.2.7",
-            "web-vitals": "5.3.0",
-        },
-        "devDependencies": {
-            "@eslint/eslintrc": "3.3.6",
-            "@next/bundle-analyzer": "16.2.11",
-            "@testing-library/jest-dom": "6.9.1",
-            "@testing-library/react": "16.3.2",
-            "@types/node": "24.13.3",
-            "@types/react": "19.2.17",
-            "eslint": "9.39.5",
-            "eslint-config-next": "15.5.20",
-            "@typescript-eslint/eslint-plugin": "8.63.0",
-            "@typescript-eslint/parser": "8.63.0",
-            "eslint-plugin-import": "2.32.0",
-            "eslint-import-resolver-typescript": "3.10.1",
-            "eslint-plugin-promise": "7.3.0",
-            "typescript": "5.9.3",
-            "@tailwindcss/postcss": "4.3.2",
-            "axe-core": "4.12.1",
-            "baseline-browser-mapping": "2.10.42",
-            "postcss": "8.5.26",
-            "puppeteer": "24.43.1",
-            "tailwindcss": "4.3.2",
-            "vitest": "4.1.10",
-            "jsdom": "29.1.1",
-        },
-    }
 
-    for section, expected in expected_deps.items():
-        actual: dict[str, str] = data.get(section, {})
-        for name, ver in expected.items():
-            if actual.get(name) != ver:
-                got = actual.get(name)
-                sec = section
-                nm = name
-                v = repr(ver)
-                g = repr(got)
-                msg = (
-                    f"apps/web/package.json {sec}.{nm} should be {v} but is {g}"
-                )
-                problems.append(msg)
+def check_engine_policy(root: Path) -> list[str]:
+    problems: list[str] = []
+    for pkg_path, label in (
+        (root / "apps/web/package.json", "apps/web/package.json"),
+        (root / "package.json", "package.json"),
+    ):
+        data = json.loads(pkg_path.read_text(encoding="utf-8"))
+        if data.get("packageManager") is not None:
+            problems.append(
+                f"{label} packageManager should be omitted "
+                "(pnpm version is managed via engines range)"
+            )
 
-    # Engines guidance to keep local runtime consistent
-    engines = data.get("engines", {})
-    expected_engines = {"node": "24.12.0", "pnpm": ">=10.17.1 <11"}
-    if not engines:
+    web = json.loads((root / "apps/web/package.json").read_text(encoding="utf-8"))
+    engines = web.get("engines")
+    if not isinstance(engines, dict):
         problems.append(
             "apps/web/package.json engines missing (expected node/pnpm pins)"
         )
-    else:
-        for k, v in expected_engines.items():
-            if engines.get(k) != v:
-                got = engines.get(k)
-                problems.append(
-                    f"apps/web/package.json engines.{k} should be {v!r} but is {got!r}"
-                )
-
-    # packageManager pin
-    pm = data.get("packageManager")
-    if pm is not None:
-        msg = (
-            "apps/web/package.json packageManager should be omitted "
-            "(pnpm version is managed via engines range)"
-        )
-        problems.append(msg)
-
-    if problems:
-        fail("\n".join(problems))
-
-
-def check_workspace_package_manager() -> None:
-    root_pkg = ROOT / "package.json"
-    data = json.loads(root_pkg.read_text(encoding="utf-8"))
-    if data.get("packageManager") is not None:
-        fail(
-            "package.json packageManager should be omitted "
-            "(pnpm version is managed via engines range)"
-        )
-
-    expected_dev_dependencies = {
-        "@commitlint/cli": "20.1.0",
-        "png-to-ico": "3.0.2",
-        "sharp": "0.35.3",
-        "vite": "8.1.4",
-    }
-    actual_dev_dependencies: dict[str, str] = data.get("devDependencies", {})
-    for name, version in expected_dev_dependencies.items():
-        if actual_dev_dependencies.get(name) != version:
-            fail(
-                f"package.json devDependencies.{name} should be "
-                f"{version!r} but is {actual_dev_dependencies.get(name)!r}"
+        return problems
+    for key, expected in EXPECTED_ENGINES.items():
+        actual = engines.get(key)
+        if actual != expected:
+            problems.append(
+                f"apps/web/package.json engines.{key} "
+                f"should be {expected!r} but is {actual!r}"
             )
+    return problems
 
-    expected_overrides = {
-        "js-yaml": "4.2.0",
-        "postcss": "8.5.26",
-        "sharp": "0.35.3",
-    }
-    overrides = data.get("pnpm", {}).get("overrides", {})
-    if overrides != expected_overrides:
-        fail(
-            "package.json pnpm.overrides should contain only the documented "
-            f"security pins {expected_overrides!r}, but is {overrides!r}"
+
+def evaluate(root: Path) -> list[str]:
+    problems = check_engine_policy(root)
+    doc_path = root / "docs" / "versions.md"
+    if not doc_path.is_file():
+        return [*problems, "docs/versions.md is missing"]
+    problems.extend(
+        compare_pins(
+            parse_doc_pins(doc_path.read_text(encoding="utf-8")),
+            collect_manifest_pins(root),
         )
-
-
-def check_schemas_package() -> None:
-    pkg_path = ROOT / "packages/schemas/package.json"
-    data = json.loads(pkg_path.read_text(encoding="utf-8"))
-    expected = "7.13.0"
-    actual = data.get("devDependencies", {}).get("openapi-typescript")
-    if actual != expected:
-        fail(
-            "packages/schemas/package.json "
-            f"devDependencies.openapi-typescript should be {expected!r} "
-            f"but is {actual!r}"
-        )
-
-
-def normalize_req_line(line: str) -> str:
-    return line.strip()
-
-
-def check_requirements() -> None:
-    problems: list[str] = []
-    req_txt = (
-        ROOT / "apps/api/requirements.txt"
-    ).read_text(encoding="utf-8").splitlines()
-    req_dev = (
-        ROOT / "apps/api/requirements-dev.txt"
-    ).read_text(encoding="utf-8").splitlines()
-
-    expected_req = {
-        "apps/api/requirements.txt": [
-            "fastapi==0.139.0",
-            "uvicorn[standard]==0.51.0",
-            "sqlalchemy==2.0.51",
-            "psycopg[binary]==3.3.4",
-            "alembic==1.18.5",
-            "pydantic-settings==2.14.2",
-            "python-multipart==0.0.32",
-            "slowapi==0.1.10",
-            "bcrypt==5.0.0",
-            "itsdangerous==2.2.0",
-            "email-validator==2.3.0",
-            "pywebpush==2.3.0",
-            "cryptography==50.0.0",
-            "Pillow==12.3.0",
-            "sentry-sdk[starlette]==2.64.0",
-            "apscheduler==3.11.3",
-        ],
-        "apps/api/requirements-dev.txt": [
-            "ruff==0.15.21",
-            "pyright==1.1.411",
-            "pytest==9.1.1",
-            "pytest-asyncio==1.4.0",
-            "httpx==0.28.1",
-            "bandit==1.9.4",
-            "PyYAML==6.0.3",
-        ],
-    }
-
-
-    def assert_contains(
-        path: str, content_lines: list[str], expected_lines: list[str]
-    ) -> None:
-        normalized = {
-            normalize_req_line(line)
-            for line in content_lines
-            if line.strip() and not line.strip().startswith("#")
-        }
-        for exp in expected_lines:
-            if exp not in normalized:
-                problems.append(f"{path} must contain exact line: {exp}")
-
-    assert_contains(
-        "apps/api/requirements.txt",
-        req_txt,
-        expected_req["apps/api/requirements.txt"],
     )
-    assert_contains(
-        "apps/api/requirements-dev.txt",
-        req_dev,
-        expected_req["apps/api/requirements-dev.txt"],
-    )
-
-    if problems:
-        fail("\n".join(problems))
+    return problems
 
 
 def main() -> int:
-    check_workspace_package_manager()
-    check_schemas_package()
-    check_package_json()
-    check_requirements()
+    problems = evaluate(ROOT)
+    if problems:
+        fail("\n".join(problems))
     print("[version-lock] OK")
     return 0
 

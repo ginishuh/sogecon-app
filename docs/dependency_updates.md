@@ -2,7 +2,7 @@
 
 ## 정기 업데이트
 
-- Dependabot은 매월 1일 02:00 KST부터 npm, pip, GitHub Actions를 순차 점검한다.
+- Dependabot은 매월 1일 02:00 KST부터 npm, pip, GitHub Actions, Docker, Docker Compose를 순차 점검한다.
 - minor/patch는 ecosystem과 production/development 위험도별로 그룹화한다.
 - major는 그룹에 포함하지 않고 독립 PR로 생성한다.
 - ecosystem별 version update PR 상한은 5개다.
@@ -35,3 +35,14 @@ production과 개발 도구의 영향 경로를 구분하되 개발 도구라는
 5. 실패한 자동 PR은 닫기 전에 원인과 후속 이슈를 기록한다.
 
 설정 SSOT는 `.github/dependabot.yml`, 검증 가드는 `ops/ci/check_dependabot.py`다.
+
+## GitHub Actions SHA pin rollback
+
+외부 `uses:`는 `owner/repo[/path]@<40-hex-sha>`만 허용하고, 같은 줄 주석에 `# vX.Y.Z`를 남긴다. Dependabot이 SHA와 버전 표시를 같이 갱신한다.
+
+이전 핀으로 되돌릴 때는 다음 순서를 따른다.
+
+1. 대상 workflow에서 `uses: owner/repo@<sha> # vX.Y.Z` 주석으로 되돌릴 버전을 확인한다.
+2. 해당 태그의 **peeled commit SHA**를 고정한다. annotated tag object SHA가 아니라 `git ls-remote --tags <repo> 'vX.Y.Z^{}'` 결과여야 한다.
+3. `python ops/ci/check_action_pins.py`가 통과하는지 확인한다.
+4. 동작 회귀가 있으면 SHA와 주석을 함께 revert한다. mutable tag(`@v4`, `@main`)만 다시 쓰면 가드가 실패한다.
