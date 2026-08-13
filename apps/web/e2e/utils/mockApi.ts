@@ -219,6 +219,13 @@ function resetLocalOwnerPost(): void {
   localAdminBoardPostImages = ['https://example.com/e2e-admin-cover.png'];
 }
 
+export function setLocalAdminBoardExtraImage(enabled: boolean): void {
+  const cover = localAdminBoardPostCoverImage ?? 'https://example.com/e2e-admin-cover.png';
+  localAdminBoardPostImages = enabled
+    ? [cover, 'https://example.com/e2e-admin-extra.png']
+    : [cover];
+}
+
 function isLocalBoardPostsList(url: URL): boolean {
   const categories = [url.searchParams.get('category'), ...url.searchParams.getAll('categories')];
   return categories.some((category) => ['discussion', 'question', 'share', 'congrats'].includes(category ?? ''));

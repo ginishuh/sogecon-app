@@ -62,14 +62,14 @@ function ImageThumbnail({
 }) {
   return (
     <div
-      className={`relative rounded-lg overflow-hidden border-2 transition-colors ${
+      className={`relative rounded-lg border-2 transition-colors ${
         isMain ? 'border-brand-primary ring-2 ring-brand-primary/30' : 'border-neutral-border'
       }`}
     >
       <div
         role="img"
         aria-label={isMain ? '메인 이미지' : '추가 이미지'}
-        className="w-full h-28 bg-cover bg-center"
+        className="h-28 w-full overflow-hidden rounded-t-md bg-cover bg-center"
         style={{ backgroundImage: `url(${src})` }}
       />
       {/* 메인 이미지 배지 */}
@@ -80,7 +80,7 @@ function ImageThumbnail({
       )}
       {/* 호버 시 액션 버튼들 */}
       {!disabled && (
-        <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-black/55 p-2">
+        <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-2 bg-black/55 p-2">
           {!isMain && (
             <button
               type="button"
@@ -343,7 +343,7 @@ export function MultiImageUpload({
         )}
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5">
         {allImages.map((url) => (
           <ImageThumbnail
             key={url}

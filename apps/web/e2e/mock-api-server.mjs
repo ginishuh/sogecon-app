@@ -239,7 +239,9 @@ const server = createServer(async (request, response) => {
     adminBoardPostContent = 'published_at 없이도 공개되는 board 글';
     adminBoardPostPinned = false;
     adminBoardPostCoverImage = 'https://example.com/e2e-admin-cover.png';
-    adminBoardPostImages = [adminBoardPostCoverImage];
+    adminBoardPostImages = body.adminBoardExtraImage
+      ? [adminBoardPostCoverImage, 'https://example.com/e2e-admin-extra.png']
+      : [adminBoardPostCoverImage];
     sendJson(response, 200, { ok: true, session: sessionKind }, origin);
     return;
   }

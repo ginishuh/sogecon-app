@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import puppeteer, { Browser, HTTPRequest, Page } from 'puppeteer';
 
 import { WEB_BASE_URL, isApiUrl } from './utils/env';
-import { setLocalMockSession, setupDirectoryMocks } from './utils/mockApi';
+import { setLocalAdminBoardExtraImage, setLocalMockSession, setupDirectoryMocks } from './utils/mockApi';
 import { configureMockServer } from './utils/mockServer';
 
 let browser: Browser | null = null;
@@ -25,6 +25,57 @@ async function clickButtonByText(currentPage: Page, text: string): Promise<void>
     if (!(button instanceof HTMLElement)) throw new Error(`버튼을 찾지 못했습니다: ${expectedText}`);
     button.click();
   }, text);
+}
+
+type ImageActionMetric = {
+  label: string | null;
+  width: number;
+  height: number;
+  clipped: boolean;
+};
+
+async function measureImageActions(currentPage: Page): Promise<ImageActionMetric[]> {
+  return currentPage.evaluate(() => {
+    const isClipped = (el: HTMLElement) => {
+      const rect = el.getBoundingClientRect();
+      let parent = el.parentElement;
+      while (parent) {
+        const style = getComputedStyle(parent);
+        const clips =
+          ['hidden', 'clip'].includes(style.overflowX)
+          || ['hidden', 'clip'].includes(style.overflowY);
+        if (clips) {
+          const prect = parent.getBoundingClientRect();
+          if (
+            rect.left < prect.left - 0.5
+            || rect.right > prect.right + 0.5
+            || rect.top < prect.top - 0.5
+            || rect.bottom > prect.bottom + 0.5
+          ) {
+            return true;
+          }
+        }
+        parent = parent.parentElement;
+      }
+      return false;
+    };
+
+    const setMain = document.querySelector<HTMLElement>('button[aria-label="메인 이미지로 지정"]');
+    const removes = Array.from(
+      document.querySelectorAll<HTMLElement>('button[aria-label="이미지 삭제"]'),
+    );
+    return [setMain, ...removes]
+      .filter((el): el is HTMLElement => el != null)
+      .map((el) => {
+        const rect = el.getBoundingClientRect();
+        return {
+          label: el.getAttribute('aria-label'),
+          width: rect.width,
+          height: rect.height,
+          clipped: isClipped(el),
+        };
+      });
+  });
 }
 
 describe('Admin post preview (CDP E2E)', () => {
@@ -199,6 +250,48 @@ describe('Admin post preview (CDP E2E)', () => {
     await page.goto(`${WEB_BASE_URL}/admin/posts/44/preview`, { waitUntil: 'networkidle0' });
     const preview = await (await previewResponse).json() as { published_at: string | null };
     expect(preview.published_at).toBeNull();
+  });
+
+  it('좁은 모바일 viewport에서 이미지 액션이 잘리지 않고 44px·Tab 순서를 유지한다', async () => {
+    if (!page) throw new Error('Puppeteer page not initialized');
+    await configureMockServer('admin', { adminBoardExtraImage: true });
+    if (!process.env.E2E_MOCK_API_CONTROL_URL) {
+      setLocalMockSession('admin');
+      await setupDirectoryMocks(page);
+      setLocalAdminBoardExtraImage(true);
+    }
+
+    try {
+      await page.goto(`${WEB_BASE_URL}/admin/posts/44/edit`, { waitUntil: 'networkidle0' });
+      await page.waitForSelector('button[aria-label="메인 이미지로 지정"]');
+      await page.$eval('button[aria-label="메인 이미지로 지정"]', (el) => {
+        el.scrollIntoView({ block: 'center', inline: 'nearest' });
+      });
+
+      for (const width of [320, 390]) {
+        await page.setViewport({ width, height: 844, deviceScaleFactor: 2 });
+        await page.waitForSelector('button[aria-label="메인 이미지로 지정"]');
+        await page.$eval('button[aria-label="메인 이미지로 지정"]', (el) => {
+          el.scrollIntoView({ block: 'center', inline: 'nearest' });
+        });
+        const metrics = await measureImageActions(page);
+        expect(metrics.length).toBeGreaterThanOrEqual(3);
+        for (const metric of metrics) {
+          expect(metric.width, `${metric.label} @${width}`).toBeGreaterThanOrEqual(44);
+          expect(metric.height, `${metric.label} @${width}`).toBeGreaterThanOrEqual(44);
+          expect(metric.clipped, `${metric.label} @${width}`).toBe(false);
+        }
+      }
+
+      await page.focus('button[aria-label="메인 이미지로 지정"]');
+      expect(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')))
+        .toBe('메인 이미지로 지정');
+      await page.keyboard.press('Tab');
+      expect(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')))
+        .toBe('이미지 삭제');
+    } finally {
+      await page.setViewport({ width: 800, height: 600 });
+    }
   });
 
   it('관리자 board 편집에서 마지막 이미지를 삭제하면 null/빈 배열을 저장한다', async () => {
