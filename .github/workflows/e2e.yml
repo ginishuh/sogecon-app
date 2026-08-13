@@ -25,15 +25,17 @@ jobs:
       WEB_BUILD_ALLOW_INSECURE_LOCAL_API: "1"
       E2E_MOCK_API_CONTROL_URL: http://127.0.0.1:3001
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - name: Resolve PNPM version
         id: pnpm-version
         run: echo "version=$(scripts/resolve_pnpm_version.sh)" >> $GITHUB_OUTPUT
       - name: Setup PNPM
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           version: ${{ steps.pnpm-version.outputs.version }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24.12.0
           cache: pnpm
@@ -44,7 +46,7 @@ jobs:
         run: pnpm -C apps/web install --frozen-lockfile
       - name: Setup Chrome
         id: chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@c785b87e244131f27c9f19c1a33e2ead956ab7ce # v1.7.3
         with:
           chrome-version: stable
       - name: Build web

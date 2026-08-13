@@ -50,6 +50,8 @@ pnpm -C apps/web install
 # PR CI와 동일한 검증(요약)
 .venv/bin/python ops/ci/guards.py
 .venv/bin/python ops/ci/check_versions.py
+.venv/bin/python ops/ci/check_dependabot.py
+.venv/bin/python ops/ci/check_action_pins.py
 pnpm exec commitlint --from origin/main --to HEAD --config docs/commitlint.config.cjs
 # D5 전용 disposable PostgreSQL만 사용한다. appdb/appdb_test/운영 DB는 금지.
 # 기존 DB가 있으면 먼저 정확한 이름만 drop하고 같은 이름으로 create한다.

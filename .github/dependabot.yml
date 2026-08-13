@@ -60,3 +60,35 @@ updates:
         applies-to: security-updates
         patterns: ["*"]
         update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directory: /infra
+    schedule: {interval: monthly, time: "03:00", timezone: Asia/Seoul}
+    open-pull-requests-limit: 5
+    assignees: [ginishuh]
+    labels: [dependencies, docker]
+    groups:
+      docker-minor-patch:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+      docker-security-minor-patch:
+        applies-to: security-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule: {interval: monthly, time: "03:20", timezone: Asia/Seoul}
+    open-pull-requests-limit: 5
+    assignees: [ginishuh]
+    labels: [dependencies, docker]
+    groups:
+      compose-minor-patch:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+      compose-security-minor-patch:
+        applies-to: security-updates
+        patterns: ["*"]
+        update-types: [minor, patch]

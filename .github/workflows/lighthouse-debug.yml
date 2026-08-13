@@ -12,18 +12,20 @@ jobs:
       pull-requests: write
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Resolve PNPM version
         id: pnpm-version
         run: echo "version=$(scripts/resolve_pnpm_version.sh)" >> $GITHUB_OUTPUT
 
       - name: Setup PNPM
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           version: ${{ steps.pnpm-version.outputs.version }}
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24.12.0
           cache: pnpm
@@ -68,7 +70,7 @@ jobs:
 
       - name: Lighthouse CI (debug mobile)
         id: lhci_mobile
-        uses: treosh/lighthouse-ci-action@v12
+        uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18 # v12
         with:
           configPath: './lighthouserc.mobile.json'
           uploadArtifacts: true
@@ -82,7 +84,7 @@ jobs:
 
       - name: Lighthouse CI (debug desktop)
         id: lhci_desktop
-        uses: treosh/lighthouse-ci-action@v12
+        uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18 # v12
         with:
           configPath: './lighthouserc.desktop.json'
           uploadArtifacts: true
@@ -96,7 +98,7 @@ jobs:
 
       - name: Attach debug note
         if: ${{ always() }}
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const body = [
