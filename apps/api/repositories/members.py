@@ -211,15 +211,6 @@ async def create_member(
     return member
 
 
-async def get_member_by_email(db: AsyncSession, email: str) -> models.Member:
-    stmt = select(models.Member).where(models.Member.email == email)
-    result = await db.execute(stmt)
-    row = result.scalars().first()
-    if row is None:
-        raise NotFoundError(code="member_not_found", detail="Member not found")
-    return row
-
-
 async def get_member_by_student_id(db: AsyncSession, student_id: str) -> models.Member:
     stmt = select(models.Member).where(models.Member.student_id == student_id)
     result = await db.execute(stmt)

@@ -7,6 +7,8 @@ from http import HTTPStatus
 import pytest
 from fastapi.testclient import TestClient
 
+from apps.api.services import posts_service
+
 
 @pytest.fixture()
 def anyio_backend() -> str:
@@ -262,3 +264,9 @@ class TestAdminPostList:
         # 오프셋이 다르면 다른 결과
         if body["items"] and body2["items"]:
             assert body["items"][0]["id"] != body2["items"][0]["id"]
+
+
+def test_posts_service_create_entrypoints_are_role_specific() -> None:
+    assert hasattr(posts_service, "create_admin_post")
+    assert hasattr(posts_service, "create_member_post")
+    assert not hasattr(posts_service, "create_post")

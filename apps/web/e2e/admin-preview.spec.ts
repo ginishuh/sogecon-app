@@ -142,10 +142,10 @@ describe('Admin post preview (CDP E2E)', () => {
     expect(boardRowText).toContain('공개');
     expect(boardRowText).not.toContain('비공개');
 
-    await page.select('select:nth-of-type(2)', 'draft');
+    await page.select('#admin-posts-status', 'draft');
     await page.waitForFunction(() => !document.body.innerText.includes('E2E board 공개 글'));
 
-    await page.select('select:nth-of-type(2)', 'published');
+    await page.select('#admin-posts-status', 'published');
     await page.waitForFunction(() => document.body.innerText.includes('E2E board 공개 글'));
     const publishedBoardRowText = await page.$eval(
       'tbody tr:nth-child(2)',

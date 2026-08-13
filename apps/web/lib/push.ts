@@ -110,8 +110,7 @@ export async function ensureServiceWorker(): Promise<ServiceWorkerRegistration |
 
   try {
     return await navigator.serviceWorker.register('/sw.js');
-  } catch (error) {
-    console.info('Service worker registration failed', error);
+  } catch {
     return null;
   }
 }
@@ -134,8 +133,7 @@ export async function subscribePushWithReason(vapidPublicKey: string): Promise<S
     const result = subscriptionToResult(sub);
     if (!result) return { ok: false, reason: 'subscribe_failed' };
     return { ok: true, result };
-  } catch (error) {
-    console.info('Push subscribe failed', error);
+  } catch {
     return { ok: false, reason: 'subscribe_failed' };
   }
 }

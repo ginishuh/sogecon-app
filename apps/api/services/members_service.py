@@ -194,10 +194,6 @@ async def create_member(
         _raise_member_conflict_from_integrity_error(exc)
 
 
-async def get_member_by_email(db: AsyncSession, email: str) -> models.Member:
-    return await members_repo.get_member_by_email(db, email)
-
-
 async def get_member_by_student_id(db: AsyncSession, student_id: str) -> models.Member:
     return await members_repo.get_member_by_student_id(db, student_id)
 

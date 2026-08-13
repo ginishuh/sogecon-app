@@ -299,10 +299,10 @@ function DirectoryPageInner() {
         onSortChange={updateSort}
       />
 
-      <section className="space-y-4" aria-live="polite" aria-labelledby="directory-results-title">
+      <section className="space-y-4" aria-labelledby="directory-results-title">
         <div className="flex flex-col gap-3 border-b border-neutral-border pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-wrap items-end gap-2 sm:gap-3">
-            <div>
+            <div role="status" aria-live="polite" aria-atomic="true">
               <h2 id="directory-results-title" className="text-xl font-semibold text-text-primary">{displayedCount.toLocaleString()}명의 동문</h2>
               <p className="mt-1 text-sm text-text-muted">
                 {activeFilterCount > 0 ? `검색 조건 ${activeFilterCount}개 · ` : ''}전체 {totalLabel}명
@@ -326,7 +326,7 @@ function DirectoryPageInner() {
             <div id="share-panel" role="region" aria-label="공유 옵션" hidden={!shareOpen}>
               <div className="flex flex-wrap items-center gap-2">
                 <code className="rounded bg-surface-raised px-2 py-1">{sharePath}</code>
-                <Button type="button" variant="secondary" size="sm" onClick={copyShareLink} aria-live="polite">
+                <Button type="button" variant="secondary" size="sm" onClick={copyShareLink}>
                   {copied ? '복사 완료' : '복사'}
                 </Button>
               </div>

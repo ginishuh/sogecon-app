@@ -58,6 +58,7 @@ Tailwind CSS 4 설정(`apps/web/app/styles/tailwind-theme.css`의 `@theme`)에�
 - 모바일 키패드: `inputMode`/`autoComplete`
 - 에러: 색상+아이콘(선택), `aria-invalid=true`
 - 모든 필드는 최소 44px 높이를 유지합니다. helper와 error가 함께 있으면 둘 다 DOM에 남기고 `aria-describedby`로 연결합니다.
+- 신규 필터·폼의 select는 `components/ui/select`를 사용합니다. 기존 화면의 raw `<select>`는 후속 이관 대상이며, Select는 테스트 전용 추상이 아닙니다.
 
 ### 4.3 Tabs
 - 역할: `role="tablist"`, 각 탭은 `role="tab"`, 선택 탭 `aria-selected=true`

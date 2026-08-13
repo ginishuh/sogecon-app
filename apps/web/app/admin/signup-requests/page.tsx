@@ -103,8 +103,8 @@ function useSignupRequestsModel() {
       const logs = await listAdminSignupRequestActivationTokenLogs(signupRequestId, 20);
       setLastIssueLogs(logs.items);
     } catch (error) {
-      console.warn('가입신청 활성화 토큰 로그 조회 실패', error);
       setLastIssueLogs([]);
+      handleError(error, '활성화 안내 기록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
     }
   };
 

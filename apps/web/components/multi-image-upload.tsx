@@ -62,7 +62,7 @@ function ImageThumbnail({
 }) {
   return (
     <div
-      className={`relative group rounded-lg overflow-hidden border-2 transition-colors ${
+      className={`relative rounded-lg overflow-hidden border-2 transition-colors ${
         isMain ? 'border-brand-primary ring-2 ring-brand-primary/30' : 'border-neutral-border'
       }`}
     >
@@ -80,7 +80,7 @@ function ImageThumbnail({
       )}
       {/* 호버 시 액션 버튼들 */}
       {!disabled && (
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-black/55 p-2">
           {!isMain && (
             <button
               type="button"
@@ -88,8 +88,8 @@ function ImageThumbnail({
                 e.stopPropagation();
                 onSetMain();
               }}
-              className="rounded bg-white/90 px-2 py-1 text-xs font-medium text-text-secondary hover:bg-white transition-colors"
-              title="메인으로 설정"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-white/90 px-3 text-xs font-medium text-text-secondary hover:bg-white focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400"
+              aria-label="메인 이미지로 지정"
             >
               메인
             </button>
@@ -100,20 +100,20 @@ function ImageThumbnail({
               e.stopPropagation();
               onRemove();
             }}
-            className="rounded-full bg-state-error/90 p-1.5 text-white hover:bg-state-error-hover transition-colors"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-state-error/90 text-white hover:bg-state-error-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
             aria-label="이미지 삭제"
-            title="삭제"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              aria-hidden="true"
             >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
@@ -338,7 +338,7 @@ export function MultiImageUpload({
         </span>
         {allImages.length > 0 && (
           <span className="text-xs text-text-muted">
-            클릭하여 메인 이미지 선택
+            메인 지정과 삭제는 각 이미지에서 할 수 있습니다.
           </span>
         )}
       </div>

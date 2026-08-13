@@ -122,20 +122,6 @@ async def get_public_post(db: AsyncSession, post_id: int) -> models.Post:
     return await posts_repo.get_public_post(db, post_id)
 
 
-async def create_post(db: AsyncSession, payload: schemas.PostCreate) -> models.Post:
-    if payload.author_id is None:
-        raise ApiError(
-            code="post_author_required",
-            detail="author_id is required",
-            status=422,
-        )
-    _ = await members_repo.get_member(db, payload.author_id)  # NotFoundError
-    await _validate_create_attach_paths(
-        db, actor_member_id=payload.author_id, payload=payload
-    )
-    return await posts_repo.create_post(db, payload)
-
-
 async def create_admin_post(
     db: AsyncSession,
     payload: schemas.PostCreate,

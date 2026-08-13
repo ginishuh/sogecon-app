@@ -65,8 +65,8 @@ export function ServiceWorkerRegister() {
 
         // controller가 변경되면 페이지 리로드 (새 SW가 활성화됨)
         navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
-      } catch (error) {
-        console.info('Service worker registration skipped', error);
+      } catch {
+        return;
       }
     };
 
