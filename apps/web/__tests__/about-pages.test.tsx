@@ -7,6 +7,8 @@ import DeanGreetingPage from '../app/about/dean-greeting/page';
 import OrgPage from '../app/about/org/page';
 import HistoryPage from '../app/about/history/page';
 import ClassPresidentsPage from '../app/about/class-presidents/page';
+import RegularProgramsPage from '../app/about/programs/page';
+import SogangEconomicsAwardPage from '../app/about/programs/sogang-economics-award/page';
 import { renderSiteHeaderWithProviders } from './helpers/render-site-header-with-providers';
 
 // DrawerMenu dynamic import mock
@@ -19,6 +21,7 @@ vi.mock('../components/lazy', () => ({
       <a href="/about/org">조직도</a>
       <a href="/about/class-presidents">역대 원우회장</a>
       <a href="/about/history">역대 회장단</a>
+      <a href="/about/programs">정규 행사</a>
       <a href="/faq">FAQ</a>
       <a href="/privacy">개인정보 처리방침</a>
       <a href="/terms">이용약관</a>
@@ -103,6 +106,28 @@ describe('About static pages', () => {
     expect(screen.queryByText('16대 회장 김서강')).not.toBeInTheDocument();
     expect(asFragment()).toMatchSnapshot();
   });
+
+  it('lists 서강경제대상 under regular programs', () => {
+    render(<RegularProgramsPage />);
+    expect(screen.getByRole('heading', { level: 1, name: '정규 행사' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '금빛 메달과 마룬 리본으로 표현한 서강경제대상 상징' })).toHaveAttribute('data-priority', 'true');
+    expect(screen.getByRole('link', { name: /서강경제대상/ })).toHaveAttribute(
+      'href',
+      '/about/programs/sogang-economics-award',
+    );
+    expect(screen.getByRole('link', { name: '행사 일정 보기' })).toHaveAttribute('href', '/events');
+  });
+
+  it('introduces 서강경제대상 without pinning a changing ceremony date', () => {
+    render(<SogangEconomicsAwardPage />);
+    expect(screen.getByRole('heading', { level: 1, name: '서강경제대상' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '금빛 메달과 마룬 리본으로 표현한 서강경제대상 상징' })).toHaveAttribute('data-priority', 'true');
+    expect(screen.getByText('이강오 서강대 경제학부 교수')).toBeInTheDocument();
+    expect(screen.getByText('신명식 아빅스코리아 대표')).toBeInTheDocument();
+    expect(screen.getByText('곽노선 서강대 경제학부 교수')).toBeInTheDocument();
+    expect(screen.queryByText(/케이터틀컨벤션/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '행사 일정 보기' })).toHaveAttribute('href', '/events');
+  });
 });
 
 describe('SiteHeader navigation', () => {
@@ -118,6 +143,7 @@ describe('SiteHeader navigation', () => {
     expect(within(drawerNav).getByRole('link', { name: '조직도' })).toHaveAttribute('href', '/about/org');
     expect(within(drawerNav).getByRole('link', { name: '역대 원우회장' })).toHaveAttribute('href', '/about/class-presidents');
     expect(within(drawerNav).getByRole('link', { name: '역대 회장단' })).toHaveAttribute('href', '/about/history');
+    expect(within(drawerNav).getByRole('link', { name: '정규 행사' })).toHaveAttribute('href', '/about/programs');
     expect(within(drawerNav).getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq');
     expect(within(drawerNav).getByRole('link', { name: '개인정보 처리방침' })).toHaveAttribute('href', '/privacy');
     expect(within(drawerNav).getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');

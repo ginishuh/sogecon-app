@@ -22,6 +22,8 @@ describe('SEO metadata configuration', () => {
       expect.stringContaining('/about/greeting'),
       expect.stringContaining('/about/org'),
       expect.stringContaining('/about/history'),
+      expect.stringContaining('/about/programs'),
+      expect.stringContaining('/about/programs/sogang-economics-award'),
       expect.stringContaining('/faq'),
       expect.stringContaining('/privacy'),
       expect.stringContaining('/terms')
