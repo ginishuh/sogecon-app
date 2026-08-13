@@ -51,6 +51,23 @@ describe('LoginPage', () => {
     expect(screen.getByText('가입 신청 후 확인 중이라면 별도로 다시 신청하지 않아도 됩니다.')).toBeInTheDocument();
   });
 
+  it('학번은 s로 시작하는 값을 받고 숫자 키패드를 강제하지 않는다', async () => {
+    loginMock.mockResolvedValueOnce({ ok: 'ok' });
+    renderWithProviders(<LoginPage />);
+
+    const studentIdInput = screen.getByLabelText('학번') as HTMLInputElement;
+    expect(studentIdInput.inputMode).not.toBe('numeric');
+
+    fireEvent.change(studentIdInput, { target: { value: 's47053' } });
+    fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'pw' } });
+    fireEvent.click(screen.getByRole('button', { name: '로그인' }));
+
+    await waitFor(() => {
+      expect(loginMock).toHaveBeenCalledWith({ student_id: 's47053', password: 'pw' });
+    });
+    expect(studentIdInput.value).toBe('s47053');
+  });
+
   it('승인 대기 계정은 구체적인 안내 메시지를 표시한다', async () => {
     loginMock.mockRejectedValueOnce(
       new ApiError(403, 'member_pending_approval', 'member_pending_approval')

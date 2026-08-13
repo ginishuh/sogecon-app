@@ -77,7 +77,9 @@ function LoginForm() {
         id="login-student-id"
         label="학번"
         autoComplete="username"
-        inputMode="numeric"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
         aria-invalid={Boolean(loginError)}
         aria-describedby={loginError ? 'login-error' : undefined}
         value={studentId}
