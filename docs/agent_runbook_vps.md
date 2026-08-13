@@ -6,18 +6,43 @@
 
 ## 운영 토폴로지와 주 제어 흐름
 
-- API: Docker 컨테이너 `alumni-api`
+- SSH 호스트: `openclaw` 또는 `sogecon` (`ubuntu@168.107.27.33`), 레포 `/srv/sogecon-app`
+- DNS: `sogangeconomics.com` / `www.sogangeconomics.com` /
+  `api.sogangeconomics.com` → openclaw. 이 호스트가 운영이다.
+- API: Docker 컨테이너 `alumni-api` (`127.0.0.1:3001`)
+- Web: Docker 컨테이너 `alumni-web` (`127.0.0.1:3000`)
 - PostgreSQL: Docker 컨테이너 `sogecon-db`
-- Web: Docker가 아닌 systemd 서비스 `sogecon-web`; `/srv/www/sogecon/current`
-  standalone 릴리스에서 실행
-- `compose.yaml`은 로컬 dev/test 전용입니다. VPS 운영 컨테이너는
-  `docker run` 기반 운영 스크립트로 관리합니다.
+- nginx가 운영·프리뷰 vhost 모두 위 loopback 포트로 프록시한다.
+- `compose.yaml`은 로컬 dev/test 전용이다. 운영 컨테이너는
+  `scripts/deploy-vps.sh --local-build` → `ops/cloud-start.sh`로 관리한다.
 
-operator-confirmed current state는 migration 전까지 Web이 standalone
-systemd release이고 API/PostgreSQL이 Docker인 구성입니다. 대표가 결정한
-near-term target은 API/Web/PostgreSQL full Docker 구성입니다. 기존 D6
-`cloud-start.sh` full-container guard를 target entry point로 사용하며,
-standalone systemd release는 cutover 중 rollback fallback으로 보존합니다.
+Web 이미지의 공개 API 주소는 빌드타임 값이다. 운영 빌드 권위는 서버
+`.env.web`의 `NEXT_PUBLIC_WEB_API_BASE=https://api.sogangeconomics.com`이다.
+`--web-api-base`는 다른 호스트를 의도적으로 구울 때만 넘긴다. 프리뷰
+호스트(`sogecon-preview.ginishuh.kr`, `api-sogecon-preview.ginishuh.kr`)는
+같은 컨테이너를 가리킬 수 있으나 배포 빌드 기준이 아니다.
+
+standalone systemd(`sogecon-web`)는 full-Docker 이전 경로의 rollback
+fallback으로만 남긴다. 현재 운영 primary가 아니다.
+
+### 표준 재배포 (openclaw)
+
+`--web-api-base`를 넣지 않는다. `.env.web`이 운영 API 주소를 공급한다.
+
+```bash
+ssh openclaw   # 또는: ssh sogecon
+cd /srv/sogecon-app
+git fetch origin main
+git checkout --detach origin/main
+TAG=$(git rev-parse --short HEAD)
+bash scripts/deploy-vps.sh -t "$TAG" --local-build \
+  --network sogecon_net \
+  --uploads /var/lib/sogecon/uploads \
+  --api-health http://127.0.0.1:3001/healthz \
+  --web-health http://127.0.0.1:3000/
+curl -fsS https://api.sogangeconomics.com/healthz
+curl -fsS https://sogangeconomics.com/
+```
 
 ## 요구 사항
 - Docker 설치
