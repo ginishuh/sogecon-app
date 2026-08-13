@@ -34,7 +34,6 @@ export function usePushSync(authStatus: AuthStatus, source: SourceTag) {
           return;
         }
         if (outcome === 'retry_later') {
-          console.warn(`[push-vapid-migrate] stale migration deferred (${source})`);
           return;
         }
       }
@@ -47,9 +46,7 @@ export function usePushSync(authStatus: AuthStatus, source: SourceTag) {
       if (!result) return;
 
       // 서버 DB에서 구독이 유실된 경우를 대비해 로그인 시점에 자동 동기화
-      await saveSubscription({ ...result, ua: navigator.userAgent }).catch((e) => {
-        console.warn(`[push-resync] failed to sync subscription (${source})`, e);
-      });
+      await saveSubscription({ ...result, ua: navigator.userAgent }).catch(() => {});
     })().catch(() => {});
 
     return () => {

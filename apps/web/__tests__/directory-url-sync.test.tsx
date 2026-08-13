@@ -250,4 +250,19 @@ describe('DirectoryPage URL 동기화', () => {
     expect(listMembersMock).toHaveBeenNthCalledWith(2, expect.objectContaining({ offset: 10, sort: 'recent' }));
     expect(listMembersMock).toHaveBeenNthCalledWith(3, expect.objectContaining({ offset: 20, sort: 'recent' }));
   });
+
+  it('announces result count without making the whole results section live', async () => {
+    countMembersMock.mockResolvedValue(0);
+    listMembersMock.mockResolvedValue([]);
+    const { container } = renderDirectoryPage();
+
+    const heading = await screen.findByRole('heading', { name: '0명의 동문' });
+    expect(heading.parentElement).toHaveAttribute('role', 'status');
+    expect(heading.parentElement).toHaveAttribute('aria-live', 'polite');
+    expect(heading.parentElement).toHaveAttribute('aria-atomic', 'true');
+
+    const results = container.querySelector('[aria-labelledby="directory-results-title"]');
+    expect(results).not.toBeNull();
+    expect(results).not.toHaveAttribute('aria-live');
+  });
 });

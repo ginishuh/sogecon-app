@@ -1,9 +1,12 @@
 import { screen } from '@testing-library/react';
+import * as axe from 'axe-core';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import HomePage from '../app/page';
+import HomeHeroCarousel from '../components/home/hero-carousel';
 import { HomeActionsView } from '../components/home/quick-actions';
+import { listHeroSlides } from '../services/hero';
 import { renderWithProviders } from '../tests/render-with-providers';
 
 vi.mock('../services/hero', () => ({
@@ -28,6 +31,13 @@ vi.mock('../hooks/useAuth', () => ({
   }),
 }));
 
+const axeOptions: axe.RunOptions = {
+  rules: {
+    'document-title': { enabled: false },
+    'color-contrast': { enabled: false },
+  },
+};
+
 describe('HomePage hero and cards', () => {
   it('renders hero section with sr-only heading', () => {
     renderWithProviders(<HomePage />);
@@ -48,5 +58,41 @@ describe('HomePage hero and cards', () => {
     expect(screen.getByRole('link', { name: /동문 로그인/ })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /비밀번호 만들기/ })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /행사 일정 바로가기/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps inactive slide links out of the tab order and shares one prev/next control', async () => {
+    vi.mocked(listHeroSlides).mockResolvedValueOnce([
+      {
+        id: 1,
+        target_type: 'post',
+        target_id: 11,
+        title: '첫 배너',
+        description: '활성 슬라이드',
+        image: '/images/home/alumni-networking-hero.webp',
+        href: '/posts/11',
+        unpublished: false,
+      },
+      {
+        id: 2,
+        target_type: 'post',
+        target_id: 12,
+        title: '둘째 배너',
+        description: '숨김 슬라이드',
+        image: '/images/home/alumni-networking-hero.webp',
+        href: '/posts/12',
+        unpublished: false,
+      },
+    ]);
+
+    const { container } = renderWithProviders(<HomeHeroCarousel />);
+    expect(await screen.findByRole('link', { name: '첫 배너 자세히 보기' })).toHaveAttribute('href', '/posts/11');
+    expect(screen.queryByRole('link', { name: '둘째 배너 자세히 보기' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: '이전 배너' })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: '다음 배너' })).toHaveLength(1);
+
+    const carousel = container.querySelector('[aria-roledescription="carousel"]');
+    expect(carousel).not.toBeNull();
+    const result = await axe.run(carousel as HTMLElement, axeOptions);
+    expect(result.violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
   });
 });

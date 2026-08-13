@@ -10,6 +10,8 @@ from sqlalchemy import select
 from apps.api import models
 from apps.api.db import get_db
 from apps.api.main import app
+from apps.api.repositories import members as members_repo
+from apps.api.services import members_service
 
 
 def _create_member(
@@ -128,3 +130,8 @@ def test_members_sort_cohort_desc(admin_login: TestClient) -> None:
         "brad@example.com",
         "carol@example.com",
     ]
+
+
+def test_members_service_has_no_unused_email_lookup() -> None:
+    assert not hasattr(members_service, "get_member_by_email")
+    assert not hasattr(members_repo, "get_member_by_email")

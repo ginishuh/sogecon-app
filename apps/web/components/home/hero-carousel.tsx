@@ -197,6 +197,7 @@ export default function HomeHeroCarousel() {
             aria-roledescription="slide"
             aria-label={`${slideIndex + 1} / ${slides.length}`}
             aria-hidden={slideIndex !== index}
+            inert={slideIndex !== index ? true : undefined}
           >
             <div className="flex min-h-[310px] flex-col justify-center px-6 py-10 sm:px-10 lg:min-h-[440px] lg:px-14">
               <p className="mb-5 text-[0.7rem] font-semibold tracking-[0.16em] text-brand-700">
@@ -213,6 +214,7 @@ export default function HomeHeroCarousel() {
               </p>
               <Link
                 href={{ pathname: slide.href }}
+                tabIndex={slideIndex === index ? undefined : -1}
                 className="mt-7 inline-flex min-h-12 w-fit items-center gap-3 rounded-full bg-brand-700 px-6 py-3 text-sm font-semibold text-white no-underline transition hover:bg-brand-800 hover:text-white hover:no-underline focus-visible:text-white focus-visible:no-underline focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 aria-label={`${slide.title} 자세히 보기`}
               >
@@ -231,30 +233,31 @@ export default function HomeHeroCarousel() {
                 priority={slideIndex === 0}
                 quality={90}
               />
-              {slides.length > 1 ? (
-                <div className="absolute bottom-5 right-5 flex gap-2">
-                  <button
-                    type="button"
-                    aria-label="이전 배너"
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/90 text-brand-800 shadow-sm transition hover:bg-white focus-visible:ring-2 focus-visible:ring-white"
-                    onClick={prev}
-                  >
-                    <CaretLeft aria-hidden="true" size={21} weight="bold" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="다음 배너"
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition hover:bg-brand-800 focus-visible:ring-2 focus-visible:ring-white"
-                    onClick={next}
-                  >
-                    <CaretRight aria-hidden="true" size={21} weight="bold" />
-                  </button>
-                </div>
-              ) : null}
             </div>
           </article>
         ))}
       </div>
+
+      {slides.length > 1 ? (
+        <div className="absolute bottom-5 right-5 z-10 flex gap-2">
+          <button
+            type="button"
+            aria-label="이전 배너"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/90 text-brand-800 shadow-sm transition hover:bg-white focus-visible:ring-2 focus-visible:ring-white"
+            onClick={prev}
+          >
+            <CaretLeft aria-hidden="true" size={21} weight="bold" />
+          </button>
+          <button
+            type="button"
+            aria-label="다음 배너"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-700 text-white shadow-sm transition hover:bg-brand-800 focus-visible:ring-2 focus-visible:ring-white"
+            onClick={next}
+          >
+            <CaretRight aria-hidden="true" size={21} weight="bold" />
+          </button>
+        </div>
+      ) : null}
 
       {slides.length > 1 ? (
         <div className="absolute bottom-5 left-5 flex gap-2 lg:left-14" aria-label="배너 선택">

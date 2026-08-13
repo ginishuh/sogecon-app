@@ -11,6 +11,7 @@ import { HeroTargetToggle } from '../../../components/hero-target-toggle';
 import { RequirePermission } from '../../../components/require-permission';
 import { useToast } from '../../../components/toast';
 import { ButtonLink } from '../../../components/ui/button-link';
+import { Select } from '../../../components/ui/select';
 import { useAuth } from '../../../hooks/useAuth';
 import { useHeroTargetControls } from '../../../hooks/useHeroTargetControls';
 import { ApiError } from '../../../lib/api';
@@ -118,44 +119,56 @@ function FilterBar({
   };
 
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-3">
-      <select
-        className="rounded border border-neutral-border px-3 py-1.5 text-sm"
-        value={categoryFilter}
-        onChange={(e) => onCategoryChange(e.target.value)}
-      >
-        <option value="">전체 카테고리</option>
-        <option value="notice">공지</option>
-        <option value="news">소식</option>
-      </select>
-
-      <select
-        className="rounded border border-neutral-border px-3 py-1.5 text-sm"
-        value={statusFilter}
-        onChange={(e) => onStatusChange(e.target.value)}
-      >
-        <option value="">전체 상태</option>
-        <option value="published">공개</option>
-        <option value="scheduled">예약</option>
-        <option value="draft">비공개</option>
-      </select>
-
-      <div className="flex">
-        <input
-          type="text"
-          className="rounded-l border border-r-0 border-neutral-border px-3 py-1.5 text-sm"
-          placeholder="검색어"
-          value={searchInput}
-          onChange={(e) => onSearchInputChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <button
-          type="button"
-          className="rounded-r border border-neutral-border bg-surface-raised px-3 py-1.5 text-sm hover:bg-surface-raised"
-          onClick={onSearch}
+    <div className="mb-4 flex flex-wrap items-end gap-3">
+      <div className="min-w-[11rem]">
+        <Select
+          id="admin-posts-category"
+          label="카테고리"
+          value={categoryFilter}
+          onChange={(e) => onCategoryChange(e.target.value)}
         >
-          검색
-        </button>
+          <option value="">전체 카테고리</option>
+          <option value="notice">공지</option>
+          <option value="news">소식</option>
+        </Select>
+      </div>
+
+      <div className="min-w-[11rem]">
+        <Select
+          id="admin-posts-status"
+          label="상태"
+          value={statusFilter}
+          onChange={(e) => onStatusChange(e.target.value)}
+        >
+          <option value="">전체 상태</option>
+          <option value="published">공개</option>
+          <option value="scheduled">예약</option>
+          <option value="draft">비공개</option>
+        </Select>
+      </div>
+
+      <div className="flex min-w-[12rem] flex-col gap-1.5">
+        <label htmlFor="admin-posts-search" className="text-sm font-semibold text-text-primary">
+          검색어
+        </label>
+        <div className="flex">
+          <input
+            id="admin-posts-search"
+            type="text"
+            className="min-h-11 rounded-l border border-r-0 border-neutral-border px-3 py-1.5 text-sm"
+            placeholder="검색어"
+            value={searchInput}
+            onChange={(e) => onSearchInputChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <button
+            type="button"
+            className="rounded-r border border-neutral-border bg-surface-raised px-3 py-1.5 text-sm hover:bg-surface-raised"
+            onClick={onSearch}
+          >
+            검색
+          </button>
+        </div>
       </div>
 
       <button

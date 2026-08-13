@@ -104,6 +104,21 @@ export default [
     }
   },
 
+  // 운영 소스: 브라우저 console에 오류 객체·토큰을 남기지 않는다 (#268)
+  {
+    files: [
+      'app/**/*.{ts,tsx}',
+      'components/**/*.{ts,tsx}',
+      'hooks/**/*.{ts,tsx}',
+      'lib/**/*.{ts,tsx}',
+      'services/**/*.{ts,tsx}',
+      'proxy.ts',
+    ],
+    rules: {
+      'no-console': 'error',
+    },
+  },
+
   // Service Worker: 워커 환경 설정, 타입 정보 필요 규칙 비활성화
   {
     files: ['**/public/sw.js'],

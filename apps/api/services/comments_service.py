@@ -1,4 +1,6 @@
 """댓글 서비스 레이어"""
+from typing import cast
+
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,12 +36,7 @@ async def create_comment_by_student_id(
     레거시 세션(admin_users.id가 저장된 경우)에서도 올바른 author_id 사용.
     """
     member = await members_repo.get_member_by_student_id(db, student_id)
-    comment = Comment(
-        post_id=payload.post_id,
-        author_id=member.id,
-        content=payload.content,
-    )
-    return await comments_repo.create_comment(db, comment)
+    return await create_comment(db, payload, cast(int, member.id))
 
 
 async def delete_comment(
