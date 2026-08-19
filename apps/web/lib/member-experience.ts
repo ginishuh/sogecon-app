@@ -26,14 +26,17 @@ export const DIRECTORY_DISCLOSURE_ITEMS = [
 export function individualGrantNotice(name: string, cohort: number): {
   title: string;
   purpose: string;
-  items: string;
+  items: readonly string[];
   period: string;
+  refusal: string;
 } {
   return {
     title: `${name}(${cohort}기)에게 내 동문 수첩 상세정보를 제공합니다.`,
     purpose: '목적: 동문 간 연락',
-    items: '제공 항목: 연락처·소속 등 수첩 공개 항목',
+    items: DIRECTORY_DISCLOSURE_ITEMS,
     period: '기간: 허용 취소 또는 탈퇴 시까지',
+    refusal:
+      '동의를 거부할 수 있습니다. 거부해도 가입·로그인과 다른 서비스 이용에는 불이익이 없고, 이 요청자에게 수첩 상세정보만 공개되지 않습니다.',
   };
 }
 

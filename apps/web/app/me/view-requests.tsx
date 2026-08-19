@@ -25,12 +25,18 @@ function decisionErrorMessage(error: unknown): string {
 function IndividualGrantNotice({ name, cohort }: { name: string; cohort: number }) {
   const notice = individualGrantNotice(name, cohort);
   return (
-    <div className="space-y-1 text-sm leading-6 text-text-secondary">
+    <div className="space-y-2 text-sm leading-6 text-text-secondary">
       <p>{notice.title}</p>
       <ul className="list-disc pl-5">
         <li>{notice.purpose}</li>
-        <li>{notice.items}</li>
         <li>{notice.period}</li>
+        <li>{notice.refusal}</li>
+      </ul>
+      <p className="font-medium text-text-primary">제공 항목</p>
+      <ul className="list-disc pl-5">
+        {notice.items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
       </ul>
     </div>
   );

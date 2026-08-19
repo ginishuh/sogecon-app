@@ -55,6 +55,11 @@ describe('동문 수첩 보기 요청 수신함', () => {
 
     expect(await screen.findByText('홍길동(61기)에게 내 동문 수첩 상세정보를 제공합니다.')).toBeInTheDocument();
     expect(screen.getByText('목적: 동문 간 연락')).toBeInTheDocument();
+    expect(screen.getByText('이름, 기수, 전공')).toBeInTheDocument();
+    expect(screen.getByText('직장, 부서, 직책, 업종')).toBeInTheDocument();
+    expect(screen.getByText('휴대전화, 이메일')).toBeInTheDocument();
+    expect(screen.getByText('개인 주소, 직장 주소')).toBeInTheDocument();
+    expect(screen.getByText(/동의를 거부할 수 있습니다/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '허용' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '거절' })).toBeInTheDocument();
 

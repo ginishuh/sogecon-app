@@ -47,6 +47,39 @@ def _backdate_created_at(request_id: int) -> None:
     asyncio.run(_update())
 
 
+def _seed_pending_view_requests(target_id: int, count: int) -> None:
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found")
+
+    async def _insert() -> None:
+        async for db in override():
+            for index in range(count):
+                member = models.Member(
+                    student_id=f"pend{index:03d}",
+                    email=f"pend{index:03d}@example.com",
+                    name=f"대기{index:03d}",
+                    cohort=2,
+                    roles="member",
+                    status="active",
+                    visibility=models.Visibility.ALL,
+                )
+                db.add(member)
+                await db.flush()
+                db.add(
+                    DirectoryViewRequest(
+                        requester_id=member.id,
+                        target_id=target_id,
+                        status="pending",
+                    )
+                )
+            await db.commit()
+            return
+        raise RuntimeError("database session not available")
+
+    asyncio.run(_insert())
+
+
 def _request_and_accept(client: TestClient, target_id: int) -> int:
     _login_admin(client)
     created = client.post(f"/members/{target_id}/view-requests")
@@ -174,6 +207,29 @@ def test_revoke_requires_accepted_grant(
     response = client.post(f"/me/view-requests/{request_id}/revoke")
     assert response.status_code == HTTPStatus.CONFLICT
     assert response.json()["code"] == "view_request_not_accepted"
+
+
+def test_inbox_keeps_accepted_grant_when_pending_hits_limit(
+    admin_login: TestClient, member_login: TestClient
+) -> None:
+    client = member_login
+    target_id = _set_visibility("member001", models.Visibility.PRIVATE)
+    request_id = _request_and_accept(client, target_id)
+    _seed_pending_view_requests(target_id, 50)
+
+    _login_member(client)
+    inbox = client.get("/me/view-requests")
+    assert inbox.status_code == HTTPStatus.OK
+    rows = inbox.json()
+    accepted = [row for row in rows if row["id"] == request_id]
+    assert len(accepted) == 1
+    assert accepted[0]["status"] == "accepted"
+    assert sum(1 for row in rows if row["status"] == "pending") == 50
+    assert rows[-1]["id"] == request_id
+
+    revoked = client.post(f"/me/view-requests/{request_id}/revoke")
+    assert revoked.status_code == HTTPStatus.OK
+    assert revoked.json()["status"] == "revoked"
 
 
 def test_directory_view_request_self_rejected(member_login: TestClient) -> None:
