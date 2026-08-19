@@ -214,7 +214,11 @@ function DirectoryResults({
               </div>
               <div className="min-w-0 text-sm">
                 <p className="font-medium text-text-secondary">소속 · 직함</p>
-                <p className="mt-1 truncate text-text-muted">{workSummary || '소속 정보 비공개'}</p>
+                <p className="mt-1 truncate text-text-muted">
+                  {member.details_visible === false
+                    ? '상세 정보는 보기 요청 후 열려요.'
+                    : workSummary || '소속 정보 비공개'}
+                </p>
               </div>
               <p className="text-sm text-text-muted">{VISIBILITY_INFO[member.visibility].label}</p>
               <Button type="button" variant="secondary" size="md" onClick={() => onMemberClick(member)} aria-label={`${member.name} 상세 정보 보기`}>
@@ -288,7 +292,7 @@ function DirectoryPageInner() {
       <header className="space-y-2">
         <h1 className="text-[1.75rem] font-semibold tracking-[-0.035em] text-text-primary md:text-[2rem]">동문 수첩</h1>
         <p className="text-sm leading-6 text-text-muted sm:text-base">
-          이름과 소속으로 동문을 찾아보세요. 각 동문이 공개하기로 한 정보만 표시됩니다.
+          이름과 기수로 동문을 찾아보세요. 상세 연락처는 각 동문이 공개했거나 보기 요청을 허용한 경우에만 보여요.
         </p>
       </header>
 
@@ -357,6 +361,7 @@ function DirectoryPageInner() {
         member={selectedMember}
         open={selectedMember !== null}
         onClose={() => setSelectedMember(null)}
+        onMemberChange={setSelectedMember}
       />
     </div>
   );

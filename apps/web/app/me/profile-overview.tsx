@@ -7,7 +7,7 @@ import {
 } from '@phosphor-icons/react';
 import Image from 'next/image';
 import { resolveApiAssetUrl } from '../../lib/api';
-import { VISIBILITY_INFO } from '../../lib/member-experience';
+import { VISIBILITY_INFO, DIRECTORY_DISCLOSURE_ITEMS } from '../../lib/member-experience';
 import type { MemberDto } from '../../services/me';
 import type { ProfileErrors, ProfileForm, ProfileVisibility } from './validation';
 
@@ -70,6 +70,13 @@ export function VisibilityField({
         <ShieldCheck className="mt-0.5 shrink-0" size={20} aria-hidden="true" />
         <span>{VISIBILITY_INFO[value].description}</span>
       </p>
+      {value !== 'private' ? (
+        <ul className="list-disc space-y-1 pl-5 text-sm leading-5 text-text-muted">
+          {DIRECTORY_DISCLOSURE_ITEMS.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      ) : null}
       <p className="sr-only" role="status">현재 선택: {VISIBILITY_INFO[value].label}</p>
       {error ? <p id={errorId} role="alert" className="text-xs text-state-error">{error}</p> : null}
     </fieldset>

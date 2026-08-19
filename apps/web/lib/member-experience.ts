@@ -12,9 +12,16 @@ export const VISIBILITY_INFO: Record<Member['visibility'], { label: string; desc
   },
   private: {
     label: '나만 보기',
-    description: '내 정보 화면에서만 확인할 수 있고 동문 수첩에는 상세 정보가 표시되지 않아요.',
+    description: '동문 수첩에는 이름과 기수만 보이고, 연락처는 잠겨 있어요. 가입과 로그인은 그대로 이용할 수 있어요.',
   },
 };
+
+export const DIRECTORY_DISCLOSURE_ITEMS = [
+  '이름, 기수, 전공',
+  '직장, 부서, 직책, 업종',
+  '휴대전화, 이메일',
+  '개인 주소, 직장 주소',
+] as const;
 
 export type RsvpExperience = {
   label: string;
@@ -33,8 +40,15 @@ export function getRsvpExperience(status: RSVP['status'] | null | undefined): Rs
 }
 
 export function hasPublicDirectoryDetails(member: Member): boolean {
+  if (member.details_visible === false) {
+    return false;
+  }
   return Boolean(
     member.email || member.phone || member.company || member.department || member.job_title ||
       member.industry || member.addr_personal || member.addr_company,
   );
+}
+
+export function canRequestDirectoryView(member: Member): boolean {
+  return member.details_visible === false && member.view_request !== 'pending' && member.view_request !== 'accepted';
 }

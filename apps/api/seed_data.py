@@ -11,6 +11,7 @@ import asyncio
 import os
 import secrets
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy import select
@@ -73,6 +74,7 @@ async def create_admin_users(session: AsyncSession) -> None:
                 roles=str(user_data["roles"]),
                 status="active",
                 visibility=Visibility.ALL,
+                directory_consent_at=datetime.now(UTC),
             )
             session.add(member)
             await session.flush()

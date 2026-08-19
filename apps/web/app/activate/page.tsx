@@ -1,7 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import type { Route } from 'next';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { AuthHeading, AuthPage } from '../../components/auth-page';
 import { useToast } from '../../components/toast';
@@ -87,27 +88,6 @@ export default function ActivatePage() {
     <Suspense fallback={<div className="max-w-xl p-6 text-sm text-text-secondary">첫 로그인 설정 화면을 준비 중입니다…</div>}>
       <ActivateForm />
     </Suspense>
-  );
-}
-
-function CompletedPanel() {
-  return (
-    <AuthPage>
-      <SignupJourney currentStep={4} />
-      <AuthHeading
-        eyebrow="동문 인증 완료"
-        title="첫 로그인 완료"
-        description="비밀번호를 만들고 동문 전용 서비스에 로그인했습니다."
-      />
-      <section className="space-y-4 rounded-2xl border border-state-success-ring bg-state-success-subtle p-5 md:p-7">
-        <p role="status" className="font-medium text-state-success">첫 로그인 설정을 마치고 로그인했습니다.</p>
-        <p className="text-sm text-text-secondary">이제 동문 수첩과 게시판 등 동문 전용 메뉴를 이용할 수 있습니다.</p>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <ButtonLink href="/me" className="flex-1">내 정보 확인하기</ButtonLink>
-          <ButtonLink href="/" variant="secondary" className="flex-1">홈으로 이동</ButtonLink>
-        </div>
-      </section>
-    </AuthPage>
   );
 }
 
@@ -201,6 +181,7 @@ function ActivationSetup(props: ActivationSetupProps) {
 function ActivateForm() {
   const { status, invalidate } = useAuth();
   const toast = useToast();
+  const router = useRouter();
   const params = useSearchParams();
   const linkedToken = params.get('token') ?? '';
   const [token, setToken] = useState(linkedToken);
@@ -208,7 +189,6 @@ function ActivateForm() {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [manualEntry, setManualEntry] = useState(false);
-  const [completed, setCompleted] = useState(false);
   const codeInputRef = useRef<HTMLInputElement | null>(null);
   const hasLinkedToken = linkedToken.length > 0;
 
@@ -234,10 +214,9 @@ function ActivateForm() {
     try {
       await activate({ token, password });
       await invalidate();
-      const message = '첫 로그인 설정을 마치고 로그인했습니다.';
-      setCompleted(true);
-      setFeedback({ tone: 'success', message });
+      const message = '비밀번호를 만들었습니다. 동문 수첩 공개 여부를 선택해 주세요.';
       toast.show(message, { type: 'success' });
+      router.replace('/directory-consent' as Route);
     } catch (error: unknown) {
       const nextFeedback = activationErrorFeedback(error);
       setFeedback(nextFeedback);
@@ -246,7 +225,6 @@ function ActivateForm() {
     }
   };
 
-  if (completed) return <CompletedPanel />;
   return (
     <ActivationSetup
       busy={busy}

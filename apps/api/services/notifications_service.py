@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Protocol, cast
@@ -126,11 +126,31 @@ async def send_to_all(
     url: str | None = None,
 ) -> SendResult:
     subs = await repo.list_active_subscriptions(db)
+    payload = {"title": title, "body": body, **({"url": url} if url else {})}
+    return await _send_to_subscriptions(db, provider, subs, payload)
+
+
+async def send_to_member(
+    db: AsyncSession,
+    provider: PushProvider,
+    *,
+    member_id: int,
+    payload: dict[str, Any],
+) -> SendResult:
+    subs = await repo.list_active_subscriptions(db, member_id=member_id)
+    return await _send_to_subscriptions(db, provider, subs, payload)
+
+
+async def _send_to_subscriptions(
+    db: AsyncSession,
+    provider: PushProvider,
+    subs: Sequence[PushSubscription],
+    payload: dict[str, Any],
+) -> SendResult:
     accepted = 0
     failed = 0
     log_items: list[SendLogItem] = []
     expired_hashes: list[str] = []
-    payload = {"title": title, "body": body, **({"url": url} if url else {})}
     for sub in subs:
         try:
             endpoint_plain = decrypt_str(cast(str, sub.endpoint))

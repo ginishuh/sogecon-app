@@ -8,6 +8,7 @@ import { MEMBER_LANGUAGE } from '../lib/member-language';
 
 const PUBLIC_COPY_FILES = [
   'app/activate/page.tsx',
+  'app/directory-consent/page.tsx',
   'app/faq/page.tsx',
   'app/login/page.tsx',
   'app/me/change-request.tsx',

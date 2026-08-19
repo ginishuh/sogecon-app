@@ -163,7 +163,7 @@ async def approve_signup_request(
             major=row.major,
             roles="member",
             status="active",
-            visibility=models.Visibility.ALL,
+            visibility=models.Visibility.PRIVATE,
         )
         db.add(member)
     else:
@@ -177,6 +177,8 @@ async def approve_signup_request(
         setattr(member, "cohort", cast(int, row.cohort))
         setattr(member, "major", cast(str | None, row.major))
         setattr(member, "status", "active")
+        if cast(datetime | None, member.directory_consent_at) is None:
+            setattr(member, "visibility", models.Visibility.PRIVATE)
 
     setattr(row, "status", "approved")
     setattr(row, "decided_at", datetime.now(tz=UTC))

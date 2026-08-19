@@ -76,8 +76,9 @@ class Member(Base):
             values_callable=_enum_values,
         ),
         nullable=False,
-        default=Visibility.ALL,
+        default=Visibility.PRIVATE,
     )
+    directory_consent_at = Column(DateTime(timezone=True), nullable=True)
     # B v1 확장: 표시용 생일(양/음) + 연락처(간단 문자열)
     birth_date = Column(String(10), nullable=True)  # 'YYYY-MM-DD'
     birth_lunar = Column(Boolean, nullable=True)

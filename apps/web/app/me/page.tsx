@@ -10,6 +10,7 @@ import { ApiError } from '../../lib/api';
 import { memberApiErrorToMessage } from '../../lib/error-map';
 import { getMe, updateAvatar, updateMe, type MemberDto } from '../../services/me';
 import { ChangeRequestSection } from './change-request';
+import { ViewRequestInbox } from './view-requests';
 import { Avatar, ProfilePreview, VisibilityField } from './profile-overview';
 import {
   buildProfilePayload,
@@ -521,6 +522,7 @@ export default function MePage() {
           savedMessage={savedMessage}
         />
 
+        <ViewRequestInbox />
         <ChangeRequestSection profile={profile} />
       </div>
     );

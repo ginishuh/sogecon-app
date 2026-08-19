@@ -115,10 +115,14 @@ async def delete_subscription(
 
 async def list_active_subscriptions(
     db: AsyncSession,
+    *,
+    member_id: int | None = None,
 ) -> Sequence[models.PushSubscription]:
     stmt = select(models.PushSubscription).where(
         models.PushSubscription.revoked_at.is_(None)
     )
+    if member_id is not None:
+        stmt = stmt.where(models.PushSubscription.member_id == member_id)
     result = await db.execute(stmt)
     return result.scalars().all()
 

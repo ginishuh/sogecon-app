@@ -84,7 +84,11 @@ def _seed_members(n: int = 5) -> None:
                 ),
             ]
             for p in payloads:
-                db.add(models.Member(**p, roles="member"))
+                db.add(
+                    models.Member(
+                        **p, roles="member", visibility=models.Visibility.ALL
+                    )
+                )
             await db.commit()
             break
 

@@ -19,5 +19,6 @@ describe('동문 핵심 여정 사용자 언어', () => {
     const member = { email: '', phone: null, company: null, department: null, job_title: null, industry: null, addr_personal: null, addr_company: null } as Member;
     expect(hasPublicDirectoryDetails(member)).toBe(false);
     expect(hasPublicDirectoryDetails({ ...member, company: '서강기업' })).toBe(true);
+    expect(hasPublicDirectoryDetails({ ...member, details_visible: false, company: '서강기업' })).toBe(false);
   });
 });

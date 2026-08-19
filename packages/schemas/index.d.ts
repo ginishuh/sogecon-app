@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{member_id}/view-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Directory View Request */
+        post: operations["create_directory_view_request_members__member_id__view_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{member_id}": {
         parameters: {
             query?: never;
@@ -461,7 +478,7 @@ export interface paths {
         };
         /**
          * Session
-         * @description 통합 세션 조회 (kind, student_id, email, name, id, roles 반환).
+         * @description 통합 세션 조회. directory_consent_at를 포함한다.
          */
         get: operations["session_auth_session_get"];
         put?: never;
@@ -670,6 +687,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/directory-consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Directory Consent */
+        post: operations["submit_directory_consent_me_directory_consent_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/avatar": {
         parameters: {
             query?: never;
@@ -699,6 +733,57 @@ export interface paths {
         put?: never;
         /** Create Change Request */
         post: operations["create_change_request_me_change_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/view-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Incoming View Requests */
+        get: operations["list_incoming_view_requests_me_view_requests_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/view-requests/{request_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept View Request */
+        post: operations["accept_view_request_me_view_requests__request_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/view-requests/{request_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline View Request */
+        post: operations["decline_view_request_me_view_requests__request_id__decline_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1296,6 +1381,14 @@ export interface components {
             /** Activation Token */
             activation_token: string;
         };
+        /** DirectoryConsentWrite */
+        DirectoryConsentWrite: {
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "all" | "cohort" | "private";
+        };
         /**
          * DirectoryMemberRead
          * @description 동문 수첩용 최소 응답. 인증·역할·학번은 노출하지 않는다.
@@ -1312,6 +1405,13 @@ export interface components {
              * @enum {string}
              */
             visibility: "all" | "cohort" | "private";
+            /**
+             * Details Visible
+             * @default true
+             */
+            details_visible: boolean;
+            /** View Request */
+            view_request?: ("pending" | "accepted" | "declined") | null;
             /** Email */
             email?: string | null;
             /** Major */
@@ -1334,6 +1434,31 @@ export interface components {
             industry?: string | null;
             /** Avatar Url */
             readonly avatar_url: string | null;
+        };
+        /** DirectoryViewRequestRead */
+        DirectoryViewRequestRead: {
+            /** Id */
+            id: number;
+            /** Requester Id */
+            requester_id: number;
+            /** Requester Name */
+            requester_name: string;
+            /** Requester Cohort */
+            requester_cohort: number;
+            /** Target Id */
+            target_id: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "accepted" | "declined";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decided At */
+            decided_at?: string | null;
         };
         /**
          * EventAdminRead
@@ -1623,7 +1748,7 @@ export interface components {
             roles: string;
             /**
              * Visibility
-             * @default all
+             * @default private
              * @enum {string}
              */
             visibility: "all" | "cohort" | "private";
@@ -1655,6 +1780,8 @@ export interface components {
              * @enum {string}
              */
             status: "pending" | "active" | "suspended" | "rejected";
+            /** Directory Consent At */
+            directory_consent_at?: string | null;
             /** Avatar Url */
             readonly avatar_url: string | null;
         };
@@ -2375,6 +2502,36 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MemberCount"];
+                };
+            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
+        };
+    };
+    create_directory_view_request_members__member_id__view_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                member_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectoryViewRequestRead"];
                 };
             };
             400: components["responses"]["ProblemDetailsError"];
@@ -3673,6 +3830,38 @@ export interface operations {
             500: components["responses"]["ProblemDetailsError"];
         };
     };
+    submit_directory_consent_me_directory_consent_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DirectoryConsentWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberRead"];
+                };
+            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
+        };
+    };
     upload_avatar_me_avatar_post: {
         parameters: {
             query?: never;
@@ -3753,6 +3942,94 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProfileChangeRequestRead"];
+                };
+            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
+        };
+    };
+    list_incoming_view_requests_me_view_requests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectoryViewRequestRead"][];
+                };
+            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
+        };
+    };
+    accept_view_request_me_view_requests__request_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectoryViewRequestRead"];
+                };
+            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
+        };
+    };
+    decline_view_request_me_view_requests__request_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectoryViewRequestRead"];
                 };
             };
             400: components["responses"]["ProblemDetailsError"];

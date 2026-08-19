@@ -22,6 +22,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
+from . import models, models_directory_view
 from .config import get_settings
 from .db import dispose_engine
 from .error_messages import (
@@ -64,6 +65,8 @@ from .scheduler import shutdown_scheduler, start_scheduler
 
 settings = get_settings()
 init_sentry(settings)
+if models_directory_view.DirectoryViewRequest.metadata is not models.Base.metadata:
+    raise RuntimeError("DirectoryViewRequest must use the shared SQLAlchemy metadata")
 
 
 @asynccontextmanager

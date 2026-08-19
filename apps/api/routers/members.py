@@ -2,16 +2,23 @@ from __future__ import annotations
 
 from typing import Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
+from slowapi import Limiter
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status as http_status
 
 from .. import schemas
+from ..config import get_settings
 from ..db import get_db
-from ..services import members_service
+from ..directory_schemas import DirectoryViewRequestRead
+from ..ratelimit import consume_limit, get_client_ip_for_rate_limit
+from ..services import directory_view_request_service, members_service
+from ..services import notifications_service as notif_svc
 from .auth import CurrentMember, require_member
 
 router = APIRouter(prefix="/members", tags=["members"])
+limiter_view_request = Limiter(key_func=get_client_ip_for_rate_limit)
 
 
 class MemberListParams(BaseModel):
@@ -90,6 +97,41 @@ async def count_members(
         viewer_student_id=current_member.student_id,
     )
     return MemberCount(count=c)
+
+
+@router.post(
+    "/{member_id}/view-requests",
+    response_model=DirectoryViewRequestRead,
+    status_code=http_status.HTTP_201_CREATED,
+)
+async def create_directory_view_request(
+    member_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_member: CurrentMember = Depends(require_member),
+) -> DirectoryViewRequestRead:
+    settings = get_settings()
+    consume_limit(limiter_view_request, request, settings.rate_limit_view_request)
+    if current_member.id is not None:
+        requester = await members_service.get_member(db, current_member.id)
+    else:
+        requester = await members_service.get_member_by_student_id(
+            db, current_member.student_id
+        )
+    created = await directory_view_request_service.create_view_request(
+        db, requester=requester, target_id=member_id
+    )
+    await notif_svc.send_to_member(
+        db,
+        notif_svc.PyWebPushProvider(),
+        member_id=member_id,
+        payload={
+            "title": "동문 수첩 보기 요청",
+            "body": f"{requester.name}님이 회원님 정보를 보고 싶어 합니다.",
+            "url": "/me",
+        },
+    )
+    return created
 
 
 @router.get("/{member_id}", response_model=schemas.DirectoryMemberRead)

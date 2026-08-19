@@ -451,6 +451,62 @@
         }
       }
     },
+    "/members/{member_id}/view-requests": {
+      "post": {
+        "tags": [
+          "members"
+        ],
+        "summary": "Create Directory View Request",
+        "operationId": "create_directory_view_request_members__member_id__view_requests_post",
+        "parameters": [
+          {
+            "name": "member_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Member Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectoryViewRequestRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          }
+        }
+      }
+    },
     "/members/{member_id}": {
       "get": {
         "tags": [
@@ -2099,7 +2155,7 @@
           "auth"
         ],
         "summary": "Session",
-        "description": "\ud1b5\ud569 \uc138\uc158 \uc870\ud68c (kind, student_id, email, name, id, roles \ubc18\ud658).",
+        "description": "\ud1b5\ud569 \uc138\uc158 \uc870\ud68c. directory_consent_at\ub97c \ud3ec\ud568\ud55c\ub2e4.",
         "operationId": "session_auth_session_get",
         "responses": {
           "200": {
@@ -2901,6 +2957,61 @@
         }
       }
     },
+    "/me/directory-consent": {
+      "post": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Submit Directory Consent",
+        "operationId": "submit_directory_consent_me_directory_consent_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DirectoryConsentWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          }
+        }
+      }
+    },
     "/me/avatar": {
       "post": {
         "tags": [
@@ -3027,6 +3138,167 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProfileChangeRequestRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          }
+        }
+      }
+    },
+    "/me/view-requests": {
+      "get": {
+        "tags": [
+          "me"
+        ],
+        "summary": "List Incoming View Requests",
+        "operationId": "list_incoming_view_requests_me_view_requests_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DirectoryViewRequestRead"
+                  },
+                  "type": "array",
+                  "title": "Response List Incoming View Requests Me View Requests Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          }
+        }
+      }
+    },
+    "/me/view-requests/{request_id}/accept": {
+      "post": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Accept View Request",
+        "operationId": "accept_view_request_me_view_requests__request_id__accept_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectoryViewRequestRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          }
+        }
+      }
+    },
+    "/me/view-requests/{request_id}/decline": {
+      "post": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Decline View Request",
+        "operationId": "decline_view_request_me_view_requests__request_id__decline_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectoryViewRequestRead"
                 }
               }
             }
@@ -5683,6 +5955,24 @@
         "title": "DirectMemberCreateResponse",
         "description": "\uad00\ub9ac\uc790 \uc9c1\uc811 \ud68c\uc6d0 \uc0dd\uc131 \uc751\ub2f5."
       },
+      "DirectoryConsentWrite": {
+        "properties": {
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "all",
+              "cohort",
+              "private"
+            ],
+            "title": "Visibility"
+          }
+        },
+        "type": "object",
+        "required": [
+          "visibility"
+        ],
+        "title": "DirectoryConsentWrite"
+      },
       "DirectoryMemberRead": {
         "properties": {
           "id": {
@@ -5705,6 +5995,27 @@
               "private"
             ],
             "title": "Visibility"
+          },
+          "details_visible": {
+            "type": "boolean",
+            "title": "Details Visible",
+            "default": true
+          },
+          "view_request": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "accepted",
+                  "declined"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "View Request"
           },
           "email": {
             "anyOf": [
@@ -5840,6 +6151,67 @@
         ],
         "title": "DirectoryMemberRead",
         "description": "\ub3d9\ubb38 \uc218\ucca9\uc6a9 \ucd5c\uc18c \uc751\ub2f5. \uc778\uc99d\u00b7\uc5ed\ud560\u00b7\ud559\ubc88\uc740 \ub178\ucd9c\ud558\uc9c0 \uc54a\ub294\ub2e4."
+      },
+      "DirectoryViewRequestRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "requester_id": {
+            "type": "integer",
+            "title": "Requester Id"
+          },
+          "requester_name": {
+            "type": "string",
+            "title": "Requester Name"
+          },
+          "requester_cohort": {
+            "type": "integer",
+            "title": "Requester Cohort"
+          },
+          "target_id": {
+            "type": "integer",
+            "title": "Target Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "requester_id",
+          "requester_name",
+          "requester_cohort",
+          "target_id",
+          "status",
+          "created_at"
+        ],
+        "title": "DirectoryViewRequestRead"
       },
       "EventAdminRead": {
         "properties": {
@@ -6562,7 +6934,7 @@
               "private"
             ],
             "title": "Visibility",
-            "default": "all"
+            "default": "private"
           },
           "birth_date": {
             "anyOf": [
@@ -6688,6 +7060,18 @@
             ],
             "title": "Status",
             "default": "active"
+          },
+          "directory_consent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Directory Consent At"
           },
           "avatar_url": {
             "anyOf": [

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import os
 from collections.abc import AsyncGenerator, Callable, Generator
+from datetime import UTC, datetime
 from http import HTTPStatus
 from pathlib import Path
 from typing import cast
@@ -16,10 +17,11 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from starlette.types import ASGIApp
 
-from apps.api import models
+from apps.api import models, models_directory_view
 from apps.api.config import reset_settings_cache
 from apps.api.db import get_db
 from apps.api.main import app
+from apps.api.routers.members import limiter_view_request
 from apps.api.routers.notifications import limiter_notifications
 from apps.api.routers.profile import limiter_ip as limiter_avatar_ip
 from apps.api.routers.profile import limiter_member as limiter_avatar_member
@@ -49,6 +51,7 @@ def reset_rate_limiters() -> Generator[None, None, None]:
         getattr(app.state, "limiter", None),
         limiter_login,
         limiter_notifications,
+        limiter_view_request,
         limiter_support,
         limiter_upload_ip,
         limiter_upload_member,
@@ -110,6 +113,11 @@ def client(tmp_path: Path) -> Generator[TestClient, None, None]:
         bind=sync_engine, checkfirst=True
     )
     models.RSVP.__table__.c.status.type.create(bind=sync_engine, checkfirst=True)
+    if (
+        models_directory_view.DirectoryViewRequest.metadata
+        is not models.Base.metadata
+    ):
+        raise RuntimeError("directory view request model is not on Base.metadata")
     models.Base.metadata.create_all(bind=sync_engine)
 
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -150,6 +158,8 @@ async def _seed_admin(session: AsyncSession) -> None:
                 "admin_profile,admin_support"
             ),
             status="active",
+            visibility=models.Visibility.ALL,
+            directory_consent_at=datetime.now(UTC),
         )
         session.add(member)
         await session.flush()
@@ -190,6 +200,8 @@ async def _seed_member(session: AsyncSession) -> None:
             cohort=1,
             major=None,
             roles="member",
+            visibility=models.Visibility.ALL,
+            directory_consent_at=datetime.now(UTC),
         )
         session.add(m)
         await session.commit()

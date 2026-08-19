@@ -14,6 +14,7 @@ let authStatus: 'authorized' | 'error' = 'authorized';
 vi.mock('../hooks/useAuth', () => ({ useAuth: () => ({ status: authStatus, invalidate: retryAuthMock }) }));
 vi.mock('../components/toast', () => ({ useToast: () => toastValue }));
 vi.mock('../app/me/change-request', () => ({ ChangeRequestSection: () => <section>기본 정보 변경 요청</section> }));
+vi.mock('../app/me/view-requests', () => ({ ViewRequestInbox: () => <section>동문 수첩 보기 요청</section> }));
 vi.mock('../services/me', () => ({
   API_BASE: 'http://localhost:3001',
   getMe: (...args: unknown[]) => getMeMock(...args),

@@ -252,7 +252,7 @@ describe('Onboarding happy path (CDP E2E)', () => {
     });
     expect(clickedActivate).toBe(true);
 
-    await page.waitForFunction(() => document.body.textContent?.includes('첫 로그인 완료'));
-    expect(page.url()).toBe(`${WEB_BASE_URL}/activate`);
+    await page.waitForFunction(() => document.body.textContent?.includes('동문 수첩에 정보를 공개할까요?'));
+    expect(page.url()).toBe(`${WEB_BASE_URL}/directory-consent`);
   });
 });
