@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import cast
 
-from sqlalchemy import select
+from sqlalchemy import case, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
@@ -51,8 +51,12 @@ async def list_incoming_with_requester(
     stmt = (
         select(DirectoryViewRequest, requester)
         .join(requester, requester.id == DirectoryViewRequest.requester_id)
-        .where(DirectoryViewRequest.target_id == target_id)
+        .where(
+            DirectoryViewRequest.target_id == target_id,
+            DirectoryViewRequest.status.in_(("pending", "accepted")),
+        )
         .order_by(
+            case((DirectoryViewRequest.status == "pending", 0), else_=1),
             DirectoryViewRequest.created_at.desc(),
             DirectoryViewRequest.id.desc(),
         )

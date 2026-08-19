@@ -12,7 +12,7 @@ export const VISIBILITY_INFO: Record<Member['visibility'], { label: string; desc
   },
   private: {
     label: '나만 보기',
-    description: '동문 수첩에는 이름과 기수만 보이고, 연락처는 잠겨 있어요. 가입과 로그인은 그대로 이용할 수 있어요.',
+    description: '불특정 동문에게는 이름과 기수만 보여요. 보기 요청을 허용한 동문에게만 상세가 열리고, 허용은 같은 화면에서 언제든 취소할 수 있어요.',
   },
 };
 
@@ -22,6 +22,20 @@ export const DIRECTORY_DISCLOSURE_ITEMS = [
   '휴대전화, 이메일',
   '개인 주소, 직장 주소',
 ] as const;
+
+export function individualGrantNotice(name: string, cohort: number): {
+  title: string;
+  purpose: string;
+  items: string;
+  period: string;
+} {
+  return {
+    title: `${name}(${cohort}기)에게 내 동문 수첩 상세정보를 제공합니다.`,
+    purpose: '목적: 동문 간 연락',
+    items: '제공 항목: 연락처·소속 등 수첩 공개 항목',
+    period: '기간: 허용 취소 또는 탈퇴 시까지',
+  };
+}
 
 export type RsvpExperience = {
   label: string;

@@ -54,6 +54,12 @@ export async function declineViewRequest(requestId: number): Promise<DirectoryVi
   });
 }
 
+export async function revokeViewRequest(requestId: number): Promise<DirectoryViewRequestRead> {
+  return apiFetch<DirectoryViewRequestRead>(`/me/view-requests/${requestId}/revoke`, {
+    method: 'POST',
+  });
+}
+
 export async function submitDirectoryConsent(visibility: MemberDto['visibility']): Promise<MemberDto> {
   return apiFetch<MemberDto>('/me/directory-consent', {
     method: 'POST',

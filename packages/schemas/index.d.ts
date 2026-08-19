@@ -790,6 +790,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/view-requests/{request_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke View Request */
+        post: operations["revoke_view_request_me_view_requests__request_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rum/vitals": {
         parameters: {
             query?: never;
@@ -1411,7 +1428,7 @@ export interface components {
              */
             details_visible: boolean;
             /** View Request */
-            view_request?: ("pending" | "accepted" | "declined") | null;
+            view_request?: ("pending" | "accepted" | "declined" | "revoked") | null;
             /** Email */
             email?: string | null;
             /** Major */
@@ -1451,7 +1468,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "pending" | "accepted" | "declined";
+            status: "pending" | "accepted" | "declined" | "revoked";
             /**
              * Created At
              * Format: date-time
@@ -4015,6 +4032,36 @@ export interface operations {
         };
     };
     decline_view_request_me_view_requests__request_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectoryViewRequestRead"];
+                };
+            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
+        };
+    };
+    revoke_view_request_me_view_requests__request_id__revoke_post: {
         parameters: {
             query?: never;
             header?: never;

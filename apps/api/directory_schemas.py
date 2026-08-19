@@ -15,7 +15,7 @@ from pydantic import (
 
 from .media_utils import build_media_url
 
-ViewRequestStatusLiteral = Literal["pending", "accepted", "declined"]
+ViewRequestStatusLiteral = Literal["pending", "accepted", "declined", "revoked"]
 
 
 class DirectoryMemberRead(BaseModel):

@@ -1,4 +1,4 @@
-import { getRsvpExperience, hasPublicDirectoryDetails, VISIBILITY_INFO } from '../lib/member-experience';
+import { getRsvpExperience, hasPublicDirectoryDetails, VISIBILITY_INFO, canRequestDirectoryView, individualGrantNotice } from '../lib/member-experience';
 import type { Member } from '../services/members';
 
 describe('동문 핵심 여정 사용자 언어', () => {
@@ -20,5 +20,23 @@ describe('동문 핵심 여정 사용자 언어', () => {
     expect(hasPublicDirectoryDetails(member)).toBe(false);
     expect(hasPublicDirectoryDetails({ ...member, company: '서강기업' })).toBe(true);
     expect(hasPublicDirectoryDetails({ ...member, details_visible: false, company: '서강기업' })).toBe(false);
+  });
+
+  it('잠긴 상세는 대기·허용이 아니면 다시 요청할 수 있다', () => {
+    const locked = { details_visible: false } as Member;
+    expect(canRequestDirectoryView(locked)).toBe(true);
+    expect(canRequestDirectoryView({ ...locked, view_request: 'pending' })).toBe(false);
+    expect(canRequestDirectoryView({ ...locked, view_request: 'accepted' })).toBe(false);
+    expect(canRequestDirectoryView({ ...locked, view_request: 'declined' })).toBe(true);
+    expect(canRequestDirectoryView({ ...locked, view_request: 'revoked' })).toBe(true);
+  });
+
+  it('개별 허용 고지는 제공 대상·목적·항목·기간을 짧게 적는다', () => {
+    expect(individualGrantNotice('홍길동', 61)).toEqual({
+      title: '홍길동(61기)에게 내 동문 수첩 상세정보를 제공합니다.',
+      purpose: '목적: 동문 간 연락',
+      items: '제공 항목: 연락처·소속 등 수첩 공개 항목',
+      period: '기간: 허용 취소 또는 탈퇴 시까지',
+    });
   });
 });

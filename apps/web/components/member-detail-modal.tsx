@@ -157,10 +157,14 @@ function RequestViewSection({
 
   if (!canRequestDirectoryView(member)) return null;
 
+  const requestHint = member.view_request === 'revoked'
+    ? '이전에 허용이 취소됐어요. 다시 요청하면 상대에게 알림이 갑니다.'
+    : '이 동문은 상세 정보를 공개하지 않았어요. 보기 요청을 보내면 상대에게 알림이 갑니다.';
+
   return (
     <div className="space-y-3 rounded-xl bg-surface-raised p-4">
       <p className="text-sm leading-6 text-text-secondary">
-        이 동문은 상세 정보를 공개하지 않았어요. 보기 요청을 보내면 상대에게 알림이 갑니다.
+        {requestHint}
       </p>
       <Button type="button" onClick={() => void onRequest()} disabled={busy} aria-busy={busy}>
         {busy ? '요청 보내는 중…' : '정보 보기 요청하기'}

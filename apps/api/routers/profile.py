@@ -168,3 +168,20 @@ async def decline_view_request(
     return await directory_view_request_service.decide_view_request(
         db, target=member, request_id=request_id, decision="declined"
     )
+
+
+@router.post(
+    "/view-requests/{request_id}/revoke",
+    response_model=DirectoryViewRequestRead,
+)
+async def revoke_view_request(
+    request_id: int,
+    db: AsyncSession = Depends(get_db),
+    m: CurrentMember = Depends(require_member),
+) -> DirectoryViewRequestRead:
+    member = await members_service.get_session_member(
+        db, member_id=m.id, student_id=m.student_id
+    )
+    return await directory_view_request_service.revoke_view_request(
+        db, target=member, request_id=request_id
+    )

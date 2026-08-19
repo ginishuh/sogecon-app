@@ -50,7 +50,7 @@ function DirectoryConsentForm() {
       await submitDirectoryConsent(visibility);
       await invalidate();
       const message = visibility === 'private'
-        ? '동문 수첩 상세는 잠근 채로 시작합니다. 나중에 공개하려면 안내에 다시 동의하면 됩니다.'
+        ? '동문 수첩 상세는 잠근 채로 시작합니다. 보기 요청을 허용한 동문에게만 열리고, 나중에 공개 범위를 넓히려면 안내에 다시 동의하면 됩니다.'
         : '동문 수첩 공개 설정을 저장했습니다.';
       toast.show(message, { type: 'success' });
       router.replace('/' as Route);

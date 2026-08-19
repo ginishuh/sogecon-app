@@ -21,7 +21,7 @@ class DirectoryViewRequest(Base):
     __tablename__ = "directory_view_requests"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('pending', 'accepted', 'declined')",
+            "status IN ('pending', 'accepted', 'declined', 'revoked')",
             name="ck_directory_view_requests_status",
         ),
         CheckConstraint(

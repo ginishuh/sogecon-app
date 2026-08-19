@@ -3330,6 +3330,62 @@
         }
       }
     },
+    "/me/view-requests/{request_id}/revoke": {
+      "post": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Revoke View Request",
+        "operationId": "revoke_view_request_me_view_requests__request_id__revoke_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectoryViewRequestRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          }
+        }
+      }
+    },
     "/rum/vitals": {
       "post": {
         "tags": [
@@ -6008,7 +6064,8 @@
                 "enum": [
                   "pending",
                   "accepted",
-                  "declined"
+                  "declined",
+                  "revoked"
                 ]
               },
               {
@@ -6179,7 +6236,8 @@
             "enum": [
               "pending",
               "accepted",
-              "declined"
+              "declined",
+              "revoked"
             ],
             "title": "Status"
           },

@@ -227,8 +227,8 @@ def _to_directory_member(
         if isinstance(visibility, models.Visibility)
         else str(visibility)
     )
-    request_value: Literal["pending", "accepted", "declined"] | None
-    if status in ("pending", "accepted", "declined"):
+    request_value: Literal["pending", "accepted", "declined", "revoked"] | None
+    if status in ("pending", "accepted", "declined", "revoked"):
         request_value = status
     else:
         request_value = None

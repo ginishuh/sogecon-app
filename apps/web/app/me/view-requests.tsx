@@ -5,18 +5,77 @@ import { EnvelopeSimple } from '@phosphor-icons/react';
 import { useToast } from '../../components/toast';
 import { ApiError } from '../../lib/api';
 import { memberApiErrorToMessage } from '../../lib/error-map';
+import { individualGrantNotice } from '../../lib/member-experience';
 import Button from '../../components/ui/button';
 import {
   acceptViewRequest,
   declineViewRequest,
   listIncomingViewRequests,
+  revokeViewRequest,
   type DirectoryViewRequestRead,
 } from '../../services/me';
 
-function statusLabel(status: DirectoryViewRequestRead['status']): string {
-  if (status === 'pending') return '대기';
-  if (status === 'accepted') return '허용함';
-  return '거절함';
+function decisionErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    return memberApiErrorToMessage(error.code, error.message);
+  }
+  return '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+}
+
+function IndividualGrantNotice({ name, cohort }: { name: string; cohort: number }) {
+  const notice = individualGrantNotice(name, cohort);
+  return (
+    <div className="space-y-1 text-sm leading-6 text-text-secondary">
+      <p>{notice.title}</p>
+      <ul className="list-disc pl-5">
+        <li>{notice.purpose}</li>
+        <li>{notice.items}</li>
+        <li>{notice.period}</li>
+      </ul>
+    </div>
+  );
+}
+
+function ViewRequestItem({
+  item,
+  busy,
+  onAccept,
+  onDecline,
+  onRevoke,
+}: {
+  item: DirectoryViewRequestRead;
+  busy: boolean;
+  onAccept: (id: number) => void;
+  onDecline: (id: number) => void;
+  onRevoke: (id: number) => void;
+}) {
+  return (
+    <li className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="space-y-2">
+        <p className="font-medium text-text-primary">
+          {item.requester_name} · {item.requester_cohort}기
+          {item.status === 'accepted' ? ' · 허용 중' : null}
+        </p>
+        {item.status === 'pending' ? (
+          <IndividualGrantNotice name={item.requester_name} cohort={item.requester_cohort} />
+        ) : null}
+      </div>
+      {item.status === 'pending' ? (
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" onClick={() => onAccept(item.id)} disabled={busy}>
+            허용
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => onDecline(item.id)} disabled={busy}>
+            거절
+          </Button>
+        </div>
+      ) : (
+        <Button type="button" variant="secondary" onClick={() => onRevoke(item.id)} disabled={busy}>
+          허용 취소
+        </Button>
+      )}
+    </li>
+  );
 }
 
 export function ViewRequestInbox() {
@@ -29,6 +88,7 @@ export function ViewRequestInbox() {
 
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ['me', 'view-requests'] });
+    void queryClient.invalidateQueries({ queryKey: ['members'] });
   };
 
   const accept = useMutation({
@@ -38,12 +98,7 @@ export function ViewRequestInbox() {
       invalidate();
     },
     onError: (error: unknown) => {
-      toast.show(
-        error instanceof ApiError
-          ? memberApiErrorToMessage(error.code, error.message)
-          : '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-        { type: 'error' },
-      );
+      toast.show(decisionErrorMessage(error), { type: 'error' });
     },
   });
 
@@ -54,17 +109,24 @@ export function ViewRequestInbox() {
       invalidate();
     },
     onError: (error: unknown) => {
-      toast.show(
-        error instanceof ApiError
-          ? memberApiErrorToMessage(error.code, error.message)
-          : '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-        { type: 'error' },
-      );
+      toast.show(decisionErrorMessage(error), { type: 'error' });
+    },
+  });
+
+  const revoke = useMutation({
+    mutationFn: revokeViewRequest,
+    onSuccess: () => {
+      toast.show('해당 동문에게 공개를 취소했어요.', { type: 'success' });
+      invalidate();
+    },
+    onError: (error: unknown) => {
+      toast.show(decisionErrorMessage(error), { type: 'error' });
     },
   });
 
   const items = query.data ?? [];
   const pending = items.filter((item) => item.status === 'pending');
+  const busy = accept.isPending || decline.isPending || revoke.isPending;
 
   return (
     <section aria-labelledby="view-request-inbox-title" className="space-y-3 border-t border-neutral-border pt-6 sm:pt-8">
@@ -75,7 +137,8 @@ export function ViewRequestInbox() {
         </h2>
       </div>
       <p className="text-sm leading-6 text-text-muted">
-        다른 동문이 회원님의 연락처나 소속을 보고 싶어 하면 여기에 표시됩니다. 허용하면 그 동문에게만 공개됩니다.
+        다른 동문이 회원님의 연락처나 소속을 보고 싶어 하면 여기에 표시됩니다.
+        허용하면 그 동문에게만 공개되고, 허용 취소로 언제든 철회할 수 있습니다.
       </p>
       {query.isPending ? (
         <p className="text-sm text-text-muted">불러오는 중…</p>
@@ -89,33 +152,14 @@ export function ViewRequestInbox() {
       ) : (
         <ul className="divide-y divide-neutral-border rounded-xl border border-neutral-border">
           {items.map((item) => (
-            <li key={item.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="font-medium text-text-primary">
-                  {item.requester_name} · {item.requester_cohort}기
-                </p>
-                <p className="mt-1 text-sm text-text-muted">{statusLabel(item.status)}</p>
-              </div>
-              {item.status === 'pending' ? (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => accept.mutate(item.id)}
-                    disabled={accept.isPending || decline.isPending}
-                  >
-                    허용하기
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => decline.mutate(item.id)}
-                    disabled={accept.isPending || decline.isPending}
-                  >
-                    거절하기
-                  </Button>
-                </div>
-              ) : null}
-            </li>
+            <ViewRequestItem
+              key={item.id}
+              item={item}
+              busy={busy}
+              onAccept={(id) => accept.mutate(id)}
+              onDecline={(id) => decline.mutate(id)}
+              onRevoke={(id) => revoke.mutate(id)}
+            />
           ))}
         </ul>
       )}

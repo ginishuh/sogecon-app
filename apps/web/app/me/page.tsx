@@ -39,7 +39,9 @@ const toFormState = (member: MemberDto): ProfileForm => ({
   industry: asDisplayString(member.industry),
 });
 
-const isOpenVisibility = (visibility: ProfileForm['visibility']): boolean => (
+const isOpenVisibility = (
+  visibility: unknown,
+): visibility is Exclude<ProfileForm['visibility'], 'private'> => (
   visibility === 'all' || visibility === 'cohort'
 );
 

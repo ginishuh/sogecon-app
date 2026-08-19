@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models
-from ..directory_schemas import DirectoryViewRequestRead
+from ..directory_schemas import DirectoryViewRequestRead, ViewRequestStatusLiteral
 from ..errors import ConflictError, ForbiddenError, NotFoundError
 from ..models_directory_view import DirectoryViewRequest
 from ..repositories import directory_view_requests as view_repo
@@ -22,8 +22,8 @@ def _to_read(
     row: DirectoryViewRequest, requester: models.Member
 ) -> DirectoryViewRequestRead:
     status = cast(str, row.status)
-    status_value: Literal["pending", "accepted", "declined"]
-    if status in ("pending", "accepted", "declined"):
+    status_value: ViewRequestStatusLiteral
+    if status in ("pending", "accepted", "declined", "revoked"):
         status_value = status
     else:
         status_value = "pending"
@@ -77,8 +77,14 @@ async def create_view_request(
                 code="view_request_not_needed",
                 detail="이미 공개된 정보입니다.",
             )
+        if current not in ("declined", "revoked"):
+            raise ConflictError(
+                code="view_request_already_pending",
+                detail="이미 보기 요청을 보냈습니다.",
+            )
         setattr(existing, "status", "pending")
         setattr(existing, "decided_at", None)
+        setattr(existing, "created_at", datetime.now(tz=UTC))
         saved = await view_repo.save(db, existing)
         return _to_read(saved, requester)
 
@@ -124,6 +130,30 @@ async def decide_view_request(
             detail="대기 중인 요청만 처리할 수 있습니다.",
         )
     setattr(row, "status", decision)
+    setattr(row, "decided_at", datetime.now(tz=UTC))
+    saved = await view_repo.save(db, row)
+    requester = await members_repo.get_member(db, int(cast(int, saved.requester_id)))
+    return _to_read(saved, requester)
+
+
+async def revoke_view_request(
+    db: AsyncSession,
+    *,
+    target: models.Member,
+    request_id: int,
+) -> DirectoryViewRequestRead:
+    row = await view_repo.get_by_id(db, request_id)
+    if row is None or int(cast(int, row.target_id)) != int(cast(int, target.id)):
+        raise NotFoundError(
+            code="view_request_not_found",
+            detail="보기 요청을 찾을 수 없습니다.",
+        )
+    if cast(str, row.status) != "accepted":
+        raise ConflictError(
+            code="view_request_not_accepted",
+            detail="허용 중인 요청만 철회할 수 있습니다.",
+        )
+    setattr(row, "status", "revoked")
     setattr(row, "decided_at", datetime.now(tz=UTC))
     saved = await view_repo.save(db, row)
     requester = await members_repo.get_member(db, int(cast(int, saved.requester_id)))
