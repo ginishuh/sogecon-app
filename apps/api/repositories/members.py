@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Any, cast
 
-from sqlalchemy import and_, exists, func, literal, or_, select
+from sqlalchemy import and_, exists, func, literal, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.elements import ColumnElement
@@ -335,6 +335,28 @@ async def update_member_roles(
     return member
 
 
+async def _lock_directory_if_withdrawing(
+    db: AsyncSession,
+    member: models.Member,
+    *,
+    previous: models.Visibility,
+    next_visibility: models.Visibility,
+) -> None:
+    if next_visibility is not models.Visibility.PRIVATE:
+        return
+    setattr(member, "directory_consent_at", None)
+    if previous is models.Visibility.PRIVATE:
+        return
+    await db.execute(
+        update(DirectoryViewRequest)
+        .where(
+            DirectoryViewRequest.target_id == member.id,
+            DirectoryViewRequest.status.in_(("pending", "accepted")),
+        )
+        .values(status="declined", decided_at=func.now())
+    )
+
+
 async def update_member_profile_admin(
     db: AsyncSession, *, member_id: int, data: schemas.AdminMemberUpdate
 ) -> models.Member:
@@ -349,8 +371,14 @@ async def update_member_profile_admin(
         updates["birth_lunar"] = bool(updates["birth_lunar"])
 
     if updates:
+        previous = cast(models.Visibility, member.visibility)
         for k, v in updates.items():
             setattr(member, k, v)
+        next_visibility = updates.get("visibility")
+        if isinstance(next_visibility, models.Visibility):
+            await _lock_directory_if_withdrawing(
+                db, member, previous=previous, next_visibility=next_visibility
+            )
         await db.commit()
         await db.refresh(member)
     return member
@@ -370,8 +398,14 @@ async def update_member_profile(
         updates["birth_lunar"] = bool(updates["birth_lunar"])  # explicit cast
 
     if updates:
+        previous = cast(models.Visibility, member.visibility)
         for k, v in updates.items():
             setattr(member, k, v)
+        next_visibility = updates.get("visibility")
+        if isinstance(next_visibility, models.Visibility):
+            await _lock_directory_if_withdrawing(
+                db, member, previous=previous, next_visibility=next_visibility
+            )
         await db.commit()
         await db.refresh(member)
     return member
@@ -382,11 +416,17 @@ async def save_directory_consent(
     *,
     member_id: int,
     visibility: models.Visibility,
-    consented_at: datetime,
+    consented_at: datetime | None,
+    choice_at: datetime,
 ) -> models.Member:
     member = await get_member(db, member_id)
+    previous = cast(models.Visibility, member.visibility)
     setattr(member, "visibility", visibility)
+    setattr(member, "directory_choice_at", choice_at)
     setattr(member, "directory_consent_at", consented_at)
+    await _lock_directory_if_withdrawing(
+        db, member, previous=previous, next_visibility=visibility
+    )
     await db.commit()
     await db.refresh(member)
     return member

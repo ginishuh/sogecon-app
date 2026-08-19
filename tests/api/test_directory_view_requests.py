@@ -62,6 +62,29 @@ def test_directory_view_request_grants_details(
     assert opened_body["email"] == "member@example.com"
     assert opened_body["view_request"] == "accepted"
 
+    as_target = client.post(
+        "/auth/member/login",
+        json={"student_id": "member001", "password": "memberpass"},
+    )
+    assert as_target.status_code == HTTPStatus.OK
+    opened_scope = client.put("/me/", json={"visibility": "all"})
+    assert opened_scope.status_code == HTTPStatus.OK
+    locked_again = client.put("/me/", json={"visibility": "private"})
+    assert locked_again.status_code == HTTPStatus.OK
+    assert locked_again.json()["visibility"] == "private"
+    assert locked_again.json()["directory_consent_at"] is None
+
+    again_admin = client.post(
+        "/auth/login",
+        json={"student_id": "__seed__admin", "password": "__seed__"},
+    )
+    assert again_admin.status_code == HTTPStatus.OK
+    relocked = client.get(f"/members/{target_id}")
+    assert relocked.status_code == HTTPStatus.OK
+    assert relocked.json()["details_visible"] is False
+    assert relocked.json()["email"] is None
+    assert relocked.json()["view_request"] == "declined"
+
 
 def test_directory_view_request_self_rejected(member_login: TestClient) -> None:
     me = member_login.get("/me/")

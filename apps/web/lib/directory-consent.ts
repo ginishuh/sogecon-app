@@ -11,7 +11,7 @@ const EXEMPT_PATHS = new Set([
 
 export function needsDirectoryConsent(session: Session | null | undefined): boolean {
   if (!session || session.kind !== 'member') return false;
-  return session.directory_consent_at === null;
+  return session.directory_choice_at === null;
 }
 
 export function isDirectoryConsentExemptPath(pathname: string): boolean {

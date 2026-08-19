@@ -67,6 +67,7 @@ async def create_production_admins(session: AsyncSession) -> None:
                 status="active",
                 visibility=Visibility.ALL,
                 directory_consent_at=datetime.now(UTC),
+                directory_choice_at=datetime.now(UTC),
             )
             session.add(member)
             await session.flush()

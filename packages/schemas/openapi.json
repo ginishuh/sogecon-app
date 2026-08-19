@@ -2155,7 +2155,7 @@
           "auth"
         ],
         "summary": "Session",
-        "description": "\ud1b5\ud569 \uc138\uc158 \uc870\ud68c. directory_consent_at\ub97c \ud3ec\ud568\ud55c\ub2e4.",
+        "description": "\ud1b5\ud569 \uc138\uc158 \uc870\ud68c. directory_consent_at\u00b7directory_choice_at\ub97c \ud3ec\ud568\ud55c\ub2e4.",
         "operationId": "session_auth_session_get",
         "responses": {
           "200": {
@@ -7072,6 +7072,18 @@
               }
             ],
             "title": "Directory Consent At"
+          },
+          "directory_choice_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Directory Choice At"
           },
           "avatar_url": {
             "anyOf": [

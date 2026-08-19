@@ -448,6 +448,10 @@ async def get_session_info(
         consent_value = (
             consent_at.isoformat() if isinstance(consent_at, datetime) else None
         )
+        choice_at = member.directory_choice_at
+        choice_value = (
+            choice_at.isoformat() if isinstance(choice_at, datetime) else None
+        )
         return {
             "kind": kind,
             "student_id": u.student_id,
@@ -456,6 +460,7 @@ async def get_session_info(
             "id": member_id,
             "roles": u.roles,
             "directory_consent_at": consent_value,
+            "directory_choice_at": choice_value,
         }
 
     raise HTTPException(status_code=401, detail="unauthorized")

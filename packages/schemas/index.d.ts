@@ -478,7 +478,7 @@ export interface paths {
         };
         /**
          * Session
-         * @description 통합 세션 조회. directory_consent_at를 포함한다.
+         * @description 통합 세션 조회. directory_consent_at·directory_choice_at를 포함한다.
          */
         get: operations["session_auth_session_get"];
         put?: never;
@@ -1782,6 +1782,8 @@ export interface components {
             status: "pending" | "active" | "suspended" | "rejected";
             /** Directory Consent At */
             directory_consent_at?: string | null;
+            /** Directory Choice At */
+            directory_choice_at?: string | null;
             /** Avatar Url */
             readonly avatar_url: string | null;
         };

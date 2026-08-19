@@ -75,6 +75,7 @@ async def create_admin_users(session: AsyncSession) -> None:
                 status="active",
                 visibility=Visibility.ALL,
                 directory_consent_at=datetime.now(UTC),
+                directory_choice_at=datetime.now(UTC),
             )
             session.add(member)
             await session.flush()

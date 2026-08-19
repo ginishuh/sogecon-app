@@ -360,6 +360,9 @@ async def update_member_profile_admin(
                     detail="Phone already in use",
                 )
 
+    await _require_directory_consent_to_open(
+        db, member_id=member_id, visibility=sanitized_data.get("visibility")
+    )
     sanitized = data.model_copy(update=sanitized_data)
     try:
         return await members_repo.update_member_profile_admin(
@@ -379,7 +382,7 @@ async def _require_directory_consent_to_open(
     if cast(datetime | None, current.directory_consent_at) is None:
         raise ForbiddenError(
             code="directory_consent_required",
-            detail="동문 수첩 공개 여부를 먼저 선택해 주세요.",
+            detail="동문 수첩에 공개하려면 안내에 동의해 주세요.",
         )
 
 
@@ -465,7 +468,6 @@ async def create_member_direct(
     Returns:
         (생성된 Member, 활성화 토큰 문자열) 튜플
     """
-    # 학번 중복 검사
     stmt = select(models.Member).where(
         models.Member.student_id == payload.student_id
     )
@@ -476,7 +478,6 @@ async def create_member_direct(
             detail="Student ID already in use",
         )
 
-    # 이메일 중복 검사
     stmt = select(models.Member).where(models.Member.email == payload.email)
     result = await db.execute(stmt)
     if result.scalars().first() is not None:
@@ -485,7 +486,6 @@ async def create_member_direct(
             detail="Email already in use",
         )
 
-    # 역할 정규화
     normalized_roles = normalize_assignable_roles(payload.roles)
     serialized_roles = serialize_roles(normalized_roles)
 
@@ -589,9 +589,11 @@ async def update_member_roles(
 async def submit_directory_consent(
     db: AsyncSession, *, member_id: int, visibility: schemas.VisibilityLiteral
 ) -> models.Member:
+    now = datetime.now(UTC)
     return await members_repo.save_directory_consent(
         db,
         member_id=member_id,
         visibility=models.Visibility(visibility),
-        consented_at=datetime.now(UTC),
+        consented_at=None if visibility == "private" else now,
+        choice_at=now,
     )

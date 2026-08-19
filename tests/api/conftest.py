@@ -160,6 +160,7 @@ async def _seed_admin(session: AsyncSession) -> None:
             status="active",
             visibility=models.Visibility.ALL,
             directory_consent_at=datetime.now(UTC),
+            directory_choice_at=datetime.now(UTC),
         )
         session.add(member)
         await session.flush()
@@ -202,6 +203,7 @@ async def _seed_member(session: AsyncSession) -> None:
             roles="member",
             visibility=models.Visibility.ALL,
             directory_consent_at=datetime.now(UTC),
+            directory_choice_at=datetime.now(UTC),
         )
         session.add(m)
         await session.commit()

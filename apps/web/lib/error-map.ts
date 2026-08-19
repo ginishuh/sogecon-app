@@ -51,7 +51,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   view_request_already_pending: '이미 보기 요청을 보냈습니다.',
   view_request_not_found: '보기 요청을 찾을 수 없습니다.',
   view_request_not_pending: '대기 중인 요청만 처리할 수 있습니다.',
-  directory_consent_required: '동문 수첩 공개 여부를 먼저 선택해 주세요.',
+  directory_consent_required: '동문 수첩에 공개하려면 안내에 동의해 주세요.',
 };
 
 const INTERNAL_MESSAGE_PATTERN = /(?:\[object Object\]|토큰|\b(?:VAPID|token|role|RBAC|super_admin|error)\b|HTTP\s+\d{3}|^[a-z][a-z0-9_]+$)/i;

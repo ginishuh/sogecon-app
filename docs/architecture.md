@@ -19,7 +19,7 @@
 ## 도메인 모델
 | 엔터티 | 주요 속성 | 설명 |
 | --- | --- | --- |
-| `Member` | `student_id`, `email`, `name`, `cohort`, `roles`, `visibility`, `directory_consent_at` | 회원 기본 정보와 동문 수첩 노출 범위. 신규 회원은 동의 전까지 `private`. `student_id`는 고유 식별자이자 인증용 ID. 역할 문자열(`member`, `admin` 등)로 권한 제어 예정. |
+| `Member` | `student_id`, `email`, `name`, `cohort`, `roles`, `visibility`, `directory_consent_at`, `directory_choice_at` | 회원 기본 정보와 동문 수첩 노출 범위. 신규 회원은 동의 전까지 `private`. `student_id`는 고유 식별자이자 인증용 ID. 역할 문자열(`member`, `admin` 등)로 권한 제어 예정. |
 | `MemberAuth` | `student_id`, `password_hash` | 회원 인증 정보. `student_id`를 외래 키로 Member와 연동하며, 비밀번호는 해시 저장. 이메일 기반 인증에서 학번 기반으로 전환 완료. |
 | `Post` | `author_id`, `title`, `content`, `published_at`, `category`, `view_count` | 공지/게시글. 공개 API는 board 카테고리(`discussion`/`question`/`share`/`congrats`)는 `published_at` 무관 공개, `notice`/`news` 등은 `published_at <= now`만 공개. 생성·수정 `category`는 위 6종만 허용하고 회원 생성은 board 4종으로 제한한다. board와 발행형 카테고리 사이의 변경은 공개 범위가 바뀌므로 거부한다. `view_count`는 서버 전용(생성 입력 불가)이며 관리자 목록의 게시글 상세는 `/admin/posts/{id}/preview`에서 조회해 집계하지 않는다. 공개 목록은 `q` 서버 검색을 지원한다. 운영의 host-only API 세션 쿠키를 유지하기 위해 관리자 draft와 관리자 상세는 브라우저 preview 경로에서 확인한다. 관리자 게시물 생성·수정·삭제는 `admin_posts` 권한(또는 `super_admin`)의 기존 `/posts/{id}` mutation을 사용한다. 일반 회원은 별도 `PATCH/DELETE /board/posts/{id}`에서 자기 board 글만 수정·삭제할 수 있고, payload는 제목·본문·커버 이미지·이미지로 제한한다. 이 경로에서는 `author_id`, `category`, `published_at`, `pinned`, `view_count`를 서버가 보존한다. owner mutation의 대상 공간은 board 4종뿐이므로 notice/news와 legacy non-board는 공개 여부와 무관하게 `404 post_not_found`로 숨기며, 공개 board라도 타인 글이면 `403 post_owner_required`를 반환한다. |
 | `Event` | `title`, `starts_at`, `ends_at`, `location`, `capacity` | 모임 일정. 시작 일시 인덱스로 일정 정렬 제공. |
@@ -95,8 +95,8 @@
 - 공개 범위 SQL은 세션의 `student_id`로 조회자의 최신 기수를 같은 쿼리 안에서 해석합니다. 기수를 세션에 캐시하지 않으므로 관리자 변경 뒤에도 재로그인 없이 즉시 반영되고, 별도 viewer 사전 조회 round-trip도 만들지 않습니다.
 - 세션은 남아 있지만 해당 회원 행이 삭제된 비정상 상태에서는 목록·건수는 빈 결과로 닫고 상세는 `member_not_found`를 반환합니다. 어떤 경로에서도 다른 회원 정보는 노출하지 않습니다.
 - `DirectoryMemberRead`는 학번, 역할, 계정 상태를 제외한 동문 수첩 전용 DTO입니다. `details_visible`과 `view_request`로 잠금/요청 상태를 표시합니다. 관리 화면은 권한이 적용된 `/admin/members` 계약을 사용합니다.
-- 열람 요청: `POST /members/{id}/view-requests`로 상세가 닫힌 동문에게 보기 요청을 보내고, 대상은 `GET /me/view-requests`에서 확인한 뒤 허용·거절합니다. 허용하면 그 요청자에게만 상세가 열립니다. 푸시 구독이 있으면 대상에게 알림을 보냅니다.
-- 신규 회원 `visibility` 기본값은 `private`입니다. 비밀번호 만들기와 분리된 `/directory-consent`에서 제17조 고지(제공받는 자·목적·항목·기간·거부권)를 본 뒤 `POST /me/directory-consent`로 동의·공개 범위를 저장합니다. 동의 전에는 `all`/`cohort`로 바꿀 수 없고, 거부해도 가입·로그인은 유지됩니다. 기존 회원은 `directory_consent_at`를 채워 동의 화면을 다시 강제하지 않습니다.
+- 열람 요청: `POST /members/{id}/view-requests`로 상세가 닫힌 동문에게 보기 요청을 보내고, 대상은 `GET /me/view-requests`에서 확인한 뒤 허용·거절합니다. 허용하면 그 요청자에게만 상세가 열립니다. 대상이 `private`(나만 보기)로 바꾸면 대기·허용 중인 요청은 거절되어 상세가 다시 잠깁니다. 푸시 구독이 있으면 대상에게 알림을 보냅니다.
+- 신규 회원 `visibility` 기본값은 `private`입니다. 비밀번호 만들기와 분리된 `/directory-consent`에서 제17조 고지(제공받는 자·목적·항목·기간·거부권)를 본 뒤 `POST /me/directory-consent`로 동의·공개 범위를 저장합니다. `private` 선택은 공개 동의(`directory_consent_at`)를 남기지 않고 선택 완료(`directory_choice_at`)만 기록합니다. `all`/`cohort`로 열려면 본인 동의 화면을 거쳐야 하며, 관리자 수정도 같은 요건을 따릅니다. 거부해도 가입·로그인은 유지됩니다. 기존 회원은 두 시각을 채워 동의 화면을 다시 강제하지 않습니다.
 - 조회자별 건수는 공개 범위 변경을 즉시 반영하기 위해 캐시하지 않습니다.
 - 동문 수첩 검색은 `MemberRepository`의 `ILIKE` 조건과 동일한 결과 계약을 유지한다. D5에서 실제 plan이 인덱스를 선택한 `student_id`·`company`만 GIN을 추가했고, `major`·`industry`는 현실적인 분포에서 순차 스캔이 선택되어 제외했다. 인덱스 전후 exact·partial·case-insensitive 대표 결과 digest는 동일하다.
 

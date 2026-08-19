@@ -85,8 +85,8 @@ class MemberRead(MemberBase):
     id: int
     status: MemberStatusLiteral = "active"
     directory_consent_at: datetime | None = None
+    directory_choice_at: datetime | None = None
     avatar_path: str | None = Field(default=None, exclude=True)
-
     model_config = ConfigDict(from_attributes=True)
 
     @field_validator("visibility", mode="before")

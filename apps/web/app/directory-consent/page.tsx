@@ -50,7 +50,7 @@ function DirectoryConsentForm() {
       await submitDirectoryConsent(visibility);
       await invalidate();
       const message = visibility === 'private'
-        ? '동문 수첩 상세는 잠근 채로 시작합니다. 나중에 내 정보에서 바꿀 수 있어요.'
+        ? '동문 수첩 상세는 잠근 채로 시작합니다. 나중에 공개하려면 안내에 다시 동의하면 됩니다.'
         : '동문 수첩 공개 설정을 저장했습니다.';
       toast.show(message, { type: 'success' });
       router.replace('/' as Route);
@@ -71,7 +71,7 @@ function DirectoryConsentForm() {
       <AuthHeading
         eyebrow="동문 수첩"
         title="동문 수첩에 정보를 공개할까요?"
-        description="비밀번호 만들기와 별도로, 다른 동문에게 연락처를 보여주기 전에 한 번 확인합니다. 거부해도 가입과 로그인은 그대로 이용할 수 있어요."
+        description="비밀번호 만들기와 별도로, 다른 동문에게 연락처를 보여주기 전에 확인합니다. 거부해도 가입과 로그인은 그대로 이용할 수 있고, 나중에 공개하려면 이 화면에서 다시 동의하면 됩니다."
       />
       <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-neutral-border bg-white p-5 md:p-7">
         <section className="space-y-3 text-sm leading-6 text-text-secondary">
