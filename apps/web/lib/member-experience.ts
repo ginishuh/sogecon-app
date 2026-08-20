@@ -12,9 +12,33 @@ export const VISIBILITY_INFO: Record<Member['visibility'], { label: string; desc
   },
   private: {
     label: '나만 보기',
-    description: '내 정보 화면에서만 확인할 수 있고 동문 수첩에는 상세 정보가 표시되지 않아요.',
+    description: '불특정 동문에게는 이름과 기수만 보여요. 보기 요청을 허용한 동문에게만 상세가 열리고, 허용은 같은 화면에서 언제든 취소할 수 있어요.',
   },
 };
+
+export const DIRECTORY_DISCLOSURE_ITEMS = [
+  '이름, 기수, 전공',
+  '직장, 부서, 직책, 업종',
+  '휴대전화, 이메일',
+  '개인 주소, 직장 주소',
+] as const;
+
+export function individualGrantNotice(name: string, cohort: number): {
+  title: string;
+  purpose: string;
+  items: readonly string[];
+  period: string;
+  refusal: string;
+} {
+  return {
+    title: `${name}(${cohort}기)에게 내 동문 수첩 상세정보를 제공합니다.`,
+    purpose: '목적: 동문 간 연락',
+    items: DIRECTORY_DISCLOSURE_ITEMS,
+    period: '기간: 허용 취소 또는 탈퇴 시까지',
+    refusal:
+      '동의를 거부할 수 있습니다. 거부해도 가입·로그인과 다른 서비스 이용에는 불이익이 없고, 이 요청자에게 수첩 상세정보만 공개되지 않습니다.',
+  };
+}
 
 export type RsvpExperience = {
   label: string;
@@ -33,8 +57,15 @@ export function getRsvpExperience(status: RSVP['status'] | null | undefined): Rs
 }
 
 export function hasPublicDirectoryDetails(member: Member): boolean {
+  if (member.details_visible === false) {
+    return false;
+  }
   return Boolean(
     member.email || member.phone || member.company || member.department || member.job_title ||
       member.industry || member.addr_personal || member.addr_company,
   );
+}
+
+export function canRequestDirectoryView(member: Member): boolean {
+  return member.details_visible === false && member.view_request !== 'pending' && member.view_request !== 'accepted';
 }

@@ -34,6 +34,13 @@ USER_FACING_DETAILS: dict[str, str] = {
     "method_not_allowed": "허용되지 않은 요청 방식입니다.",
     "internal_error": "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     "http_error": "요청을 처리하지 못했습니다.",
+    "view_request_self_not_allowed": "본인 정보는 요청 없이 확인할 수 있습니다.",
+    "view_request_not_needed": "이미 공개된 정보입니다.",
+    "view_request_already_pending": "이미 보기 요청을 보냈습니다.",
+    "view_request_not_found": "보기 요청을 찾을 수 없습니다.",
+    "view_request_not_pending": "대기 중인 요청만 처리할 수 있습니다.",
+    "view_request_not_accepted": "허용 중인 요청만 철회할 수 있습니다.",
+    "directory_consent_required": "동문 수첩에 공개하려면 안내에 동의해 주세요.",
 }
 
 _FRAMEWORK_DETAIL_CODES: dict[str, tuple[str, str]] = {

@@ -46,6 +46,7 @@ def _create_member(client: TestClient, payload: dict[str, object]) -> None:
             break
 
     asyncio.run(_set_major())
+    _set_visibility(student_id, models.Visibility.ALL)
 
 
 def _set_visibility(student_id: str, visibility: models.Visibility) -> int:
@@ -191,14 +192,16 @@ def test_directory_enforces_visibility_on_server(admin_login: TestClient) -> Non
     )
 
     hidden_detail = client.get(f"/members/{ids['other215']}")
-    assert hidden_detail.status_code == HTTPStatus.NOT_FOUND
-    assert hidden_detail.json()["code"] == "member_not_found"
+    assert hidden_detail.status_code == HTTPStatus.OK
+    assert hidden_detail.json()["details_visible"] is False
+    assert hidden_detail.json()["email"] is None
     private_detail = client.get(f"/members/{ids['private215']}")
-    assert private_detail.status_code == HTTPStatus.NOT_FOUND
-    assert private_detail.json()["code"] == "member_not_found"
+    assert private_detail.status_code == HTTPStatus.OK
+    assert private_detail.json()["details_visible"] is False
+    assert private_detail.json()["email"] is None
     missing_detail = client.get("/members/99999999")
     assert missing_detail.status_code == HTTPStatus.NOT_FOUND
-    assert missing_detail.json()["code"] == hidden_detail.json()["code"]
+    assert missing_detail.json()["code"] == "member_not_found"
     hidden_count = client.get("/members/count?q=other215@example.com")
     assert hidden_count.status_code == HTTPStatus.OK
     assert hidden_count.json() == {"count": 0}
@@ -285,8 +288,9 @@ def test_directory_scope_uses_latest_viewer_cohort(
     target_id = _set_visibility("cohort-live-225", models.Visibility.COHORT)
 
     hidden = admin_login.get(f"/members/{target_id}")
-    assert hidden.status_code == HTTPStatus.NOT_FOUND
-    assert hidden.json()["code"] == "member_not_found"
+    assert hidden.status_code == HTTPStatus.OK
+    assert hidden.json()["details_visible"] is False
+    assert hidden.json()["email"] is None
 
     _set_cohort("__seed__admin", 2)
 

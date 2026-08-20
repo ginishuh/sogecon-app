@@ -2,6 +2,8 @@
 
 import { Buildings, Camera, CaretRight, CheckCircle, Phone } from '@phosphor-icons/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import type { Route } from 'next';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Button from '../../components/ui/button';
 import { useToast } from '../../components/toast';
@@ -10,6 +12,7 @@ import { ApiError } from '../../lib/api';
 import { memberApiErrorToMessage } from '../../lib/error-map';
 import { getMe, updateAvatar, updateMe, type MemberDto } from '../../services/me';
 import { ChangeRequestSection } from './change-request';
+import { ViewRequestInbox } from './view-requests';
 import { Avatar, ProfilePreview, VisibilityField } from './profile-overview';
 import {
   buildProfilePayload,
@@ -35,6 +38,27 @@ const toFormState = (member: MemberDto): ProfileForm => ({
   addr_company: asDisplayString(member.addr_company),
   industry: asDisplayString(member.industry),
 });
+
+const isOpenVisibility = (
+  visibility: unknown,
+): visibility is Exclude<ProfileForm['visibility'], 'private'> => (
+  visibility === 'all' || visibility === 'cohort'
+);
+
+const saveFailureCopy = (error: unknown): { toast: string; form: string } => {
+  if (!(error instanceof ApiError)) {
+    const message = '내 정보를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+    return { toast: message, form: message };
+  }
+  const message = memberApiErrorToMessage(error.code, error.message);
+  if (error.status === 401) {
+    return { toast: message, form: '로그인 세션이 만료되었습니다. 다시 로그인해주세요.' };
+  }
+  if (error.status === 422) {
+    return { toast: message, form: '서버 검증을 통과하지 못했습니다. 입력값을 다시 확인해주세요.' };
+  }
+  return { toast: message, form: message };
+};
 
 const inputClass = [
   'mt-1 min-h-11 w-full min-w-0 rounded-md border border-neutral-border bg-white px-3 py-2 text-text-primary',
@@ -352,6 +376,7 @@ function ProfileFormSection({
 
 export default function MePage() {
   const { status, invalidate: retryAuth } = useAuth();
+  const router = useRouter();
   const toast = useToast();
   const [me, setMe] = useState<MemberDto | null>(null);
   const [form, setForm] = useState<ProfileForm | null>(null);
@@ -388,6 +413,10 @@ export default function MePage() {
   }, [reloadKey, status, toast]);
 
   const handleChange = <K extends keyof ProfileForm>(field: K, value: ProfileForm[K]) => {
+    if (field === 'visibility' && isOpenVisibility(value) && !me?.directory_consent_at) {
+      router.push('/directory-consent' as Route);
+      return;
+    }
     setForm((previous) => (previous ? { ...previous, [field]: value } : previous));
     setSavedMessage(null);
     setErrors((previous) => {
@@ -411,6 +440,10 @@ export default function MePage() {
     }
     setBusy(true);
     try {
+      if (isOpenVisibility(form.visibility) && !me?.directory_consent_at) {
+        router.push('/directory-consent' as Route);
+        return;
+      }
       const updated = await updateMe(buildProfilePayload(form));
       setMe(updated);
       setForm(toFormState(updated));
@@ -419,18 +452,13 @@ export default function MePage() {
       setSavedMessage(message);
       toast.show('변경사항을 저장했습니다.', { type: 'success' });
     } catch (error) {
-      const message = error instanceof ApiError
-        ? memberApiErrorToMessage(error.code, error.message)
-        : '내 정보를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.';
-      setErrors((previous) => ({
-        ...previous,
-        form: error instanceof ApiError && error.status === 401
-          ? '로그인 세션이 만료되었습니다. 다시 로그인해주세요.'
-          : error instanceof ApiError && error.status === 422
-            ? '서버 검증을 통과하지 못했습니다. 입력값을 다시 확인해주세요.'
-            : message,
-      }));
-      toast.show(message, { type: 'error' });
+      if (error instanceof ApiError && error.code === 'directory_consent_required') {
+        router.push('/directory-consent' as Route);
+        return;
+      }
+      const copy = saveFailureCopy(error);
+      setErrors((previous) => ({ ...previous, form: copy.form }));
+      toast.show(copy.toast, { type: 'error' });
       setSavedMessage(null);
     } finally {
       setBusy(false);
@@ -521,6 +549,7 @@ export default function MePage() {
           savedMessage={savedMessage}
         />
 
+        <ViewRequestInbox />
         <ChangeRequestSection profile={profile} />
       </div>
     );

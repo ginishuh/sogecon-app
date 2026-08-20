@@ -8,10 +8,12 @@ import { ApiError } from '../lib/api';
 const activateMock = vi.fn();
 const invalidateMock = vi.fn(() => Promise.resolve());
 const showMock = vi.fn();
+const replaceMock = vi.fn();
 let activationToken = '';
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(activationToken ? `token=${activationToken}` : ''),
+  useRouter: () => ({ replace: replaceMock }),
 }));
 
 vi.mock('../hooks/useAuth', () => ({
@@ -33,6 +35,7 @@ describe('첫 로그인 설정 화면', () => {
     activateMock.mockReset();
     invalidateMock.mockClear();
     showMock.mockReset();
+    replaceMock.mockReset();
   });
 
   it('링크 없이 방문하면 코드 입력을 보조 경로로 숨긴다', () => {
@@ -103,7 +106,7 @@ describe('첫 로그인 설정 화면', () => {
     expect(showMock).not.toHaveBeenCalled();
   });
 
-  it('완료하면 4단계와 다음 동문 메뉴를 안내한다', async () => {
+  it('완료하면 동문 수첩 공개 동의 화면으로 이동한다', async () => {
     activationToken = 'valid-token';
     activateMock.mockResolvedValueOnce({ ok: 'true' });
     render(<ActivatePage />);
@@ -114,9 +117,8 @@ describe('첫 로그인 설정 화면', () => {
     fireEvent.click(screen.getByRole('button', { name: '비밀번호 만들기 완료' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: '첫 로그인 완료' })).toBeInTheDocument();
+      expect(replaceMock).toHaveBeenCalledWith('/directory-consent');
     });
-    expect(screen.getByRole('link', { name: '내 정보 확인하기' })).toHaveAttribute('href', '/me');
     expect(activateMock).toHaveBeenCalledWith({
       token: 'valid-token',
       password: 'safe-password',

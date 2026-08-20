@@ -80,12 +80,8 @@ def test_members_sort_recent(admin_login: TestClient) -> None:
     response = client.get("/members/?sort=recent&limit=3")
     assert response.status_code == HTTPStatus.OK
     data = response.json()
-    # 최신순: newer → older → admin
-    assert [member["email"] for member in data[:3]] == [
-        "newer@example.com",
-        "older@example.com",
-        "admin@test.example.com",
-    ]
+    # 최신순: newer → older → admin. 잠긴 수첩은 이메일을 숨기므로 이름으로 확인한다.
+    assert [member["name"] for member in data[:3]] == ["Newer", "Older", "Admin"]
 
 
 def test_members_sort_cohort_desc(admin_login: TestClient) -> None:
@@ -123,13 +119,9 @@ def test_members_sort_cohort_desc(admin_login: TestClient) -> None:
 
     response = client.get("/members/?sort=cohort_desc&limit=3")
     assert response.status_code == HTTPStatus.OK
-    emails = [member["email"] for member in response.json()[:3]]
+    names = [member["name"] for member in response.json()[:3]]
     # Cohort 내림차순: cohort 3 (anna, brad) → cohort 2 (carol) → cohort 1 (admin)
-    assert emails == [
-        "anna@example.com",
-        "brad@example.com",
-        "carol@example.com",
-    ]
+    assert names == ["Anna", "Brad", "Carol"]
 
 
 def test_members_service_has_no_unused_email_lookup() -> None:

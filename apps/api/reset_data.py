@@ -40,6 +40,7 @@ class ResetSummary:
 
 # FK/의존성 안전 순서로 삭제한다.
 DELETE_STEPS: Final[tuple[DeleteStep, ...]] = (
+    DeleteStep("directory_view_requests"),
     DeleteStep("comments"),
     DeleteStep("posts"),
     DeleteStep("rsvps"),

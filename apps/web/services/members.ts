@@ -59,3 +59,11 @@ export async function countMembers(params: MemberCountParams = {}): Promise<numb
 export async function getMember(id: number): Promise<Member> {
   return apiFetch<Member>(`/members/${id}`);
 }
+
+export type DirectoryViewRequest = Schema<'DirectoryViewRequestRead'>;
+
+export async function createViewRequest(memberId: number): Promise<DirectoryViewRequest> {
+  return apiFetch<DirectoryViewRequest>(`/members/${memberId}/view-requests`, {
+    method: 'POST',
+  });
+}

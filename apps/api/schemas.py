@@ -37,7 +37,6 @@ SignupActivationIssueTypeLiteral = Literal["approve", "reissue"]
 _PHONE_PATTERN = re.compile(r'^[0-9+\-\s]{7,20}$')
 _PHONE_DIGITS_RE = re.compile(r'[^0-9]')
 
-
 def normalize_phone_digits(value: str) -> str:
     """전화번호에서 숫자만 추출 (저장용 정규화)."""
     return _PHONE_DIGITS_RE.sub('', value)
@@ -65,7 +64,7 @@ class MemberBase(BaseModel):
     cohort: int
     major: str | None = None
     roles: str = "member"
-    visibility: VisibilityLiteral = "all"
+    visibility: VisibilityLiteral = "private"
     birth_date: str | None = None  # 'YYYY-MM-DD'
     birth_lunar: bool | None = None
     phone: str | None = None
@@ -85,8 +84,9 @@ class MemberCreate(MemberBase):
 class MemberRead(MemberBase):
     id: int
     status: MemberStatusLiteral = "active"
+    directory_consent_at: datetime | None = None
+    directory_choice_at: datetime | None = None
     avatar_path: str | None = Field(default=None, exclude=True)
-
     model_config = ConfigDict(from_attributes=True)
 
     @field_validator("visibility", mode="before")

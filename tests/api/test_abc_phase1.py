@@ -79,6 +79,15 @@ def test_member_activate_and_login(admin_login: TestClient) -> None:
     assert me.status_code == HTTPStatus.OK
     data = me.json()
     assert "email" in data and data["email"] == "abc1@example.com"
+    assert data["visibility"] == "private"
+    assert data["directory_consent_at"] is None
+    blocked = admin_login.put("/me/", json={"visibility": "cohort"})
+    assert blocked.status_code == HTTPStatus.FORBIDDEN
+    assert_problem_code(blocked.json(), "directory_consent_required")
+    consent = admin_login.post("/me/directory-consent", json={"visibility": "all"})
+    assert consent.status_code == HTTPStatus.OK
+    assert consent.json()["visibility"] == "all"
+    assert consent.json()["directory_consent_at"] is not None
     upd = admin_login.put("/me/", json={"visibility": "cohort"})
     assert upd.status_code == HTTPStatus.OK
     data2 = upd.json()

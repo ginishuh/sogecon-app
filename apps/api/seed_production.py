@@ -10,6 +10,7 @@
 import asyncio
 import os
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy import select
@@ -65,6 +66,8 @@ async def create_production_admins(session: AsyncSession) -> None:
                 roles=str(admin_data["roles"]),
                 status="active",
                 visibility=Visibility.ALL,
+                directory_consent_at=datetime.now(UTC),
+                directory_choice_at=datetime.now(UTC),
             )
             session.add(member)
             await session.flush()

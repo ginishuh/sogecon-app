@@ -40,7 +40,9 @@ export default function DirectoryCard({ member, onClick }: Props) {
       <div className="mt-4 space-y-2 border-t border-neutral-border pt-4 text-sm text-text-muted">
         <p className="flex items-center gap-2">
           {workSummary ? <Buildings aria-hidden="true" size={17} /> : <LockSimple aria-hidden="true" size={17} />}
-          {workSummary || (hasDetails ? '소속 정보 비공개' : '공개된 소속 정보가 아직 없어요.')}
+          {member.details_visible === false
+            ? '상세 정보는 보기 요청 후 상대가 허용하면 열려요.'
+            : workSummary || (hasDetails ? '소속 정보 비공개' : '공개된 소속 정보가 아직 없어요.')}
         </p>
         <p className="flex items-center gap-2">
           <UsersThree aria-hidden="true" size={17} />

@@ -38,6 +38,7 @@
 | Web Push 구독/해지 | `RATE_LIMIT_SUBSCRIBE` | `30/minute` | `POST/DELETE /notifications/subscriptions` |
 | 문의 접수 | `RATE_LIMIT_SUPPORT` | `1/minute` | `POST /support/contact` |
 | 커뮤니티 게시글 작성(멤버) | `RATE_LIMIT_POST_CREATE` | `5/minute` | `POST /posts` (멤버 작성 한정) |
+| 동문 수첩 열람 요청 | `RATE_LIMIT_VIEW_REQUEST` | `10/minute` | `POST /members/{id}/view-requests` |
 
 ### 관측/로깅
 

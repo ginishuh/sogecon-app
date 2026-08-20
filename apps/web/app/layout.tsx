@@ -4,6 +4,7 @@ import { headers as nextHeaders } from 'next/headers';
 import type { ReactNode } from 'react';
 
 import { Providers } from './providers';
+import { DirectoryConsentGate } from '../components/directory-consent-gate';
 import { SiteHeader } from '../components/site-header';
 import { SiteFooter } from '../components/site-footer';
 import { Analytics } from '../components/analytics';
@@ -97,15 +98,17 @@ export default async function RootLayout({
           본문 바로가기
         </a>
         <Providers>
-          <Analytics nonce={nonce} />
-          <WebVitalsReporter />
-          <SiteHeader />
-          <main id="main-content" role="main" tabIndex={-1}>
-            {children}
-          </main>
-          <footer className="site-footer" role="contentinfo">
-            <SiteFooter />
-          </footer>
+          <DirectoryConsentGate>
+            <Analytics nonce={nonce} />
+            <WebVitalsReporter />
+            <SiteHeader />
+            <main id="main-content" role="main" tabIndex={-1}>
+              {children}
+            </main>
+            <footer className="site-footer" role="contentinfo">
+              <SiteFooter />
+            </footer>
+          </DirectoryConsentGate>
         </Providers>
       </body>
     </html>

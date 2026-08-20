@@ -11,9 +11,14 @@ const retryAuthMock = vi.fn();
 const toastValue = { show: showToastMock };
 let authStatus: 'authorized' | 'error' = 'authorized';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
+
 vi.mock('../hooks/useAuth', () => ({ useAuth: () => ({ status: authStatus, invalidate: retryAuthMock }) }));
 vi.mock('../components/toast', () => ({ useToast: () => toastValue }));
 vi.mock('../app/me/change-request', () => ({ ChangeRequestSection: () => <section>기본 정보 변경 요청</section> }));
+vi.mock('../app/me/view-requests', () => ({ ViewRequestInbox: () => <section>동문 수첩 보기 요청</section> }));
 vi.mock('../services/me', () => ({
   API_BASE: 'http://localhost:3001',
   getMe: (...args: unknown[]) => getMeMock(...args),
@@ -29,6 +34,8 @@ const member = {
   cohort: 61,
   roles: 'member',
   visibility: 'all' as const,
+  directory_consent_at: '2026-08-19T00:00:00Z',
+  directory_choice_at: '2026-08-19T00:00:00Z',
   major: '경제학',
   birth_date: null,
   birth_lunar: false,

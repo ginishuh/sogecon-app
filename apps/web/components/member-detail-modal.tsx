@@ -7,17 +7,23 @@
  */
 
 import { Buildings, EnvelopeSimple, ShieldCheck, WarningCircle, X } from '@phosphor-icons/react';
-import React, { useCallback, useEffect, useId, useRef } from 'react';
+import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import { formatPhone } from '../lib/phone-utils';
 import type { Member } from '../services/members';
+import { createViewRequest } from '../services/members';
 import Link from 'next/link';
-import { hasPublicDirectoryDetails, VISIBILITY_INFO } from '../lib/member-experience';
+import { hasPublicDirectoryDetails, canRequestDirectoryView, VISIBILITY_INFO } from '../lib/member-experience';
+import { useToast } from './toast';
+import { ApiError } from '../lib/api';
+import { memberApiErrorToMessage } from '../lib/error-map';
+import Button from './ui/button';
 
 type MemberDetailModalProps = {
   member: Member | null;
   open: boolean;
   onClose: () => void;
+  onMemberChange?: (member: Member) => void;
 };
 
 /** 정보 항목 렌더링 헬퍼 */
@@ -113,7 +119,61 @@ function VisibilitySection({ label }: { label: string }) {
   );
 }
 
-export default function MemberDetailModal({ member, open, onClose }: MemberDetailModalProps) {
+function RequestViewSection({
+  member,
+  onMemberChange,
+}: {
+  member: Member;
+  onMemberChange?: (member: Member) => void;
+}) {
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  if (member.details_visible !== false) return null;
+
+  const onRequest = async () => {
+    setBusy(true);
+    try {
+      const created = await createViewRequest(member.id);
+      onMemberChange?.({ ...member, view_request: created.status });
+      toast.show('보기 요청을 보냈어요. 상대가 허용하면 상세 정보가 열립니다.', { type: 'success' });
+    } catch (error: unknown) {
+      const message =
+        error instanceof ApiError
+          ? memberApiErrorToMessage(error.code, error.message)
+          : '보기 요청을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      toast.show(message, { type: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (member.view_request === 'pending') {
+    return (
+      <p role="status" className="rounded-xl bg-surface-raised p-4 text-sm text-text-muted">
+        보기 요청을 보냈어요. 상대가 허용하면 연락처와 소속이 열립니다.
+      </p>
+    );
+  }
+
+  if (!canRequestDirectoryView(member)) return null;
+
+  const requestHint = member.view_request === 'revoked'
+    ? '이전에 허용이 취소됐어요. 다시 요청하면 상대에게 알림이 갑니다.'
+    : '이 동문은 상세 정보를 공개하지 않았어요. 보기 요청을 보내면 상대에게 알림이 갑니다.';
+
+  return (
+    <div className="space-y-3 rounded-xl bg-surface-raised p-4">
+      <p className="text-sm leading-6 text-text-secondary">
+        {requestHint}
+      </p>
+      <Button type="button" onClick={() => void onRequest()} disabled={busy} aria-busy={busy}>
+        {busy ? '요청 보내는 중…' : '정보 보기 요청하기'}
+      </Button>
+    </div>
+  );
+}
+
+export default function MemberDetailModal({ member, open, onClose, onMemberChange }: MemberDetailModalProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const previouslyFocused = useRef<Element | null>(null);
   const titleId = useId();
@@ -204,7 +264,11 @@ export default function MemberDetailModal({ member, open, onClose }: MemberDetai
         </div>
         <div className="space-y-6 p-5 sm:p-6">
           <BasicInfoSection member={member} />
-          {!hasPublicDirectoryDetails(member) ? <div role="status" className="rounded-xl bg-surface-raised p-4 text-sm text-text-muted">이 동문이 공개한 상세 정보가 아직 없어요.</div> : null}
+          {member.details_visible === false ? (
+            <RequestViewSection member={member} onMemberChange={onMemberChange} />
+          ) : !hasPublicDirectoryDetails(member) ? (
+            <div role="status" className="rounded-xl bg-surface-raised p-4 text-sm text-text-muted">이 동문이 공개한 상세 정보가 아직 없어요.</div>
+          ) : null}
           <ContactSection member={member} />
           <WorkSection member={member} />
           <VisibilitySection label={VISIBILITY_INFO[member.visibility].label} />

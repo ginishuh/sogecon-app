@@ -9,6 +9,8 @@ export type Session = {
   name: string;
   id?: number | null;
   roles: string[];
+  directory_consent_at?: string | null;
+  directory_choice_at?: string | null;
 };
 
 // 통합 세션 조회

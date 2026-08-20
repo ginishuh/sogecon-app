@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 
 import DirectoryCard from '../components/directory-card';
 import MemberDetailModal from '../components/member-detail-modal';
+import { ToastProvider } from '../components/toast';
 import type { Member } from '../services/members';
 
 const member: Member = {
@@ -72,5 +73,21 @@ describe('동문 수첩 회원 경험', () => {
     rerender(<MemberDetailModal member={member} open={false} onClose={onClose} />);
     expect(trigger).toHaveFocus();
     trigger.remove();
+  });
+
+  it('잠긴 프로필에서는 보기 요청을 안내한다', () => {
+    const locked: Member = {
+      ...member,
+      details_visible: false,
+      view_request: null,
+      email: null,
+      phone: null,
+    };
+    render(
+      <ToastProvider>
+        <MemberDetailModal member={locked} open onClose={vi.fn()} />
+      </ToastProvider>,
+    );
+    expect(screen.getByRole('button', { name: '정보 보기 요청하기' })).toBeInTheDocument();
   });
 });

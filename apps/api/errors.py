@@ -32,3 +32,8 @@ class AlreadyExistsError(ApiError):
 class ConflictError(ApiError):
     def __init__(self, code: str = "conflict", detail: str = "") -> None:
         super().__init__(code=code, detail=detail, status=409)
+
+
+class ForbiddenError(ApiError):
+    def __init__(self, code: str = "forbidden", detail: str = "") -> None:
+        super().__init__(code=code, detail=detail, status=403)

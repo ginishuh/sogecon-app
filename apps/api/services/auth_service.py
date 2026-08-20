@@ -444,6 +444,14 @@ async def get_session_info(
         email = u.email or (member.email if isinstance(member.email, str) else "")
         name = member.name if isinstance(member.name, str) else ""
         member_id = cast(int, member.id)
+        consent_at = member.directory_consent_at
+        consent_value = (
+            consent_at.isoformat() if isinstance(consent_at, datetime) else None
+        )
+        choice_at = member.directory_choice_at
+        choice_value = (
+            choice_at.isoformat() if isinstance(choice_at, datetime) else None
+        )
         return {
             "kind": kind,
             "student_id": u.student_id,
@@ -451,6 +459,8 @@ async def get_session_info(
             "name": name,
             "id": member_id,
             "roles": u.roles,
+            "directory_consent_at": consent_value,
+            "directory_choice_at": choice_value,
         }
 
     raise HTTPException(status_code=401, detail="unauthorized")

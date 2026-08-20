@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+from datetime import datetime
 from typing import Literal
 
 from pydantic import (
@@ -14,6 +15,8 @@ from pydantic import (
 
 from .media_utils import build_media_url
 
+ViewRequestStatusLiteral = Literal["pending", "accepted", "declined", "revoked"]
+
 
 class DirectoryMemberRead(BaseModel):
     """동문 수첩용 최소 응답. 인증·역할·학번은 노출하지 않는다."""
@@ -22,6 +25,8 @@ class DirectoryMemberRead(BaseModel):
     name: str
     cohort: int
     visibility: Literal["all", "cohort", "private"]
+    details_visible: bool = True
+    view_request: ViewRequestStatusLiteral | None = None
     email: EmailStr | None = None
     major: str | None = None
     phone: str | None = None
@@ -46,3 +51,20 @@ class DirectoryMemberRead(BaseModel):
     @computed_field(return_type=str | None)
     def avatar_url(self) -> str | None:
         return build_media_url(self.avatar_path)
+
+
+class DirectoryConsentWrite(BaseModel):
+    visibility: Literal["all", "cohort", "private"]
+
+
+class DirectoryViewRequestRead(BaseModel):
+    id: int
+    requester_id: int
+    requester_name: str
+    requester_cohort: int
+    target_id: int
+    status: ViewRequestStatusLiteral
+    created_at: datetime
+    decided_at: datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True)

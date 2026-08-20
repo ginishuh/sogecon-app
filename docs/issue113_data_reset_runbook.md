@@ -33,6 +33,7 @@ make seed-data
 
 ## 리셋 대상(현재)
 - `comments`
+- `directory_view_requests`
 - `posts`
 - `rsvps`
 - `member_auth`

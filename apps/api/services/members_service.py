@@ -4,7 +4,8 @@ import io
 import time
 from collections import OrderedDict
 from collections.abc import Sequence
-from typing import Never, cast
+from datetime import UTC, datetime
+from typing import Literal, Never, cast
 
 from fastapi import UploadFile
 from sqlalchemy import select
@@ -13,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import Headers
 
 from .. import models, schemas
-from ..errors import AlreadyExistsError, ApiError
+from ..errors import AlreadyExistsError, ApiError, ForbiddenError
 from ..repositories import members as members_repo
 from . import upload_service as upload_service_module
 from .activation_service import create_member_activation_token
@@ -85,14 +86,22 @@ async def list_directory_members(
     filters: schemas.MemberListFilters,
     viewer_student_id: str,
 ) -> list[schemas.DirectoryMemberRead]:
-    members = await list_members(
+    rows = await members_repo.list_directory_rows(
         db,
         limit=limit,
         offset=offset,
         filters=filters,
         viewer_student_id=viewer_student_id,
     )
-    return [schemas.DirectoryMemberRead.model_validate(member) for member in members]
+    return [
+        _to_directory_member(
+            member,
+            viewer_student_id=viewer_student_id,
+            viewer_cohort=viewer_cohort,
+            request_status=request_status,
+        )
+        for member, request_status, viewer_cohort in rows
+    ]
 
 
 async def count_members(
@@ -159,12 +168,78 @@ async def get_directory_member(
     member_id: int,
     viewer_student_id: str,
 ) -> schemas.DirectoryMemberRead:
-    member = await members_repo.get_directory_member(
+    member, request_status, viewer_cohort = await members_repo.get_directory_member(
         db,
         member_id=member_id,
         viewer_student_id=viewer_student_id,
     )
-    return schemas.DirectoryMemberRead.model_validate(member)
+    return _to_directory_member(
+        member,
+        viewer_student_id=viewer_student_id,
+        viewer_cohort=viewer_cohort,
+        request_status=request_status,
+    )
+
+
+def is_directory_details_visible(
+    member: models.Member,
+    *,
+    viewer_student_id: str,
+    viewer_cohort: int,
+    request_status: str | None,
+) -> bool:
+    if cast(str, member.student_id) == viewer_student_id:
+        return True
+    if request_status == "accepted":
+        return True
+    visibility = cast(models.Visibility, member.visibility)
+    if visibility is models.Visibility.ALL:
+        return True
+    member_cohort = cast(int, member.cohort)
+    if visibility is models.Visibility.COHORT and member_cohort == viewer_cohort:
+        return True
+    return False
+
+
+def _to_directory_member(
+    member: models.Member,
+    *,
+    viewer_student_id: str,
+    viewer_cohort: int,
+    request_status: str | None,
+) -> schemas.DirectoryMemberRead:
+    is_self = cast(str, member.student_id) == viewer_student_id
+    status = None if is_self else request_status
+    visible = is_directory_details_visible(
+        member,
+        viewer_student_id=viewer_student_id,
+        viewer_cohort=viewer_cohort,
+        request_status=request_status,
+    )
+    if visible:
+        dto = schemas.DirectoryMemberRead.model_validate(member)
+        return dto.model_copy(
+            update={"details_visible": True, "view_request": status}
+        )
+    visibility = member.visibility
+    visibility_value = (
+        visibility.value
+        if isinstance(visibility, models.Visibility)
+        else str(visibility)
+    )
+    request_value: Literal["pending", "accepted", "declined", "revoked"] | None
+    if status in ("pending", "accepted", "declined", "revoked"):
+        request_value = status
+    else:
+        request_value = None
+    return schemas.DirectoryMemberRead(
+        id=int(cast(int, member.id)),
+        name=cast(str, member.name),
+        cohort=cast(int, member.cohort),
+        visibility=cast(schemas.VisibilityLiteral, visibility_value),
+        details_visible=False,
+        view_request=request_value,
+    )
 
 
 async def create_member(
@@ -196,6 +271,14 @@ async def create_member(
 
 async def get_member_by_student_id(db: AsyncSession, student_id: str) -> models.Member:
     return await members_repo.get_member_by_student_id(db, student_id)
+
+
+async def get_session_member(
+    db: AsyncSession, *, member_id: int | None, student_id: str
+) -> models.Member:
+    if member_id is not None:
+        return await get_member(db, member_id)
+    return await get_member_by_student_id(db, student_id)
 
 
 async def _ensure_not_deactivating_last_super_admin(
@@ -277,6 +360,9 @@ async def update_member_profile_admin(
                     detail="Phone already in use",
                 )
 
+    await _require_directory_consent_to_open(
+        db, member_id=member_id, visibility=sanitized_data.get("visibility")
+    )
     sanitized = data.model_copy(update=sanitized_data)
     try:
         return await members_repo.update_member_profile_admin(
@@ -285,6 +371,19 @@ async def update_member_profile_admin(
     except IntegrityError as exc:
         await db.rollback()
         _raise_member_conflict_from_integrity_error(exc)
+
+
+async def _require_directory_consent_to_open(
+    db: AsyncSession, *, member_id: int, visibility: object
+) -> None:
+    if visibility not in ("all", "cohort"):
+        return
+    current = await members_repo.get_member(db, member_id)
+    if cast(datetime | None, current.directory_consent_at) is None:
+        raise ForbiddenError(
+            code="directory_consent_required",
+            detail="동문 수첩에 공개하려면 안내에 동의해 주세요.",
+        )
 
 
 async def update_member_profile(
@@ -329,6 +428,9 @@ async def update_member_profile(
                     code="member_phone_already_in_use",
                     detail="Phone already in use",
                 )
+    await _require_directory_consent_to_open(
+        db, member_id=member_id, visibility=sanitized_data.get("visibility")
+    )
     sanitized = data.model_copy(update=sanitized_data)
     try:
         return await members_repo.update_member_profile(
@@ -366,7 +468,6 @@ async def create_member_direct(
     Returns:
         (생성된 Member, 활성화 토큰 문자열) 튜플
     """
-    # 학번 중복 검사
     stmt = select(models.Member).where(
         models.Member.student_id == payload.student_id
     )
@@ -377,7 +478,6 @@ async def create_member_direct(
             detail="Student ID already in use",
         )
 
-    # 이메일 중복 검사
     stmt = select(models.Member).where(models.Member.email == payload.email)
     result = await db.execute(stmt)
     if result.scalars().first() is not None:
@@ -386,7 +486,6 @@ async def create_member_direct(
             detail="Email already in use",
         )
 
-    # 역할 정규화
     normalized_roles = normalize_assignable_roles(payload.roles)
     serialized_roles = serialize_roles(normalized_roles)
 
@@ -398,7 +497,7 @@ async def create_member_direct(
         cohort=payload.cohort,
         roles=serialized_roles,
         status="active",
-        visibility=models.Visibility.ALL,
+        visibility=models.Visibility.PRIVATE,
     )
     db.add(member)
     await db.flush()
@@ -485,3 +584,16 @@ async def update_member_roles(
         db, member=member, roles=serialized
     )
     return updated
+
+
+async def submit_directory_consent(
+    db: AsyncSession, *, member_id: int, visibility: schemas.VisibilityLiteral
+) -> models.Member:
+    now = datetime.now(UTC)
+    return await members_repo.save_directory_consent(
+        db,
+        member_id=member_id,
+        visibility=models.Visibility(visibility),
+        consented_at=None if visibility == "private" else now,
+        choice_at=now,
+    )

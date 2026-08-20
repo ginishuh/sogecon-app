@@ -46,6 +46,13 @@ const ERROR_MESSAGES: Record<string, string> = {
   admin_grade_required: '운영자 또는 최고 운영자 권한이 필요합니다.',
   self_demotion_forbidden: '자신의 최고 운영자 권한은 제거할 수 없습니다.',
   last_super_admin_forbidden: '마지막 최고 운영자의 권한은 제거할 수 없습니다.',
+  view_request_self_not_allowed: '본인 정보는 요청 없이 확인할 수 있습니다.',
+  view_request_not_needed: '이미 공개된 정보입니다.',
+  view_request_already_pending: '이미 보기 요청을 보냈습니다.',
+  view_request_not_found: '보기 요청을 찾을 수 없습니다.',
+  view_request_not_pending: '대기 중인 요청만 처리할 수 있습니다.',
+  view_request_not_accepted: '허용 중인 요청만 철회할 수 있습니다.',
+  directory_consent_required: '동문 수첩에 공개하려면 안내에 동의해 주세요.',
 };
 
 const INTERNAL_MESSAGE_PATTERN = /(?:\[object Object\]|토큰|\b(?:VAPID|token|role|RBAC|super_admin|error)\b|HTTP\s+\d{3}|^[a-z][a-z0-9_]+$)/i;
