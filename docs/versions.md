@@ -95,8 +95,11 @@
 - js-yaml: 4.2.0
   - 근거: commitlint·ESLint 계열의 전이 범위가 GHSA-h67p-54hq-rp68에 취약한 4.1.1도 선택하므로 수정 버전으로 강제합니다.
   - 제거 조건: 모든 상위 패키지가 js-yaml 4.2.0 이상만 선택하는 범위로 갱신되면 제거합니다.
+- nanoid: 3.3.18
+  - 근거: PostCSS 8.5.26이 `nanoid ^3.3.17`을 고르고, pnpm audit는 GHSA-2v37-7h3g-55p8의 패치를 `>=3.3.18`로 봅니다.
+  - 제거 조건: 상위 패키지가 nanoid 3.3.18 이상만 선택하는 범위로 갱신되면 제거합니다.
 - postcss: 8.5.26
-  - 근거: Next.js 16.2.x가 PostCSS 8.4.31을 직접 고정하므로 GHSA-qx2v-qp2m-jg93·GHSA-fxqj-rqcc-2cmp 수정 버전으로 강제합니다. 8.5.26은 전이 `nanoid ^3.3.17`을 요구해 GHSA-28wg·GHSA-2v37도 함께 해소합니다.
+  - 근거: Next.js 16.2.x가 PostCSS 8.4.31을 직접 고정하므로 GHSA-qx2v-qp2m-jg93·GHSA-fxqj-rqcc-2cmp 수정 버전으로 강제합니다.
   - 제거 조건: Next.js가 postcss 8.5.23 이상만 선택하는 범위로 갱신되면 제거합니다.
 - sharp: 0.35.3
   - 근거: Next.js 선택 의존성이 취약한 Sharp 0.34.x를 다시 고르지 않도록 2026-07-28 보안 패치에서 workspace override를 0.35.3으로 고정했습니다.
