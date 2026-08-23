@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import React from 'react';
 
+import { officeMailto, siteConfig } from '../../lib/site';
+
 // 정적 페이지: 1시간 ISR 캐싱
 export const revalidate = 3600;
 
@@ -97,7 +99,9 @@ const sections: PolicySection[] = [
           개별 동문에게 허용한 수첩 상세는 같은 화면의 보기 요청에서 허용 취소로 철회할 수 있습니다.
         </li>
         <li>
-          삭제 또는 처리정지를 원할 경우 사무국 대표 이메일(office@sogang-econ-alumni.kr)로 신청해 주세요. 접수일로부터 7일 이내 처리 결과를
+          삭제 또는 처리정지를 원할 경우 사무국 대표 이메일(
+          <a className="text-link" href={officeMailto}>{siteConfig.officeEmail}</a>
+          )로 신청해 주세요. 접수일로부터 7일 이내 처리 결과를
           안내합니다.
         </li>
         <li>대리인을 통한 요청은 위임장과 본인 신분증 사본을 제출해야 하며, 30일 이내 답변드립니다.</li>
@@ -125,11 +129,19 @@ const sections: PolicySection[] = [
       <dl className="space-y-2">
         <div>
           <dt className="font-semibold text-neutral-ink">개인정보 보호책임자</dt>
-          <dd className="text-neutral-muted">김서강 회장 (office@sogang-econ-alumni.kr)</dd>
+          <dd className="text-neutral-muted">
+            김서강 회장 (
+            <a className="text-link" href={officeMailto}>{siteConfig.officeEmail}</a>
+            )
+          </dd>
         </div>
         <div>
           <dt className="font-semibold text-neutral-ink">개인정보 보호담당자</dt>
-          <dd className="text-neutral-muted">박은영 사무국장 (privacy@sogang-econ-alumni.kr, 02-715-1234)</dd>
+          <dd className="text-neutral-muted">
+            박은영 사무국장 (
+            <a className="text-link" href={officeMailto}>{siteConfig.officeEmail}</a>
+            , 02-715-1234)
+          </dd>
         </div>
       </dl>
     )
@@ -163,8 +175,8 @@ export default function PrivacyPage() {
       </div>
 
       <footer className="rounded-2xl bg-brand-surface px-6 py-6 text-xs uppercase tracking-widest text-neutral-muted md:py-8">
-        <p>문서 버전: 2026-08-19 · 시행일: 2025-10-15</p>
-        <p className="mt-2 text-neutral-muted/80">시행일: 2025-10-15 · 개정일: 2026-08-19</p>
+        <p>문서 버전: 2026-08-23 · 시행일: 2025-10-15</p>
+        <p className="mt-2 text-neutral-muted/80">시행일: 2025-10-15 · 개정일: 2026-08-23</p>
       </footer>
     </div>
   );

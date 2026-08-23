@@ -155,6 +155,8 @@ function createOnboardingRouteResponders(state: MockState) {
           },
         ],
       }),
+    'POST /admin/signup-requests/1/send-activation-email': () =>
+      jsonResponse({ sent_to: 'new-member@example.com' }),
     'POST /auth/member/activate': () => jsonResponse({ ok: 'true' }),
   } as Record<string, () => ReturnType<typeof jsonResponse>>;
 }

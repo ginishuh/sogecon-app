@@ -8,6 +8,7 @@ export type SignupRequestListResponse = Schema<'SignupRequestListResponse'>;
 export type SignupActivationIssueResponse = Schema<'SignupActivationIssueResponse'>;
 export type SignupActivationIssueLogRead = Schema<'SignupActivationIssueLogRead'>;
 export type SignupActivationIssueLogListResponse = Schema<'SignupActivationIssueLogListResponse'>;
+export type SignupActivationEmailSendResponse = Schema<'SignupActivationEmailSendResponse'>;
 
 export async function createSignupRequest(
   payload: SignupRequestCreatePayload
@@ -63,6 +64,19 @@ export async function listAdminSignupRequestActivationTokenLogs(
   q.set('limit', String(limit));
   return apiFetch<SignupActivationIssueLogListResponse>(
     `/admin/signup-requests/${signupRequestId}/activation-token-logs?${q.toString()}`
+  );
+}
+
+export async function sendAdminSignupActivationEmail(
+  signupRequestId: number,
+  activationToken: string
+): Promise<SignupActivationEmailSendResponse> {
+  return apiFetch<SignupActivationEmailSendResponse>(
+    `/admin/signup-requests/${signupRequestId}/send-activation-email`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ activation_token: activationToken }),
+    }
   );
 }
 

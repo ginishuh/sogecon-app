@@ -467,7 +467,14 @@ exports[`About static pages > renders the current organization structure 1`] = `
         <p
           class="mt-2 max-w-2xl leading-7 text-text-secondary"
         >
-          행사 제안, 분과 활동, 명단 수정 등 동문회 운영에 관한 의견은 사무국에서 담당자에게 연결합니다.
+          행사 제안, 분과 활동, 명단 수정 등 동문회 운영에 관한 의견은 사무국에서 담당자에게 연결합니다. 메일 주소는 
+          <a
+            class="text-link inline-flex min-h-11 items-center"
+            href="mailto:sogangecon.alumni@gmail.com"
+          >
+            sogangecon.alumni@gmail.com
+          </a>
+          입니다.
         </p>
       </div>
       <a

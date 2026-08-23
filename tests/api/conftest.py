@@ -21,6 +21,7 @@ from apps.api import models, models_directory_view
 from apps.api.config import reset_settings_cache
 from apps.api.db import get_db
 from apps.api.main import app
+from apps.api.routers.admin_signup_requests import limiter_signup
 from apps.api.routers.members import limiter_view_request
 from apps.api.routers.notifications import limiter_notifications
 from apps.api.routers.profile import limiter_ip as limiter_avatar_ip
@@ -44,6 +45,21 @@ def enable_rate_limit(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, 
 
 
 @pytest.fixture(autouse=True)
+def isolate_smtp_settings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[None, None, None]:
+    """테스트가 로컬 SMTP 시크릿을 읽거나 실제 메일을 보내지 않게 한다."""
+    monkeypatch.setenv("SMTP_USERNAME", "")
+    monkeypatch.setenv("SMTP_PASSWORD", "")
+    monkeypatch.setenv("SMTP_FROM_EMAIL", "")
+    reset_settings_cache()
+    try:
+        yield
+    finally:
+        reset_settings_cache()
+
+
+@pytest.fixture(autouse=True)
 def reset_rate_limiters() -> Generator[None, None, None]:
     """테스트 간 레이트리밋 카운터 누적을 방지한다."""
     reset_cooldown_cache_for_tests()
@@ -51,6 +67,7 @@ def reset_rate_limiters() -> Generator[None, None, None]:
         getattr(app.state, "limiter", None),
         limiter_login,
         limiter_notifications,
+        limiter_signup,
         limiter_view_request,
         limiter_support,
         limiter_upload_ip,

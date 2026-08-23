@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useToast } from '../../../components/toast';
+import { officeMailto, siteConfig } from '../../../lib/site';
 import { submitContact } from '../../../services/support';
 
 export default function SupportContactPage() {
@@ -28,7 +29,11 @@ export default function SupportContactPage() {
   return (
     <div className="p-6 max-w-xl">
       <h2 className="mb-1 text-xl font-semibold">동문회 사무국 문의</h2>
-      <p className="mb-4 text-sm text-text-secondary">홈페이지 이용이나 동문회 활동에 관해 궁금한 점을 남겨 주세요.</p>
+      <p className="mb-4 text-sm text-text-secondary">
+        홈페이지 이용이나 동문회 활동에 관해 궁금한 점을 남겨 주세요. 메일로 바로 보내시려면{' '}
+        <a className="text-link inline-flex min-h-11 items-center" href={officeMailto}>{siteConfig.officeEmail}</a>
+        으로 연락해 주세요.
+      </p>
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
         <label className="text-sm">제목
           <input className="mt-1 w-full rounded border px-3 py-2" value={subject} onChange={(e) => setSubject(e.target.value)} />

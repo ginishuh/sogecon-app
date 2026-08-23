@@ -5,13 +5,14 @@ import { describe, expect, it } from 'vitest';
 import FAQPage from '../app/faq/page';
 import PrivacyPage from '../app/privacy/page';
 import TermsPage from '../app/terms/page';
+import { siteConfig } from '../lib/site';
 
 describe('FAQ & Policy static pages', () => {
   it('renders FAQ page with grouped sections and support information', () => {
     const { asFragment } = render(<FAQPage />);
     expect(screen.getByRole('heading', { level: 1, name: '자주 묻는 질문' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '계정 및 접근' })).toBeInTheDocument();
-    expect(screen.getByText('문서 버전: 2025-10-08')).toBeInTheDocument();
+    expect(screen.getByText('문서 버전: 2026-08-23')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
     expect(asFragment()).toMatchSnapshot();
   });
@@ -20,7 +21,8 @@ describe('FAQ & Policy static pages', () => {
     const { asFragment } = render(<PrivacyPage />);
     expect(screen.getByRole('heading', { level: 1, name: '개인정보 처리방침' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '6. 개인정보 보호를 위한 기술적·관리적 대책' })).toBeInTheDocument();
-    expect(screen.getByText('김서강 회장 (office@sogang-econ-alumni.kr)')).toBeInTheDocument();
+    expect(screen.getByText(/김서강 회장/)).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: siteConfig.officeEmail }).length).toBeGreaterThan(0);
     expect(asFragment()).toMatchSnapshot();
   });
 

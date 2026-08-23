@@ -17,6 +17,7 @@ import {
   listAdminSignupRequestActivationTokenLogs,
   listAdminSignupRequests,
   rejectAdminSignupRequest,
+  sendAdminSignupActivationEmail,
   type SignupActivationIssueResponse,
   type SignupActivationIssueLogRead,
   type SignupRequestRead,
@@ -152,6 +153,25 @@ function useSignupRequestsModel() {
     onError: (error: unknown) => handleError(error, '반려 처리 중 오류가 발생했습니다.'),
   });
 
+  const sendEmailMutation = useMutation({
+    mutationFn: () => {
+      if (lastApprove == null) {
+        throw new Error('missing-activation');
+      }
+      return sendAdminSignupActivationEmail(
+        lastApprove.request.id,
+        lastApprove.activation_token
+      );
+    },
+    onSuccess: (data) => {
+      const message = `${data.sent_to}으로 안내 메일을 보냈습니다.`;
+      setFeedback({ tone: 'success', message });
+      show(message, { type: 'success' });
+    },
+    onError: (error: unknown) =>
+      handleError(error, '안내 메일을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.'),
+  });
+
   const copyToClipboard = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -206,6 +226,7 @@ function useSignupRequestsModel() {
     copyActivationMessage,
     lastIssueLogs,
     feedback,
+    sendEmailMutation,
     clearFeedback: () => setFeedback(null),
   };
 }
@@ -226,7 +247,7 @@ function AdminSignupRequestsContent() {
       <header className="space-y-2">
         <h1 className="text-xl font-semibold text-text-primary">가입신청 심사</h1>
         <p className="text-sm text-text-secondary">
-          대기 중 신청을 승인/반려하고, 승인 시 활성화 토큰·링크·안내문구를 복사해 수동 전달합니다.
+          대기 중 신청을 승인/반려하고, 승인 후 안내 메일을 바로 보낼 수 있습니다. 메일이 실패하면 링크와 안내문구를 복사해 전달하세요.
         </p>
       </header>
 
@@ -238,6 +259,11 @@ function AdminSignupRequestsContent() {
         onCopyToken={model.copyActivationToken}
         onCopyLink={model.copyActivationLink}
         onCopyMessage={model.copyActivationMessage}
+        onSendEmail={() => {
+          model.clearFeedback();
+          model.sendEmailMutation.mutate();
+        }}
+        isSendPending={model.sendEmailMutation.isPending}
       />
 
       <FiltersPanel

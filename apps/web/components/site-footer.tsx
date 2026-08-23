@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import React from 'react';
-import { siteConfig } from '../lib/site';
+import { officeMailto, siteConfig } from '../lib/site';
 
 const SUPPORT_LINKS = [
   { href: '/faq', label: '자주 묻는 질문' },
@@ -15,6 +15,12 @@ export function SiteFooter() {
       <div className="flex flex-col gap-1 text-neutral-muted">
         <span className="font-kopub text-caption uppercase tracking-widest">지원 정보</span>
         <span>{siteConfig.name}</span>
+        <a
+          href={officeMailto}
+          className="text-link inline-flex min-h-11 items-center"
+        >
+          {siteConfig.officeEmail}
+        </a>
       </div>
       <nav aria-label="지원 정보" className="flex flex-wrap gap-3">
         {SUPPORT_LINKS.map((link) => (

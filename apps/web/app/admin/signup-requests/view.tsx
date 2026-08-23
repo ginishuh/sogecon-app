@@ -77,12 +77,16 @@ export function ApproveTokenCard({
   onCopyToken,
   onCopyLink,
   onCopyMessage,
+  onSendEmail,
+  isSendPending,
 }: {
   lastApprove: SignupActivationIssueResponse | null;
   activationLogs: SignupActivationIssueLogRead[];
   onCopyToken: () => void;
   onCopyLink: () => void;
   onCopyMessage: () => void;
+  onSendEmail: () => void;
+  isSendPending: boolean;
 }) {
   if (lastApprove == null) return null;
 
@@ -92,6 +96,7 @@ export function ApproveTokenCard({
   const currentIssue = lastApprove.activation_issue;
 
   const copyBtnClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} border border-state-success-ring bg-white text-state-success hover:bg-surface-raised`;
+  const sendBtnClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.primary}`;
 
   return (
     <div className="space-y-3 rounded border border-state-success-ring bg-state-success-subtle p-4">
@@ -102,6 +107,20 @@ export function ApproveTokenCard({
         최근 발급: {issueTypeLabel(currentIssue.issued_type)} · 담당 {currentIssue.issued_by_student_id} ·{' '}
         {formatDate(currentIssue.issued_at)}
       </p>
+
+      <div className="space-y-2 rounded bg-white px-3 py-3">
+        <p className="text-sm text-text-primary">
+          보낼 주소: <span className="font-medium">{lastApprove.activation_context.email}</span>
+        </p>
+        <button
+          type="button"
+          className={sendBtnClass}
+          onClick={onSendEmail}
+          disabled={isSendPending}
+        >
+          {isSendPending ? '보내는 중...' : '안내 메일 보내기'}
+        </button>
+      </div>
 
       {/* 토큰 */}
       <div className="space-y-1">

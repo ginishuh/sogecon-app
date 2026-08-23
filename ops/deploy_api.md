@@ -21,7 +21,8 @@ as the Web rollback fallback during migration.
 - `RATE_LIMIT_POST_CREATE`: 멤버 게시글 작성 레이트리밋 (예: `5/minute`)
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
 - `PUSH_ENCRYPT_AT_REST`, `PUSH_KEK`: 푸시 구독 암호화 옵션
-- (선택) 관리자 bootstrap 시드: `SEED_PROD_ADMIN001_VALUE`
+- `SEED_PROD_ADMIN001_VALUE`
+- (선택) 가입 승인 안내 메일: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`, `SMTP_FROM_NAME`, `SMTP_USE_TLS`, `PUBLIC_SITE_URL`, `RATE_LIMIT_ACTIVATION_EMAIL`
 - `MEDIA_ROOT`, `MEDIA_URL_BASE`: 업로드 경로 (기본값 사용 가능)
 - `IMAGE_MAX_UPLOAD_BYTES`, `IMAGE_MAX_PIXELS`: 게시글 커버 등 이미지 업로드 한도 (양수 필수; staging/prod는 각각 5MB·10000px 상한, Nginx `client_max_body_size`는 8m 이상 권장)
 - Sentry/관측: `SENTRY_DSN`, `RELEASE`, `SENTRY_TRACES_SAMPLE_RATE`(기본 0.05), `SENTRY_PROFILES_SAMPLE_RATE`(기본 0.0), `SENTRY_SEND_DEFAULT_PII`(필요 시 `true`)

@@ -5230,6 +5230,72 @@
         }
       }
     },
+    "/admin/signup-requests/{signup_request_id}/send-activation-email": {
+      "post": {
+        "tags": [
+          "admin-signup-requests"
+        ],
+        "summary": "Send Signup Activation Email",
+        "operationId": "send_signup_activation_email_admin_signup_requests__signup_request_id__send_activation_email_post",
+        "parameters": [
+          {
+            "name": "signup_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Signup Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupActivationEmailSendPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupActivationEmailSendResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          }
+        }
+      }
+    },
     "/admin/signup-requests/{signup_request_id}/reject": {
       "post": {
         "tags": [
@@ -8195,6 +8261,34 @@
           "cohort"
         ],
         "title": "SignupActivationContextResponse"
+      },
+      "SignupActivationEmailSendPayload": {
+        "properties": {
+          "activation_token": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 8,
+            "title": "Activation Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "activation_token"
+        ],
+        "title": "SignupActivationEmailSendPayload"
+      },
+      "SignupActivationEmailSendResponse": {
+        "properties": {
+          "sent_to": {
+            "type": "string",
+            "title": "Sent To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sent_to"
+        ],
+        "title": "SignupActivationEmailSendResponse"
       },
       "SignupActivationIssueLogListResponse": {
         "properties": {

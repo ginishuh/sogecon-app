@@ -10,9 +10,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models, schemas
-from ..errors import ConflictError, NotFoundError
+from ..errors import ApiError, ConflictError, NotFoundError
 from ..repositories import signup_requests as signup_requests_repo
-from .activation_service import create_member_activation_token
+from . import email_service
+from .activation_service import (
+    create_member_activation_token,
+    load_activation_payload,
+    resolve_activation_signup_request,
+)
 
 
 @dataclass(frozen=True)
@@ -22,6 +27,11 @@ class SignupActivationContext:
     email: str
     name: str
     cohort: int
+
+
+@dataclass(frozen=True)
+class SignupActivationEmailResult:
+    sent_to: str
 
 
 @dataclass(frozen=True)
@@ -269,3 +279,31 @@ async def reject_signup_request(
     setattr(row, "decided_by_student_id", decided_by_student_id)
     setattr(row, "reject_reason", reject_reason)
     return await signup_requests_repo.save_signup_request(db, row)
+
+
+async def send_signup_activation_email(
+    db: AsyncSession,
+    *,
+    signup_request_id: int,
+    activation_token: str,
+) -> SignupActivationEmailResult:
+    payload = load_activation_payload(activation_token)
+    if payload.signup_request_id != signup_request_id:
+        raise ApiError(
+            code="invalid_or_expired_activation_token",
+            detail="invalid_or_expired_activation_token",
+            status=401,
+        )
+
+    row = await resolve_activation_signup_request(db, payload)
+    to_email = cast(str, row.email).strip()
+    if not to_email:
+        raise ConflictError(code="email_recipient_missing")
+
+    sent_to = await email_service.send_activation_email(
+        to_email=to_email,
+        name=cast(str, row.name),
+        student_id=cast(str, row.student_id),
+        token=activation_token,
+    )
+    return SignupActivationEmailResult(sent_to=sent_to)

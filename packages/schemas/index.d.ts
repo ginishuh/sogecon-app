@@ -1181,6 +1181,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/signup-requests/{signup_request_id}/send-activation-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Signup Activation Email */
+        post: operations["send_signup_activation_email_admin_signup_requests__signup_request_id__send_activation_email_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/signup-requests/{signup_request_id}/reject": {
         parameters: {
             query?: never;
@@ -2153,6 +2170,16 @@ export interface components {
             name: string;
             /** Cohort */
             cohort: number;
+        };
+        /** SignupActivationEmailSendPayload */
+        SignupActivationEmailSendPayload: {
+            /** Activation Token */
+            activation_token: string;
+        };
+        /** SignupActivationEmailSendResponse */
+        SignupActivationEmailSendResponse: {
+            /** Sent To */
+            sent_to: string;
         };
         /** SignupActivationIssueLogListResponse */
         SignupActivationIssueLogListResponse: {
@@ -4913,6 +4940,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SignupActivationIssueLogListResponse"];
+                };
+            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
+        };
+    };
+    send_signup_activation_email_admin_signup_requests__signup_request_id__send_activation_email_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                signup_request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupActivationEmailSendPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignupActivationEmailSendResponse"];
                 };
             };
             400: components["responses"]["ProblemDetailsError"];
