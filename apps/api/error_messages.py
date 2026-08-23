@@ -85,14 +85,26 @@ def user_detail_for_code(code: str, *, status: int) -> str:
     return USER_FACING_DETAILS["http_error"]
 
 
+_PUBLIC_BAD_GATEWAY_CODES = frozenset({"email_send_failed"})
+
+
 def public_problem_code_and_detail(
     *,
     status: int,
     code: str,
     detail: str | None = None,
 ) -> tuple[str, str]:
-    """외부 Problem Details용 code/detail. 5xx는 항상 internal_error로 통일한다."""
+    """외부 Problem Details용 code/detail. 5xx는 기본적으로 internal_error다.
+
+    안내 메일 SMTP 전달 실패처럼 알려진 업스트림 장애(502)는 안정 코드를 유지한다.
+    """
     if status >= HTTPStatus.INTERNAL_SERVER_ERROR:
+        if (
+            status == HTTPStatus.BAD_GATEWAY
+            and code in _PUBLIC_BAD_GATEWAY_CODES
+            and code in USER_FACING_DETAILS
+        ):
+            return code, USER_FACING_DETAILS[code]
         return "internal_error", USER_FACING_DETAILS["internal_error"]
     resolved_detail = (
         detail

@@ -121,6 +121,22 @@ describe('가입신청 안내 메일 발송', () => {
   });
 
   it('승인 후 신청자 이메일로 안내 메일을 보낸다', async () => {
+    const sendLog = {
+      id: 2,
+      signup_request_id: 17,
+      issued_type: 'send' as const,
+      issued_by_student_id: 'admin01',
+      token_tail: null,
+      recipient_masked: 'e***@example.com',
+      related_issue_id: 1,
+      issued_at: '2026-08-23T10:00:00Z',
+    };
+    mocks.listAdminSignupRequestActivationTokenLogs
+      .mockResolvedValueOnce({ items: [approveResponse.activation_issue] })
+      .mockResolvedValueOnce({
+        items: [sendLog, approveResponse.activation_issue],
+      });
+
     render(<AdminSignupRequestsPage />, { wrapper: Providers });
 
     fireEvent.click((await screen.findAllByRole('button', { name: '승인' }))[0]);
@@ -135,5 +151,7 @@ describe('가입신청 안내 메일 발송', () => {
     expect(
       await screen.findAllByText('e2e-signup@example.com으로 안내 메일을 보냈습니다.'),
     ).not.toHaveLength(0);
+    expect(await screen.findByText(/안내 메일 · 담당 admin01/)).toBeInTheDocument();
+    expect(screen.getByText(/e\*\*\*@example.com/)).toBeInTheDocument();
   });
 });

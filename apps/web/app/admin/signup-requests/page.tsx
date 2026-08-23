@@ -167,6 +167,9 @@ function useSignupRequestsModel() {
       const message = `${data.sent_to}으로 안내 메일을 보냈습니다.`;
       setFeedback({ tone: 'success', message });
       show(message, { type: 'success' });
+      if (lastApprove != null) {
+        void refreshActivationLogs(lastApprove.request.id);
+      }
     },
     onError: (error: unknown) =>
       handleError(error, '안내 메일을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.'),

@@ -72,7 +72,7 @@
   요청마다 현재 `Member.status`와 `roles`를 DB에서 재확인한다. 삭제·정지 계정은
   401로 세션을 무효화하고, 활성 계정의 역할 회수는 기존 세션에도 즉시 반영한다.
 - 레이트리밋: 로그인 시도 `5/min/IP`(SlowAPI), 글로벌 기본 제한은 설정값(`RATE_LIMIT_DEFAULT`).
-- 가입 승인 안내 메일: 관리자(`admin_signup`)가 `POST /admin/signup-requests/{id}/send-activation-email`로 신청자 이메일에 활성화 링크를 보낸다. 발송은 SMTP(`SMTP_*`, 기본 Gmail)이며 비밀번호는 환경변수로만 주입한다. `PUBLIC_SITE_URL`이 메일의 `/activate` 링크 기준이다. HTML 본문은 브랜드 카드와 CID 인라인 헤더 이미지(`apps/api/assets/email/activation-hero.jpg`)를 포함하고, 텍스트 대안은 링크만 유지한다.
+- 가입 승인 안내 메일: 관리자(`admin_signup`)가 `POST /admin/signup-requests/{id}/send-activation-email`로 신청자 이메일에 활성화 링크를 보낸다. 발송은 SMTP(`SMTP_*`, 기본 Gmail 587 STARTTLS)이며 비밀번호는 환경변수로만 주입한다. staging/prod에서 자격증명이 있으면 TLS를 끌 수 없다. `PUBLIC_SITE_URL`이 메일의 `/activate` 링크 기준이며, 로컬 기본은 `http://localhost:3000`, staging/prod는 공개 https URL이 필수다. HTML 본문은 브랜드 카드와 CID 인라인 헤더 이미지(`apps/api/assets/email/activation-hero.jpg`)를 포함하고, 텍스트 대안은 링크만 유지한다. 발송 성공 시 `signup_activation_issue_logs`에 `issued_type=send` 행을 남긴다(토큰 원문 미저장, 수신 주소는 마스킹). SMTP 전달 실패는 `502 email_send_failed`, SMTP 미설정은 `409 email_not_configured`다. 레이트리밋 `RATE_LIMIT_ACTIVATION_EMAIL`은 IP당 엔드포인트 공용 한도다.
 
 ## RSVP 규칙
 - 모든 RSVP 조회·생성·상태 변경은 활성 회원 세션이 필요하다.

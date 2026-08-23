@@ -13,7 +13,7 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 from ..config import Settings, get_settings
-from ..errors import ConflictError
+from ..errors import BadGatewayError, ConflictError
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +35,16 @@ def smtp_configured(settings: Settings | None = None) -> bool:
 
 def from_address(settings: Settings) -> str:
     return settings.smtp_from_email or settings.smtp_username
+
+
+def mask_email_address(email: str) -> str:
+    trimmed = (email or "").strip()
+    local, sep, domain = trimmed.partition("@")
+    if not sep or not domain:
+        return "***"
+    if not local:
+        return f"*@{domain}"
+    return f"{local[0]}***@{domain}"
 
 
 def build_activation_url(token: str, *, site_url: str | None = None) -> str:
@@ -216,7 +226,7 @@ def deliver_message(
             smtp.send_message(message)
     except (smtplib.SMTPException, OSError) as exc:
         logger.warning("smtp_send_failed type=%s", type(exc).__name__)
-        raise ConflictError(code="email_send_failed") from exc
+        raise BadGatewayError(code="email_send_failed") from exc
 
 
 async def send_activation_email(

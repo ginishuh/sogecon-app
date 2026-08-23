@@ -35,6 +35,36 @@ def clear_consume_cache() -> Generator[None, None, None]:
     ratelimit._consume_cache.clear()
 
 
+def test_consume_limit_shared_scope_ignores_path_params(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("APP_ENV", "dev")
+    reset_settings_cache()
+    try:
+        limiter = Limiter(key_func=lambda request: "1.2.3.4")
+        limit_value = "10/minute"
+        scope = "admin_signup_activation_email"
+        ratelimit.consume_limit(
+            limiter,
+            _build_request("/admin/signup-requests/1/send-activation-email"),
+            limit_value,
+            scope=scope,
+        )
+        ratelimit.consume_limit(
+            limiter,
+            _build_request("/admin/signup-requests/2/send-activation-email"),
+            limit_value,
+            scope=scope,
+        )
+        route_key = (
+            "apps.api.ratelimit.consume_admin_signup_activation_email_10_minute"
+        )
+        assert len(limiter._route_limits.get(route_key, [])) == 1
+        assert len(ratelimit._consume_cache) == 1
+    finally:
+        reset_settings_cache()
+
+
 def test_consume_limit_reuses_decorated_consumer_per_path_and_limit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

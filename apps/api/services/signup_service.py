@@ -66,24 +66,16 @@ async def _issue_activation_token(
         cohort=context.cohort,
         name=context.name,
     )
-    if commit:
-        issue_log = await signup_requests_repo.create_activation_issue_log(
-            db,
+    issue_log = await signup_requests_repo.create_activation_issue_log(
+        db,
+        signup_requests_repo.ActivationIssueLogWrite(
             signup_request_id=context.signup_request_id,
             issued_type=issued_type,
             issued_by_student_id=issued_by_student_id,
             token=token,
-        )
-    else:
-        issue_log = (
-            await signup_requests_repo.create_activation_issue_log_without_commit(
-                db,
-                signup_request_id=context.signup_request_id,
-                issued_type=issued_type,
-                issued_by_student_id=issued_by_student_id,
-                token=token,
-            )
-        )
+        ),
+        commit=commit,
+    )
     return SignupActivationIssueResult(
         context=context,
         token=token,
@@ -286,6 +278,7 @@ async def send_signup_activation_email(
     *,
     signup_request_id: int,
     activation_token: str,
+    sent_by_student_id: str,
 ) -> SignupActivationEmailResult:
     payload = load_activation_payload(activation_token)
     if payload.signup_request_id != signup_request_id:
@@ -305,5 +298,24 @@ async def send_signup_activation_email(
         name=cast(str, row.name),
         student_id=cast(str, row.student_id),
         token=activation_token,
+    )
+    token_hash, _token_tail = signup_requests_repo.hash_activation_token(
+        activation_token
+    )
+    related_issue_id = await signup_requests_repo.find_latest_issue_log_id_for_token(
+        db,
+        signup_request_id=signup_request_id,
+        token_hash=token_hash,
+    )
+    await signup_requests_repo.create_activation_issue_log(
+        db,
+        signup_requests_repo.ActivationIssueLogWrite(
+            signup_request_id=signup_request_id,
+            issued_type="send",
+            issued_by_student_id=sent_by_student_id,
+            token=activation_token,
+            recipient_masked=email_service.mask_email_address(to_email),
+            related_issue_id=related_issue_id,
+        ),
     )
     return SignupActivationEmailResult(sent_to=sent_to)

@@ -20,8 +20,11 @@ import type {
 
 export type ListState = 'loading' | 'error' | 'empty' | 'ready';
 
-function issueTypeLabel(value: 'approve' | 'reissue'): string {
-  return value === 'approve' ? '승인 발급' : '재발급';
+function issueTypeLabel(value: string): string {
+  if (value === 'approve') return '승인 발급';
+  if (value === 'reissue') return '재발급';
+  if (value === 'send') return '안내 메일';
+  return value;
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -172,7 +175,9 @@ export function ApproveTokenCard({
             {activationLogs.slice(0, 5).map((log) => (
               <li key={log.id} className="rounded bg-white px-3 py-2 text-xs text-text-secondary">
                 {formatDate(log.issued_at)} · {issueTypeLabel(log.issued_type)} · 담당{' '}
-                {log.issued_by_student_id} · 토큰 식별자 {log.token_tail ?? '-'}
+                {log.issued_by_student_id}
+                {log.recipient_masked ? ` · ${log.recipient_masked}` : ''}
+                {log.issued_type === 'send' ? '' : ` · 토큰 식별자 ${log.token_tail ?? '-'}`}
               </li>
             ))}
           </ul>

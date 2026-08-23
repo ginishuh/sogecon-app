@@ -2,6 +2,7 @@ import base64
 import binascii
 from functools import lru_cache
 from ipaddress import ip_address, ip_network
+from urllib.parse import urlparse
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -12,6 +13,8 @@ _SMTP_PORT_MAX = 65535
 # staging/prod 이미지 업로드 한도 상한 (제품 정책 5MB + multipart overhead는 proxy 담당)
 _IMAGE_MAX_UPLOAD_BYTES_CAP = 5_000_000  # 5MB
 _IMAGE_MAX_PIXELS_CAP = 10_000
+_LOCAL_PUBLIC_SITE_URL = "http://localhost:3000"
+_LOCAL_PUBLIC_SITE_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
 
 
 def is_jwt_placeholder(secret: str) -> bool:
@@ -151,7 +154,7 @@ class Settings(BaseSettings):
     )
     smtp_use_tls: bool = Field(default=True, alias="SMTP_USE_TLS")
     public_site_url: str = Field(
-        default="https://sogangeconomics.com", alias="PUBLIC_SITE_URL"
+        default=_LOCAL_PUBLIC_SITE_URL, alias="PUBLIC_SITE_URL"
     )
 
     # --- Validators ---
@@ -192,7 +195,7 @@ class Settings(BaseSettings):
     def _normalize_public_site_url(cls, v: str) -> str:
         raw = (v or "").strip().rstrip("/")
         if not raw:
-            return "https://sogangeconomics.com"
+            return ""
         if not (raw.startswith("http://") or raw.startswith("https://")):
             raise ValueError("PUBLIC_SITE_URL must be an absolute http(s) URL")
         return raw
@@ -236,6 +239,31 @@ class Settings(BaseSettings):
                     f"invalid TRUSTED_PROXY_IPS entry: {ip_str}"
                 ) from exc
         return raw
+
+    @model_validator(mode="after")
+    def _validate_public_site_and_smtp(self) -> "Settings":
+        production_like = self.app_env in {"staging", "prod"}
+        if not self.public_site_url:
+            if production_like:
+                raise ValueError(
+                    "PUBLIC_SITE_URL must be set when APP_ENV is staging or prod"
+                )
+            self.public_site_url = _LOCAL_PUBLIC_SITE_URL
+        elif production_like:
+            parsed = urlparse(self.public_site_url)
+            host = (parsed.hostname or "").lower()
+            if parsed.scheme != "https" or host in _LOCAL_PUBLIC_SITE_HOSTS:
+                raise ValueError(
+                    "PUBLIC_SITE_URL must be a public https URL "
+                    "when APP_ENV is staging or prod"
+                )
+        smtp_credentials = bool(self.smtp_username or self.smtp_password)
+        if production_like and smtp_credentials and not self.smtp_use_tls:
+            raise ValueError(
+                "SMTP_USE_TLS must be true when SMTP credentials are set "
+                f"and APP_ENV={self.app_env}"
+            )
+        return self
 
     @model_validator(mode="after")
     def _validate_production_like_jwt(self) -> "Settings":

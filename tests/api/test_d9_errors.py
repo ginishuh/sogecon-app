@@ -13,6 +13,7 @@ from apps.api import models
 from apps.api.error_messages import (
     USER_FACING_DETAILS,
     code_and_detail_from_http_detail,
+    public_problem_code_and_detail,
 )
 from apps.api.main import _handle_http_exception, app
 from apps.api.routers import notifications as router_mod
@@ -121,7 +122,17 @@ def test_openapi_operations_reference_problem_details_errors() -> None:
                 continue
             responses = operation.get("responses")
             assert isinstance(responses, dict)
-            for status in ("400", "401", "403", "404", "409", "422", "429", "500"):
+            for status in (
+                "400",
+                "401",
+                "403",
+                "404",
+                "409",
+                "422",
+                "429",
+                "500",
+                "502",
+            ):
                 assert responses.get(status) == {"$ref": problem_ref}
             assert "HTTPValidationError" not in json.dumps(responses)
             checked += 1
@@ -136,6 +147,21 @@ def test_code_and_detail_masks_internal_http_500_text() -> None:
     assert code == "internal_error"
     assert detail == USER_FACING_DETAILS["internal_error"]
     assert "Member" not in detail
+
+
+def test_public_problem_keeps_email_send_failed_on_bad_gateway() -> None:
+    code, detail = public_problem_code_and_detail(
+        status=HTTPStatus.BAD_GATEWAY,
+        code="email_send_failed",
+    )
+    assert code == "email_send_failed"
+    assert detail == USER_FACING_DETAILS["email_send_failed"]
+    masked_code, masked_detail = public_problem_code_and_detail(
+        status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        code="email_send_failed",
+    )
+    assert masked_code == "internal_error"
+    assert masked_detail == USER_FACING_DETAILS["internal_error"]
 
 
 @pytest.mark.anyio

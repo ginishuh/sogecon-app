@@ -18,7 +18,10 @@ from ..services.auth_service import (
 )
 
 router = APIRouter(prefix="/admin/signup-requests", tags=["admin-signup-requests"])
-limiter_signup = Limiter(key_func=get_client_ip_for_rate_limit)
+limiter_signup = Limiter(
+    key_func=get_client_ip_for_rate_limit,
+    key_style="endpoint",
+)
 
 
 class SignupRequestListParams(BaseModel):
@@ -188,7 +191,7 @@ async def send_signup_activation_email(
     payload: SignupActivationEmailSendPayload,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    _user: CurrentUser = Depends(
+    user: CurrentUser = Depends(
         require_permission("admin_signup", allow_admin_fallback=False)
     ),
 ) -> SignupActivationEmailSendResponse:
@@ -196,11 +199,13 @@ async def send_signup_activation_email(
         limiter_signup,
         request,
         get_settings().rate_limit_activation_email,
+        scope="admin_signup_activation_email",
     )
     result = await signup_service.send_signup_activation_email(
         db,
         signup_request_id=signup_request_id,
         activation_token=payload.activation_token,
+        sent_by_student_id=user.student_id,
     )
     return SignupActivationEmailSendResponse(sent_to=result.sent_to)
 

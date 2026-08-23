@@ -144,17 +144,29 @@ def get_member_id_for_rate_limit(request: Request) -> str:
     return f"member:{member_id}"
 
 
-def consume_limit(limiter: Limiter, request: Request, limit_value: str) -> None:
+def consume_limit(
+    limiter: Limiter,
+    request: Request,
+    limit_value: str,
+    *,
+    scope: str | None = None,
+) -> None:
     """요청 단위 레이트리밋 토큰 소비.
 
-    동일 (limiter id, path, limit_value) 조합에 대해 데코레이트된 함수를
+    동일 (limiter id, scope/path, limit_value) 조합에 대해 데코레이트된 함수를
     한 번만 생성·등록하고 이후에는 캐시된 함수를 재사용하여
     _route_limits 누적에 의한 다중 토큰 차감 버그를 방지합니다.
+
+    scope를 주면 경로 파라미터(신청 ID 등)와 무관하게 같은 한도를 공유합니다.
     """
     if should_skip_rate_limit():
         return
 
-    path_key = request.url.path.strip("/").replace("/", "_") or "root"
+    scoped = (scope or "").strip()
+    if scoped:
+        path_key = scoped.replace("/", "_").replace(" ", "").replace("-", "_")
+    else:
+        path_key = request.url.path.strip("/").replace("/", "_") or "root"
     limit_key = (
         limit_value.replace("/", "_").replace(" ", "").replace("-", "_").lower()
     )

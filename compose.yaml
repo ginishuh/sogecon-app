@@ -38,7 +38,7 @@ services:
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
       SMTP_FROM_NAME: "${SMTP_FROM_NAME:-서강대 경제대학원 총동문회}"
       SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
-      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-https://sogangeconomics.com}
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-http://localhost:3000}
     volumes:
       - ./apps/api:/app/apps/api:cached
       - ./uploads:/app/uploads

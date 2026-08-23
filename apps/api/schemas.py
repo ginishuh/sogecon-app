@@ -32,7 +32,7 @@ EventStatusLiteral = Literal["upcoming", "ongoing", "ended"]
 HeroTargetTypeLiteral = Literal["post", "event"]
 MemberStatusLiteral = Literal["pending", "active", "suspended", "rejected"]
 SignupRequestStatusLiteral = Literal["pending", "approved", "rejected", "activated"]
-SignupActivationIssueTypeLiteral = Literal["approve", "reissue"]
+SignupActivationIssueTypeLiteral = Literal["approve", "reissue", "send"]
 
 _PHONE_PATTERN = re.compile(r'^[0-9+\-\s]{7,20}$')
 _PHONE_DIGITS_RE = re.compile(r'[^0-9]')
@@ -273,6 +273,8 @@ class SignupActivationIssueLogRead(BaseModel):
     issued_type: SignupActivationIssueTypeLiteral
     issued_by_student_id: str
     token_tail: str | None = None
+    recipient_masked: str | None = None
+    related_issue_id: int | None = None
     issued_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -284,7 +286,6 @@ class SignupRequestListFilters(TypedDict, total=False):
 
 
 class AdminEventListFilters(TypedDict, total=False):
-    """관리자 행사 목록 필터(내부용)."""
 
     q: str
     date_from: datetime
@@ -584,7 +585,6 @@ class ProfileChangeRequestRead(BaseModel):
     decided_at: datetime | None = None
     decided_by_student_id: str | None = None
     reject_reason: str | None = None
-    # 관리자 목록에서만 포함 (selectinload 시)
     member_name: str | None = None
     member_student_id: str | None = None
 

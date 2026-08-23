@@ -22,7 +22,7 @@
 - FastAPI 보안 헤더 미들웨어(`apps/api/main.py`)
   - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`
 - CORS: `CORS_ORIGINS` 환경 변수 기반 화이트리스트
-- 레이트리밋: SlowAPI 기반 per-IP 제한(`RATE_LIMIT_*` 환경변수; 상세 표 참조)
+- 레이트리밋: SlowAPI 기반 per-IP 제한(`RATE_LIMIT_*` 환경변수; 상세 표 참조). 가입 승인 안내 메일은 신청 ID가 경로에 있어도 같은 엔드포인트 한도를 쓰도록 `key_style=endpoint`다.
 - Web Push 보강:
    - 구독 at-rest 암호화(옵션): `PUSH_ENCRYPT_AT_REST=true`, `PUSH_KEK=base64(32B)` 설정 시 endpoint/p256dh/auth를 AES-GCM으로 암호화 저장(접두사 `enc:v1:`), 조회/삭제는 `endpoint_hash(SHA-256)`로 결정.
    - 로그 프라이버시: 발송 로그는 endpoint의 SHA-256 해시 + 말미 16자만 저장.
@@ -37,7 +37,7 @@
 | 관리자 알림 발송 | `RATE_LIMIT_NOTIFY_SEND` | `6/minute` | `POST /notifications/admin/notifications/send` |
 | Web Push 구독/해지 | `RATE_LIMIT_SUBSCRIBE` | `30/minute` | `POST/DELETE /notifications/subscriptions` |
 | 문의 접수 | `RATE_LIMIT_SUPPORT` | `1/minute` | `POST /support/contact` |
-| 가입 승인 안내 메일 | `RATE_LIMIT_ACTIVATION_EMAIL` | `10/minute` | `POST /admin/signup-requests/{id}/send-activation-email` |
+| 가입 승인 안내 메일 | `RATE_LIMIT_ACTIVATION_EMAIL` | `10/minute` | `POST /admin/signup-requests/{id}/send-activation-email` (IP당 엔드포인트 공용 한도, 신청 ID와 무관) |
 | 커뮤니티 게시글 작성(멤버) | `RATE_LIMIT_POST_CREATE` | `5/minute` | `POST /posts` (멤버 작성 한정) |
 | 동문 수첩 열람 요청 | `RATE_LIMIT_VIEW_REQUEST` | `10/minute` | `POST /members/{id}/view-requests` |
 
@@ -56,7 +56,9 @@
 - 경계 레이트리밋: API Gateway/Ingress 레벨에서 IP/토큰 기반 제한(로그인/활성화/알림 발송 강제)
 - TLS: HSTS 프리로드 등록 전 도메인·서브도메인 HTTPS 적용 검증
 - 비밀 관리: `.env`는 로컬 전용, 운영은 시크릿 매니저 사용(KMS 암호화, 버전/교체 정책)
-- 로깅/감사: 요청 ID/사용자 ID/행위/리소스/성공 여부 기록. 민감 데이터 마스킹
+- 안내 메일 SMTP: Gmail은 `smtp.gmail.com:587` STARTTLS만 사용한다. staging/prod에서 자격증명이 있으면 `SMTP_USE_TLS=false`는 기동 실패다.
+- 안내 메일 링크: `PUBLIC_SITE_URL`은 staging/prod에서 공개 https URL이어야 한다. 비우거나 localhost로 두면 기동 실패한다. 로컬 기본값은 `http://localhost:3000`이다.
+- 로깅/감사: 요청 ID/사용자 ID/행위/리소스/성공 여부 기록. 민감 데이터 마스킹. 가입 승인 안내 메일 발송은 actor 학번·신청 ID·마스킹된 수신 주소·관련 발급 ID를 `signup_activation_issue_logs`에 남긴다.
 - 세션 보안: 운영에서 세션 쿠키 Secure + SameSite=Strict 권장, 로그인 시도 레이트리밋(5/min/IP)
 - 키 관리: PUSH_KEK는 시크릿 매니저 관리(KMS 암호화), 주기적 회전(더블 키 + 롤링 기간), 폐기 절차 수립
 
