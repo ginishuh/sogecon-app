@@ -1,18 +1,27 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import cast
 
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models, schemas
-from ..errors import ConflictError, NotFoundError
+from ..errors import ApiError, ConflictError, NotFoundError
+from ..logging_utils import log_json
 from ..repositories import signup_requests as signup_requests_repo
-from .activation_service import create_member_activation_token
+from . import email_service
+from .activation_service import (
+    create_member_activation_token,
+    load_activation_payload,
+    resolve_activation_signup_request,
+)
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -22,6 +31,11 @@ class SignupActivationContext:
     email: str
     name: str
     cohort: int
+
+
+@dataclass(frozen=True)
+class SignupActivationEmailResult:
+    sent_to: str
 
 
 @dataclass(frozen=True)
@@ -56,24 +70,16 @@ async def _issue_activation_token(
         cohort=context.cohort,
         name=context.name,
     )
-    if commit:
-        issue_log = await signup_requests_repo.create_activation_issue_log(
-            db,
+    issue_log = await signup_requests_repo.create_activation_issue_log(
+        db,
+        signup_requests_repo.ActivationIssueLogWrite(
             signup_request_id=context.signup_request_id,
             issued_type=issued_type,
             issued_by_student_id=issued_by_student_id,
             token=token,
-        )
-    else:
-        issue_log = (
-            await signup_requests_repo.create_activation_issue_log_without_commit(
-                db,
-                signup_request_id=context.signup_request_id,
-                issued_type=issued_type,
-                issued_by_student_id=issued_by_student_id,
-                token=token,
-            )
-        )
+        ),
+        commit=commit,
+    )
     return SignupActivationIssueResult(
         context=context,
         token=token,
@@ -269,3 +275,92 @@ async def reject_signup_request(
     setattr(row, "decided_by_student_id", decided_by_student_id)
     setattr(row, "reject_reason", reject_reason)
     return await signup_requests_repo.save_signup_request(db, row)
+
+
+async def send_signup_activation_email(
+    db: AsyncSession,
+    *,
+    signup_request_id: int,
+    activation_token: str,
+    sent_by_student_id: str,
+) -> SignupActivationEmailResult:
+    payload = load_activation_payload(activation_token)
+    if payload.signup_request_id != signup_request_id:
+        raise ApiError(
+            code="invalid_or_expired_activation_token",
+            detail="invalid_or_expired_activation_token",
+            status=401,
+        )
+
+    row = await resolve_activation_signup_request(db, payload)
+    to_email = cast(str, row.email).strip()
+    if not to_email:
+        raise ConflictError(code="email_recipient_missing")
+
+    sent_to = await email_service.send_activation_email(
+        to_email=to_email,
+        name=cast(str, row.name),
+        student_id=cast(str, row.student_id),
+        token=activation_token,
+    )
+    await _record_activation_email_send(
+        db,
+        signup_request_id=signup_request_id,
+        activation_token=activation_token,
+        sent_by_student_id=sent_by_student_id,
+        to_email=to_email,
+    )
+    return SignupActivationEmailResult(sent_to=sent_to)
+
+
+async def _record_activation_email_send(
+    db: AsyncSession,
+    *,
+    signup_request_id: int,
+    activation_token: str,
+    sent_by_student_id: str,
+    to_email: str,
+) -> None:
+    recipient_masked = email_service.mask_email_address(to_email)
+    try:
+        token_hash, _token_tail = signup_requests_repo.hash_activation_token(
+            activation_token
+        )
+        related_issue_id = (
+            await signup_requests_repo.find_latest_issue_log_id_for_token(
+                db,
+                signup_request_id=signup_request_id,
+                token_hash=token_hash,
+            )
+        )
+        await signup_requests_repo.create_activation_issue_log(
+            db,
+            signup_requests_repo.ActivationIssueLogWrite(
+                signup_request_id=signup_request_id,
+                issued_type="send",
+                issued_by_student_id=sent_by_student_id,
+                token=activation_token,
+                recipient_masked=recipient_masked,
+                related_issue_id=related_issue_id,
+            ),
+        )
+    except SQLAlchemyError as exc:
+        log_json(
+            logger,
+            logging.ERROR,
+            "activation_email_audit_failed",
+            signup_request_id=signup_request_id,
+            sent_by_student_id=sent_by_student_id,
+            recipient_masked=recipient_masked,
+            error_type=type(exc).__name__,
+        )
+        try:
+            await db.rollback()
+        except SQLAlchemyError as rollback_exc:
+            log_json(
+                logger,
+                logging.ERROR,
+                "activation_email_audit_rollback_failed",
+                signup_request_id=signup_request_id,
+                error_type=type(rollback_exc).__name__,
+            )

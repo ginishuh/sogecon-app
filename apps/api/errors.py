@@ -37,3 +37,8 @@ class ConflictError(ApiError):
 class ForbiddenError(ApiError):
     def __init__(self, code: str = "forbidden", detail: str = "") -> None:
         super().__init__(code=code, detail=detail, status=403)
+
+
+class BadGatewayError(ApiError):
+    def __init__(self, code: str = "bad_gateway", detail: str = "") -> None:
+        super().__init__(code=code, detail=detail, status=502)

@@ -104,9 +104,9 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
               로 발송됩니다. 메일을 받지 못했다면 스팸함을 확인하거나 
               <a
                 class="text-link"
-                href="mailto:office@sogang-econ-alumni.kr"
+                href="mailto:sogangecon.alumni@gmail.com"
               >
-                office@sogang-econ-alumni.kr
+                sogangecon.alumni@gmail.com
               </a>
               로 문의해 주세요. 5회 이상 연속 실패 시 보안을 위해 10분간 로그인이 제한됩니다.
             </dd>
@@ -273,9 +273,9 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
               사무국 대표 메일(
               <a
                 class="text-link"
-                href="mailto:office@sogang-econ-alumni.kr"
+                href="mailto:sogangecon.alumni@gmail.com"
               >
-                office@sogang-econ-alumni.kr
+                sogangecon.alumni@gmail.com
               </a>
               ) 또는 대표 전화(02-715-1234)로 연락해 주세요. 평일 10:00-17:00에 응대하며, 주말 문의는 다음 영업일에 순차 처리합니다.
             </dd>
@@ -299,9 +299,9 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
         사무국 대표 메일 
         <a
           class="underline decoration-brand-accent decoration-2 underline-offset-4"
-          href="mailto:office@sogang-econ-alumni.kr"
+          href="mailto:sogangecon.alumni@gmail.com"
         >
-          office@sogang-econ-alumni.kr
+          sogangecon.alumni@gmail.com
         </a>
          또는 대표 번호 02-715-1234(ARS 2번)로 연락해 주세요. 평균 응답 시간은 영업일 기준 24시간 이내입니다.
       </p>
@@ -309,7 +309,7 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
     <p
       class="text-xs uppercase tracking-widest text-neutral-muted"
     >
-      문서 버전: 2025-10-08
+      문서 버전: 2026-08-23
     </p>
   </div>
 </DocumentFragment>
@@ -551,7 +551,14 @@ exports[`FAQ & Policy static pages > renders privacy policy with sections and co
               에서 직접 정보를 열람·수정할 수 있습니다. 개별 동문에게 허용한 수첩 상세는 같은 화면의 보기 요청에서 허용 취소로 철회할 수 있습니다.
             </li>
             <li>
-              삭제 또는 처리정지를 원할 경우 사무국 대표 이메일(office@sogang-econ-alumni.kr)로 신청해 주세요. 접수일로부터 7일 이내 처리 결과를 안내합니다.
+              삭제 또는 처리정지를 원할 경우 사무국 대표 이메일(
+              <a
+                class="text-link"
+                href="mailto:sogangecon.alumni@gmail.com"
+              >
+                sogangecon.alumni@gmail.com
+              </a>
+              )로 신청해 주세요. 접수일로부터 7일 이내 처리 결과를 안내합니다.
             </li>
             <li>
               대리인을 통한 요청은 위임장과 본인 신분증 사본을 제출해야 하며, 30일 이내 답변드립니다.
@@ -633,7 +640,14 @@ exports[`FAQ & Policy static pages > renders privacy policy with sections and co
               <dd
                 class="text-neutral-muted"
               >
-                김서강 회장 (office@sogang-econ-alumni.kr)
+                김서강 회장 (
+                <a
+                  class="text-link"
+                  href="mailto:sogangecon.alumni@gmail.com"
+                >
+                  sogangecon.alumni@gmail.com
+                </a>
+                )
               </dd>
             </div>
             <div>
@@ -645,7 +659,14 @@ exports[`FAQ & Policy static pages > renders privacy policy with sections and co
               <dd
                 class="text-neutral-muted"
               >
-                박은영 사무국장 (privacy@sogang-econ-alumni.kr, 02-715-1234)
+                박은영 사무국장 (
+                <a
+                  class="text-link"
+                  href="mailto:sogangecon.alumni@gmail.com"
+                >
+                  sogangecon.alumni@gmail.com
+                </a>
+                , 02-715-1234)
               </dd>
             </div>
           </dl>
@@ -656,12 +677,12 @@ exports[`FAQ & Policy static pages > renders privacy policy with sections and co
       class="rounded-2xl bg-brand-surface px-6 py-6 text-xs uppercase tracking-widest text-neutral-muted md:py-8"
     >
       <p>
-        문서 버전: 2026-08-19 · 시행일: 2025-10-15
+        문서 버전: 2026-08-23 · 시행일: 2025-10-15
       </p>
       <p
         class="mt-2 text-neutral-muted/80"
       >
-        시행일: 2025-10-15 · 개정일: 2026-08-19
+        시행일: 2025-10-15 · 개정일: 2026-08-23
       </p>
     </footer>
   </div>

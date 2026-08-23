@@ -6,8 +6,11 @@ export const siteConfig = {
   shortName: '총동문회',
   description:
     '서강대학교 경제대학원 총동문회 공식 웹 — 공지, 행사, 동문 수첩, FAQ를 한 화면에서 확인하고 동문 네트워크와 바로 연결하세요.',
-  url: siteUrl
+  url: siteUrl,
+  officeEmail: 'sogangecon.alumni@gmail.com',
 } as const;
+
+export const officeMailto = `mailto:${siteConfig.officeEmail}`;
 
 export const ogImage = {
   path: '/og-default.png',

@@ -41,6 +41,16 @@ USER_FACING_DETAILS: dict[str, str] = {
     "view_request_not_pending": "대기 중인 요청만 처리할 수 있습니다.",
     "view_request_not_accepted": "허용 중인 요청만 철회할 수 있습니다.",
     "directory_consent_required": "동문 수첩에 공개하려면 안내에 동의해 주세요.",
+    "email_not_configured": (
+        "안내 메일을 보낼 준비가 되어 있지 않습니다. 안내문구를 복사해 전달해 주세요."
+    ),
+    "email_send_failed": (
+        "안내 메일을 보내지 못했습니다. "
+        "잠시 후 다시 시도하거나 안내문구를 복사해 전달해 주세요."
+    ),
+    "email_recipient_missing": (
+        "보낼 이메일 주소가 없어 안내 메일을 발송하지 못했습니다."
+    ),
 }
 
 _FRAMEWORK_DETAIL_CODES: dict[str, tuple[str, str]] = {
@@ -75,14 +85,26 @@ def user_detail_for_code(code: str, *, status: int) -> str:
     return USER_FACING_DETAILS["http_error"]
 
 
+_PUBLIC_BAD_GATEWAY_CODES = frozenset({"email_send_failed"})
+
+
 def public_problem_code_and_detail(
     *,
     status: int,
     code: str,
     detail: str | None = None,
 ) -> tuple[str, str]:
-    """외부 Problem Details용 code/detail. 5xx는 항상 internal_error로 통일한다."""
+    """외부 Problem Details용 code/detail. 5xx는 기본적으로 internal_error다.
+
+    안내 메일 SMTP 전달 실패처럼 알려진 업스트림 장애(502)는 안정 코드를 유지한다.
+    """
     if status >= HTTPStatus.INTERNAL_SERVER_ERROR:
+        if (
+            status == HTTPStatus.BAD_GATEWAY
+            and code in _PUBLIC_BAD_GATEWAY_CODES
+            and code in USER_FACING_DETAILS
+        ):
+            return code, USER_FACING_DETAILS[code]
         return "internal_error", USER_FACING_DETAILS["internal_error"]
     resolved_detail = (
         detail

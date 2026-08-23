@@ -344,7 +344,7 @@ class SignupActivationIssueLog(Base):
     __tablename__ = "signup_activation_issue_logs"
     __table_args__ = (
         CheckConstraint(
-            "issued_type IN ('approve', 'reissue')",
+            "issued_type IN ('approve', 'reissue', 'send')",
             name="ck_signup_activation_issue_logs_issued_type",
         ),
         Index(
@@ -364,10 +364,18 @@ class SignupActivationIssueLog(Base):
     issued_by_student_id = Column(String(20), nullable=False)
     token_hash = Column(String(64), nullable=False, index=True)
     token_tail = Column(String(16), nullable=True)
+    recipient_masked = Column(String(255), nullable=True)
+    related_issue_id = Column(
+        Integer,
+        ForeignKey(
+            "signup_activation_issue_logs.id",
+            ondelete="SET NULL",
+            name="fk_signup_activation_issue_logs_related_issue_id",
+        ),
+        nullable=True,
+    )
     issued_at = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now(),
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
 

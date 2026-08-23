@@ -7,6 +7,7 @@ import Link from 'next/link';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuth } from '../../hooks/useAuth';
+import { resolveApiAssetUrl } from '../../lib/api';
 import { getAdminHeroTargetHref } from '../../lib/post-links';
 import { hasPermissionSession } from '../../lib/rbac';
 import { listHeroSlides, type HeroSlide } from '../../services/hero';
@@ -23,6 +24,12 @@ type Slide = {
 
 const FALLBACK_HERO_IMAGE = '/images/home/alumni-networking-hero.webp';
 
+function resolveHeroImage(image: string | null | undefined): string {
+  const raw = image?.trim();
+  if (!raw) return FALLBACK_HERO_IMAGE;
+  return resolveApiAssetUrl(raw);
+}
+
 function truncateAtWordBoundary(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
   const truncated = text.substring(0, maxLength);
@@ -36,7 +43,7 @@ function buildSlides(
 ): Slide[] {
   const slides = data.slice(0, opts.max).map((slide) => ({
     id: `hero-${slide.id}`,
-    image: slide.image || FALLBACK_HERO_IMAGE,
+    image: resolveHeroImage(slide.image),
     title: slide.title || '함께 성장하는 동문 네트워크',
     description: slide.description
       ? truncateAtWordBoundary(slide.description, 100)

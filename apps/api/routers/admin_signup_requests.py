@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
+from slowapi import Limiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
+from ..config import get_settings
 from ..db import get_db
+from ..ratelimit import consume_limit, get_client_ip_for_rate_limit
 from ..services import signup_service
 from ..services.auth_service import (
     CurrentUser,
@@ -15,6 +18,10 @@ from ..services.auth_service import (
 )
 
 router = APIRouter(prefix="/admin/signup-requests", tags=["admin-signup-requests"])
+limiter_signup = Limiter(
+    key_func=get_client_ip_for_rate_limit,
+    key_style="endpoint",
+)
 
 
 class SignupRequestListParams(BaseModel):
@@ -50,6 +57,14 @@ class SignupActivationIssueLogListResponse(BaseModel):
 
 class SignupRejectPayload(BaseModel):
     reason: str = Field(min_length=1, max_length=500)
+
+
+class SignupActivationEmailSendPayload(BaseModel):
+    activation_token: str = Field(min_length=8, max_length=4096)
+
+
+class SignupActivationEmailSendResponse(BaseModel):
+    sent_to: str
 
 
 @router.get("/", response_model=SignupRequestListResponse)
@@ -165,6 +180,34 @@ async def list_signup_activation_token_logs(
             for row in rows
         ]
     )
+
+
+@router.post(
+    "/{signup_request_id}/send-activation-email",
+    response_model=SignupActivationEmailSendResponse,
+)
+async def send_signup_activation_email(
+    signup_request_id: int,
+    payload: SignupActivationEmailSendPayload,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(
+        require_permission("admin_signup", allow_admin_fallback=False)
+    ),
+) -> SignupActivationEmailSendResponse:
+    consume_limit(
+        limiter_signup,
+        request,
+        get_settings().rate_limit_activation_email,
+        scope="admin_signup_activation_email",
+    )
+    result = await signup_service.send_signup_activation_email(
+        db,
+        signup_request_id=signup_request_id,
+        activation_token=payload.activation_token,
+        sent_by_student_id=user.student_id,
+    )
+    return SignupActivationEmailSendResponse(sent_to=result.sent_to)
 
 
 @router.post("/{signup_request_id}/reject", response_model=schemas.SignupRequestRead)

@@ -3,12 +3,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 import AdminSignupRequestsPage from '../app/admin/signup-requests/page';
 import {
+  ApproveTokenCard,
   FiltersPanel,
   PaginationBar,
   RejectPanel,
   SignupRequestsTable,
 } from '../app/admin/signup-requests/view';
-import type { SignupRequestRead } from '../services/signup-requests';
+import type { SignupActivationIssueResponse, SignupRequestRead } from '../services/signup-requests';
 
 vi.mock('../hooks/useAuth', () => ({
   useAuth: () => ({ status: 'loading', data: undefined }),
@@ -118,5 +119,46 @@ describe('가입신청 심사 조작 접근성', () => {
       expect(button).toHaveClass('min-h-11');
       expect(button).toBeDisabled();
     }
+  });
+});
+
+describe('가입신청 안내 메일 버튼', () => {
+  it('안내 메일 보내기 버튼을 44px로 제공한다', () => {
+    const lastApprove: SignupActivationIssueResponse = {
+      request,
+      activation_context: {
+        signup_request_id: 17,
+        student_id: 'e2e-signup',
+        email: 'e2e-signup@example.com',
+        name: '합성 가입신청',
+        cohort: 177,
+      },
+      activation_token: 'mock-activation-token',
+      activation_issue: {
+        id: 1,
+        signup_request_id: 17,
+        issued_type: 'approve',
+        issued_by_student_id: 'admin01',
+        token_tail: 'token',
+        issued_at: '2026-08-13T01:00:00Z',
+      },
+    };
+
+    render(
+      <ApproveTokenCard
+        lastApprove={lastApprove}
+        activationLogs={[]}
+        onCopyToken={vi.fn()}
+        onCopyLink={vi.fn()}
+        onCopyMessage={vi.fn()}
+        onSendEmail={vi.fn()}
+        isSendPending={false}
+      />,
+    );
+
+    const button = screen.getByRole('button', { name: '안내 메일 보내기' });
+    expect(button).toHaveClass('min-h-11');
+    expect(button).toHaveClass('focus-visible:ring-2');
+    expect(screen.getByText('e2e-signup@example.com')).toBeInTheDocument();
   });
 });

@@ -272,6 +272,10 @@ const server = createServer(async (request, response) => {
     sendJson(response, 200, activationIssuePayload(), origin);
     return;
   }
+  if (method === 'POST' && url.pathname === '/admin/signup-requests/1/send-activation-email') {
+    sendJson(response, 200, { sent_to: signupRequestPayload('approved').email }, origin);
+    return;
+  }
   if (
     method === 'GET' &&
     url.pathname === '/admin/signup-requests/1/activation-token-logs'

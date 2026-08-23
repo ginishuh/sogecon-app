@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import HomePage from '../app/page';
 import HomeHeroCarousel from '../components/home/hero-carousel';
 import { HomeActionsView } from '../components/home/quick-actions';
+import { API_BASE } from '../lib/api';
 import { listHeroSlides } from '../services/hero';
 import { renderWithProviders } from '../tests/render-with-providers';
 
@@ -94,5 +95,25 @@ describe('HomePage hero and cards', () => {
     expect(carousel).not.toBeNull();
     const result = await axe.run(carousel as HTMLElement, axeOptions);
     expect(result.violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
+  });
+
+  it('resolves uploaded hero images through the API origin', async () => {
+    vi.mocked(listHeroSlides).mockResolvedValueOnce([
+      {
+        id: 3,
+        target_type: 'post',
+        target_id: 13,
+        title: '업로드 배너',
+        description: 'API 미디어 경로',
+        image: '/media/images/hero.jpg',
+        href: '/posts/13',
+        unpublished: false,
+      },
+    ]);
+
+    const { container } = renderWithProviders(<HomeHeroCarousel />);
+    expect(await screen.findByRole('link', { name: '업로드 배너 자세히 보기' })).toBeInTheDocument();
+    const image = container.querySelector('img');
+    expect(image).toHaveAttribute('src', `${API_BASE}/media/images/hero.jpg`);
   });
 });

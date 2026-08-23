@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   listAdminSignupRequests: vi.fn(),
   approveAdminSignupRequest: vi.fn(),
   listAdminSignupRequestActivationTokenLogs: vi.fn(),
+  sendAdminSignupActivationEmail: vi.fn(),
 }));
 
 vi.mock('../hooks/useAuth', () => ({
@@ -28,6 +29,7 @@ vi.mock('../services/signup-requests', async (importOriginal) => {
     listAdminSignupRequests: mocks.listAdminSignupRequests,
     approveAdminSignupRequest: mocks.approveAdminSignupRequest,
     listAdminSignupRequestActivationTokenLogs: mocks.listAdminSignupRequestActivationTokenLogs,
+    sendAdminSignupActivationEmail: mocks.sendAdminSignupActivationEmail,
   };
 });
 
@@ -87,6 +89,9 @@ describe('가입신청 활성화 토큰 로그 실패 피드백', () => {
     mocks.listAdminSignupRequests.mockResolvedValue({ items: [request], total: 1 });
     mocks.approveAdminSignupRequest.mockResolvedValue(approveResponse);
     mocks.listAdminSignupRequestActivationTokenLogs.mockRejectedValue(new Error('network'));
+    mocks.sendAdminSignupActivationEmail.mockResolvedValue({
+      sent_to: 'e2e-signup@example.com',
+    });
   });
 
   it('토큰 로그 조회 실패를 화면 피드백과 toast로 알린다', async () => {
@@ -97,5 +102,56 @@ describe('가입신청 활성화 토큰 로그 실패 피드백', () => {
     const message = '활성화 안내 기록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
     expect(await screen.findByRole('alert')).toHaveTextContent(message);
     expect(screen.getAllByText(message).length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('가입신청 안내 메일 발송', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.auth.status = 'authorized';
+    mocks.auth.data = { roles: ['member', 'admin', 'admin_signup'] };
+    mocks.listAdminSignupRequests.mockResolvedValue({ items: [request], total: 1 });
+    mocks.approveAdminSignupRequest.mockResolvedValue(approveResponse);
+    mocks.listAdminSignupRequestActivationTokenLogs.mockResolvedValue({
+      items: [approveResponse.activation_issue],
+    });
+    mocks.sendAdminSignupActivationEmail.mockResolvedValue({
+      sent_to: 'e2e-signup@example.com',
+    });
+  });
+
+  it('승인 후 신청자 이메일로 안내 메일을 보낸다', async () => {
+    const sendLog = {
+      id: 2,
+      signup_request_id: 17,
+      issued_type: 'send' as const,
+      issued_by_student_id: 'admin01',
+      token_tail: null,
+      recipient_masked: 'e***@example.com',
+      related_issue_id: 1,
+      issued_at: '2026-08-23T10:00:00Z',
+    };
+    mocks.listAdminSignupRequestActivationTokenLogs
+      .mockResolvedValueOnce({ items: [approveResponse.activation_issue] })
+      .mockResolvedValueOnce({
+        items: [sendLog, approveResponse.activation_issue],
+      });
+
+    render(<AdminSignupRequestsPage />, { wrapper: Providers });
+
+    fireEvent.click((await screen.findAllByRole('button', { name: '승인' }))[0]);
+    fireEvent.click(await screen.findByRole('button', { name: '안내 메일 보내기' }));
+
+    await waitFor(() => {
+      expect(mocks.sendAdminSignupActivationEmail).toHaveBeenCalledWith(
+        17,
+        'mock-activation-token',
+      );
+    });
+    expect(
+      await screen.findAllByText('e2e-signup@example.com으로 안내 메일을 보냈습니다.'),
+    ).not.toHaveLength(0);
+    expect(await screen.findByText(/안내 메일 · 담당 admin01/)).toBeInTheDocument();
+    expect(screen.getByText(/e\*\*\*@example.com/)).toBeInTheDocument();
   });
 });

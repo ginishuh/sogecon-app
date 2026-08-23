@@ -20,8 +20,11 @@ import type {
 
 export type ListState = 'loading' | 'error' | 'empty' | 'ready';
 
-function issueTypeLabel(value: 'approve' | 'reissue'): string {
-  return value === 'approve' ? '승인 발급' : '재발급';
+function issueTypeLabel(value: string): string {
+  if (value === 'approve') return '승인 발급';
+  if (value === 'reissue') return '재발급';
+  if (value === 'send') return '안내 메일';
+  return value;
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -77,12 +80,16 @@ export function ApproveTokenCard({
   onCopyToken,
   onCopyLink,
   onCopyMessage,
+  onSendEmail,
+  isSendPending,
 }: {
   lastApprove: SignupActivationIssueResponse | null;
   activationLogs: SignupActivationIssueLogRead[];
   onCopyToken: () => void;
   onCopyLink: () => void;
   onCopyMessage: () => void;
+  onSendEmail: () => void;
+  isSendPending: boolean;
 }) {
   if (lastApprove == null) return null;
 
@@ -92,6 +99,7 @@ export function ApproveTokenCard({
   const currentIssue = lastApprove.activation_issue;
 
   const copyBtnClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} border border-state-success-ring bg-white text-state-success hover:bg-surface-raised`;
+  const sendBtnClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.primary}`;
 
   return (
     <div className="space-y-3 rounded border border-state-success-ring bg-state-success-subtle p-4">
@@ -102,6 +110,20 @@ export function ApproveTokenCard({
         최근 발급: {issueTypeLabel(currentIssue.issued_type)} · 담당 {currentIssue.issued_by_student_id} ·{' '}
         {formatDate(currentIssue.issued_at)}
       </p>
+
+      <div className="space-y-2 rounded bg-white px-3 py-3">
+        <p className="text-sm text-text-primary">
+          보낼 주소: <span className="font-medium">{lastApprove.activation_context.email}</span>
+        </p>
+        <button
+          type="button"
+          className={sendBtnClass}
+          onClick={onSendEmail}
+          disabled={isSendPending}
+        >
+          {isSendPending ? '보내는 중...' : '안내 메일 보내기'}
+        </button>
+      </div>
 
       {/* 토큰 */}
       <div className="space-y-1">
@@ -153,7 +175,9 @@ export function ApproveTokenCard({
             {activationLogs.slice(0, 5).map((log) => (
               <li key={log.id} className="rounded bg-white px-3 py-2 text-xs text-text-secondary">
                 {formatDate(log.issued_at)} · {issueTypeLabel(log.issued_type)} · 담당{' '}
-                {log.issued_by_student_id} · 토큰 식별자 {log.token_tail ?? '-'}
+                {log.issued_by_student_id}
+                {log.recipient_masked ? ` · ${log.recipient_masked}` : ''}
+                {log.issued_type === 'send' ? '' : ` · 토큰 식별자 ${log.token_tail ?? '-'}`}
               </li>
             ))}
           </ul>

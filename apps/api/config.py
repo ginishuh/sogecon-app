@@ -2,15 +2,19 @@ import base64
 import binascii
 from functools import lru_cache
 from ipaddress import ip_address, ip_network
+from urllib.parse import urlparse
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _APP_ENV_ALLOWED = frozenset({"dev", "test", "staging", "prod"})
 _JWT_MIN_LEN = 32
+_SMTP_PORT_MAX = 65535
 # staging/prod 이미지 업로드 한도 상한 (제품 정책 5MB + multipart overhead는 proxy 담당)
 _IMAGE_MAX_UPLOAD_BYTES_CAP = 5_000_000  # 5MB
 _IMAGE_MAX_PIXELS_CAP = 10_000
+_LOCAL_PUBLIC_SITE_URL = "http://localhost:3000"
+_LOCAL_PUBLIC_SITE_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
 
 
 def is_jwt_placeholder(secret: str) -> bool:
@@ -54,6 +58,9 @@ class Settings(BaseSettings):
     rate_limit_login: str = Field(default="5/minute", alias="RATE_LIMIT_LOGIN")
     rate_limit_notify_send: str = Field(
         default="6/minute", alias="RATE_LIMIT_NOTIFY_SEND"
+    )
+    rate_limit_activation_email: str = Field(
+        default="10/minute", alias="RATE_LIMIT_ACTIVATION_EMAIL"
     )
     rate_limit_support: str = Field(default="1/minute", alias="RATE_LIMIT_SUPPORT")
     rate_limit_subscribe: str = Field(
@@ -136,6 +143,20 @@ class Settings(BaseSettings):
     # 세션 만료 시간 (초). 기본 7일. 0이면 브라우저 세션 쿠키.
     session_max_age: int = Field(default=604800, alias="SESSION_MAX_AGE")
 
+    # Transactional email (Gmail SMTP + app password)
+    smtp_host: str = Field(default="smtp.gmail.com", alias="SMTP_HOST")
+    smtp_port: int = Field(default=587, alias="SMTP_PORT")
+    smtp_username: str = Field(default="", alias="SMTP_USERNAME")
+    smtp_password: str = Field(default="", alias="SMTP_PASSWORD")
+    smtp_from_email: str = Field(default="", alias="SMTP_FROM_EMAIL")
+    smtp_from_name: str = Field(
+        default="서강대 경제대학원 총동문회", alias="SMTP_FROM_NAME"
+    )
+    smtp_use_tls: bool = Field(default=True, alias="SMTP_USE_TLS")
+    public_site_url: str = Field(
+        default=_LOCAL_PUBLIC_SITE_URL, alias="PUBLIC_SITE_URL"
+    )
+
     # --- Validators ---
     @field_validator("cookie_same_site")
     @classmethod
@@ -149,6 +170,35 @@ class Settings(BaseSettings):
     @classmethod
     def _normalize_jwt_secret(cls, v: str) -> str:
         return (v or "").strip()
+
+    @field_validator("smtp_host", "smtp_username", "smtp_from_email", "smtp_from_name")
+    @classmethod
+    def _strip_smtp_text(cls, v: str) -> str:
+        return (v or "").strip()
+
+    @field_validator("smtp_password")
+    @classmethod
+    def _normalize_smtp_password(cls, v: str) -> str:
+        return "".join((v or "").split())
+
+    @field_validator("smtp_port")
+    @classmethod
+    def _validate_smtp_port(cls, v: int) -> int:
+        if v < 1 or v > _SMTP_PORT_MAX:
+            raise ValueError(
+                f"SMTP_PORT must be between 1 and {_SMTP_PORT_MAX}"
+            )
+        return v
+
+    @field_validator("public_site_url")
+    @classmethod
+    def _normalize_public_site_url(cls, v: str) -> str:
+        raw = (v or "").strip().rstrip("/")
+        if not raw:
+            return ""
+        if not (raw.startswith("http://") or raw.startswith("https://")):
+            raise ValueError("PUBLIC_SITE_URL must be an absolute http(s) URL")
+        return raw
 
     @field_validator("app_env")
     @classmethod
@@ -189,6 +239,31 @@ class Settings(BaseSettings):
                     f"invalid TRUSTED_PROXY_IPS entry: {ip_str}"
                 ) from exc
         return raw
+
+    @model_validator(mode="after")
+    def _validate_public_site_and_smtp(self) -> "Settings":
+        production_like = self.app_env in {"staging", "prod"}
+        if not self.public_site_url:
+            if production_like:
+                raise ValueError(
+                    "PUBLIC_SITE_URL must be set when APP_ENV is staging or prod"
+                )
+            self.public_site_url = _LOCAL_PUBLIC_SITE_URL
+        elif production_like:
+            parsed = urlparse(self.public_site_url)
+            host = (parsed.hostname or "").lower()
+            if parsed.scheme != "https" or host in _LOCAL_PUBLIC_SITE_HOSTS:
+                raise ValueError(
+                    "PUBLIC_SITE_URL must be a public https URL "
+                    "when APP_ENV is staging or prod"
+                )
+        smtp_credentials = bool(self.smtp_username or self.smtp_password)
+        if production_like and smtp_credentials and not self.smtp_use_tls:
+            raise ValueError(
+                "SMTP_USE_TLS must be true when SMTP credentials are set "
+                f"and APP_ENV={self.app_env}"
+            )
+        return self
 
     @model_validator(mode="after")
     def _validate_production_like_jwt(self) -> "Settings":

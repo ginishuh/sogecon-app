@@ -3,6 +3,7 @@ import React from 'react';
 
 import { AboutHero } from '../../../components/about-hero';
 import { AboutHeroPhoto } from '../../../components/about/about-hero-photo';
+import { officeMailto, siteConfig } from '../../../lib/site';
 
 export const revalidate = 3600;
 
@@ -113,7 +114,12 @@ export default function OrgPage() {
       <section aria-labelledby="org-contact" className="rounded-3xl border border-neutral-border bg-white px-6 py-8 shadow-sm md:flex md:items-center md:justify-between md:gap-8 md:px-10">
         <div>
           <h2 id="org-contact" className="font-heading text-xl font-semibold text-brand-primary md:text-2xl">운영진에게 전할 말이 있나요?</h2>
-          <p className="mt-2 max-w-2xl leading-7 text-text-secondary">행사 제안, 분과 활동, 명단 수정 등 동문회 운영에 관한 의견은 사무국에서 담당자에게 연결합니다.</p>
+          <p className="mt-2 max-w-2xl leading-7 text-text-secondary">
+            행사 제안, 분과 활동, 명단 수정 등 동문회 운영에 관한 의견은 사무국에서 담당자에게 연결합니다.
+            메일 주소는{' '}
+            <a className="text-link inline-flex min-h-11 items-center" href={officeMailto}>{siteConfig.officeEmail}</a>
+            입니다.
+          </p>
         </div>
         <Link href="/support/contact" className="mt-5 inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-brand-primary px-6 font-semibold text-white no-underline transition hover:bg-brand-800 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 md:mt-0">사무국에 문의하기</Link>
       </section>

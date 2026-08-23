@@ -93,7 +93,7 @@ _PROBLEM_ERROR_RESPONSE_REF: dict[str, str] = {
     "$ref": "#/components/responses/ProblemDetailsError",
 }
 _PROBLEM_ERROR_STATUSES = frozenset(
-    {"400", "401", "403", "404", "409", "422", "429", "500"}
+    {"400", "401", "403", "404", "409", "422", "429", "500", "502"}
 )
 _OPENAPI_HTTP_METHODS = frozenset(
     {"get", "post", "put", "patch", "delete", "options", "head", "trace"}

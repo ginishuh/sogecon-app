@@ -21,6 +21,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   signup_request_not_found: '가입신청을 찾을 수 없습니다.',
   signup_request_not_pending: '대기 중인 신청만 처리할 수 있습니다.',
   signup_request_not_approved: `승인된 신청만 ${MEMBER_LANGUAGE.activationCode}를 다시 발급할 수 있습니다.`,
+  email_not_configured: '안내 메일을 보낼 준비가 되어 있지 않습니다. 안내문구를 복사해 전달해 주세요.',
+  email_send_failed: '안내 메일을 보내지 못했습니다. 잠시 후 다시 시도하거나 안내문구를 복사해 전달해 주세요.',
+  email_recipient_missing: '보낼 이메일 주소가 없어 안내 메일을 발송하지 못했습니다.',
 
   // 게시글/행사 관련
   post_not_found: '게시글을 찾을 수 없습니다.',

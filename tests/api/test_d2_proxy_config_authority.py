@@ -75,6 +75,10 @@ def test_testclient_host_does_not_skip_outside_test_env(
         monkeypatch.setenv("APP_ENV", env)
         monkeypatch.setenv("JWT_SECRET", _STRONG_JWT)
         monkeypatch.setenv("DATABASE_URL", _PG)
+        if env in {"staging", "prod"}:
+            monkeypatch.setenv(
+                "PUBLIC_SITE_URL", "https://sogangeconomics.com"
+            )
         reset_settings_cache()
         assert should_skip_rate_limit() is False
         # host 문자열은 더 이상 스킵 근거가 아니다

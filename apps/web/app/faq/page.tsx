@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import React from 'react';
 
+import { officeMailto, siteConfig } from '../../lib/site';
+
 // 정적 페이지: 1시간 ISR 캐싱
 export const revalidate = 3600;
 
@@ -51,7 +53,7 @@ const faqSections: FAQSection[] = [
         answer: (
           <>
             비밀번호 재설정 링크는 <em>가입 시 등록한 이메일</em>로 발송됩니다. 메일을 받지 못했다면 스팸함을 확인하거나{' '}
-            <a className="text-link" href="mailto:office@sogang-econ-alumni.kr">office@sogang-econ-alumni.kr</a>로 문의해 주세요. 5회 이상 연속 실패 시
+            <a className="text-link" href={officeMailto}>{siteConfig.officeEmail}</a>로 문의해 주세요. 5회 이상 연속 실패 시
             보안을 위해 10분간 로그인이 제한됩니다.
           </>
         )
@@ -123,7 +125,7 @@ const faqSections: FAQSection[] = [
         question: '문의는 어떤 채널을 이용하면 되나요?',
         answer: (
           <>
-            사무국 대표 메일(<a className="text-link" href="mailto:office@sogang-econ-alumni.kr">office@sogang-econ-alumni.kr</a>) 또는 대표 전화(02-715-1234)로 연락해 주세요.
+            사무국 대표 메일(<a className="text-link" href={officeMailto}>{siteConfig.officeEmail}</a>) 또는 대표 전화(02-715-1234)로 연락해 주세요.
             평일 10:00-17:00에 응대하며, 주말 문의는 다음 영업일에 순차 처리합니다.
           </>
         )
@@ -169,12 +171,12 @@ export default function FAQPage() {
           추가로 궁금한 점이 있다면
         </h2>
         <p className="mt-2">
-          사무국 대표 메일 <a className="underline decoration-brand-accent decoration-2 underline-offset-4" href="mailto:office@sogang-econ-alumni.kr">office@sogang-econ-alumni.kr</a> 또는
+          사무국 대표 메일 <a className="underline decoration-brand-accent decoration-2 underline-offset-4" href={officeMailto}>{siteConfig.officeEmail}</a> 또는
           대표 번호 02-715-1234(ARS 2번)로 연락해 주세요. 평균 응답 시간은 영업일 기준 24시간 이내입니다.
         </p>
       </section>
 
-      <p className="text-xs uppercase tracking-widest text-neutral-muted">문서 버전: 2025-10-08</p>
+      <p className="text-xs uppercase tracking-widest text-neutral-muted">문서 버전: 2026-08-23</p>
     </div>
   );
 }
