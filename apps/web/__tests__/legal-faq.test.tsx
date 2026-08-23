@@ -14,6 +14,7 @@ describe('FAQ & Policy static pages', () => {
     expect(screen.getByRole('heading', { name: '계정 및 접근' })).toBeInTheDocument();
     expect(screen.getByText('문서 버전: 2026-08-23')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
+    expect(screen.queryByText(/02-715-1234/)).not.toBeInTheDocument();
     expect(asFragment()).toMatchSnapshot();
   });
 
@@ -21,7 +22,9 @@ describe('FAQ & Policy static pages', () => {
     const { asFragment } = render(<PrivacyPage />);
     expect(screen.getByRole('heading', { level: 1, name: '개인정보 처리방침' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '6. 개인정보 보호를 위한 기술적·관리적 대책' })).toBeInTheDocument();
-    expect(screen.getByText(/김서강 회장/)).toBeInTheDocument();
+    expect(screen.getByText(/허민철 회장/)).toBeInTheDocument();
+    expect(screen.getByText(/황승환 사무국장/)).toBeInTheDocument();
+    expect(screen.queryByText(/02-715-1234/)).not.toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: siteConfig.officeEmail }).length).toBeGreaterThan(0);
     expect(asFragment()).toMatchSnapshot();
   });
