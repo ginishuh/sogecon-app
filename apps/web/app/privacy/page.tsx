@@ -82,8 +82,8 @@ const sections: PolicySection[] = [
           이 공개는 비밀번호 만들기와 분리된 동의 화면에서 받습니다. 운영자가 회원 동의 없이 공개 범위만 바꿀 수는 없습니다.
         </p>
         <p className="mt-3">
-          위 동문 수첩 공개 외에 법령에 따른 수사기관 요청, 클라우드 인프라·문자 발송 등 운영 위탁이 있을 수 있습니다.
-          현재 위탁 현황은 AWS(인프라 운영), Twilio(알림 발송)이며, 위탁 계약 시 안전성 확보를 위한 조치를 명시합니다.
+          위 동문 수첩 공개 외에 법령에 따른 수사기관 요청, 서버 호스팅·안내 메일 발송 등 운영 위탁이 있을 수 있습니다.
+          현재 위탁 현황은 서버 호스팅과 Gmail(안내 메일 발송)이며, 위탁 계약 시 안전성 확보를 위한 조치를 명시합니다.
         </p>
       </>
     )
@@ -130,7 +130,7 @@ const sections: PolicySection[] = [
         <div>
           <dt className="font-semibold text-neutral-ink">개인정보 보호책임자</dt>
           <dd className="text-neutral-muted">
-            김서강 회장 (
+            허민철 회장 (
             <a className="text-link" href={officeMailto}>{siteConfig.officeEmail}</a>
             )
           </dd>
@@ -138,9 +138,9 @@ const sections: PolicySection[] = [
         <div>
           <dt className="font-semibold text-neutral-ink">개인정보 보호담당자</dt>
           <dd className="text-neutral-muted">
-            박은영 사무국장 (
+            황승환 사무국장 (
             <a className="text-link" href={officeMailto}>{siteConfig.officeEmail}</a>
-            , 02-715-1234)
+            )
           </dd>
         </div>
       </dl>

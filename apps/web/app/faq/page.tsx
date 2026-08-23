@@ -125,8 +125,9 @@ const faqSections: FAQSection[] = [
         question: '문의는 어떤 채널을 이용하면 되나요?',
         answer: (
           <>
-            사무국 대표 메일(<a className="text-link" href={officeMailto}>{siteConfig.officeEmail}</a>) 또는 대표 전화(02-715-1234)로 연락해 주세요.
-            평일 10:00-17:00에 응대하며, 주말 문의는 다음 영업일에 순차 처리합니다.
+            사무국 대표 메일(<a className="text-link" href={officeMailto}>{siteConfig.officeEmail}</a>) 또는{' '}
+            <Link className="text-link" href="/support/contact">문의하기</Link>
+            로 연락해 주세요. 평일 10:00-17:00에 응대하며, 주말 문의는 다음 영업일에 순차 처리합니다.
           </>
         )
       }
@@ -171,8 +172,8 @@ export default function FAQPage() {
           추가로 궁금한 점이 있다면
         </h2>
         <p className="mt-2">
-          사무국 대표 메일 <a className="underline decoration-brand-accent decoration-2 underline-offset-4" href={officeMailto}>{siteConfig.officeEmail}</a> 또는
-          대표 번호 02-715-1234(ARS 2번)로 연락해 주세요. 평균 응답 시간은 영업일 기준 24시간 이내입니다.
+          사무국 대표 메일 <a className="underline decoration-brand-accent decoration-2 underline-offset-4" href={officeMailto}>{siteConfig.officeEmail}</a>
+          또는 <Link className="text-link" href="/support/contact">문의하기</Link>로 남겨 주세요. 평균 응답 시간은 영업일 기준 24시간 이내입니다.
         </p>
       </section>
 
