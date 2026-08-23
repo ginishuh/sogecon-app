@@ -9,11 +9,12 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 from pytest import MonkeyPatch
+from sqlalchemy.exc import SQLAlchemyError
 
 from apps.api.config import Settings, reset_settings_cache
 from apps.api.errors import BadGatewayError
 from apps.api.main import app
-from apps.api.services import email_service
+from apps.api.services import email_service, signup_service
 from tests.api.problem_assertions import assert_problem_code
 
 _PG = "postgresql+psycopg://app:devpass@localhost:5433/appdb"
@@ -117,6 +118,44 @@ def test_send_activation_email_success(
     assert send_item["recipient_masked"] == "s***@test.example.com"
     assert send_item["related_issue_id"] == issue_id
     assert token not in str(send_item)
+
+
+def test_send_activation_email_succeeds_when_audit_write_fails(
+    admin_login: TestClient, monkeypatch: MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    _configure_smtp(monkeypatch)
+    sent: list[EmailMessage] = []
+
+    def fake_deliver(message: EmailMessage, settings: object = None) -> None:
+        sent.append(message)
+
+    monkeypatch.setattr(email_service, "deliver_message", fake_deliver)
+    signup_id, token, email, _issue_id = _create_approved_signup(admin_login)
+
+    async def fail_audit(*_args: object, **_kwargs: object) -> None:
+        raise SQLAlchemyError("audit write failed")
+
+    monkeypatch.setattr(
+        signup_service.signup_requests_repo,
+        "create_activation_issue_log",
+        fail_audit,
+    )
+    with caplog.at_level("ERROR"):
+        res = admin_login.post(
+            f"/admin/signup-requests/{signup_id}/send-activation-email",
+            json={"activation_token": token},
+        )
+    assert res.status_code == HTTPStatus.OK
+    assert res.json() == {"sent_to": email}
+    assert len(sent) == 1
+    logs = admin_login.get(
+        f"/admin/signup-requests/{signup_id}/activation-token-logs"
+    )
+    assert logs.status_code == HTTPStatus.OK
+    assert all(item["issued_type"] != "send" for item in logs.json()["items"])
+    assert "activation_email_audit_failed" in caplog.text
+    assert token not in caplog.text
+    assert email not in caplog.text
 
 
 def test_send_activation_email_not_configured(
