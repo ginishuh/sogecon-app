@@ -6242,15 +6242,9 @@
             "title": "Body"
           },
           "contact": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 120
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "maxLength": 120,
+            "format": "email",
             "title": "Contact"
           },
           "hp": {
@@ -6268,7 +6262,8 @@
         "type": "object",
         "required": [
           "subject",
-          "body"
+          "body",
+          "contact"
         ],
         "title": "ContactPayload"
       },

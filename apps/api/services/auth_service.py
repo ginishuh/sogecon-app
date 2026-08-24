@@ -299,6 +299,33 @@ async def require_member(
     raise HTTPException(status_code=401, detail="unauthorized")
 
 
+async def get_optional_member(
+    req: Request,
+    db: AsyncSession = Depends(get_db),
+) -> CurrentMember | None:
+    """공개 경로에서 유효한 회원 세션이 있을 때만 회원 정보를 반환한다."""
+    user = _get_user_session(req)
+    if user is None:
+        return None
+    try:
+        user, _member = await _refresh_user_session(db, req, user)
+    except HTTPException as exc:
+        if exc.status_code == HTTPStatus.UNAUTHORIZED:
+            return None
+        raise
+    if not (
+        "member" in user.roles
+        or "admin" in user.roles
+        or "super_admin" in user.roles
+    ):
+        return None
+    return CurrentMember(
+        student_id=user.student_id,
+        id=user.id if isinstance(user.id, int) else None,
+        email=user.email,
+    )
+
+
 # ---- 로그인/로그아웃 서비스 ----
 
 

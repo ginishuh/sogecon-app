@@ -16,7 +16,7 @@ from ..repositories import support_tickets as tickets_repo
 
 @dataclass
 class ContactTicketInput:
-    member_email: str
+    member_email: str | None
     subject: str
     body: str
     contact: str | None
