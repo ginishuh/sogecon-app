@@ -202,11 +202,21 @@ def test_support_contact_rate_limit(
 ) -> None:
     client = admin_login
     res1 = client.post(
-        "/support/contact", json={"subject": "hello", "body": "message long enough"}
+        "/support/contact",
+        json={
+            "subject": "hello",
+            "body": "message long enough",
+            "contact": "rate-one@example.com",
+        },
     )
     assert res1.status_code in (HTTPStatus.ACCEPTED, HTTPStatus.OK)
 
     res2 = client.post(
-        "/support/contact", json={"subject": "hello2", "body": "message long enough 2"}
+        "/support/contact",
+        json={
+            "subject": "hello2",
+            "body": "message long enough 2",
+            "contact": "rate-two@example.com",
+        },
     )
     assert res2.status_code in (HTTPStatus.ACCEPTED, HTTPStatus.TOO_MANY_REQUESTS)

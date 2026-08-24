@@ -1382,8 +1382,11 @@ export interface components {
             subject: string;
             /** Body */
             body: string;
-            /** Contact */
-            contact?: string | null;
+            /**
+             * Contact
+             * Format: email
+             */
+            contact: string;
             /** Hp */
             hp?: string | null;
         };

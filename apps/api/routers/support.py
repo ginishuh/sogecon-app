@@ -5,18 +5,17 @@ import re
 import time
 
 from fastapi import APIRouter, Depends, Query, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from slowapi import Limiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import get_settings
 from ..db import get_db
-from ..errors import ApiError
 from ..ratelimit import consume_limit, get_client_ip_for_rate_limit
 from ..routers.auth import (
     CurrentMember,
     CurrentUser,
-    require_member,
+    get_optional_member,
     require_permission,
 )
 from ..services import support_service
@@ -34,7 +33,7 @@ _BLOCKLIST = re.compile(r"(viagra|casino|loan|bet|bitcoin|crypto|porn)", re.I)
 class ContactPayload(BaseModel):
     subject: str = Field(min_length=3, max_length=120)
     body: str = Field(min_length=10, max_length=10_000)
-    contact: str | None = Field(default=None, max_length=120)
+    contact: EmailStr = Field(max_length=120)
     hp: str | None = None  # honeypot
 
 
@@ -43,10 +42,11 @@ def _payload_digest(payload: ContactPayload) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _cooldown_ident(member_id: int | None) -> str:
-    if member_id is None:
-        return "member:unknown"
-    return f"member:{member_id}"
+def _cooldown_ident(member_id: int | None, client_ip: str) -> str:
+    if member_id is not None:
+        return f"member:{member_id}"
+    ip_digest = hashlib.sha256(client_ip.encode("utf-8")).hexdigest()
+    return f"anonymous:{ip_digest}"
 
 
 def _purge_cooldown(now: float) -> None:
@@ -88,7 +88,7 @@ def reset_cooldown_cache_for_tests() -> None:
 async def contact(
     payload: ContactPayload,
     request: Request,
-    member: CurrentMember = Depends(require_member),
+    member: CurrentMember | None = Depends(get_optional_member),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, str]:
     consume_limit(limiter, request, get_settings().rate_limit_support)
@@ -99,24 +99,18 @@ async def contact(
     ):
         return {"status": "accepted"}
 
-    ident = _cooldown_ident(member.id)
+    client_ip = get_client_ip_for_rate_limit(request)
+    member_id = member.id if member is not None else None
+    ident = _cooldown_ident(member_id, client_ip)
     digest = _payload_digest(payload)
     now = time.monotonic()
     if _is_duplicate_submission(ident, digest, now):
         return {"status": "accepted"}
 
-    if not member.email:
-        raise ApiError(
-            code="member_email_missing",
-            detail="member_email_missing",
-            status=500,
-        )
-
-    client_ip = get_client_ip_for_rate_limit(request)
     await support_service.create_contact_ticket(
         db,
         support_service.ContactTicketInput(
-            member_email=member.email,
+            member_email=member.email if member is not None else None,
             subject=payload.subject,
             body=payload.body,
             contact=payload.contact,

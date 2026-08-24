@@ -42,13 +42,21 @@ async def test_support_contact_rate_limit_and_validation(
 
         ok = await hc.post(
             "/support/contact",
-            json={"subject": "hello", "body": "message body long enough"},
+            json={
+                "subject": "hello",
+                "body": "message body long enough",
+                "contact": "rate-limit@example.com",
+            },
         )
         assert ok.status_code == HTTPStatus.ACCEPTED
 
         rl = await hc.post(
             "/support/contact",
-            json={"subject": "hello", "body": "message body long enough"},
+            json={
+                "subject": "hello",
+                "body": "message body long enough",
+                "contact": "rate-limit@example.com",
+            },
         )
         assert rl.status_code == HTTPStatus.TOO_MANY_REQUESTS
 
@@ -61,6 +69,100 @@ def test_support_contact_validation(admin_login: TestClient) -> None:
     )
     assert bad.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
+    missing_email = client.post(
+        "/support/contact",
+        json={"subject": "문의 제목", "body": "문의 내용은 충분히 깁니다."},
+    )
+    assert missing_email.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    invalid_email = client.post(
+        "/support/contact",
+        json={
+            "subject": "문의 제목",
+            "body": "문의 내용은 충분히 깁니다.",
+            "contact": "010-1234-5678",
+        },
+    )
+    assert invalid_email.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+def test_anonymous_user_can_submit_support_contact(client: TestClient) -> None:
+    before = _count_support_tickets()
+
+    response = client.post(
+        "/support/contact",
+        json={
+            "subject": "로그인 전 문의",
+            "body": "로그인하지 않은 방문자의 문의도 접수되어야 합니다.",
+            "contact": "anonymous@example.com",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.ACCEPTED
+    assert _count_support_tickets() == before + 1
+
+
+def test_member_without_email_can_submit_support_contact(client: TestClient) -> None:
+    student_id = "support-no-email"
+    override = app.dependency_overrides.get(get_db)
+    if override is None:
+        raise RuntimeError("get_db override not found")
+
+    async def _seed_member() -> None:
+        async for db in override():
+            member = models.Member(
+                student_id=student_id,
+                email=None,
+                name="No Email Member",
+                cohort=1,
+                roles="member",
+                status="active",
+            )
+            db.add(member)
+            await db.flush()
+            db.add(
+                models.MemberAuth(
+                    member_id=member.id,
+                    student_id=student_id,
+                    password_hash=bcrypt.hashpw(
+                        b"support-password", bcrypt.gensalt()
+                    ).decode(),
+                )
+            )
+            await db.commit()
+            break
+
+    async def _ticket() -> models_support.SupportTicket | None:
+        async for db in override():
+            return await db.scalar(
+                select(models_support.SupportTicket).where(
+                    models_support.SupportTicket.subject == "이메일 없는 회원 문의"
+                )
+            )
+        return None
+
+    asyncio.run(_seed_member())
+    login = client.post(
+        "/auth/member/login",
+        json={"student_id": student_id, "password": "support-password"},
+    )
+    assert login.status_code == HTTPStatus.OK
+
+    response = client.post(
+        "/support/contact",
+        json={
+            "subject": "이메일 없는 회원 문의",
+            "body": "회원 이메일이 없어도 답변받을 이메일로 접수되어야 합니다.",
+            "contact": "reply@example.com",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.ACCEPTED
+    ticket = asyncio.run(_ticket())
+    assert ticket is not None
+    assert ticket.member_email is None
+    assert ticket.contact == "reply@example.com"
+
 
 def test_admin_can_list_support_tickets(admin_login: TestClient) -> None:
     client = admin_login
@@ -69,7 +171,7 @@ def test_admin_can_list_support_tickets(admin_login: TestClient) -> None:
         json={
             "subject": "문의 조회 테스트",
             "body": "관리자 문의함 목록에서 본문 확인이 되어야 합니다.",
-            "contact": "010-1111-2222",
+            "contact": "admin-reply@example.com",
         },
     )
     assert submit.status_code == HTTPStatus.ACCEPTED
@@ -181,7 +283,7 @@ def test_support_contact_does_not_write_support_log(
     payload = {
         "subject": "파일 로그 미기록",
         "body": "support.log에 남지 않아야 합니다.",
-        "contact": "010-9999-8888",
+        "contact": "file-log@example.com",
     }
     res = admin_login.post("/support/contact", json=payload)
     assert res.status_code == HTTPStatus.ACCEPTED
@@ -194,7 +296,7 @@ def test_support_contact_cooldown_suppresses_duplicate_row(
     payload = {
         "subject": "중복 억제",
         "body": "같은 payload 재제출은 row를 추가하지 않습니다.",
-        "contact": "010-2222-3333",
+        "contact": "duplicate@example.com",
     }
     before = _count_support_tickets()
     first = admin_login.post("/support/contact", json=payload)
@@ -222,7 +324,7 @@ def test_support_contact_db_failure_leaves_no_cooldown(
 ) -> None:
     subject = "DB실패민감제목"
     body = "DB실패민감본문입니다."
-    contact = "010-5555-4444"
+    contact = "db-failure@example.com"
     payload = {
         "subject": subject,
         "body": body,
@@ -281,6 +383,7 @@ def test_support_contact_records_cooldown_after_commit_time(
     payload = {
         "subject": "commit 시각",
         "body": "cooldown은 commit 완료 시각을 기록해야 합니다.",
+        "contact": "commit-time@example.com",
     }
     res = admin_login.post("/support/contact", json=payload)
     assert res.status_code == HTTPStatus.ACCEPTED
@@ -326,6 +429,7 @@ def test_support_contact_different_members_same_ip_do_not_share_cooldown(
     payload = {
         "subject": "회원별 cooldown",
         "body": "같은 IP라도 회원별로 중복 억제가 분리됩니다.",
+        "contact": "member-cooldown@example.com",
     }
 
     async def _submit(student_id: str, password: str) -> httpx.Response:
@@ -352,7 +456,7 @@ def test_support_contact_cooldown_cache_has_no_plaintext(
 ) -> None:
     subject = "민감 제목"
     body = "민감 본문입니다."
-    contact = "010-1234-5678"
+    contact = "cooldown-pii@example.com"
     admin_login.post(
         "/support/contact",
         json={"subject": subject, "body": body, "contact": contact},
@@ -368,7 +472,7 @@ def test_support_contact_no_pii_in_application_logs(
 ) -> None:
     subject = "로그 민감 제목"
     body = "로그 민감 본문입니다."
-    contact = "010-7777-6666"
+    contact = "application-log@example.com"
     with caplog.at_level("DEBUG"):
         res = admin_login.post(
             "/support/contact",
@@ -400,4 +504,3 @@ def test_support_contact_cooldown_evicts_oldest_at_capacity(
     assert "member:1" not in support_router._recent
     assert "member:2" in support_router._recent
     assert "member:3" in support_router._recent
-
