@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.12.3-slim AS build
+FROM python:3.14.7-slim AS build
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -16,7 +16,7 @@ COPY apps/api/requirements.txt ./requirements.txt
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-FROM python:3.12.3-slim AS runtime
+FROM python:3.14.7-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
