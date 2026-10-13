@@ -7,7 +7,7 @@ set -euo pipefail
 #
 # Usage:
 #   bash scripts/deploy-vps.sh -t <tag> [--prefix local/sogecon] [--local-build|--pull-images] \
-#       [--env .env.api] [--web-env .env.web] [--sentry-env .env.sentry] \
+#       [--env .env.api] [--web-env .env.web] \
 #       [--web-api-base https://api.example.com] \  # omit on openclaw prod; .env.web is authority
 #       [--skip-migrate] [--seed-admin] [--uploads /var/lib/sogecon/uploads] \
 #       [--network sogecon_net] [--api-health URL] [--web-health URL]
@@ -19,8 +19,6 @@ TAG=""
 IMAGE_PREFIX="${IMAGE_PREFIX_DEFAULT}"
 ENV_FILE=".env.api"
 WEB_ENV_FILE=".env.web"
-# Web 소스맵 업로드용 SENTRY_AUTH_TOKEN. 런타임 컨테이너 env와 분리해 빌드에만 쓴다.
-SENTRY_ENV_FILE=".env.sentry"
 UPLOADS_DIR="/var/lib/sogecon/uploads"
 NET_NAME="sogecon_net"
 DO_MIGRATE=1
@@ -61,8 +59,6 @@ while [[ $# -gt 0 ]]; do
       ENV_FILE="$2"; shift 2;;
     -w|--web-env)
       WEB_ENV_FILE="$2"; shift 2;;
-    --sentry-env)
-      SENTRY_ENV_FILE="$2"; shift 2;;
     --web-api-base)
       WEB_API_BASE="$2"; WEB_API_BASE_OVERRIDE=1; shift 2;;
     --uploads)
@@ -117,22 +113,12 @@ extract_web_build_env() {
   fi
 }
 
-# .env.sentry도 실행하지 않고 SENTRY_AUTH_TOKEN 한 줄만 데이터로 읽는다.
-read_sentry_auth_token() {
-  local line value=""
-  [[ -f "$SENTRY_ENV_FILE" ]] || return 0
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    line=${line%$'\r'}
-    if [[ "$line" =~ ^[[:space:]]*(export[[:space:]]+)?SENTRY_AUTH_TOKEN[[:space:]]*=[[:space:]]*(.*)$ ]]; then
-      value=${BASH_REMATCH[2]}
-      value="${value%"${value##*[![:space:]]}"}"
-      case "${value}" in
-        \"*\") value=${value:1:${#value}-2} ;;
-        \'*\') value=${value:1:${#value}-2} ;;
-      esac
-    fi
-  done <"$SENTRY_ENV_FILE"
-  printf '%s' "$value"
+# Web 소스맵 업로드는 빌드 호스트에 로그인된 sentry CLI 토큰을 쓴다(wastelite-suite와 같은 방식).
+# 로그인 토큰은 만료가 짧아 빌드마다 갱신한 값을 메모리로만 받고 파일·로그에 남기지 않는다.
+sentry_cli_auth_token() {
+  command -v sentry >/dev/null 2>&1 || return 0
+  sentry auth refresh >/dev/null 2>&1 || true
+  sentry auth token 2>/dev/null || true
 }
 
 if [[ -z "$TAG" ]]; then
@@ -181,13 +167,18 @@ else
     unset "$key"
   done
   unset SENTRY_AUTH_TOKEN
-  sentry_auth_token=$(read_sentry_auth_token)
-  if [[ -n "$sentry_auth_token" ]]; then
-    WEB_BUILD_ENV+=("SENTRY_AUTH_TOKEN=$sentry_auth_token")
-  else
-    echo "[deploy] ${SENTRY_ENV_FILE} has no SENTRY_AUTH_TOKEN; Web source maps will not be uploaded"
+  sentry_auth_token=$(sentry_cli_auth_token)
+  if [[ -z "$sentry_auth_token" ]]; then
+    echo "[deploy] sentry CLI is not logged in; Web source maps will not be uploaded"
   fi
-  env "${WEB_BUILD_ENV[@]}" bash "$ROOT_DIR/ops/cloud-build.sh"
+  # 토큰은 env 인자로 넘기지 않고 subshell export로만 전달해 프로세스 목록에 남기지 않는다.
+  (
+    if [[ -n "$sentry_auth_token" ]]; then
+      export SENTRY_AUTH_TOKEN="$sentry_auth_token"
+    fi
+    env "${WEB_BUILD_ENV[@]}" bash "$ROOT_DIR/ops/cloud-build.sh"
+  )
+  unset sentry_auth_token
 fi
 
 if [[ -n "$NET_NAME" ]]; then

@@ -56,7 +56,7 @@
   - 환경은 `prod`, 트레이스 샘플링 0.1, `sendDefaultPii=false`, Session Replay는 쓰지 않는다.
   - 활성화 토큰이 `/activate?token=` 쿼리로 오가므로 오류 이벤트·span(이름과 URL 속성)·이동 기록의 모든 쿼리 값을 `[Filtered]`로 바꿔 보낸다. v11 기본 `traceLifecycle: 'stream'`에서는 `beforeSendTransaction`이 무시되므로 `beforeSendSpan`에서 가린다.
   - 서버 런타임은 들어오는 요청 본문을 첨부하지 않는다(`maxRequestBodySize: 'none'`).
-  - 소스맵은 `.env.sentry`의 `SENTRY_AUTH_TOKEN`을 BuildKit secret으로 받아 업로드하고, 업로드 후 산출물에서 지워 공개 정적 파일로 배포하지 않는다. 토큰은 build-arg·이미지 레이어·런타임 env에 남지 않는다.
+  - 소스맵은 빌드 호스트에 로그인된 `sentry` CLI 토큰을 빌드마다 갱신해 메모리로만 받아 BuildKit secret으로 업로드하고(wastelite-suite와 같은 방식), 업로드 후 산출물에서 지워 공개 정적 파일로 배포하지 않는다. 토큰은 build-arg·이미지 레이어·런타임 env에 남지 않는다.
   - 알림 기준(권장): 5분 rolling 5xx 비율 ≥ 5%, 개별 5xx 발생 시 Slack/메일 알림 트리거.
 
 ## 운영 권장(추가)

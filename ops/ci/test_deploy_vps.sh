@@ -43,6 +43,16 @@ case "$command" in
 esac
 EOF
 chmod 755 "$FAKE_BIN/docker"
+# 실제 sentry CLI 로그인을 쓰지 않도록 테스트용 sentry로 가린다.
+cat >"$FAKE_BIN/sentry" <<'EOF'
+#!/usr/bin/env bash
+case "$*" in
+  'auth refresh') [[ -n "${FAKE_SENTRY_TOKEN:-}" ]] ;;
+  'auth token') [[ -n "${FAKE_SENTRY_TOKEN:-}" ]] && printf '%s\n' "$FAKE_SENTRY_TOKEN" ;;
+  *) exit 1 ;;
+esac
+EOF
+chmod 755 "$FAKE_BIN/sentry"
 
 API_ENV="$TMP_DIR/api.env"
 WEB_ENV="$TMP_DIR/web.env"
@@ -62,12 +72,7 @@ NEXT_PUBLIC_RELAX_CSP=1
 NEXT_PUBLIC_IMAGE_DOMAINS=cdn.example.com
 NEXT_PUBLIC_SENTRY_DSN=https://public@o0.ingest.sentry.io/1
 EOF
-SENTRY_ENV="$TMP_DIR/sentry.env"
-SENTRY_TOKEN=sntrys_contract_secret_token
-cat >"$SENTRY_ENV" <<EOF
-RUN_MARKER=\$(touch "$MARKER")
-SENTRY_AUTH_TOKEN="$SENTRY_TOKEN"
-EOF
+SENTRY_TOKEN=sentry_cli_contract_token
 printf '%s\n' 'NEXT_PUBLIC_SITE_URL=https://www.example.com' >"$MISSING_WEB_ENV"
 cat >"$PARTIAL_WEB_ENV" <<'EOF'
 NEXT_PUBLIC_WEB_API_BASE=https://api.partial.example.com
@@ -78,6 +83,7 @@ printf '%s\n' 'NEXT_PUBLIC_WEB_API_BASE=' >"$EMPTY_BASE_WEB_ENV"
 export FAKE_DOCKER_LOG="$TMP_DIR/docker.log"
 export PATH="$FAKE_BIN:$PATH"
 
+FAKE_SENTRY_TOKEN="$SENTRY_TOKEN" \
 PNPM_VERSION=10.17.1 \
   bash "$ROOT/scripts/deploy-vps.sh" \
   --tag d6-contract \
@@ -85,8 +91,7 @@ PNPM_VERSION=10.17.1 \
   --skip-migrate \
   --env "$API_ENV" \
   --web-env "$WEB_ENV" \
-  --sentry-env "$SENTRY_ENV" \
-  --uploads "$TMP_DIR/uploads"
+  --uploads "$TMP_DIR/uploads" >"$TMP_DIR/deploy.out" 2>&1
 
 grep -qF -- 'build --build-arg NEXT_PUBLIC_WEB_API_BASE=https://api.example.com' "$FAKE_DOCKER_LOG"
 grep -qF -- '--build-arg NEXT_PUBLIC_VAPID_PUBLIC_KEY=test-public-vapid-key' "$FAKE_DOCKER_LOG"
@@ -99,8 +104,8 @@ grep -qF -- '--build-arg NEXT_PUBLIC_SENTRY_DSN=https://public@o0.ingest.sentry.
 grep -qF -- '--build-arg SENTRY_RELEASE=d6-contract' "$FAKE_DOCKER_LOG"
 grep -qF -- '--secret id=sentry_auth_token,env=SENTRY_AUTH_TOKEN' "$FAKE_DOCKER_LOG"
 grep '^run ' "$FAKE_DOCKER_LOG" | grep -qF -- 'RELEASE=d6-contract'
-if grep -qF -- "$SENTRY_TOKEN" "$FAKE_DOCKER_LOG"; then
-  echo 'Sentry auth token leaked into Docker command arguments' >&2
+if grep -qF -- "$SENTRY_TOKEN" "$FAKE_DOCKER_LOG" "$TMP_DIR/deploy.out"; then
+  echo 'sentry CLI token leaked into Docker arguments or deploy output' >&2
   exit 1
 fi
 grep -qF -- 'network inspect sogecon_net' "$FAKE_DOCKER_LOG"
@@ -127,10 +132,9 @@ PNPM_VERSION=10.17.1 \
   --skip-migrate \
   --env "$API_ENV" \
   --web-env "$PARTIAL_WEB_ENV" \
-  --sentry-env "$TMP_DIR/missing-sentry.env" \
   --uploads "$TMP_DIR/parent-env-uploads"
 if grep -qF -- '--secret' "$FAKE_DOCKER_LOG"; then
-  echo 'parent SENTRY_AUTH_TOKEN produced a build secret without .env.sentry' >&2
+  echo 'parent SENTRY_AUTH_TOKEN produced a build secret without sentry CLI login' >&2
   exit 1
 fi
 grep -qF -- 'build --build-arg NEXT_PUBLIC_WEB_API_BASE=https://api.partial.example.com' "$FAKE_DOCKER_LOG"
