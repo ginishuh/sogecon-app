@@ -41,6 +41,10 @@ def init_sentry(settings: Settings) -> None:
         environment=settings.app_env,
         integrations=integrations,
         send_default_pii=settings.sentry_send_default_pii,
+        # 요청 본문과 스택 지역 변수에는 연락처·비밀번호·활성화 토큰 같은 회원 정보가
+        # 그대로 들어 있어 보내지 않는다. 기본 스크러버는 중첩 값까지 가리지 못한다.
+        max_request_body_size="never",
+        include_local_variables=False,
         release=release_value,
         traces_sample_rate=sample_rate,
         profiles_sample_rate=profile_rate,

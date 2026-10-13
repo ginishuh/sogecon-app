@@ -50,6 +50,13 @@
   - `APP_ENV`, `RELEASE` 태그와 `request_id`, `http.method`, `http.path` 태그를 자동 부여한다.
   - 샘플링 기본값은 트레이스 0.05, 프로파일 0.0이며 `SENTRY_TRACES_SAMPLE_RATE`, `SENTRY_PROFILES_SAMPLE_RATE` 로 조정한다.
   - PII 전송 필요 시 `SENTRY_SEND_DEFAULT_PII=true` 로 명시하며, 기본은 비활성화된다.
+  - 요청 본문(`max_request_body_size="never"`)과 스택 지역 변수(`include_local_variables=False`)는 보내지 않는다. 둘 다 연락처·비밀번호·활성화 토큰을 그대로 담고, SDK 기본 스크러버는 중첩 값을 가리지 못한다.
+  - `RELEASE`는 배포 태그(`deploy-vps.sh -t`)와 같아 Web 릴리스와 같은 값으로 묶인다.
+- Web Sentry(`@sentry/nextjs`, `NEXT_PUBLIC_SENTRY_DSN`이 운영 이미지 빌드에 있을 때만 활성화):
+  - 환경은 `prod`, 트레이스 샘플링 0.1, `sendDefaultPii=false`, Session Replay는 쓰지 않는다.
+  - 활성화 토큰이 `/activate?token=` 쿼리로 오가므로 오류 이벤트·span(이름과 URL 속성)·이동 기록의 모든 쿼리 값을 `[Filtered]`로 바꿔 보낸다. v11 기본 `traceLifecycle: 'stream'`에서는 `beforeSendTransaction`이 무시되므로 `beforeSendSpan`에서 가린다.
+  - 서버 런타임은 들어오는 요청 본문을 첨부하지 않는다(`maxRequestBodySize: 'none'`).
+  - 소스맵은 `.env.sentry`의 `SENTRY_AUTH_TOKEN`을 BuildKit secret으로 받아 업로드하고, 업로드 후 산출물에서 지워 공개 정적 파일로 배포하지 않는다. 토큰은 build-arg·이미지 레이어·런타임 env에 남지 않는다.
   - 알림 기준(권장): 5분 rolling 5xx 비율 ≥ 5%, 개별 5xx 발생 시 Slack/메일 알림 트리거.
 
 ## 운영 권장(추가)

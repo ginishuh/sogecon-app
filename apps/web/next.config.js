@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const path = require('node:path');
 const { PHASE_PRODUCTION_BUILD } = require('next/constants');
+const { withSentryConfig } = require('@sentry/nextjs/config');
 const {
   allowsLocalApiImageOptimization,
   getPublicApiImageRemotePattern,
@@ -48,6 +49,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_WEB_API_BASE: process.env.NEXT_PUBLIC_WEB_API_BASE,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
   },
   // Ensure Next resolves configs within this workspace (monorepo safe)
   outputFileTracingRoot: path.resolve(__dirname, '../../'),
@@ -82,9 +84,23 @@ const nextConfig = {
   },
 };
 
-module.exports = (phase) => {
+// 운영 이미지 빌드만 SENTRY_AUTH_TOKEN을 BuildKit secret으로 받아 소스맵을 올린다.
+// 업로드한 소스맵은 빌드 산출물에서 지워 공개 정적 파일로 배포하지 않는다.
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN || undefined;
+const sentryBuildOptions = {
+  org: 'wastelite',
+  project: 'sogecon-web',
+  authToken: sentryAuthToken,
+  release: { name: process.env.SENTRY_RELEASE || undefined },
+  sourcemaps: { disable: !sentryAuthToken, deleteSourcemapsAfterUpload: true },
+  widenClientFileUpload: true,
+  telemetry: false,
+  silent: !process.env.CI,
+};
+
+module.exports = withSentryConfig((phase) => {
   if (phase === PHASE_PRODUCTION_BUILD) {
     validateProductionWebApiBase();
   }
   return withBundleAnalyzer(nextConfig);
-};
+}, sentryBuildOptions);

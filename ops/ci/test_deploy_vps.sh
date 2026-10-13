@@ -60,6 +60,13 @@ NEXT_PUBLIC_ANALYTICS_ID=G-D6TEST
 NEXT_PUBLIC_ENABLE_SW=1
 NEXT_PUBLIC_RELAX_CSP=1
 NEXT_PUBLIC_IMAGE_DOMAINS=cdn.example.com
+NEXT_PUBLIC_SENTRY_DSN=https://public@o0.ingest.sentry.io/1
+EOF
+SENTRY_ENV="$TMP_DIR/sentry.env"
+SENTRY_TOKEN=sntrys_contract_secret_token
+cat >"$SENTRY_ENV" <<EOF
+RUN_MARKER=\$(touch "$MARKER")
+SENTRY_AUTH_TOKEN="$SENTRY_TOKEN"
 EOF
 printf '%s\n' 'NEXT_PUBLIC_SITE_URL=https://www.example.com' >"$MISSING_WEB_ENV"
 cat >"$PARTIAL_WEB_ENV" <<'EOF'
@@ -78,6 +85,7 @@ PNPM_VERSION=10.17.1 \
   --skip-migrate \
   --env "$API_ENV" \
   --web-env "$WEB_ENV" \
+  --sentry-env "$SENTRY_ENV" \
   --uploads "$TMP_DIR/uploads"
 
 grep -qF -- 'build --build-arg NEXT_PUBLIC_WEB_API_BASE=https://api.example.com' "$FAKE_DOCKER_LOG"
@@ -87,6 +95,14 @@ grep -qF -- '--build-arg NEXT_PUBLIC_ANALYTICS_ID=G-D6TEST' "$FAKE_DOCKER_LOG"
 grep -qF -- '--build-arg NEXT_PUBLIC_ENABLE_SW=1' "$FAKE_DOCKER_LOG"
 grep -qF -- '--build-arg NEXT_PUBLIC_RELAX_CSP=1' "$FAKE_DOCKER_LOG"
 grep -qF -- '--build-arg NEXT_PUBLIC_IMAGE_DOMAINS=cdn.example.com' "$FAKE_DOCKER_LOG"
+grep -qF -- '--build-arg NEXT_PUBLIC_SENTRY_DSN=https://public@o0.ingest.sentry.io/1' "$FAKE_DOCKER_LOG"
+grep -qF -- '--build-arg SENTRY_RELEASE=d6-contract' "$FAKE_DOCKER_LOG"
+grep -qF -- '--secret id=sentry_auth_token,env=SENTRY_AUTH_TOKEN' "$FAKE_DOCKER_LOG"
+grep '^run ' "$FAKE_DOCKER_LOG" | grep -qF -- 'RELEASE=d6-contract'
+if grep -qF -- "$SENTRY_TOKEN" "$FAKE_DOCKER_LOG"; then
+  echo 'Sentry auth token leaked into Docker command arguments' >&2
+  exit 1
+fi
 grep -qF -- 'network inspect sogecon_net' "$FAKE_DOCKER_LOG"
 grep -qF -- '--network sogecon_net' "$FAKE_DOCKER_LOG"
 [[ ! -e "$MARKER" ]]
@@ -102,6 +118,8 @@ NEXT_PUBLIC_ANALYTICS_ID=stale-analytics \
 NEXT_PUBLIC_ENABLE_SW=stale-sw \
 NEXT_PUBLIC_RELAX_CSP=1 \
 NEXT_PUBLIC_IMAGE_DOMAINS=stale-images.example.com \
+NEXT_PUBLIC_SENTRY_DSN=https://stale@o0.ingest.sentry.io/1 \
+SENTRY_AUTH_TOKEN=stale-parent-token \
 PNPM_VERSION=10.17.1 \
   bash "$ROOT/scripts/deploy-vps.sh" \
   --tag d6-contract-parent-env \
@@ -109,7 +127,12 @@ PNPM_VERSION=10.17.1 \
   --skip-migrate \
   --env "$API_ENV" \
   --web-env "$PARTIAL_WEB_ENV" \
+  --sentry-env "$TMP_DIR/missing-sentry.env" \
   --uploads "$TMP_DIR/parent-env-uploads"
+if grep -qF -- '--secret' "$FAKE_DOCKER_LOG"; then
+  echo 'parent SENTRY_AUTH_TOKEN produced a build secret without .env.sentry' >&2
+  exit 1
+fi
 grep -qF -- 'build --build-arg NEXT_PUBLIC_WEB_API_BASE=https://api.partial.example.com' "$FAKE_DOCKER_LOG"
 if grep -qF -- 'stale' "$FAKE_DOCKER_LOG"; then
   echo 'stale parent public build value leaked into Docker build args' >&2

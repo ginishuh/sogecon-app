@@ -7,7 +7,7 @@ set -euo pipefail
 #
 # Usage:
 #   bash scripts/deploy-vps.sh -t <tag> [--prefix local/sogecon] [--local-build|--pull-images] \
-#       [--env .env.api] [--web-env .env.web] \
+#       [--env .env.api] [--web-env .env.web] [--sentry-env .env.sentry] \
 #       [--web-api-base https://api.example.com] \  # omit on openclaw prod; .env.web is authority
 #       [--skip-migrate] [--seed-admin] [--uploads /var/lib/sogecon/uploads] \
 #       [--network sogecon_net] [--api-health URL] [--web-health URL]
@@ -19,6 +19,8 @@ TAG=""
 IMAGE_PREFIX="${IMAGE_PREFIX_DEFAULT}"
 ENV_FILE=".env.api"
 WEB_ENV_FILE=".env.web"
+# Web 소스맵 업로드용 SENTRY_AUTH_TOKEN. 런타임 컨테이너 env와 분리해 빌드에만 쓴다.
+SENTRY_ENV_FILE=".env.sentry"
 UPLOADS_DIR="/var/lib/sogecon/uploads"
 NET_NAME="sogecon_net"
 DO_MIGRATE=1
@@ -41,6 +43,7 @@ WEB_BUILD_PUBLIC_KEYS=(
   NEXT_PUBLIC_ENABLE_SW
   NEXT_PUBLIC_RELAX_CSP
   NEXT_PUBLIC_IMAGE_DOMAINS
+  NEXT_PUBLIC_SENTRY_DSN
 )
 declare -A WEB_BUILD_PUBLIC_ENV=()
 
@@ -58,6 +61,8 @@ while [[ $# -gt 0 ]]; do
       ENV_FILE="$2"; shift 2;;
     -w|--web-env)
       WEB_ENV_FILE="$2"; shift 2;;
+    --sentry-env)
+      SENTRY_ENV_FILE="$2"; shift 2;;
     --web-api-base)
       WEB_API_BASE="$2"; WEB_API_BASE_OVERRIDE=1; shift 2;;
     --uploads)
@@ -93,7 +98,7 @@ extract_web_build_env() {
     if [[ "$line" =~ ^[[:space:]]*(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]]; then
       key=${BASH_REMATCH[2]}
       case "$key" in
-        NEXT_PUBLIC_WEB_API_BASE|NEXT_PUBLIC_SITE_URL|NEXT_PUBLIC_VAPID_PUBLIC_KEY|NEXT_PUBLIC_ANALYTICS_ID|NEXT_PUBLIC_ENABLE_SW|NEXT_PUBLIC_RELAX_CSP|NEXT_PUBLIC_IMAGE_DOMAINS) ;;
+        NEXT_PUBLIC_WEB_API_BASE|NEXT_PUBLIC_SITE_URL|NEXT_PUBLIC_VAPID_PUBLIC_KEY|NEXT_PUBLIC_ANALYTICS_ID|NEXT_PUBLIC_ENABLE_SW|NEXT_PUBLIC_RELAX_CSP|NEXT_PUBLIC_IMAGE_DOMAINS|NEXT_PUBLIC_SENTRY_DSN) ;;
         *) continue ;;
       esac
       value=${BASH_REMATCH[3]}
@@ -110,6 +115,24 @@ extract_web_build_env() {
   if [[ "$WEB_API_BASE_OVERRIDE" -eq 0 ]]; then
     WEB_API_BASE=${WEB_BUILD_PUBLIC_ENV[NEXT_PUBLIC_WEB_API_BASE]:-}
   fi
+}
+
+# .env.sentry도 실행하지 않고 SENTRY_AUTH_TOKEN 한 줄만 데이터로 읽는다.
+read_sentry_auth_token() {
+  local line value=""
+  [[ -f "$SENTRY_ENV_FILE" ]] || return 0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line=${line%$'\r'}
+    if [[ "$line" =~ ^[[:space:]]*(export[[:space:]]+)?SENTRY_AUTH_TOKEN[[:space:]]*=[[:space:]]*(.*)$ ]]; then
+      value=${BASH_REMATCH[2]}
+      value="${value%"${value##*[![:space:]]}"}"
+      case "${value}" in
+        \"*\") value=${value:1:${#value}-2} ;;
+        \'*\') value=${value:1:${#value}-2} ;;
+      esac
+    fi
+  done <"$SENTRY_ENV_FILE"
+  printf '%s' "$value"
 }
 
 if [[ -z "$TAG" ]]; then
@@ -140,6 +163,7 @@ else
   fi
   WEB_BUILD_ENV=(
     "IMAGE_TAG=$TAG"
+    "SENTRY_RELEASE=$TAG"
     "IMAGE_PREFIX=$IMAGE_PREFIX"
     "PUSH_IMAGES=0"
     "NEXT_PUBLIC_WEB_API_BASE=$WEB_API_BASE"
@@ -156,6 +180,13 @@ else
   for key in "${WEB_BUILD_PUBLIC_KEYS[@]}"; do
     unset "$key"
   done
+  unset SENTRY_AUTH_TOKEN
+  sentry_auth_token=$(read_sentry_auth_token)
+  if [[ -n "$sentry_auth_token" ]]; then
+    WEB_BUILD_ENV+=("SENTRY_AUTH_TOKEN=$sentry_auth_token")
+  else
+    echo "[deploy] ${SENTRY_ENV_FILE} has no SENTRY_AUTH_TOKEN; Web source maps will not be uploaded"
+  fi
   env "${WEB_BUILD_ENV[@]}" bash "$ROOT_DIR/ops/cloud-build.sh"
 fi
 
@@ -177,6 +208,7 @@ fi
 echo "[deploy] Restart containers"
 API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
   API_ENV_FILE="$ENV_FILE" WEB_ENV_FILE="$WEB_ENV_FILE" \
+  RELEASE="$TAG" \
   DOCKER_NETWORK="$NET_NAME" \
   UPLOADS_DIR="$UPLOADS_DIR" \
   bash "$ROOT_DIR/ops/cloud-start.sh"
