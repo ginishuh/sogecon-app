@@ -5,7 +5,7 @@
 ![Static Badge](https://img.shields.io/badge/Python-3.12.3-3776AB?logo=python&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/Node-24.12.0-339933?logo=node.js&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/pnpm-10.17.1-F69220?logo=pnpm&logoColor=white)
-![Static Badge](https://img.shields.io/badge/Next.js-16.2.11-black?logo=next.js)
+![Static Badge](https://img.shields.io/badge/Next.js-16.3.8-black?logo=next.js)
 ![Static Badge](https://img.shields.io/badge/FastAPI-0.139.0-009688?logo=fastapi)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 

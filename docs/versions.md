@@ -44,7 +44,7 @@
 ## Frontend (apps/web)
 <!-- pins: web/dependencies -->
 - @tanstack/react-query: 5.101.2
-- next: 16.2.11
+- next: 16.3.8
 - react: 19.2.7
 - react-dom: 19.2.7
 - web-vitals: 5.3.0
@@ -52,7 +52,7 @@
 ### Dev tools
 <!-- pins: web/devDependencies -->
 - @eslint/eslintrc: 3.3.6
-- @next/bundle-analyzer: 16.2.11
+- @next/bundle-analyzer: 16.3.8
 - @tailwindcss/postcss: 4.3.2
 - @testing-library/jest-dom: 6.9.1
 - @testing-library/react: 16.3.2
@@ -63,7 +63,7 @@
 - @typescript-eslint/parser: 8.63.0
 - @vitest/coverage-v8: 4.1.10
 - axe-core: 4.12.1
-- baseline-browser-mapping: 2.10.42
+- baseline-browser-mapping: 2.11.28
 - eslint: 9.39.5
 - eslint-config-next: 15.5.20
   - Next 16 native flat config와 ESLint 10 전환은 #186에서 함께 처리합니다. 현재는 기존 ESLint 9 품질 게이트를 유지합니다.
@@ -82,7 +82,7 @@
 <!-- pins: root/devDependencies -->
 - @commitlint/cli: 20.1.0
 - png-to-ico: 3.0.2
-- sharp: 0.35.3
+- sharp: 0.35.5
 - vite: 8.1.4
   - #183에서 Vitest 3용 임시 보안 override를 제거하고 workspace devDependency로 직접 고정합니다.
 
@@ -98,12 +98,6 @@
 - nanoid: 3.3.18
   - 근거: PostCSS 8.5.26이 `nanoid ^3.3.17`을 고르고, pnpm audit는 GHSA-2v37-7h3g-55p8의 패치를 `>=3.3.18`로 봅니다.
   - 제거 조건: 상위 패키지가 nanoid 3.3.18 이상만 선택하는 범위로 갱신되면 제거합니다.
-- postcss: 8.5.26
-  - 근거: Next.js 16.2.x가 PostCSS 8.4.31을 직접 고정하므로 GHSA-qx2v-qp2m-jg93·GHSA-fxqj-rqcc-2cmp 수정 버전으로 강제합니다.
-  - 제거 조건: Next.js가 postcss 8.5.23 이상만 선택하는 범위로 갱신되면 제거합니다.
-- sharp: 0.35.3
-  - 근거: Next.js 선택 의존성이 취약한 Sharp 0.34.x를 다시 고르지 않도록 2026-07-28 보안 패치에서 workspace override를 0.35.3으로 고정했습니다.
-  - 제거 조건: Next.js가 Sharp 0.35.3 이상만 선택하는 범위로 갱신되면 제거합니다.
 
 그 밖의 전이 의존성과 `^` 범위(`@phosphor-icons/react`)·`workspace:*`는 lockfile로 관리합니다. 임시 override가 다시 필요하면 취약점 또는 호환성 근거, 영향받는 상위 패키지, 제거 조건을 이 문서와 PR에 기록해야 합니다.
 

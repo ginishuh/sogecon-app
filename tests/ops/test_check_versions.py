@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -32,14 +33,15 @@ def test_repo_exact_pins_match_manifest() -> None:
 def test_doc_version_drift_fails(tmp_path: Path) -> None:
     root = _copy_tree(tmp_path)
     doc = root / "docs" / "versions.md"
-    doc.write_text(
-        doc.read_text(encoding="utf-8").replace(
-            "- next: 16.2.11",
-            "- next: 16.2.10",
-            1,
-        ),
-        encoding="utf-8",
+    drifted, count = re.subn(
+        r"^- next: \S+$",
+        "- next: 0.0.1",
+        doc.read_text(encoding="utf-8"),
+        count=1,
+        flags=re.MULTILINE,
     )
+    assert count == 1
+    doc.write_text(drifted, encoding="utf-8")
     problems = check_versions.evaluate(root)
     assert problems
     assert any("web/dependencies/next" in item for item in problems)

@@ -4,15 +4,13 @@
   "pnpm": {
     "overrides": {
       "js-yaml": "4.2.0",
-      "nanoid": "3.3.18",
-      "postcss": "8.5.26",
-      "sharp": "0.35.3"
+      "nanoid": "3.3.18"
     }
   },
   "devDependencies": {
     "@commitlint/cli": "20.1.0",
     "png-to-ico": "3.0.2",
-    "sharp": "0.35.3",
+    "sharp": "0.35.5",
     "vite": "8.1.4"
   },
   "scripts": {
