@@ -51,8 +51,8 @@
   - 샘플링 기본값은 트레이스 0.05, 프로파일 0.0이며 `SENTRY_TRACES_SAMPLE_RATE`, `SENTRY_PROFILES_SAMPLE_RATE` 로 조정한다.
   - PII 전송 필요 시 `SENTRY_SEND_DEFAULT_PII=true` 로 명시하며, 기본은 비활성화된다.
   - 요청 본문(`max_request_body_size="never"`)과 스택 지역 변수(`include_local_variables=False`)는 보내지 않는다. 둘 다 연락처·비밀번호·활성화 토큰을 그대로 담고, SDK 기본 스크러버는 중첩 값을 가리지 못한다.
-  - `before_send`·`before_send_transaction`이 요청 `query_string`·URL·Referer·span URL 데이터의 쿼리 값을 `[Filtered]`로 바꾼다(관리자 회원 검색 `?q=`). DB 계열 예외(`sqlalchemy`·`psycopg` 등)는 예외 메시지를 가린다. 드라이버 상세(`Key (email)=(...)`)는 `hide_parameters`로도 가려지지 않기 때문이다.
-  - DB 엔진은 `create_app_engine`에서 `hide_parameters=True`로 만든다. 처리되지 않은 예외의 로그·`emit_error_event` 메시지는 `describe_exception`을 거쳐 DB 예외면 타입과 SQLSTATE만 남긴다.
+  - `before_send`·`before_send_transaction`이 요청 `query_string`·URL·Referer·span URL 데이터의 쿼리 값을 `[Filtered]`로 바꾼다(관리자 회원 검색 `?q=`). 입력값을 메시지에 싣는 예외(DB 계열 `sqlalchemy`·`psycopg` 등, 검증 계열 `pydantic`·`pydantic_core`·`fastapi.exceptions`)는 예외 메시지를 가린다. DB 드라이버 상세(`Key (email)=(...)`)는 `hide_parameters`로도, 검증 오류의 `input_value=...`는 본문 차단으로도 가려지지 않기 때문이다.
+  - DB 엔진은 `create_app_engine`에서 `hide_parameters=True`로 만든다. 처리되지 않은 예외의 로그·`emit_error_event` 메시지는 `describe_exception`을 거쳐 DB 예외면 타입과 SQLSTATE, 검증 예외면 타입과 오류 개수만 남긴다. 테스트는 `tests/conftest.py`가 앱 import 전에 `SENTRY_DSN`을 빈 값으로 고정해 셸·`.env`의 실제 DSN을 쓰지 않는다.
   - `RELEASE`는 배포 태그(`deploy-vps.sh -t`)와 같아 Web 릴리스와 같은 값으로 묶인다.
 - Web Sentry(`@sentry/nextjs`, `NEXT_PUBLIC_SENTRY_DSN`이 운영 이미지 빌드에 있을 때만 활성화):
   - 환경은 `prod`, 트레이스 샘플링 0.1이며 Session Replay는 쓰지 않는다.

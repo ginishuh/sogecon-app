@@ -8,6 +8,7 @@ import pytest
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from pydantic import BaseModel
 from sentry_sdk.envelope import Envelope
 from sentry_sdk.transport import Transport
 from sqlalchemy import text
@@ -78,6 +79,15 @@ def _test_db_url() -> str:
         or os.environ.get("DATABASE_URL")
         or "postgresql+psycopg://app:devpass@localhost:5434/appdb_test"
     )
+
+
+class _MemberAge(BaseModel):
+    age: int
+
+
+def test_app_import_does_not_start_sentry_from_local_env() -> None:
+    # tests/conftest.py가 앱 import 전에 DSN을 비워 셸·`.env`의 실제 DSN을 쓰지 않는다.
+    assert not sentry_sdk.get_client().is_active()
 
 
 def test_unhandled_error_reaches_sentry_without_member_request_body(
@@ -158,3 +168,28 @@ def test_db_unique_violation_does_not_send_member_email(
     assert response.status_code == 500
     assert "IntegrityError" in transport.everything()
     assert EMAIL not in transport.everything()
+
+
+@pytest.mark.parametrize("source", ["service", "response_model"])
+def test_validation_error_does_not_send_member_input(
+    transport: _CapturingTransport, source: str
+) -> None:
+    _init()
+    app = FastAPI()
+    app.add_exception_handler(Exception, unhandled_exception_handler)
+
+    @app.get("/service")
+    async def service() -> None:
+        _MemberAge.model_validate({"age": PHONE})
+
+    @app.get("/response_model", response_model=_MemberAge)
+    async def response_model() -> dict[str, str]:
+        return {"age": PHONE}
+
+    client = TestClient(app, raise_server_exceptions=False)
+    response = client.get(f"/{source}")
+    sentry_sdk.flush()
+
+    assert response.status_code == 500
+    assert "ValidationError" in transport.everything()
+    assert PHONE not in transport.everything()

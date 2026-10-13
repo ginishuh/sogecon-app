@@ -6,7 +6,7 @@ import sentry_sdk
 from sentry_sdk.integrations.starlette import StarletteIntegration
 
 from .config import Settings
-from .logging_utils import DB_EXCEPTION_MODULES
+from .logging_utils import SENSITIVE_EXCEPTION_MODULES
 
 if TYPE_CHECKING:
     from sentry_sdk._types import Event, Hint
@@ -70,14 +70,14 @@ def _scrub_request(event: dict[str, Any]) -> None:
     _scrub_mapping(_mapping(request.get("headers")))
 
 
-def _scrub_db_exception_values(event: dict[str, Any]) -> None:
+def _scrub_sensitive_exception_values(event: dict[str, Any]) -> None:
     exception = _mapping(event.get("exception")) or {}
     for item in _items(exception.get("values")):
         value = _mapping(item)
-        # 드라이버 오류 상세(`Key (email)=(...) already exists`)는
-        # hide_parameters로도 가려지지 않는다.
+        # DB 드라이버 상세(`Key (email)=(...)`)는 hide_parameters로도, 검증 오류의
+        # `input_value=...`는 본문 차단으로도 가려지지 않는다.
         module = str((value or {}).get("module") or "")
-        if value is not None and module.startswith(DB_EXCEPTION_MODULES):
+        if value is not None and module.startswith(SENSITIVE_EXCEPTION_MODULES):
             value["value"] = _FILTERED
 
 
@@ -90,7 +90,7 @@ def _scrub_breadcrumbs(event: dict[str, Any]) -> None:
 def _before_send(event: Event, hint: Hint) -> Event:
     data = cast(dict[str, Any], event)
     _scrub_request(data)
-    _scrub_db_exception_values(data)
+    _scrub_sensitive_exception_values(data)
     _scrub_breadcrumbs(data)
     return event
 
