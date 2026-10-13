@@ -16,6 +16,20 @@ else:
 
 _request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
 
+# DB 오류 문자열에는 바인딩 값·드라이버 상세(`Key (email)=(...)`)로
+# 회원 정보가 실린다.
+DB_EXCEPTION_MODULES = ("sqlalchemy", "psycopg", "asyncpg", "sqlite3")
+
+
+def describe_exception(exc: BaseException) -> str:
+    """로그·오류 알림용 예외 설명. DB 예외는 값 대신 타입과 SQLSTATE만 남긴다."""
+    if type(exc).__module__.startswith(DB_EXCEPTION_MODULES):
+        orig = getattr(exc, "orig", None) or exc
+        sqlstate = getattr(orig, "sqlstate", None) or getattr(orig, "pgcode", None)
+        name = type(exc).__name__
+        return f"{name} (sqlstate={sqlstate})" if sqlstate else name
+    return str(exc)
+
 
 def set_request_id(value: str) -> Token[str | None]:
     """요청 컨텍스트에 request_id를 설정하고 토큰을 반환한다."""

@@ -14,14 +14,21 @@ from .config import get_settings
 
 settings = get_settings()
 
-# psycopg3는 postgresql+psycopg:// 스킴으로 async 모드 자동 지원
-async_engine: AsyncEngine = create_async_engine(
-    settings.database_url,
-    pool_pre_ping=True,
-    pool_size=20,
-    max_overflow=10,
-    pool_recycle=3600,
-)
+
+def create_app_engine(database_url: str) -> AsyncEngine:
+    """운영 엔진 설정을 한 곳에서 만든다(psycopg3 async)."""
+    return create_async_engine(
+        database_url,
+        pool_pre_ping=True,
+        pool_size=20,
+        max_overflow=10,
+        pool_recycle=3600,
+        # DB 오류 문자열의 바인딩 값(이메일·전화번호)이 로그·Sentry로 나가지 않게 한다.
+        hide_parameters=True,
+    )
+
+
+async_engine: AsyncEngine = create_app_engine(settings.database_url)
 
 AsyncSessionLocal = async_sessionmaker(
     bind=async_engine,

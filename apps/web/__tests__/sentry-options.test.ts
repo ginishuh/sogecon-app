@@ -1,73 +1,95 @@
-import type * as Sentry from '@sentry/nextjs';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+// @vitest-environment node
+import * as Sentry from '@sentry/nextjs';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { sentryOptions } from '../lib/sentry-options';
 
+const DSN = 'https://public@o0.ingest.sentry.io/1';
 const TOKEN = 'act_9f8e7d6c5b4a';
+const MEMBER_NAME = '홍길동';
+const EMAIL = 'member@example.com';
+const SESSION = 'sess_5f4e3d2c';
 
-describe('sentryOptions', () => {
+// 실제 SDK가 전송 직전에 만든 envelope를 메모리로 받아 검사한다.
+const sent: string[] = [];
+
+function payload(): string {
+  return sent.join('\n');
+}
+
+describe('Sentry Web 개인정보 차단', () => {
+  beforeAll(() => {
+    vi.stubEnv('NEXT_PUBLIC_SENTRY_DSN', DSN);
+    Sentry.init({
+      ...sentryOptions(),
+      tracesSampleRate: 1,
+      transport: () => ({
+        send: async (envelope) => {
+          sent.push(JSON.stringify(envelope));
+          return {};
+        },
+        flush: async () => true,
+      }),
+    });
+  });
+
   afterEach(() => {
+    sent.length = 0;
+  });
+
+  afterAll(async () => {
+    await Sentry.close();
     vi.unstubAllEnvs();
   });
 
   it('DSN이 없으면 SDK를 끈다', () => {
     vi.stubEnv('NEXT_PUBLIC_SENTRY_DSN', '');
     expect(sentryOptions().enabled).toBe(false);
+    vi.stubEnv('NEXT_PUBLIC_SENTRY_DSN', DSN);
   });
 
-  it('DSN이 있으면 운영 환경으로 켜고 기본 PII를 보내지 않는다', () => {
-    vi.stubEnv('NEXT_PUBLIC_SENTRY_DSN', 'https://key@o1.ingest.sentry.io/1');
-    const options = sentryOptions();
-    expect(options.enabled).toBe(true);
-    expect(options.environment).toBe('prod');
-    expect(options.sendDefaultPii).toBe(false);
-  });
-
-  it('오류 이벤트의 URL·쿼리·이동 기록에서 활성화 토큰을 지운다', () => {
-    const event = {
-      request: {
-        url: `https://www.example.com/activate?token=${TOKEN}#form`,
-        query_string: `token=${TOKEN}`,
+  it('서버 요청 오류에서 쿠키·Referer 토큰·임의 헤더·검색어를 보내지 않는다', async () => {
+    Sentry.captureRequestError(
+      new Error('directory render failed'),
+      {
+        path: `/directory?q=${encodeURIComponent(MEMBER_NAME)}`,
+        method: 'GET',
+        headers: {
+          referer: `https://www.example.com/activate?token=${TOKEN}`,
+          cookie: `session=${SESSION}`,
+          'x-member-email': EMAIL,
+          'user-agent': 'Mozilla/5.0',
+        },
       },
-      breadcrumbs: [
-        { category: 'navigation', data: { from: '/', to: `/activate?token=${TOKEN}` } },
-        { category: 'fetch', data: { url: `https://api.example.com/x?token=${TOKEN}&page=2` } },
-      ],
-    } as Sentry.ErrorEvent;
-
-    const sent = sentryOptions().beforeSend(event);
-
-    expect(JSON.stringify(sent)).not.toContain(TOKEN);
-    expect(sent.request?.url).toBe('https://www.example.com/activate?token=[Filtered]#form');
-    expect(sent.breadcrumbs?.[1]?.data?.url).toBe(
-      'https://api.example.com/x?token=[Filtered]&page=[Filtered]',
+      { routerKind: 'App Router', routePath: '/directory', routeType: 'render' },
     );
+    await Sentry.flush(2000);
+
+    const body = payload();
+    expect(body).toContain('directory render failed');
+    for (const secret of [TOKEN, SESSION, EMAIL, MEMBER_NAME, encodeURIComponent(MEMBER_NAME)]) {
+      expect(body).not.toContain(secret);
+    }
   });
 
-  it('스트리밍 span 이름·속성과 단독 이동 기록에서도 토큰을 지운다', () => {
-    type Span = Parameters<ReturnType<typeof sentryOptions>['beforeSendSpan']>[0];
-    const span = {
-      trace_id: 't',
-      span_id: 's',
-      name: `/activate?token=${TOKEN}`,
-      start_timestamp: 0,
-      status: 'ok',
-      is_segment: true,
-      attributes: {
-        'url.full': `https://www.example.com/activate?token=${TOKEN}`,
-        'http.query': { value: `?token=${TOKEN}`, type: 'string' },
-        'http.response.status_code': 200,
+  it('스트리밍 span의 이름·쿼리 속성·헤더 배열에서 토큰과 검색어를 지운다', async () => {
+    Sentry.startSpan(
+      {
+        name: `GET /activate?token=${TOKEN}`,
+        attributes: {
+          'url.full': `https://www.example.com/directory?q=${MEMBER_NAME}`,
+          'url.query': `q=${MEMBER_NAME}`,
+          'http.request.header.referer': [`https://www.example.com/activate?token=${TOKEN}`],
+          'http.response.status_code': 200,
+        },
       },
-    } as Span;
-    const crumb = sentryOptions().beforeBreadcrumb({
-      category: 'navigation',
-      data: { to: `/activate?token=${TOKEN}` },
-    });
+      () => undefined,
+    );
+    await Sentry.flush(2000);
 
-    const sent = sentryOptions().beforeSendSpan(span);
-
-    expect(JSON.stringify(sent)).not.toContain(TOKEN);
-    expect(sent.attributes['http.response.status_code']).toBe(200);
-    expect(JSON.stringify(crumb)).not.toContain(TOKEN);
+    const body = payload();
+    expect(body).toContain('GET /activate');
+    expect(body).not.toContain(TOKEN);
+    expect(body).not.toContain(MEMBER_NAME);
   });
 });
