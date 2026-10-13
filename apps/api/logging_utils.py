@@ -16,6 +16,27 @@ else:
 
 _request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
 
+# 메시지에 입력값을 그대로 싣는 예외 계열. DB 오류는 바인딩 값·드라이버 상세
+# (`Key (email)=(...)`), 검증 오류는 `input_value=...`로 회원 정보가 실린다.
+_DB_EXCEPTION_MODULES = ("sqlalchemy", "psycopg", "asyncpg", "sqlite3")
+_VALIDATION_EXCEPTION_MODULES = ("pydantic", "pydantic_core", "fastapi.exceptions")
+SENSITIVE_EXCEPTION_MODULES = _DB_EXCEPTION_MODULES + _VALIDATION_EXCEPTION_MODULES
+
+
+def describe_exception(exc: BaseException) -> str:
+    """로그·오류 알림용 예외 설명. 입력값을 싣는 예외는 타입과 진단 코드만 남긴다."""
+    module = type(exc).__module__
+    if not module.startswith(SENSITIVE_EXCEPTION_MODULES):
+        return str(exc)
+    name = type(exc).__name__
+    if module.startswith(_DB_EXCEPTION_MODULES):
+        orig = getattr(exc, "orig", None) or exc
+        sqlstate = getattr(orig, "sqlstate", None) or getattr(orig, "pgcode", None)
+        return f"{name} (sqlstate={sqlstate})" if sqlstate else name
+    errors = getattr(exc, "error_count", None)
+    count = errors() if callable(errors) else None
+    return f"{name} (errors={count})" if isinstance(count, int) else name
+
 
 def set_request_id(value: str) -> Token[str | None]:
     """요청 컨텍스트에 request_id를 설정하고 토큰을 반환한다."""

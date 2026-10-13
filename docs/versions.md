@@ -43,6 +43,7 @@
 
 ## Frontend (apps/web)
 <!-- pins: web/dependencies -->
+- @sentry/nextjs: 11.7.0
 - @tanstack/react-query: 5.101.2
 - next: 16.3.8
 - react: 19.2.7

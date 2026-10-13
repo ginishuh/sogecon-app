@@ -32,6 +32,8 @@ ARG NEXT_PUBLIC_ANALYTICS_ID=""
 ARG NEXT_PUBLIC_ENABLE_SW=""
 ARG NEXT_PUBLIC_RELAX_CSP=""
 ARG NEXT_PUBLIC_IMAGE_DOMAINS=""
+ARG NEXT_PUBLIC_SENTRY_DSN=""
+ARG SENTRY_RELEASE=""
 ARG WEB_BUILD_ALLOW_INSECURE_LOCAL_API=""
 
 ENV NEXT_PUBLIC_WEB_API_BASE=${NEXT_PUBLIC_WEB_API_BASE} \
@@ -41,13 +43,20 @@ ENV NEXT_PUBLIC_WEB_API_BASE=${NEXT_PUBLIC_WEB_API_BASE} \
     NEXT_PUBLIC_ENABLE_SW=${NEXT_PUBLIC_ENABLE_SW} \
     NEXT_PUBLIC_RELAX_CSP=${NEXT_PUBLIC_RELAX_CSP} \
     NEXT_PUBLIC_IMAGE_DOMAINS=${NEXT_PUBLIC_IMAGE_DOMAINS} \
+    NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN} \
+    SENTRY_RELEASE=${SENTRY_RELEASE} \
     WEB_BUILD_ALLOW_INSECURE_LOCAL_API=${WEB_BUILD_ALLOW_INSECURE_LOCAL_API}
 
 # Next's standalone output already contains the production dependency closure
 # and embeds the build-time Next configuration. Preserve that exact artifact
 # instead of starting a separate `next start` server that re-reads runtime
 # configuration.
-RUN pnpm -C apps/web build \
+# SENTRY_AUTH_TOKEN은 secret mount로만 읽어 소스맵 업로드에 쓰고 레이어에 남기지 않는다.
+RUN --mount=type=secret,id=sentry_auth_token,required=false \
+    if [ -s /run/secrets/sentry_auth_token ]; then \
+      SENTRY_AUTH_TOKEN="$(cat /run/secrets/sentry_auth_token)"; export SENTRY_AUTH_TOKEN; \
+    fi \
+    && pnpm -C apps/web build \
     && mkdir -p /opt/app_web/apps/web/.next \
     && cp -a apps/web/.next/standalone/. /opt/app_web/ \
     && cp -a apps/web/.next/static /opt/app_web/apps/web/.next/static \

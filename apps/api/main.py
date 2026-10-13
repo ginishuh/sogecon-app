@@ -31,7 +31,13 @@ from .error_messages import (
     user_detail_for_code,
 )
 from .errors import ApiError
-from .logging_utils import emit_error_event, log_json, reset_request_id, set_request_id
+from .logging_utils import (
+    describe_exception,
+    emit_error_event,
+    log_json,
+    reset_request_id,
+    set_request_id,
+)
 from .observability import init_sentry
 from .problem_details import (
     ProblemDetailsResponse,
@@ -297,7 +303,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 # Rate limiting (per-IP; default from settings)
 limiter = create_limiter(settings)
 app.state.limiter = limiter
-def _rl_handler(request: Request, exc: Exception) -> Response:
+def unhandled_exception_handler(request: Request, exc: Exception) -> Response:
     request_id = getattr(request.state, "request_id", None)
     status = HTTP_STATUS_SERVER_ERROR
     body = problem_details_body(
@@ -314,7 +320,7 @@ def _rl_handler(request: Request, exc: Exception) -> Response:
         http_status=status,
         method=request.method,
         path=request.url.path,
-        error=str(exc),
+        error=describe_exception(exc),
         request_id=request_id,
     )
     emit_error_event(
@@ -324,7 +330,7 @@ def _rl_handler(request: Request, exc: Exception) -> Response:
             "path": request.url.path,
             "method": request.method,
             "request_id": request_id,
-            "error": str(exc),
+            "error": describe_exception(exc),
             "level": "error",
         }
     )
@@ -334,7 +340,7 @@ def _rl_handler(request: Request, exc: Exception) -> Response:
     return response
 
 
-app.add_exception_handler(Exception, _rl_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
 app.add_middleware(SlowAPIMiddleware)
 
 # Gzip 압축 (1KB 이상 응답에 적용, 30-70% 크기 감소)

@@ -58,6 +58,8 @@ cd /srv/sogecon-app
 # 시크릿 파일 준비(레포 루트)
 cp .env.api.example .env.api   # JWT_SECRET/DATABASE_URL/CORS_ORIGINS 등 값 채우기
 cp .env.web.example .env.web   # 선택. Next 공개변수는 빌드타임 고정(참고용)
+# 선택. Web 소스맵 업로드: 빌드 호스트에서 `sentry auth login` 1회(자동 갱신).
+# deploy-vps.sh가 빌드마다 `sentry auth refresh` 후 토큰을 메모리로만 받아 BuildKit secret으로 넘긴다.
 
 # 업로드 디렉터리(컨테이너 볼륨)
 sudo mkdir -p /var/lib/sogecon/uploads

@@ -41,6 +41,7 @@ WEB_BUILD_PUBLIC_KEYS=(
   NEXT_PUBLIC_ENABLE_SW
   NEXT_PUBLIC_RELAX_CSP
   NEXT_PUBLIC_IMAGE_DOMAINS
+  NEXT_PUBLIC_SENTRY_DSN
 )
 declare -A WEB_BUILD_PUBLIC_ENV=()
 
@@ -93,7 +94,7 @@ extract_web_build_env() {
     if [[ "$line" =~ ^[[:space:]]*(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]]; then
       key=${BASH_REMATCH[2]}
       case "$key" in
-        NEXT_PUBLIC_WEB_API_BASE|NEXT_PUBLIC_SITE_URL|NEXT_PUBLIC_VAPID_PUBLIC_KEY|NEXT_PUBLIC_ANALYTICS_ID|NEXT_PUBLIC_ENABLE_SW|NEXT_PUBLIC_RELAX_CSP|NEXT_PUBLIC_IMAGE_DOMAINS) ;;
+        NEXT_PUBLIC_WEB_API_BASE|NEXT_PUBLIC_SITE_URL|NEXT_PUBLIC_VAPID_PUBLIC_KEY|NEXT_PUBLIC_ANALYTICS_ID|NEXT_PUBLIC_ENABLE_SW|NEXT_PUBLIC_RELAX_CSP|NEXT_PUBLIC_IMAGE_DOMAINS|NEXT_PUBLIC_SENTRY_DSN) ;;
         *) continue ;;
       esac
       value=${BASH_REMATCH[3]}
@@ -110,6 +111,14 @@ extract_web_build_env() {
   if [[ "$WEB_API_BASE_OVERRIDE" -eq 0 ]]; then
     WEB_API_BASE=${WEB_BUILD_PUBLIC_ENV[NEXT_PUBLIC_WEB_API_BASE]:-}
   fi
+}
+
+# Web 소스맵 업로드는 빌드 호스트에 로그인된 sentry CLI 토큰을 쓴다(wastelite-suite와 같은 방식).
+# 로그인 토큰은 만료가 짧아 빌드마다 갱신한 값을 메모리로만 받고 파일·로그에 남기지 않는다.
+sentry_cli_auth_token() {
+  command -v sentry >/dev/null 2>&1 || return 0
+  sentry auth refresh >/dev/null 2>&1 || true
+  sentry auth token 2>/dev/null || true
 }
 
 if [[ -z "$TAG" ]]; then
@@ -140,6 +149,7 @@ else
   fi
   WEB_BUILD_ENV=(
     "IMAGE_TAG=$TAG"
+    "SENTRY_RELEASE=$TAG"
     "IMAGE_PREFIX=$IMAGE_PREFIX"
     "PUSH_IMAGES=0"
     "NEXT_PUBLIC_WEB_API_BASE=$WEB_API_BASE"
@@ -156,7 +166,19 @@ else
   for key in "${WEB_BUILD_PUBLIC_KEYS[@]}"; do
     unset "$key"
   done
-  env "${WEB_BUILD_ENV[@]}" bash "$ROOT_DIR/ops/cloud-build.sh"
+  unset SENTRY_AUTH_TOKEN
+  sentry_auth_token=$(sentry_cli_auth_token)
+  if [[ -z "$sentry_auth_token" ]]; then
+    echo "[deploy] sentry CLI is not logged in; Web source maps will not be uploaded"
+  fi
+  # 토큰은 env 인자로 넘기지 않고 subshell export로만 전달해 프로세스 목록에 남기지 않는다.
+  (
+    if [[ -n "$sentry_auth_token" ]]; then
+      export SENTRY_AUTH_TOKEN="$sentry_auth_token"
+    fi
+    env "${WEB_BUILD_ENV[@]}" bash "$ROOT_DIR/ops/cloud-build.sh"
+  )
+  unset sentry_auth_token
 fi
 
 if [[ -n "$NET_NAME" ]]; then
@@ -177,6 +199,7 @@ fi
 echo "[deploy] Restart containers"
 API_IMAGE="$API_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
   API_ENV_FILE="$ENV_FILE" WEB_ENV_FILE="$WEB_ENV_FILE" \
+  RELEASE="$TAG" \
   DOCKER_NETWORK="$NET_NAME" \
   UPLOADS_DIR="$UPLOADS_DIR" \
   bash "$ROOT_DIR/ops/cloud-start.sh"

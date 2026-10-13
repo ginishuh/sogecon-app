@@ -45,13 +45,22 @@ for arg in \
   NEXT_PUBLIC_ANALYTICS_ID \
   NEXT_PUBLIC_ENABLE_SW \
   NEXT_PUBLIC_RELAX_CSP \
-  NEXT_PUBLIC_IMAGE_DOMAINS
+  NEXT_PUBLIC_IMAGE_DOMAINS \
+  NEXT_PUBLIC_SENTRY_DSN
 do
   value=${!arg-}
   if [[ -n "${value}" ]]; then
     WEB_BUILD_ARGS+=(--build-arg "${arg}=${value}")
   fi
 done
+
+# Sentry 릴리스는 이미지 태그와 같게 맞춘다. 인증 토큰은 build-arg가 아니라
+# BuildKit secret으로만 넘겨 이미지 레이어와 build history에 남기지 않는다.
+WEB_BUILD_ARGS+=(--build-arg "SENTRY_RELEASE=${SENTRY_RELEASE:-${IMAGE_TAG}}")
+if [[ -n "${SENTRY_AUTH_TOKEN:-}" ]]; then
+  export SENTRY_AUTH_TOKEN
+  WEB_BUILD_ARGS+=(--secret "id=sentry_auth_token,env=SENTRY_AUTH_TOKEN")
+fi
 
 SKIP_API=${SKIP_API:-0}
 SKIP_WEB=${SKIP_WEB:-0}
