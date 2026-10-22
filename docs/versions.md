@@ -45,7 +45,8 @@
 <!-- pins: web/dependencies -->
 - @sentry/nextjs: 11.7.0
 - @tanstack/react-query: 5.101.2
-- next: 16.3.8
+- next: 16.4.2
+  - 2026-10-14 보안 공지의 수정 최소 버전 16.4.1을 포함하는 16.4.2 안정 패치. `@next/bundle-analyzer`도 같은 버전으로 유지한다.
 - react: 19.2.7
 - react-dom: 19.2.7
 - web-vitals: 5.3.0
@@ -53,7 +54,7 @@
 ### Dev tools
 <!-- pins: web/devDependencies -->
 - @eslint/eslintrc: 3.3.6
-- @next/bundle-analyzer: 16.3.8
+- @next/bundle-analyzer: 16.4.2
 - @tailwindcss/postcss: 4.3.2
 - @testing-library/jest-dom: 6.9.1
 - @testing-library/react: 16.3.2
@@ -66,7 +67,7 @@
 - axe-core: 4.12.1
 - baseline-browser-mapping: 2.11.28
 - eslint: 9.39.5
-- eslint-config-next: 15.5.20
+- eslint-config-next: 15.5.28
   - Next 16 native flat config와 ESLint 10 전환은 #186에서 함께 처리합니다. 현재는 기존 ESLint 9 품질 게이트를 유지합니다.
 - eslint-import-resolver-typescript: 3.10.1
 - eslint-plugin-import: 2.32.0
