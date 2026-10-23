@@ -11,6 +11,64 @@ def _iso(dt: datetime) -> str:
     return dt.astimezone(UTC).isoformat().replace("+00:00", "Z")
 
 
+def test_event_image_filter_precedes_limit_and_preserves_priority(
+    admin_login: TestClient,
+) -> None:
+    client = admin_login
+    event_ids = []
+    for title in ("Selected", "Other"):
+        response = client.post(
+            "/events/",
+            json={
+                "title": title,
+                "starts_at": "2030-01-01T00:00:00Z",
+                "ends_at": "2030-01-02T00:00:00Z",
+                "location": "Seoul",
+                "capacity": 10,
+            },
+        )
+        assert response.status_code == HTTPStatus.CREATED
+        event_ids.append(response.json()["id"])
+    selected, other = event_ids
+
+    def create(
+        target_id: int, image: str | None, *, enabled: bool = True, pinned: bool = False
+    ) -> int:
+        response = client.post(
+            "/admin/hero/",
+            json={
+                "target_type": "event",
+                "target_id": target_id,
+                "image_override": image,
+                "enabled": enabled,
+                "pinned": pinned,
+            },
+        )
+        assert response.status_code == HTTPStatus.CREATED
+        return response.json()["id"]
+
+    create(selected, "https://example.com/older.png")
+    newest = create(selected, "https://example.com/newer.png")
+    pinned = create(selected, "https://example.com/pinned.png", pinned=True)
+    create(selected, None, pinned=True)
+    create(selected, "https://example.com/disabled.png", enabled=False, pinned=True)
+    # Enough higher-ranked unrelated slots to exceed the public endpoint's limit.
+    for _ in range(11):
+        create(other, "https://example.com/other.png", pinned=True)
+    client.cookies.clear()
+    response = client.get(f"/hero/?event_id={selected}&limit=1")
+    assert response.status_code == HTTPStatus.OK
+    assert [row["id"] for row in response.json()] == [pinned]
+    assert response.json()[0]["image"] == "https://example.com/pinned.png"
+    rows = client.get(f"/hero/?event_id={selected}&limit=10").json()
+    assert [row["id"] for row in rows][:2] == [pinned, newest]
+    assert len(rows) == 3
+    assert all(
+        row["target_type"] == "event" and row["target_id"] == selected for row in rows
+    )
+    assert client.get("/hero/?event_id=999999&limit=1").json() == []
+
+
 def test_hero_slides_post_and_event(admin_login: TestClient) -> None:
     client = admin_login
 

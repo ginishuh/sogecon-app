@@ -15,10 +15,18 @@ async def list_hero_items(
     limit: int,
     offset: int,
     enabled_only: bool = False,
+    event_id: int | None = None,
 ) -> Sequence[models.HeroItem]:
     stmt = select(models.HeroItem)
     if enabled_only:
         stmt = stmt.where(models.HeroItem.enabled.is_(True))
+    if event_id is not None:
+        stmt = stmt.where(
+            models.HeroItem.target_type == "event",
+            models.HeroItem.target_id == event_id,
+            models.HeroItem.image_override.is_not(None),
+            func.trim(models.HeroItem.image_override) != "",
+        )
     stmt = (
         stmt.order_by(desc(models.HeroItem.pinned), desc(models.HeroItem.updated_at))
         .offset(offset)

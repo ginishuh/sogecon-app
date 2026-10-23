@@ -16,10 +16,11 @@ export type CreateHeroItemPayload =
     pinned?: boolean;
   };
 
-export async function listHeroSlides(params: { limit?: number; include_unpublished?: boolean } = {}): Promise<HeroSlide[]> {
+export async function listHeroSlides(params: { limit?: number; include_unpublished?: boolean; event_id?: number } = {}): Promise<HeroSlide[]> {
   const q = new URLSearchParams();
   if (params.limit != null) q.set('limit', String(params.limit));
   if (params.include_unpublished) q.set('include_unpublished', 'true');
+  if (params.event_id != null) q.set('event_id', String(params.event_id));
   const qs = q.toString();
   return apiFetch<HeroSlide[]>(`/hero/${qs ? `?${qs}` : ''}`);
 }

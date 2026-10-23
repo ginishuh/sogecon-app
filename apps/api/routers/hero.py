@@ -16,11 +16,18 @@ async def list_hero_slides(
     request: Request,
     limit: int = Query(5, ge=1, le=10),
     include_unpublished: bool = Query(False),
+    event_id: int | None = Query(
+        None,
+        ge=1,
+        description=(
+            "Only image-bearing banners for this event, in banner priority order."
+        ),
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> list[schemas.HeroSlide]:
     allow_unpublished = include_unpublished and await has_any_permission(
         db, request, ("admin_posts", "admin_hero")
     )
     return await hero_service.list_hero_slides(
-        db, limit=limit, allow_unpublished=allow_unpublished
+        db, limit=limit, allow_unpublished=allow_unpublished, event_id=event_id
     )
