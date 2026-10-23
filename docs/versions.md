@@ -26,7 +26,7 @@
 - email-validator==2.3.0
 - pywebpush==2.3.0
 - cryptography==50.0.0
-- Pillow==12.3.0
+- Pillow==13.0.0
 - sentry-sdk[starlette]==2.64.0
 - apscheduler==3.11.3
 
