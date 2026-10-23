@@ -3513,6 +3513,8 @@ export interface operations {
             query?: {
                 limit?: number;
                 include_unpublished?: boolean;
+                /** @description Only image-bearing banners for this event, in banner priority order. */
+                event_id?: number | null;
             };
             header?: never;
             path?: never;

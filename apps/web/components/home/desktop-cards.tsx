@@ -10,6 +10,7 @@ import React, { useMemo } from 'react';
 import { resolveApiAssetUrl } from '../../lib/api';
 import { postKeys } from '../../lib/query-keys';
 import { listEvents, type Event } from '../../services/events';
+import { listHeroSlides } from '../../services/hero';
 import { listPosts, type Post } from '../../services/posts';
 
 const NOTICE_LIMIT = 4;
@@ -120,7 +121,21 @@ function NoticeColumn({ query }: { query: ReturnType<typeof useNoticeQuery> }) {
   );
 }
 
+function useEventBannerImage(event: Event | null): string {
+  const bannerQuery = useQuery({
+    queryKey: ['hero', 'event-image', event?.id],
+    queryFn: () => listHeroSlides({ event_id: event!.id, limit: 1 }),
+    enabled: event != null,
+    staleTime: 30_000,
+  });
+  const bannerImage = bannerQuery.data?.find(
+    (slide) => slide.target_type === 'event' && slide.target_id === event?.id && !slide.unpublished && slide.image?.trim(),
+  )?.image?.trim();
+  return bannerImage ? resolveApiAssetUrl(bannerImage) : NEWS_FALLBACK_IMAGE;
+}
+
 function EventColumn({ query, event }: { query: ReturnType<typeof useEventsQuery>; event: Event | null }) {
+  const image = useEventBannerImage(event);
   return (
     <section className="min-w-0 border-t border-neutral-border pt-5 lg:border-l lg:border-t-0 lg:px-6 lg:pt-0">
       <SectionHeading title="행사안내" href="/events" />
@@ -137,7 +152,7 @@ function EventColumn({ query, event }: { query: ReturnType<typeof useEventsQuery
         >
           <div className="relative aspect-[2/1] overflow-hidden">
             <Image
-              src={NEWS_FALLBACK_IMAGE}
+              src={image}
               alt=""
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"

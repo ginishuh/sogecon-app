@@ -2322,6 +2322,25 @@
               "default": false,
               "title": "Include Unpublished"
             }
+          },
+          {
+            "name": "event_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only image-bearing banners for this event, in banner priority order.",
+              "title": "Event Id"
+            },
+            "description": "Only image-bearing banners for this event, in banner priority order."
           }
         ],
         "responses": {

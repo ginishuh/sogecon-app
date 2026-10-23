@@ -37,12 +37,16 @@ async def _get_events_by_ids(
 
 
 async def list_hero_slides(
-    db: AsyncSession, *, limit: int, allow_unpublished: bool = False
+    db: AsyncSession,
+    *,
+    limit: int,
+    allow_unpublished: bool = False,
+    event_id: int | None = None,
 ) -> list[schemas.HeroSlide]:
     # invalid/missing target을 건너뛰는 경우를 고려해 여유 있게 조회
     fetch_limit = min(limit * 3, 50)
     items = await hero_items_repo.list_hero_items(
-        db, limit=fetch_limit, offset=0, enabled_only=True
+        db, limit=fetch_limit, offset=0, enabled_only=True, event_id=event_id
     )
 
     post_ids = [
