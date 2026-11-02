@@ -24,7 +24,7 @@ fi
 
 if ! command -v python3 >/dev/null 2>&1; then
   echo "[hooks] Error: python3 not found."
-  echo "[hooks] Install Python 3.12 and retry."
+  echo "[hooks] Install Python 3.15 and retry."
   exit 1
 fi
 

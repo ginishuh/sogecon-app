@@ -38,7 +38,7 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
+async def get_db() -> AsyncGenerator[AsyncSession]:
     """FastAPI 의존성: 요청당 AsyncSession 제공."""
     async with AsyncSessionLocal() as session:
         yield session
@@ -49,7 +49,7 @@ DbSession = Annotated[AsyncSession, Depends(get_db)]
 
 
 @asynccontextmanager
-async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_db_session() -> AsyncGenerator[AsyncSession]:
     """시드 데이터 등을 위한 async 세션 컨텍스트 매니저."""
     async with AsyncSessionLocal() as session:
         yield session
