@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:24.12.0-slim AS build
+FROM node:26.13.0-slim AS build
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
@@ -8,7 +8,7 @@ ENV NODE_ENV=production \
 
 # 앱 엔진 범위를 만족하는 pnpm 버전을 사용해 엔진 불일치를 방지
 ARG PNPM_VERSION=latest-10
-RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+RUN npm install --global corepack@0.36.0 && corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 
@@ -63,7 +63,7 @@ RUN --mount=type=secret,id=sentry_auth_token,required=false \
     && if [ -d apps/web/public ]; then cp -a apps/web/public /opt/app_web/apps/web/public; fi \
     && chmod -R a+rX /opt/app_web
 
-FROM node:24.12.0-slim AS runtime
+FROM node:26.13.0-slim AS runtime
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \

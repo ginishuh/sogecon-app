@@ -3,7 +3,7 @@
 공개 웹 애플리케이션 모노레포입니다. 브랜드는 **서강대학교 경제대학원 총동문회**입니다.
 
 ![Static Badge](https://img.shields.io/badge/Python-3.12.3-3776AB?logo=python&logoColor=white)
-![Static Badge](https://img.shields.io/badge/Node-24.12.0-339933?logo=node.js&logoColor=white)
+![Static Badge](https://img.shields.io/badge/Node-26.13.0-339933?logo=node.js&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/pnpm-10.17.1-F69220?logo=pnpm&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/Next.js-16.4.2-black?logo=next.js)
 ![Static Badge](https://img.shields.io/badge/FastAPI-0.139.0-009688?logo=fastapi)
@@ -52,7 +52,7 @@ docs/      # 아키텍처/버전/보안/작업로그 문서
 
 ## 사전 요구사항
 - Python 3.12.3
-- Node.js 24.12.0, pnpm 10.17.1 (`corepack enable` 권장)
+- Node.js 26.13.0, pnpm 10.17.1 (`corepack enable` 권장)
 - Docker Desktop 또는 호환 런타임(개발용 Postgres)
 
 ## 빠른 시작(로컬 개발)

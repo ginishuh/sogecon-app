@@ -22,7 +22,8 @@ pass() { echo "[test-githooks] OK: $*"; }
 fail() { echo "[test-githooks] FAIL: $*" >&2; exit 1; }
 note() { echo "[test-githooks] NOTE: $*"; }
 
-ms_now() { date +%s%3N; }
+# Python is already required by the hook suite; BSD date has no %N support.
+ms_now() { python3 -c 'import time; print(time.monotonic_ns() // 1_000_000)'; }
 
 STASHED=0
 STAGED_BACKUP=""

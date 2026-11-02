@@ -285,7 +285,7 @@ Next.js `standalone` build as a systemd service. The permanent near-term target
 primary is full Docker, not this systemd path.
 
 One‑time setup
-- Pin Node: `asdf plugin add nodejs && asdf install nodejs 24.12.0 && asdf global nodejs 24.12.0`
+- Pin Node: `asdf plugin add nodejs && asdf install nodejs 26.13.0 && asdf global nodejs 26.13.0`
 - systemd unit: `sudo cp ops/systemd/sogecon-web.service /etc/systemd/system/ && sudo systemctl enable sogecon-web`
 - Nginx proxy: see `ops/nginx/nginx-site-web.conf` (adjust server_name, cert paths)
 - Release dirs: `sudo mkdir -p /srv/www/sogecon/releases && sudo chown $USER /srv/www/sogecon -R`
