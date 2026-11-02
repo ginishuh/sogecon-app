@@ -241,7 +241,7 @@ class Settings(BaseSettings):
         return raw
 
     @model_validator(mode="after")
-    def _validate_public_site_and_smtp(self) -> "Settings":
+    def _validate_public_site_and_smtp(self) -> Settings:
         production_like = self.app_env in {"staging", "prod"}
         if not self.public_site_url:
             if production_like:
@@ -266,7 +266,7 @@ class Settings(BaseSettings):
         return self
 
     @model_validator(mode="after")
-    def _validate_production_like_jwt(self) -> "Settings":
+    def _validate_production_like_jwt(self) -> Settings:
         # staging/prod는 약한·placeholder JWT_SECRET을 거부한다 (fail-closed).
         if self.app_env in {"staging", "prod"}:
             weak = is_jwt_placeholder(self.jwt_secret)
@@ -281,7 +281,7 @@ class Settings(BaseSettings):
         return self
 
     @model_validator(mode="after")
-    def _validate_image_limits(self) -> "Settings":
+    def _validate_image_limits(self) -> Settings:
         if self.image_max_upload_bytes <= 0 or self.image_max_pixels <= 0:
             raise ValueError(
                 "IMAGE_MAX_UPLOAD_BYTES and IMAGE_MAX_PIXELS must be positive"
@@ -308,7 +308,7 @@ class Settings(BaseSettings):
         return self
 
     @model_validator(mode="after")
-    def _validate_push_encryption(self) -> "Settings":
+    def _validate_push_encryption(self) -> Settings:
         # PUSH_ENCRYPT_AT_REST=true 이면 KEK는 기동 시 반드시 유효해야 한다.
         if self.push_encrypt_at_rest:
             try:
@@ -327,7 +327,7 @@ class Settings(BaseSettings):
         return self
 
     @model_validator(mode="after")
-    def _enforce_postgres_only(self) -> "Settings":
+    def _enforce_postgres_only(self) -> Settings:
         """SQLite 등 비-PostgreSQL 백엔드를 금지한다.
 
         운영/개발 공통 정책: 연결 문자열은 반드시

@@ -76,7 +76,7 @@ if models_directory_view.DirectoryViewRequest.metadata is not models.Base.metada
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     """앱 시작/종료 시 리소스 관리."""
     # startup: 스케줄러 시작
     start_scheduler()

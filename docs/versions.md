@@ -5,7 +5,7 @@
 `<!-- pins: source/section -->` 다음의 `` `- name: x.y.z` `` / `` `- name==x.y.z` `` 줄만 핀이다. 서술·근거·제거 조건은 핀이 아니다.
 
 ## Runtime
-- Python: 3.12.3 (CI 설정, Docker `python:3.12.3-slim`)
+- Python: 3.15.2 (CI 설정, Docker `python:3.15.2-slim`)
 - Node.js: 26.13.0 (`apps/web/package.json#engines`, Docker `node:26.13.0-slim`)
 - pnpm: 10.x (>=10.17.1 <11) (`apps/web/package.json#engines`, `.npmrc` engine-strict; CI는 범위 검사)
   - 참고: packageManager 고정은 사용하지 않고 engines 범위로만 관리합니다.
@@ -15,8 +15,8 @@
 <!-- pins: api/requirements -->
 - fastapi==0.139.0
 - uvicorn[standard]==0.51.0
-- sqlalchemy==2.0.51
-- psycopg[binary]==3.3.4
+- sqlalchemy[asyncio]==2.0.51
+- psycopg[binary]==3.3.6
 - alembic==1.18.5
 - pydantic-settings==2.14.2
 - python-multipart==0.0.32
@@ -32,8 +32,8 @@
 
 ### Dev tools
 <!-- pins: api/requirements-dev -->
-- ruff==0.15.21
-- pyright==1.1.411
+- ruff==0.17.3
+- pyright==1.1.414
 - pytest==9.1.1
 - pytest-asyncio==1.4.0
 - pytest-cov==7.1.0
