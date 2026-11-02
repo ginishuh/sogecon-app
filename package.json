@@ -11,7 +11,7 @@
     "@commitlint/cli": "20.1.0",
     "png-to-ico": "3.0.2",
     "sharp": "0.35.5",
-    "vite": "8.1.4"
+    "vite": "8.1.6"
   },
   "scripts": {
     "commitlint": "commitlint"
