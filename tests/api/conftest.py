@@ -34,7 +34,7 @@ from apps.api.services.auth_service import limiter_login
 
 
 @pytest.fixture()
-def enable_rate_limit(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
+def enable_rate_limit(monkeypatch: pytest.MonkeyPatch) -> Generator[None]:
     """레이트리밋 동작 검증용: APP_ENV=test 스킵을 잠시 해제한다."""
     monkeypatch.setenv("APP_ENV", "dev")
     reset_settings_cache()
@@ -47,7 +47,7 @@ def enable_rate_limit(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, 
 @pytest.fixture(autouse=True)
 def isolate_smtp_settings(
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """테스트가 로컬 SMTP 시크릿을 읽거나 실제 메일을 보내지 않게 한다."""
     monkeypatch.setenv("SMTP_USERNAME", "")
     monkeypatch.setenv("SMTP_PASSWORD", "")
@@ -60,7 +60,7 @@ def isolate_smtp_settings(
 
 
 @pytest.fixture(autouse=True)
-def reset_rate_limiters() -> Generator[None, None, None]:
+def reset_rate_limiters() -> Generator[None]:
     """테스트 간 레이트리밋 카운터 누적을 방지한다."""
     reset_cooldown_cache_for_tests()
     limiters = [
@@ -85,7 +85,7 @@ def reset_rate_limiters() -> Generator[None, None, None]:
 
 
 @pytest.fixture()
-def client(tmp_path: Path) -> Generator[TestClient, None, None]:
+def client(tmp_path: Path) -> Generator[TestClient]:
     # 테스트 DB: PostgreSQL만 허용. 기본은 로컬 5434(appdb_test)
     test_db = os.environ.get("TEST_DB", "pg").lower()
     if test_db != "pg":
@@ -137,7 +137,7 @@ def client(tmp_path: Path) -> Generator[TestClient, None, None]:
         raise RuntimeError("directory view request model is not on Base.metadata")
     models.Base.metadata.create_all(bind=sync_engine)
 
-    async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
+    async def override_get_db() -> AsyncGenerator[AsyncSession]:
         async with TestingAsyncSessionLocal() as session:
             yield session
 
@@ -370,7 +370,7 @@ def _get_test_db_url() -> str:
 @pytest.fixture()
 async def async_client(
     tmp_path: Path,
-) -> AsyncGenerator[httpx.AsyncClient, None]:
+) -> AsyncGenerator[httpx.AsyncClient]:
     """
     async 테스트용 httpx.AsyncClient fixture.
     lifespan 이벤트와 async 의존성 주입 경로를 제대로 검증합니다.
@@ -390,7 +390,7 @@ async def async_client(
         connection.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
     models.Base.metadata.create_all(bind=sync_engine)
 
-    async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
+    async def override_get_db() -> AsyncGenerator[AsyncSession]:
         async with TestingAsyncSessionLocal() as session:
             yield session
 

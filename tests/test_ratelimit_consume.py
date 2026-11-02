@@ -29,7 +29,7 @@ def _build_request(path: str) -> Request:
 
 
 @pytest.fixture(autouse=True)
-def clear_consume_cache() -> Generator[None, None, None]:
+def clear_consume_cache() -> Generator[None]:
     ratelimit._consume_cache.clear()
     yield
     ratelimit._consume_cache.clear()

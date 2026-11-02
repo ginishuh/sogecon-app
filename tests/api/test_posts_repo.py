@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture()
-async def db_session(client: TestClient) -> AsyncGenerator[AsyncSession, None]:
+async def db_session(client: TestClient) -> AsyncGenerator[AsyncSession]:
     """테스트용 DB 세션 fixture."""
     override = app.dependency_overrides.get(get_db)
     if override is None:

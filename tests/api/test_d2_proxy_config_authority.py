@@ -45,7 +45,7 @@ def _request(host: str, xff: str | None = None) -> Request:
 
 
 @pytest.fixture()
-def _restore_settings() -> Generator[None, None, None]:
+def _restore_settings() -> Generator[None]:
     yield
     reset_settings_cache()
 

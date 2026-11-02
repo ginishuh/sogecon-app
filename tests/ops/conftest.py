@@ -11,7 +11,7 @@ from apps.api import models
 
 
 @pytest.fixture()
-def sync_db() -> Generator[Session, None, None]:
+def sync_db() -> Generator[Session]:
     candidate = os.environ.get("TEST_DB_URL") or os.environ.get("DATABASE_URL")
     if not candidate:
         candidate = "postgresql+psycopg://app:devpass@localhost:5434/appdb_test"
