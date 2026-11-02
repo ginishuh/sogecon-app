@@ -19,7 +19,7 @@ local dev/test only.
   - `NEXT_PUBLIC_ENABLE_SW`: 서비스 워커 사용 여부 (`1` 또는 unset)
   - (배포 환경이 CSP 완화가 필요할 경우) `NEXT_PUBLIC_RELAX_CSP=1`
   - `API_INTERNAL_URL`: full-Docker target에서 Web server fetch에 필요한 Docker 내부 API URL(standalone fallback에서는 불필요; 브라우저에 노출하지 않음)
-- **Node 런타임**: `node 24.12.0`, `pnpm 10.x (>=10.17.1 <11)` (CI는 범위 검사).
+- **Node 런타임**: `node 26.13.0`, `pnpm 10.x (>=10.17.1 <11)` (CI는 범위 검사).
 - **CI 시크릿**: 위 환경 변수는 CI/CD 공급자의 시크릿 저장소에 사전 등록한다.
 
 > 참고 1: `NEXT_PUBLIC_*` 값은 "빌드타임"에 고정됩니다. `WEB_ENV_FILE`로 런타임에 넣어도 값이 바뀌지 않습니다. 도메인을 교체할 때는 반드시 재빌드가 필요합니다.

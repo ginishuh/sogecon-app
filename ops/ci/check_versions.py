@@ -17,7 +17,7 @@ PIN_LINE_RE = re.compile(
 EXACT_NPM_RE = re.compile(r"^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.]+)?$")
 REQ_PIN_RE = re.compile(r"^([A-Za-z0-9_.\[\]-]+)==(\S+)\s*$")
 
-EXPECTED_ENGINES = {"node": "24.12.0", "pnpm": ">=10.17.1 <11"}
+EXPECTED_ENGINES = {"node": "26.13.0", "pnpm": ">=10.17.1 <11"}
 
 
 def fail(msg: str) -> None:

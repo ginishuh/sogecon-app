@@ -6,7 +6,7 @@
 
 ## Runtime
 - Python: 3.12.3 (CI 설정, Docker `python:3.12.3-slim`)
-- Node.js: 24.12.0 (`apps/web/package.json#engines`, Docker `node:24.12.0-slim`)
+- Node.js: 26.13.0 (`apps/web/package.json#engines`, Docker `node:26.13.0-slim`)
 - pnpm: 10.x (>=10.17.1 <11) (`apps/web/package.json#engines`, `.npmrc` engine-strict; CI는 범위 검사)
   - 참고: packageManager 고정은 사용하지 않고 engines 범위로만 관리합니다.
   - CI/빌드: `scripts/resolve_pnpm_version.sh`가 engines.pnpm 기준 메이저의 `latest-<major>` dist-tag를 사용합니다.
@@ -58,7 +58,7 @@
 - @tailwindcss/postcss: 4.3.2
 - @testing-library/jest-dom: 6.9.1
 - @testing-library/react: 16.3.2
-- @types/node: 24.13.3
+- @types/node: 26.6.6
 - @types/react: 19.2.17
 - @types/react-dom: 19.2.3
 - @typescript-eslint/eslint-plugin: 8.63.0

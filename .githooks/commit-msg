@@ -5,7 +5,7 @@ MSG_FILE="$1"
 
 if ! command -v pnpm >/dev/null 2>&1; then
   echo "[hooks] Error: pnpm not found."
-  echo "[hooks] Install Node $(node -p "require('./apps/web/package.json').engines.node" 2>/dev/null || echo '24.12.0') and pnpm, then run: pnpm install"
+  echo "[hooks] Install Node $(node -p "require('./apps/web/package.json').engines.node" 2>/dev/null || echo '26.13.0') and pnpm, then run: pnpm install"
   exit 1
 fi
 

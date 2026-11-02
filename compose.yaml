@@ -52,7 +52,7 @@ services:
     profiles: ["dev"]
 
   web_dev:
-    image: node:24.12.0-slim
+    image: node:26.13.0-slim
     working_dir: /app
     # 컨테이너가 호스트 UID/GID로 실행되도록 지정해 .next 등 생성 파일의 소유권이 root가 되지 않도록 함
     user: "${UID:-1000}:${GID:-1000}"
@@ -76,12 +76,19 @@ services:
     depends_on:
       api_dev:
         condition: service_started
-    command: >-
-      bash -lc "mkdir -p \"$${COREPACK_HOME}\" \"$${PNPM_HOME}\" && export PATH=\"$${PNPM_HOME}:$${PATH}\" \
-      && cd apps/web \
-      && corepack pnpm -v \
-      && corepack pnpm install \
-      && corepack pnpm dev -H 0.0.0.0"
+    command:
+      - bash
+      - -lc
+      - |
+        set -e
+        mkdir -p "$${COREPACK_HOME}" "$${PNPM_HOME}"
+        npm install --prefix "$${HOME}" corepack@0.36.0
+        export PATH="$${HOME}/node_modules/.bin:$${PNPM_HOME}:$${PATH}"
+        corepack prepare pnpm@latest-10 --activate
+        cd apps/web
+        corepack pnpm -v
+        corepack pnpm install
+        corepack pnpm dev -H 0.0.0.0
     restart: unless-stopped
     profiles: ["dev"]
 

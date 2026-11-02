@@ -66,7 +66,7 @@ fi
 if [ ${#web_targets[@]} -gt 0 ]; then
   if ! command -v pnpm >/dev/null 2>&1; then
     echo "[hooks] Error: pnpm not found."
-    echo "[hooks] Install Node 24.12.0 and pnpm, then run: pnpm -C apps/web install"
+    echo "[hooks] Install Node 26.13.0 and pnpm, then run: pnpm -C apps/web install"
     exit 1
   fi
   echo "[hooks] web: lint staged files (e2e 포함, 타입 인식) — see #29"
