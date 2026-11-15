@@ -212,4 +212,46 @@ fi
 grep -qF 'did not become healthy within 2s' "$TMP_DIR/starting.out"
 grep -qF 'recent logs (max 40 lines)' "$TMP_DIR/starting.out"
 
+# Uploads ownership: stay silent when already correct, fix it when possible,
+# and warn with the current owner and a remedy only when it stays wrong.
+export FAKE_DOCKER_MODE=success
+unset FAKE_DOCKER_EXISTING_CONTAINERS
+mkdir -p "$TMP_DIR/uploads"
+current_owner=$(stat -c '%u:%g' "$TMP_DIR/uploads")
+export FAKE_CHOWN_LOG="$TMP_DIR/chown.log"
+
+chown() {
+  printf 'chown %s\n' "$*" >>"${FAKE_CHOWN_LOG}"
+  [[ "${FAKE_CHOWN_MODE:-fail}" == ok ]]
+}
+export -f chown
+
+: >"$FAKE_CHOWN_LOG"
+UPLOADS_OWNER="$current_owner" run_start >"$TMP_DIR/uploads-match.out" 2>&1
+if grep -qiF 'uploads' "$TMP_DIR/uploads-match.out"; then
+  echo 'matching uploads owner still printed an ownership message' >&2
+  exit 1
+fi
+if [[ -s "$FAKE_CHOWN_LOG" ]]; then
+  echo 'matching uploads owner still attempted chown' >&2
+  exit 1
+fi
+
+: >"$FAKE_CHOWN_LOG"
+FAKE_CHOWN_MODE=ok UPLOADS_OWNER=4242:4242 run_start >"$TMP_DIR/uploads-fixed.out" 2>&1
+grep -qF "chown 4242:4242 $TMP_DIR/uploads" "$FAKE_CHOWN_LOG"
+grep -qF "[uploads] owner ${current_owner} -> 4242:4242" "$TMP_DIR/uploads-fixed.out"
+if grep -qF '[warn]' "$TMP_DIR/uploads-fixed.out"; then
+  echo 'fixed uploads owner still warned' >&2
+  exit 1
+fi
+
+: >"$FAKE_CHOWN_LOG"
+FAKE_CHOWN_MODE=fail UPLOADS_OWNER=4242:4242 run_start >"$TMP_DIR/uploads-mismatch.out" 2>&1
+grep -qF "[warn] uploads 소유자(${current_owner})" "$TMP_DIR/uploads-mismatch.out"
+grep -qF "sudo chown -R 4242:4242 $TMP_DIR/uploads" "$TMP_DIR/uploads-mismatch.out"
+grep -qF '컨테이너가 모두 healthy입니다.' "$TMP_DIR/uploads-mismatch.out"
+unset -f chown
+unset FAKE_CHOWN_LOG
+
 echo 'cloud-start command contract: PASS'
