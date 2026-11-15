@@ -71,6 +71,9 @@ function LoginForm() {
           {loginError.code === 'member_pending_approval' ? (
             <Link href="/support/contact" className="inline-flex min-h-11 items-center font-medium underline">확인이 오래 걸리면 사무국에 문의하기</Link>
           ) : null}
+          {loginError.code === 'login_failed' ? (
+            <Link href="/forgot-password" className="inline-flex min-h-11 items-center font-medium underline">비밀번호를 잊으셨나요?</Link>
+          ) : null}
         </div>
       ) : null}
       <Input
@@ -115,9 +118,14 @@ function LoginForm() {
       </nav>
       <div className="space-y-2 text-center text-sm text-text-muted">
         <p>가입 신청 후 확인 중이라면 별도로 다시 신청하지 않아도 됩니다.</p>
-        <Link href="/support/contact" className="inline-flex min-h-11 items-center px-2 font-medium text-brand-700 underline">
-          비밀번호를 잊었거나 로그인이 어려우신가요?
-        </Link>
+        <div className="flex flex-col items-center sm:flex-row sm:justify-center sm:gap-2">
+          <Link href="/forgot-password" className="inline-flex min-h-11 items-center px-2 font-medium text-brand-700 underline">
+            비밀번호를 잊으셨나요?
+          </Link>
+          <Link href="/support/contact" className="inline-flex min-h-11 items-center px-2 font-medium text-brand-700 underline">
+            학번이 기억나지 않거나 로그인이 어려우신가요?
+          </Link>
+        </div>
       </div>
     </AuthPage>
   );
