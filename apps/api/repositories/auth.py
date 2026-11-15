@@ -4,7 +4,7 @@
 """
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Member, MemberAuth
@@ -61,6 +61,26 @@ async def update_member_auth_password(
     setattr(auth, "password_hash", password_hash)
     await db.commit()
     return auth
+
+
+async def replace_member_auth_password_if_unchanged(
+    db: AsyncSession,
+    auth: MemberAuth,
+    *,
+    expected_hash: str,
+    password_hash: str,
+) -> bool:
+    """기존 해시가 그대로일 때만 비밀번호를 바꾼다(동시 요청 중 하나만 성공)."""
+    stmt = (
+        update(MemberAuth)
+        .where(MemberAuth.id == auth.id)
+        .where(MemberAuth.password_hash == expected_hash)
+        .values(password_hash=password_hash)
+        .returning(MemberAuth.id)
+    )
+    changed = (await db.execute(stmt)).scalar_one_or_none() is not None
+    await db.commit()
+    return changed
 
 
 async def create_or_update_member_auth(

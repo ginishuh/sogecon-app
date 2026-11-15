@@ -62,6 +62,9 @@ class Settings(BaseSettings):
     rate_limit_activation_email: str = Field(
         default="10/minute", alias="RATE_LIMIT_ACTIVATION_EMAIL"
     )
+    rate_limit_password_reset: str = Field(
+        default="10/hour", alias="RATE_LIMIT_PASSWORD_RESET"
+    )
     rate_limit_support: str = Field(default="1/minute", alias="RATE_LIMIT_SUPPORT")
     rate_limit_subscribe: str = Field(
         default="30/minute", alias="RATE_LIMIT_SUBSCRIBE"

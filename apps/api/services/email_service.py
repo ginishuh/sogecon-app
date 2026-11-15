@@ -229,6 +229,98 @@ def deliver_message(
         raise BadGatewayError(code="email_send_failed") from exc
 
 
+def build_password_reset_url(token: str, *, site_url: str | None = None) -> str:
+    base = (site_url or get_settings().public_site_url).rstrip("/")
+    return f"{base}/reset-password?{urlencode({'token': token})}"
+
+
+def build_password_reset_text(*, name: str, reset_url: str, from_name: str) -> str:
+    return (
+        f"[{from_name}] {name}님, 비밀번호 재설정 요청을 받았습니다.\n"
+        "아래 링크에서 1시간 안에 새 비밀번호를 만들어 주세요.\n"
+        f"{reset_url}\n\n"
+        "요청하지 않으셨다면 이 메일을 무시해 주세요. "
+        "기존 비밀번호는 그대로 유지됩니다."
+    )
+
+
+def build_password_reset_html(*, name: str, reset_url: str, from_name: str) -> str:
+    safe_name = html.escape(name)
+    safe_url = html.escape(reset_url, quote=True)
+    sender = html.escape(from_name)
+    font = "font-family:Pretendard,Apple SD Gothic Neo,Malgun Gothic,sans-serif;"
+    return (
+        '<!DOCTYPE html><html lang="ko"><head>'
+        '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">'
+        f"<title>{sender} 비밀번호 재설정</title></head>"
+        '<body style="margin:0;padding:0;background:#f2eee8;">'
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+        'style="background:#f2eee8;"><tr>'
+        '<td align="center" style="padding:24px 12px;">'
+        '<table role="presentation" width="600" cellpadding="0" cellspacing="0" '
+        'style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;'
+        'overflow:hidden;border:1px solid #d8d3cc;">'
+        '<tr><td style="background:#8a1e2d;padding:18px 28px;">'
+        f'<p style="margin:0;{font}font-size:13px;color:#ffffff;">{sender}</p>'
+        "</td></tr>"
+        f'<tr><td style="padding:28px 28px 8px;{font}color:#1f242d;">'
+        '<p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#8a1e2d;">'
+        "비밀번호 재설정</p>"
+        '<p style="margin:0 0 16px;font-size:22px;line-height:1.35;font-weight:700;">'
+        f"{safe_name}님, 새 비밀번호를 만들어 주세요</p>"
+        '<p style="margin:0;font-size:15px;line-height:1.7;color:#2b3340;">'
+        "비밀번호 재설정 요청을 받았습니다. 아래 버튼은 1시간 동안, "
+        "한 번만 사용할 수 있습니다.</p>"
+        "</td></tr>"
+        '<tr><td align="center" style="padding:20px 28px 8px;">'
+        '<table role="presentation" cellpadding="0" cellspacing="0"><tr>'
+        '<td bgcolor="#8a1e2d" style="border-radius:8px;background:#8a1e2d;">'
+        f'<a href="{safe_url}" style="display:inline-block;padding:14px 28px;{font}'
+        'font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;">'
+        "새 비밀번호 만들기</a>"
+        "</td></tr></table></td></tr>"
+        f'<tr><td style="padding:8px 28px 28px;{font}">'
+        '<p style="margin:0;font-size:12px;line-height:1.6;color:#5d6673;'
+        'word-break:break-all;">'
+        "버튼이 열리지 않으면 아래 주소를 브라우저에 붙여 넣어 주세요.<br>"
+        f'<a href="{safe_url}" style="color:#8a1e2d;">{safe_url}</a></p>'
+        "</td></tr>"
+        f'<tr><td style="padding:18px 28px;background:#f9f5f1;{font}">'
+        '<p style="margin:0;font-size:12px;line-height:1.6;color:#5d6673;">'
+        "요청하지 않으셨다면 이 메일을 무시해 주세요. "
+        "기존 비밀번호는 그대로 유지됩니다.</p>"
+        "</td></tr></table></td></tr></table></body></html>"
+    )
+
+
+def build_password_reset_message(
+    *,
+    to_email: str,
+    name: str,
+    reset_url: str,
+    settings: Settings | None = None,
+) -> EmailMessage:
+    current = settings or get_settings()
+    sender_email = from_address(current)
+    message = EmailMessage()
+    message["Subject"] = f"[{current.smtp_from_name}] 비밀번호 재설정 안내"
+    message["From"] = formataddr((current.smtp_from_name, sender_email))
+    message["To"] = to_email
+    message["Reply-To"] = sender_email
+    message.set_content(
+        build_password_reset_text(
+            name=name, reset_url=reset_url, from_name=current.smtp_from_name
+        )
+    )
+    message.add_alternative(
+        build_password_reset_html(
+            name=name, reset_url=reset_url, from_name=current.smtp_from_name
+        ),
+        subtype="html",
+    )
+    return message
+
+
 async def send_activation_email(
     *,
     to_email: str,

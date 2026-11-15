@@ -2242,6 +2242,132 @@
         }
       }
     },
+    "/auth/member/password-reset/request": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Request Password Reset",
+        "description": "\ube44\ubc00\ubc88\ud638 \uc7ac\uc124\uc815 \uba54\uc77c \uc694\uccad.\n\n\ud559\ubc88\u00b7\uc774\uba54\uc77c \uc77c\uce58 \uc5ec\ubd80\uc640 \uad00\uacc4\uc5c6\uc774 \uac19\uc740 \uc751\ub2f5\uc744 \ub3cc\ub824\uc8fc\uace0, \ubc1c\uc1a1\uc740 \uc751\ub2f5 \uc774\ud6c4\n\ubc31\uadf8\ub77c\uc6b4\ub4dc\uc5d0\uc11c \ucc98\ub9ac\ud574 \uacc4\uc815 \uc874\uc7ac \uc5ec\ubd80\uac00 \ub4dc\ub7ec\ub098\uc9c0 \uc54a\uac8c \ud55c\ub2e4.",
+        "operationId": "request_password_reset_auth_member_password_reset_request_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetRequestPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Request Password Reset Auth Member Password Reset Request Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "502": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          }
+        }
+      }
+    },
+    "/auth/member/password-reset/confirm": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Confirm Password Reset",
+        "description": "\uc7ac\uc124\uc815 \ub9c1\ud06c \ud1a0\ud070 \uac80\uc99d \ud6c4 \uc0c8 \ube44\ubc00\ubc88\ud638 \uc800\uc7a5.",
+        "operationId": "confirm_password_reset_auth_member_password_reset_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetConfirmPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Confirm Password Reset Auth Member Password Reset Confirm Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          },
+          "502": {
+            "$ref": "#/components/responses/ProblemDetailsError"
+          }
+        }
+      }
+    },
     "/auth/session": {
       "get": {
         "tags": [
@@ -7764,6 +7890,48 @@
           "encryption_enabled"
         ],
         "title": "NotificationStats"
+      },
+      "PasswordResetConfirmPayload": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Token"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "password"
+        ],
+        "title": "PasswordResetConfirmPayload"
+      },
+      "PasswordResetRequestPayload": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Student Id"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 3,
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "email"
+        ],
+        "title": "PasswordResetRequestPayload"
       },
       "PostCreate": {
         "properties": {

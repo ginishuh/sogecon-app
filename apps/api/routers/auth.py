@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
-from pydantic import AfterValidator, BaseModel
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from pydantic import AfterValidator, BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
@@ -19,7 +19,7 @@ from ..config import get_settings
 from ..db import get_db
 from ..passwords import validate_password_for_hash
 from ..ratelimit import consume_limit
-from ..services import signup_service
+from ..services import password_reset_service, signup_service
 from ..services.auth_service import (
     CurrentAdmin,
     CurrentMember,
@@ -77,6 +77,16 @@ class MemberActivatePayload(BaseModel):
 class ChangePasswordPayload(BaseModel):
     current_password: str
     new_password: NewPassword
+
+
+class PasswordResetRequestPayload(BaseModel):
+    student_id: str = Field(min_length=1, max_length=20)
+    email: str = Field(min_length=3, max_length=255)
+
+
+class PasswordResetConfirmPayload(BaseModel):
+    token: str = Field(min_length=1, max_length=512)
+    password: NewPassword
 
 
 # ---- 통합 로그인/로그아웃 ----
@@ -173,6 +183,40 @@ async def change_password(
     """비밀번호 변경."""
     return await change_member_password(
         db, request, m, payload.current_password, payload.new_password
+    )
+
+
+@router.post("/member/password-reset/request", status_code=202)
+async def request_password_reset(
+    payload: PasswordResetRequestPayload,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """비밀번호 재설정 메일 요청.
+
+    학번·이메일 일치 여부와 관계없이 같은 응답을 돌려주고, 발송은 응답 이후
+    백그라운드에서 처리해 계정 존재 여부가 드러나지 않게 한다.
+    """
+    message = await password_reset_service.prepare_password_reset_email(
+        db, request, student_id=payload.student_id, email=payload.email
+    )
+    if message is not None:
+        background_tasks.add_task(
+            password_reset_service.deliver_password_reset_email, message
+        )
+    return {"ok": "true"}
+
+
+@router.post("/member/password-reset/confirm")
+async def confirm_password_reset(
+    payload: PasswordResetConfirmPayload,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """재설정 링크 토큰 검증 후 새 비밀번호 저장."""
+    return await password_reset_service.confirm_password_reset(
+        db, request, token=payload.token, new_password=payload.password
     )
 
 
