@@ -58,7 +58,7 @@
 - Web Sentry(`@sentry/nextjs`, `NEXT_PUBLIC_SENTRY_DSN`이 운영 이미지 빌드에 있을 때만 활성화):
   - 환경은 `prod`, 트레이스 샘플링 0.1이며 Session Replay는 쓰지 않는다.
   - v11은 `sendDefaultPii`를 없애고 `dataCollection` 기본값으로 사용자·쿠키·헤더·쿼리·본문·지역 변수를 모두 수집한다. `dataCollection`에서 `userInfo`·`cookies`·`httpBodies`·`urlQueryParams`·`stackFrameVariables`·`databaseQueryData`를 끄고, 헤더는 `accept`·`accept-language`·`content-type`·`user-agent`(응답은 `content-type`)만 허용한다. 옵션 객체는 `satisfies`로 검사해 존재하지 않는 옵션을 컴파일 단계에서 거부한다.
-  - 활성화 토큰이 `/activate?token=` 쿼리로 오가므로 오류 이벤트(요청 URL·헤더·컨텍스트)·span(이름, URL·`url.query`·헤더 배열 속성)·envelope 헤더의 trace transaction·이동 기록의 모든 쿼리 값을 `[Filtered]`로 바꿔 보낸다. v11 기본 `traceLifecycle: 'stream'`에서는 `beforeSendTransaction`이 무시되므로 `beforeSendSpan`에서 가린다.
+  - 활성화 토큰이 `/activate?token=` 쿼리로, 비밀번호 재설정 토큰이 `/reset-password#token=` fragment로 오가므로 오류 이벤트(요청 URL·헤더·컨텍스트)·span(이름, URL·`url.query`·헤더 배열 속성)·envelope 헤더의 trace transaction·이동 기록(navigation breadcrumb `from`/`to`)의 모든 쿼리·fragment 값을 `[Filtered]`로 바꿔 보낸다. fragment는 HTTP로 전송되지 않지만 브라우저 SDK가 `history.replaceState` 이동을 기록할 때 원문을 담는다. v11 기본 `traceLifecycle: 'stream'`에서는 `beforeSendTransaction`이 무시되므로 `beforeSendSpan`에서 가린다.
   - 서버 런타임은 들어오는 요청 본문을 첨부하지 않는다(`maxRequestBodySize: 'none'`).
   - 소스맵은 빌드 호스트에 로그인된 `sentry` CLI 토큰을 빌드마다 갱신해 메모리로만 받아 BuildKit secret으로 업로드하고(wastelite-suite와 같은 방식), 업로드 후 산출물에서 지워 공개 정적 파일로 배포하지 않는다. 토큰은 build-arg·이미지 레이어·런타임 env에 남지 않는다.
   - 알림 기준(권장): 5분 rolling 5xx 비율 ≥ 5%, 개별 5xx 발생 시 Slack/메일 알림 트리거.
