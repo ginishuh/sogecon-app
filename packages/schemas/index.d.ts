@@ -469,6 +469,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/member/password-reset/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request Password Reset
+         * @description 비밀번호 재설정 메일 요청.
+         *
+         *     학번·이메일 일치 여부와 관계없이 같은 응답을 돌려주고, 발송은 응답 이후
+         *     백그라운드에서 처리해 계정 존재 여부가 드러나지 않게 한다.
+         */
+        post: operations["request_password_reset_auth_member_password_reset_request_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/member/password-reset/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Password Reset
+         * @description 재설정 링크 토큰 검증 후 새 비밀번호 저장.
+         */
+        post: operations["confirm_password_reset_auth_member_password_reset_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/session": {
         parameters: {
             query?: never;
@@ -1889,6 +1932,20 @@ export interface components {
             failed_410?: number | null;
             /** Failed Other */
             failed_other?: number | null;
+        };
+        /** PasswordResetConfirmPayload */
+        PasswordResetConfirmPayload: {
+            /** Token */
+            token: string;
+            /** Password */
+            password: string;
+        };
+        /** PasswordResetRequestPayload */
+        PasswordResetRequestPayload: {
+            /** Student Id */
+            student_id: string;
+            /** Email */
+            email: string;
         };
         /** PostCreate */
         PostCreate: {
@@ -3452,6 +3509,76 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ChangePasswordPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
+            502: components["responses"]["ProblemDetailsError"];
+        };
+    };
+    request_password_reset_auth_member_password_reset_request_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetRequestPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            400: components["responses"]["ProblemDetailsError"];
+            401: components["responses"]["ProblemDetailsError"];
+            403: components["responses"]["ProblemDetailsError"];
+            404: components["responses"]["ProblemDetailsError"];
+            409: components["responses"]["ProblemDetailsError"];
+            422: components["responses"]["ProblemDetailsError"];
+            429: components["responses"]["ProblemDetailsError"];
+            500: components["responses"]["ProblemDetailsError"];
+            502: components["responses"]["ProblemDetailsError"];
+        };
+    };
+    confirm_password_reset_auth_member_password_reset_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetConfirmPayload"];
             };
         };
         responses: {

@@ -120,5 +120,10 @@ describe('LoginPage', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('학번 또는 비밀번호가 올바르지 않습니다.');
     });
     expect(showMock).not.toHaveBeenCalled();
+    const recoveryLinks = screen.getAllByRole('link', { name: '비밀번호를 잊으셨나요?' });
+    expect(recoveryLinks.length).toBeGreaterThan(0);
+    for (const link of recoveryLinks) {
+      expect(link).toHaveAttribute('href', '/forgot-password');
+    }
   });
 });

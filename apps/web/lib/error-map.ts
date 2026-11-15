@@ -9,6 +9,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   member_not_active: `아직 이용할 수 없는 계정입니다. ${OFFICE_CONTACT_MESSAGE}`,
   admin_member_record_missing: `운영자 계정에 연결된 회원 정보가 없습니다. ${OFFICE_CONTACT_MESSAGE}`,
   unauthorized: '로그인이 필요합니다.',
+  invalid_or_expired_reset_token: '재설정 링크가 올바르지 않거나 사용 기한이 지났습니다. 비밀번호 찾기를 다시 요청해 주세요.',
   admin_permission_required: '이 작업을 수행할 운영 권한이 없습니다.',
   super_admin_required: '최고 운영자 권한이 필요합니다.',
 

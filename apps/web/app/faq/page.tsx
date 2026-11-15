@@ -52,9 +52,11 @@ const faqSections: FAQSection[] = [
         question: '로그인에 실패했을 때 무엇을 확인해야 하나요?',
         answer: (
           <>
-            비밀번호 재설정 링크는 <em>가입 시 등록한 이메일</em>로 발송됩니다. 메일을 받지 못했다면 스팸함을 확인하거나{' '}
-            <a className="text-link" href={officeMailto}>{siteConfig.officeEmail}</a>로 문의해 주세요. 5회 이상 연속 실패 시
-            보안을 위해 10분간 로그인이 제한됩니다.
+            학번과 비밀번호를 다시 확인해 주세요. 비밀번호가 기억나지 않으면{' '}
+            <Link className="text-link" href="/forgot-password">비밀번호 찾기</Link>에서 학번과 <em>회원 정보에 등록된 이메일</em>을
+            입력해 재설정 링크를 받을 수 있습니다. 메일을 받지 못했다면 스팸함을 확인하거나{' '}
+            <a className="text-link" href={officeMailto}>{siteConfig.officeEmail}</a>로 문의해 주세요. 짧은 시간에 여러 번
+            실패하면 보안을 위해 잠시 로그인이 제한됩니다.
           </>
         )
       }

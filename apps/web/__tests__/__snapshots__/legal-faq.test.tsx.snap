@@ -97,18 +97,25 @@ exports[`FAQ & Policy static pages > renders FAQ page with grouped sections and 
             <dd
               class="mt-2 text-sm leading-6 text-neutral-muted"
             >
-              비밀번호 재설정 링크는 
+              학번과 비밀번호를 다시 확인해 주세요. 비밀번호가 기억나지 않으면 
+              <a
+                class="text-link"
+                href="/forgot-password"
+              >
+                비밀번호 찾기
+              </a>
+              에서 학번과 
               <em>
-                가입 시 등록한 이메일
+                회원 정보에 등록된 이메일
               </em>
-              로 발송됩니다. 메일을 받지 못했다면 스팸함을 확인하거나 
+              을 입력해 재설정 링크를 받을 수 있습니다. 메일을 받지 못했다면 스팸함을 확인하거나 
               <a
                 class="text-link"
                 href="mailto:sogangecon.alumni@gmail.com"
               >
                 sogangecon.alumni@gmail.com
               </a>
-              로 문의해 주세요. 5회 이상 연속 실패 시 보안을 위해 10분간 로그인이 제한됩니다.
+              로 문의해 주세요. 짧은 시간에 여러 번 실패하면 보안을 위해 잠시 로그인이 제한됩니다.
             </dd>
           </div>
         </dl>

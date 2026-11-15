@@ -28,14 +28,16 @@ const DATA_COLLECTION = {
   genAI: { inputs: false, outputs: false },
 } satisfies NonNullable<InitOptions['dataCollection']>;
 
-// 가입 활성화 토큰처럼 비밀값이 쿼리스트링으로 오가므로 모든 쿼리 값을 가린다.
+// 가입 활성화 토큰(쿼리)·비밀번호 재설정 토큰(fragment `#token=`)처럼 비밀값이 URL로 오가므로
+// 쿼리와 fragment의 모든 값을 가린다. fragment는 HTTP로 전송되지 않지만 SDK의 navigation
+// breadcrumb(`from`/`to`)에는 원문 그대로 기록된다.
 export function scrubUrl(value: string): string {
-  const queryStart = value.indexOf('?');
-  if (queryStart < 0) return value;
-  const hashStart = value.indexOf('#', queryStart);
-  const query = value.slice(queryStart + 1, hashStart < 0 ? undefined : hashStart);
-  const hash = hashStart < 0 ? '' : value.slice(hashStart);
-  return `${value.slice(0, queryStart)}?${scrubQuery(query)}${hash}`;
+  const hashStart = value.indexOf('#');
+  const beforeHash = hashStart < 0 ? value : value.slice(0, hashStart);
+  const hash = hashStart < 0 ? '' : `#${scrubQuery(value.slice(hashStart + 1))}`;
+  const queryStart = beforeHash.indexOf('?');
+  if (queryStart < 0) return `${beforeHash}${hash}`;
+  return `${beforeHash.slice(0, queryStart)}?${scrubQuery(beforeHash.slice(queryStart + 1))}${hash}`;
 }
 
 // `?` 없이 쿼리만 담긴 값(`url.query`, `query_string`)도 같은 규칙으로 가린다.

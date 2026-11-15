@@ -6,6 +6,8 @@ const EXEMPT_PATHS = new Set([
   '/terms',
   '/faq',
   '/activate',
+  '/forgot-password',
+  '/reset-password',
   '/support/contact',
 ]);
 
