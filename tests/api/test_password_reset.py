@@ -25,7 +25,7 @@ from tests.api.problem_assertions import assert_problem_code
 REQUEST = "/auth/member/password-reset/request"
 CONFIRM = "/auth/member/password-reset/confirm"
 MATCHING = {"student_id": "member001", "email": "member@example.com"}
-_TOKEN_RE = re.compile(r"/reset-password\?token=([A-Za-z0-9_\-.]+)")
+_TOKEN_RE = re.compile(r"/reset-password#token=([A-Za-z0-9_\-.]+)")
 
 
 def _configure_smtp(monkeypatch: MonkeyPatch) -> list[EmailMessage]:
@@ -95,6 +95,12 @@ def test_reset_flow_sets_new_password_and_token_is_single_use(
     html_body = sent[0].get_body(preferencelist=("html",))
     assert html_body is not None
     assert "새 비밀번호 만들기" in html_body.get_content()
+    # 토큰은 서버·프록시 로그에 남지 않도록 쿼리가 아닌 fragment로만 전달한다.
+    plain_body = sent[0].get_body(preferencelist=("plain",))
+    assert plain_body is not None
+    for content in (plain_body.get_content(), html_body.get_content()):
+        assert "?token=" not in content
+        assert f"https://sogangeconomics.com/reset-password#token={token}" in content
 
     confirm = member_client.post(
         CONFIRM, json={"token": token, "password": "brand-new-pass"}

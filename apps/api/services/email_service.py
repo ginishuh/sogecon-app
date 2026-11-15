@@ -230,8 +230,12 @@ def deliver_message(
 
 
 def build_password_reset_url(token: str, *, site_url: str | None = None) -> str:
+    """재설정 링크.
+
+    토큰은 fragment에 담아 HTTP 요청·프록시 로그·Referer에 싣지 않는다.
+    """
     base = (site_url or get_settings().public_site_url).rstrip("/")
-    return f"{base}/reset-password?{urlencode({'token': token})}"
+    return f"{base}/reset-password#{urlencode({'token': token})}"
 
 
 def build_password_reset_text(*, name: str, reset_url: str, from_name: str) -> str:

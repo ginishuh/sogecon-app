@@ -11,10 +11,7 @@ const confirmMock = vi.fn();
 const invalidateMock = vi.fn(() => Promise.resolve());
 const showMock = vi.fn();
 const replaceMock = vi.fn();
-let resetToken = '';
-
 vi.mock('next/navigation', () => ({
-  useSearchParams: () => new URLSearchParams(resetToken ? `token=${resetToken}` : ''),
   useRouter: () => ({ replace: replaceMock }),
 }));
 
@@ -33,7 +30,6 @@ vi.mock('../services/member', () => ({
 
 beforeEach(() => {
   window.history.replaceState({}, '', '/');
-  resetToken = '';
   requestMock.mockReset();
   confirmMock.mockReset();
   invalidateMock.mockClear();
@@ -87,14 +83,14 @@ function fillReset(password: string, confirm: string) {
 }
 
 describe('새 비밀번호 만들기 화면', () => {
-  it('링크 토큰을 주소에서 지우고 성공하면 로그인 화면으로 보낸다', async () => {
-    resetToken = 'signed-reset-token';
-    window.history.replaceState({}, '', '/reset-password?token=signed-reset-token');
+  it('fragment의 링크 토큰을 주소에서 지우고 성공하면 로그인 화면으로 보낸다', async () => {
+    window.history.replaceState({}, '', '/reset-password#token=signed-reset-token');
     confirmMock.mockResolvedValueOnce({ ok: 'true' });
     render(<ResetPasswordPage />);
 
-    expect(window.location.search).toBe('');
-    expect(screen.getByLabelText('새 비밀번호')).toHaveAttribute('autocomplete', 'new-password');
+    expect(await screen.findByLabelText('새 비밀번호')).toHaveAttribute('autocomplete', 'new-password');
+    expect(window.location.hash).toBe('');
+    expect(window.location.pathname).toBe('/reset-password');
     fillReset('brand-new-pass', 'brand-new-pass');
 
     await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/login'));
@@ -103,9 +99,26 @@ describe('새 비밀번호 만들기 화면', () => {
     expect(showMock).toHaveBeenCalledWith(expect.stringContaining('새 비밀번호로 로그인'), { type: 'success' });
   });
 
+  it('StrictMode에서 effect가 두 번 실행돼도 fragment 토큰을 유지한다', async () => {
+    window.history.replaceState({}, '', '/reset-password#token=strict-token');
+    confirmMock.mockResolvedValueOnce({ ok: 'true' });
+    render(
+      <React.StrictMode>
+        <ResetPasswordPage />
+      </React.StrictMode>
+    );
+
+    await screen.findByLabelText('새 비밀번호');
+    fillReset('brand-new-pass', 'brand-new-pass');
+
+    await waitFor(() => expect(confirmMock).toHaveBeenCalledWith({ token: 'strict-token', password: 'brand-new-pass' }));
+    expect(window.location.hash).toBe('');
+  });
+
   it('확인 값이 다르면 요청하지 않는다', async () => {
-    resetToken = 'signed-reset-token';
+    window.history.replaceState({}, '', '/reset-password#token=signed-reset-token');
     render(<ResetPasswordPage />);
+    await screen.findByLabelText('새 비밀번호');
 
     fillReset('brand-new-pass', 'brand-new-pas');
 
@@ -114,11 +127,12 @@ describe('새 비밀번호 만들기 화면', () => {
   });
 
   it('만료되었거나 사용한 링크는 다시 받기 경로를 제공한다', async () => {
-    resetToken = 'used-token';
+    window.history.replaceState({}, '', '/reset-password#token=used-token');
     confirmMock.mockRejectedValueOnce(
       new ApiError(400, 'invalid_or_expired_reset_token', 'invalid_or_expired_reset_token')
     );
     render(<ResetPasswordPage />);
+    await screen.findByLabelText('새 비밀번호');
 
     fillReset('brand-new-pass', 'brand-new-pass');
 
@@ -127,10 +141,18 @@ describe('새 비밀번호 만들기 화면', () => {
     expect(replaceMock).not.toHaveBeenCalled();
   });
 
-  it('토큰 없이 방문하면 비밀번호 찾기로 안내한다', () => {
+  it('토큰 없이 방문하면 비밀번호 찾기로 안내한다', async () => {
     render(<ResetPasswordPage />);
 
+    expect(await screen.findByRole('link', { name: '비밀번호 찾기' })).toHaveAttribute('href', '/forgot-password');
     expect(screen.queryByLabelText('새 비밀번호')).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '비밀번호 찾기' })).toHaveAttribute('href', '/forgot-password');
+  });
+
+  it('쿼리스트링 토큰은 받지 않는다', async () => {
+    window.history.replaceState({}, '', '/reset-password?token=leaky-token');
+    render(<ResetPasswordPage />);
+
+    expect(await screen.findByRole('link', { name: '비밀번호 찾기' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('새 비밀번호')).not.toBeInTheDocument();
   });
 });

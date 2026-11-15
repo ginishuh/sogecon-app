@@ -1,8 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { AuthHeading, AuthPage } from '../../components/auth-page';
 import { useToast } from '../../components/toast';
 import { Button } from '../../components/ui/button';
@@ -29,33 +29,35 @@ function resetErrorFeedback(error: unknown): ResetError {
   return { message: '비밀번호를 바꾸지 못했습니다. 잠시 후 다시 시도해 주세요.', retry: false };
 }
 
-export default function ResetPasswordPage() {
-  return (
-    <Suspense fallback={<div className="max-w-xl p-6 text-sm text-text-secondary">비밀번호 재설정 화면을 준비 중입니다…</div>}>
-      <ResetPasswordForm />
-    </Suspense>
-  );
+// 재설정 토큰은 URL fragment(#token=)로만 받는다. fragment는 HTTP 요청에 실리지 않아
+// 서버·프록시 접근 로그와 Referer에 남지 않는다. 읽은 즉시 주소창·방문 기록에서도 지운다.
+function takeTokenFromFragment(): string {
+  const token = new URLSearchParams(window.location.hash.slice(1)).get('token') ?? '';
+  if (window.location.hash) {
+    const { pathname, search } = window.location;
+    window.history.replaceState(window.history.state, '', `${pathname}${search}`);
+  }
+  return token;
 }
 
-function ResetPasswordForm() {
-  const params = useSearchParams();
+export default function ResetPasswordPage() {
   const router = useRouter();
   const toast = useToast();
   const { invalidate } = useAuth();
-  const linkedToken = params.get('token') ?? '';
-  const [token] = useState(linkedToken);
+  // null: 아직 fragment를 읽기 전(서버 렌더링·hydration 직후)
+  const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ResetError | null>(null);
 
+  // StrictMode 개발 모드는 effect를 두 번 실행한다. 첫 실행이 fragment를 지우므로
+  // 처음 읽은 값을 ref에 보관해 두 번째 실행에서도 같은 토큰을 쓴다.
+  const takenToken = useRef<string | null>(null);
   useEffect(() => {
-    if (!linkedToken) return;
-    // 링크의 토큰이 주소창·방문 기록에 남지 않도록 지운다.
-    const url = new URL(window.location.href);
-    url.searchParams.delete('token');
-    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
-  }, [linkedToken]);
+    takenToken.current ??= takeTokenFromFragment();
+    setToken(takenToken.current);
+  }, []);
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -69,6 +71,7 @@ function ResetPasswordForm() {
     }
     setBusy(true);
     setError(null);
+    if (!token) return;
     try {
       await confirmPasswordReset({ token, password });
       await invalidate();
@@ -80,6 +83,10 @@ function ResetPasswordForm() {
       setBusy(false);
     }
   };
+
+  if (token === null) {
+    return <div className="max-w-xl p-6 text-sm text-text-secondary">비밀번호 재설정 화면을 준비 중입니다…</div>;
+  }
 
   if (!token) {
     return (
