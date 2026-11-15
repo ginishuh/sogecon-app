@@ -32,9 +32,9 @@ from .auth_service import limiter_login, logout
 
 logger = logging.getLogger(__name__)
 
-PASSWORD_RESET_SIGNER_NAMESPACE = "member-password-reset-v1"
+RESET_SIGNER_NAMESPACE = "member-password-reset-v1"
 PASSWORD_RESET_TOKEN_MAX_AGE_SECONDS = 60 * 60
-INVALID_RESET_TOKEN = "invalid_or_expired_reset_token"
+RESET_LINK_INVALID_CODE = "invalid_or_expired_reset_token"
 
 
 @dataclass(frozen=True)
@@ -46,7 +46,7 @@ class PasswordResetPayload:
 def _serializer(settings: Settings) -> URLSafeTimedSerializer:
     return URLSafeTimedSerializer(
         settings.jwt_secret,
-        salt=PASSWORD_RESET_SIGNER_NAMESPACE,
+        salt=RESET_SIGNER_NAMESPACE,
     )
 
 
@@ -54,7 +54,7 @@ def password_hash_fingerprint(password_hash: str, settings: Settings) -> str:
     """비밀번호 해시를 노출하지 않는 지문. 해시가 바뀌면 지문도 바뀐다."""
     digest = hmac.new(
         settings.jwt_secret.encode("utf-8"),
-        f"{PASSWORD_RESET_SIGNER_NAMESPACE}:{password_hash}".encode(),
+        f"{RESET_SIGNER_NAMESPACE}:{password_hash}".encode(),
         hashlib.sha256,
     ).hexdigest()
     return digest[:32]
@@ -73,7 +73,9 @@ def create_password_reset_token(
 
 
 def _invalid_token() -> ApiError:
-    return ApiError(code=INVALID_RESET_TOKEN, detail=INVALID_RESET_TOKEN, status=400)
+    return ApiError(
+        code=RESET_LINK_INVALID_CODE, detail=RESET_LINK_INVALID_CODE, status=400
+    )
 
 
 def load_password_reset_payload(
