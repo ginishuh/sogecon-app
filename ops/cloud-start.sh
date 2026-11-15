@@ -6,7 +6,8 @@ set -euo pipefail
 #
 # Required: API_IMAGE, WEB_IMAGE
 # Optional: API_ENV_FILE, WEB_ENV_FILE, API_CONTAINER, WEB_CONTAINER,
-# API_PORT, WEB_PORT, UPLOADS_DIR, DOCKER_NETWORK(default: sogecon_net), RELEASE
+# API_PORT, WEB_PORT, UPLOADS_DIR, UPLOADS_OWNER(default: 1000:1000, 컨테이너 apiuser),
+# DOCKER_NETWORK(default: sogecon_net), RELEASE
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "docker 명령이 필요합니다." >&2
@@ -23,6 +24,7 @@ WEB_CONTAINER=${WEB_CONTAINER:-alumni-web}
 API_PORT=${API_PORT:-3001}
 WEB_PORT=${WEB_PORT:-3000}
 UPLOADS_DIR=${UPLOADS_DIR:-/var/lib/sogecon/uploads}
+UPLOADS_OWNER=${UPLOADS_OWNER:-1000:1000}
 DOCKER_NETWORK=${DOCKER_NETWORK:-sogecon_net}
 RELEASE=${RELEASE:-$(date +%Y%m%d%H%M%S)}
 
@@ -66,8 +68,24 @@ if [[ -n "${WEB_ENV_FILE:-}" ]]; then
 fi
 docker network inspect "${DOCKER_NETWORK}" >/dev/null
 
+# 업로드 볼륨은 컨테이너 사용자(UPLOADS_OWNER)가 써야 한다. 배포 계정은 보통
+# root가 아니어서 소유자가 이미 맞아도 chown이 실패하므로, 어긋난 경우에만
+# 고치고 고칠 수 없을 때만 현재 소유자와 조치를 경고한다.
+ensure_uploads_owner() {
+  local current
+  current=$(stat -c '%u:%g' "${UPLOADS_DIR}")
+  if [[ "${current}" == "${UPLOADS_OWNER}" ]]; then
+    return 0
+  fi
+  if chown "${UPLOADS_OWNER}" "${UPLOADS_DIR}" 2>/dev/null; then
+    echo "[uploads] owner ${current} -> ${UPLOADS_OWNER}"
+    return 0
+  fi
+  echo "[warn] uploads 소유자(${current})가 컨테이너 사용자(${UPLOADS_OWNER})와 달라 업로드가 실패할 수 있습니다. 조치: sudo chown -R ${UPLOADS_OWNER} ${UPLOADS_DIR}" >&2
+}
+
 mkdir -p "${UPLOADS_DIR}"
-chown 1000:1000 "${UPLOADS_DIR}" 2>/dev/null || echo "[warn] uploads ownership not changed (insufficient permission)"
+ensure_uploads_owner
 
 stop_container() {
   local name=$1

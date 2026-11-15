@@ -419,6 +419,7 @@ sogecon ALL=(ALL) NOPASSWD: /bin/systemctl daemon-reload, /bin/systemctl restart
 ## 6) 트러블슈팅
 - 웹 공개변수 반영 안 됨: Next `NEXT_PUBLIC_*`는 빌드타임 고정 — 반드시 재빌드 필요
 - 업로드 권한 오류: `/var/lib/sogecon/uploads` 소유자/권한 확인(UID 1000)
+  - `ops/cloud-start.sh`는 소유자가 이미 `UPLOADS_OWNER`(기본 `1000:1000`, 컨테이너 `apiuser`)이면 조용히 지나가고, 어긋났는데 배포 계정이 고칠 수 없을 때만 `[warn] uploads 소유자(...)` 경고와 `sudo chown -R` 조치 명령을 출력한다. 이 경고가 보이면 업로드 실패 가능성이 있으므로 조치한다.
 - 헬스체크 실패: Nginx 프록시 대상(127.0.0.1:3000/3001)·TLS 인증서 경로 확인
 
 ## 참고 문서
