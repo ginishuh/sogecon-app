@@ -33,7 +33,8 @@
 | 기능 | 환경 변수 | 기본값 | 적용 경로 |
 | --- | --- | --- | --- |
 | 전역 기본 | `RATE_LIMIT_DEFAULT` | `120/minute` | SlowAPI 미들웨어 기본값 |
-| 로그인(회원/관리자) | `RATE_LIMIT_LOGIN` | `5/minute` | `/auth/member/login`, `/auth/member/activate`, `/auth/member/change-password`, `/auth/login` |
+| 로그인(회원/관리자) | `RATE_LIMIT_LOGIN` | `5/minute` | `/auth/member/login`, `/auth/member/activate`, `/auth/member/change-password`, `/auth/member/password-reset/confirm`, `/auth/login` |
+| 비밀번호 재설정 메일 요청 | `RATE_LIMIT_PASSWORD_RESET` | `10/hour` | `/auth/member/password-reset/request` (IP 기준) |
 | 관리자 알림 발송 | `RATE_LIMIT_NOTIFY_SEND` | `6/minute` | `POST /notifications/admin/notifications/send` |
 | Web Push 구독/해지 | `RATE_LIMIT_SUBSCRIBE` | `30/minute` | `POST/DELETE /notifications/subscriptions` |
 | 문의 접수 | `RATE_LIMIT_SUPPORT` | `1/minute` | `POST /support/contact` |

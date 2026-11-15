@@ -73,6 +73,7 @@
   401로 세션을 무효화하고, 활성 계정의 역할 회수는 기존 세션에도 즉시 반영한다.
 - 레이트리밋: 로그인 시도 `5/min/IP`(SlowAPI), 글로벌 기본 제한은 설정값(`RATE_LIMIT_DEFAULT`).
 - 가입 승인 안내 메일: 관리자(`admin_signup`)가 `POST /admin/signup-requests/{id}/send-activation-email`로 신청자 이메일에 활성화 링크를 보낸다. 발송은 SMTP(`SMTP_*`, 기본 Gmail 587 STARTTLS)이며 비밀번호는 환경변수로만 주입한다. staging/prod에서 자격증명이 있으면 TLS를 끌 수 없다. `PUBLIC_SITE_URL`이 메일의 `/activate` 링크 기준이며, 로컬 기본은 `http://localhost:3000`, staging/prod는 공개 https URL이 필수다. HTML 본문은 브랜드 카드와 CID 인라인 헤더 이미지(`apps/api/assets/email/activation-hero.jpg`)를 포함하고, 텍스트 대안은 링크만 유지한다. 발송 성공 시 `signup_activation_issue_logs`에 `issued_type=send` 행을 남긴다(토큰 원문 미저장, 수신 주소는 마스킹). 메일이 나간 뒤 감사 기록 저장이 실패하면 세션을 rollback하고 구조화 오류 로그만 남기며, 발송 API는 성공으로 반환한다. SMTP 전달 실패는 `502 email_send_failed`, SMTP 미설정은 `409 email_not_configured`다. 레이트리밋 `RATE_LIMIT_ACTIVATION_EMAIL`은 IP당 엔드포인트 공용 한도다.
+- 비밀번호 재설정: 회원이 `/forgot-password`에서 학번과 회원 정보의 이메일을 입력하면 `POST /auth/member/password-reset/request`가 일치 여부와 무관하게 `202`를 돌려주고, 활성 회원·이메일 일치·비밀번호 설정 완료일 때만 응답 이후 백그라운드에서 `/reset-password?token=` 링크 메일을 보낸다(발송 실패는 마스킹 로그만). SMTP 미설정은 `409 email_not_configured`다. 토큰은 `itsdangerous` 서명(1시간)과 발급 시점 비밀번호 해시의 HMAC 지문을 담아 DB 상태 없이 1회성으로 동작한다. `POST /auth/member/password-reset/confirm` 성공 시 새 해시를 저장하고 현재 브라우저 세션을 정리한다. 서명 쿠키 세션 특성상 다른 기기의 기존 세션은 끊지 않는다.
 
 ## RSVP 규칙
 - 모든 RSVP 조회·생성·상태 변경은 활성 회원 세션이 필요하다.
