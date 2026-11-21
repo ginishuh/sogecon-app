@@ -52,6 +52,6 @@
     "schemas": "workspace:*",
     "tailwindcss": "4.3.2",
     "typescript": "5.9.3",
-    "vitest": "4.1.10"
+    "vitest": "4.1.11"
   }
 }
