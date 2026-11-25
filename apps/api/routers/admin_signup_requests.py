@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
@@ -11,7 +13,7 @@ from .. import schemas
 from ..config import get_settings
 from ..db import get_db
 from ..ratelimit import consume_limit, get_client_ip_for_rate_limit
-from ..services import signup_service
+from ..services import signup_approval_service, signup_service
 from ..services.auth_service import (
     CurrentUser,
     require_permission,
@@ -44,11 +46,26 @@ class SignupActivationContextResponse(BaseModel):
     cohort: int
 
 
+class SignupActivationEmailResult(BaseModel):
+    """승인 직후 안내 메일 자동 발송 결과.
+
+    - `sent`: 발송 완료. `sent_to`는 수신 주소(수동 발송 응답과 같은 노출 수준).
+    - `failed`: 승인은 완료됐지만 발송하지 못함. `error_code`는
+      `email_not_configured`·`email_send_failed`·`email_recipient_missing` 등.
+    - `not_attempted`: 자동 발송 대상이 아님(토큰 재발급 응답).
+    """
+
+    status: Literal["sent", "failed", "not_attempted"]
+    sent_to: str | None = None
+    error_code: str | None = None
+
+
 class SignupActivationIssueResponse(BaseModel):
     request: schemas.SignupRequestRead
     activation_context: SignupActivationContextResponse
     activation_token: str
     activation_issue: schemas.SignupActivationIssueLogRead
+    activation_email: SignupActivationEmailResult
 
 
 class SignupActivationIssueLogListResponse(BaseModel):
@@ -104,23 +121,43 @@ async def approve_signup_request(
         require_permission("admin_signup", allow_admin_fallback=False)
     ),
 ) -> SignupActivationIssueResponse:
-    row, issue = await signup_service.approve_signup_request(
+    result = await signup_approval_service.approve_signup_request(
         db,
         signup_request_id=signup_request_id,
         decided_by_student_id=user.student_id,
     )
+    return _issue_response(
+        request=result.request,
+        context=result.context,
+        token=result.token,
+        issue_log=result.issue_log,
+        email=result.email,
+    )
+
+
+def _issue_response(
+    *,
+    request: schemas.SignupRequestRead,
+    context: signup_service.SignupActivationContext,
+    token: str,
+    issue_log: schemas.SignupActivationIssueLogRead,
+    email: signup_approval_service.SignupActivationEmailOutcome,
+) -> SignupActivationIssueResponse:
     return SignupActivationIssueResponse(
-        request=schemas.SignupRequestRead.model_validate(row),
+        request=request,
         activation_context=SignupActivationContextResponse(
-            signup_request_id=issue.context.signup_request_id,
-            student_id=issue.context.student_id,
-            email=issue.context.email,
-            name=issue.context.name,
-            cohort=issue.context.cohort,
+            signup_request_id=context.signup_request_id,
+            student_id=context.student_id,
+            email=context.email,
+            name=context.name,
+            cohort=context.cohort,
         ),
-        activation_token=issue.token,
-        activation_issue=schemas.SignupActivationIssueLogRead.model_validate(
-            issue.issue_log
+        activation_token=token,
+        activation_issue=issue_log,
+        activation_email=SignupActivationEmailResult(
+            status=email.status,
+            sent_to=email.sent_to,
+            error_code=email.error_code,
         ),
     )
 
@@ -141,19 +178,15 @@ async def reissue_signup_activation_token(
         signup_request_id=signup_request_id,
         issued_by_student_id=user.student_id,
     )
-    return SignupActivationIssueResponse(
+    # 재발급은 링크를 다른 경로로 전달하는 용도도 있어 자동 발송하지 않는다.
+    return _issue_response(
         request=schemas.SignupRequestRead.model_validate(row),
-        activation_context=SignupActivationContextResponse(
-            signup_request_id=issue.context.signup_request_id,
-            student_id=issue.context.student_id,
-            email=issue.context.email,
-            name=issue.context.name,
-            cohort=issue.context.cohort,
-        ),
-        activation_token=issue.token,
-        activation_issue=schemas.SignupActivationIssueLogRead.model_validate(
+        context=issue.context,
+        token=issue.token,
+        issue_log=schemas.SignupActivationIssueLogRead.model_validate(
             issue.issue_log
         ),
+        email=signup_approval_service.ACTIVATION_EMAIL_NOT_ATTEMPTED,
     )
 
 

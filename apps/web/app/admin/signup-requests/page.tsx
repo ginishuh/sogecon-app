@@ -1,13 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { AdminAuthState } from '../../../components/admin-auth-state';
 import { RequirePermission } from '../../../components/require-permission';
 import { useToast } from '../../../components/toast';
 import { useAuth } from '../../../hooks/useAuth';
 import { ApiError } from '../../../lib/api';
-import { apiErrorToMessage } from '../../../lib/error-map';
+import { adminApiErrorToMessage } from '../../../lib/error-map';
 import {
   buildActivationMessage,
   buildActivationUrl,
@@ -25,6 +25,7 @@ import {
   reissueAdminSignupRequestActivationToken,
 } from '../../../services/signup-requests';
 import {
+  approveFeedback,
   ApproveTokenCard,
   FiltersPanel,
   getListState,
@@ -68,10 +69,15 @@ function useSignupRequestsModel() {
   const [lastApprove, setLastApprove] = useState<SignupActivationIssueResponse | null>(
     null
   );
-  const [lastIssueLogs, setLastIssueLogs] = useState<SignupActivationIssueLogRead[]>(
+  // null: 현재 카드의 발급 이력을 불러오는 중(직전 카드의 이력을 보이지 않는다).
+  const [lastIssueLogs, setLastIssueLogs] = useState<SignupActivationIssueLogRead[] | null>(
     []
   );
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  // 비동기 응답(발송·기록 조회)이 늦게 와도 그사이 바뀐 다른 신청 카드를 덮지 않게 한다.
+  const currentCardRef = useRef<{ requestId: number; issueId: number } | null>(null);
+  // 같은 신청을 다시 조회해도 가장 최근 조회 결과만 반영한다.
+  const logsSeqRef = useRef(0);
 
   const listParams = useMemo(
     () => ({
@@ -89,41 +95,54 @@ function useSignupRequestsModel() {
     staleTime: 5_000,
   });
 
-  const handleError = (error: unknown, fallbackMessage: string) => {
-    const message =
-      error instanceof ApiError
-        ? apiErrorToMessage(error.code, error.message)
-        : fallbackMessage;
+  const errorMessage = (error: unknown, fallbackMessage: string) =>
+    error instanceof ApiError
+      ? adminApiErrorToMessage(error.code, error.message)
+      : fallbackMessage;
 
+  const handleError = (error: unknown, fallbackMessage: string) => {
+    const message = errorMessage(error, fallbackMessage);
     setFeedback({ tone: 'error', message });
     show(message, { type: 'error' });
   };
 
+  const isCurrentCard = (requestId: number, issueId: number) =>
+    currentCardRef.current?.requestId === requestId &&
+    currentCardRef.current.issueId === issueId;
+
   const refreshActivationLogs = async (signupRequestId: number) => {
+    const seq = ++logsSeqRef.current;
     try {
       const logs = await listAdminSignupRequestActivationTokenLogs(signupRequestId, 20);
+      if (seq !== logsSeqRef.current) return;
       setLastIssueLogs(logs.items);
     } catch (error) {
+      if (seq !== logsSeqRef.current) return;
       setLastIssueLogs([]);
       handleError(error, '활성화 안내 기록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
     }
   };
 
   const applyActivationIssue = (data: SignupActivationIssueResponse) => {
+    currentCardRef.current = { requestId: data.request.id, issueId: data.activation_issue.id };
     setLastApprove(data);
+    setLastIssueLogs(null);
     void refreshActivationLogs(data.request.id);
   };
 
   const approveMutation = useMutation({
     mutationFn: (id: number) => approveAdminSignupRequest(id),
     onSuccess: (data) => {
-      const message = '가입신청을 승인했습니다.';
+      const next = approveFeedback(data.activation_email);
       applyActivationIssue(data);
-      setFeedback({ tone: 'success', message });
-      show(message, { type: 'success' });
+      setFeedback(next);
+      show(next.message, { type: next.tone });
       void queryClient.invalidateQueries({ queryKey: ['admin-signup-requests'] });
     },
-    onError: (error: unknown) => handleError(error, '승인 처리 중 오류가 발생했습니다.'),
+    onError: (error: unknown) => {
+      handleError(error, '승인 처리 중 오류가 발생했습니다.');
+      void queryClient.invalidateQueries({ queryKey: ['admin-signup-requests'] });
+    },
   });
 
   const reissueMutation = useMutation({
@@ -154,26 +173,46 @@ function useSignupRequestsModel() {
   });
 
   const sendEmailMutation = useMutation({
-    mutationFn: () => {
-      if (lastApprove == null) {
-        throw new Error('missing-activation');
-      }
-      return sendAdminSignupActivationEmail(
-        lastApprove.request.id,
-        lastApprove.activation_token
+    mutationFn: (target: { requestId: number; issueId: number; token: string; label: string }) =>
+      sendAdminSignupActivationEmail(target.requestId, target.token),
+    onSuccess: (data, target) => {
+      // 토스트는 어느 신청의 결과인지 밝히고, 화면 배너·카드는 같은 카드일 때만 바꾼다.
+      show(`${target.label} 안내 메일을 ${data.sent_to}으로 보냈습니다.`, { type: 'success' });
+      if (!isCurrentCard(target.requestId, target.issueId)) return;
+      setFeedback({ tone: 'success', message: `${data.sent_to}으로 안내 메일을 보냈습니다.` });
+      setLastApprove((prev) =>
+        prev != null &&
+        prev.request.id === target.requestId &&
+        prev.activation_issue.id === target.issueId
+          ? {
+              ...prev,
+              activation_email: { status: 'sent', sent_to: data.sent_to, error_code: null },
+            }
+          : prev
       );
+      void refreshActivationLogs(target.requestId);
     },
-    onSuccess: (data) => {
-      const message = `${data.sent_to}으로 안내 메일을 보냈습니다.`;
-      setFeedback({ tone: 'success', message });
-      show(message, { type: 'success' });
-      if (lastApprove != null) {
-        void refreshActivationLogs(lastApprove.request.id);
-      }
+    onError: (error: unknown, target) => {
+      const message = errorMessage(
+        error,
+        '안내 메일을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.'
+      );
+      show(`${target.label} ${message}`, { type: 'error' });
+      if (!isCurrentCard(target.requestId, target.issueId)) return;
+      setFeedback({ tone: 'error', message });
     },
-    onError: (error: unknown) =>
-      handleError(error, '안내 메일을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.'),
   });
+
+  const sendActivationEmail = () => {
+    if (lastApprove == null) return;
+    const { name, student_id } = lastApprove.activation_context;
+    sendEmailMutation.mutate({
+      requestId: lastApprove.request.id,
+      issueId: lastApprove.activation_issue.id,
+      token: lastApprove.activation_token,
+      label: `${name}(${student_id})`,
+    });
+  };
 
   const copyToClipboard = async (text: string, label: string) => {
     try {
@@ -230,6 +269,7 @@ function useSignupRequestsModel() {
     lastIssueLogs,
     feedback,
     sendEmailMutation,
+    sendActivationEmail,
     clearFeedback: () => setFeedback(null),
   };
 }
@@ -250,7 +290,7 @@ function AdminSignupRequestsContent() {
       <header className="space-y-2">
         <h1 className="text-xl font-semibold text-text-primary">가입신청 심사</h1>
         <p className="text-sm text-text-secondary">
-          대기 중 신청을 승인/반려하고, 승인 후 안내 메일을 바로 보낼 수 있습니다. 메일이 실패하면 링크와 안내문구를 복사해 전달하세요.
+          대기 중 신청을 승인/반려합니다. 승인하면 신청 이메일로 안내 메일이 자동으로 나갑니다. 메일을 보내지 못했거나 다시 보내야 하면 아래에서 다시 보내거나 링크와 안내문구를 복사해 전달하세요.
         </p>
       </header>
 
@@ -264,7 +304,7 @@ function AdminSignupRequestsContent() {
         onCopyMessage={model.copyActivationMessage}
         onSendEmail={() => {
           model.clearFeedback();
-          model.sendEmailMutation.mutate();
+          model.sendActivationEmail();
         }}
         isSendPending={model.sendEmailMutation.isPending}
       />

@@ -18,13 +18,21 @@ const ERROR_MESSAGES: Record<string, string> = {
   member_exists: '이미 등록된 회원입니다.',
   member_phone_already_in_use: '이미 다른 회원이 사용 중인 전화번호입니다.',
   member_already_active: '이미 첫 로그인 설정을 마친 회원입니다.',
+  member_activation_pending: `가입 승인이 이미 완료되었습니다. 안내 메일의 링크로 ${MEMBER_LANGUAGE.activation}을 진행해 주세요. 메일을 받지 못하셨다면 ${OFFICE_CONTACT_MESSAGE}`,
   signup_already_pending: '이미 심사 대기 중인 신청이 있습니다.',
+  student_id_required: '학번을 입력해 주세요.',
   signup_request_not_found: '가입신청을 찾을 수 없습니다.',
   signup_request_not_pending: '대기 중인 신청만 처리할 수 있습니다.',
   signup_request_not_approved: `승인된 신청만 ${MEMBER_LANGUAGE.activationCode}를 다시 발급할 수 있습니다.`,
   email_not_configured: '안내 메일을 보낼 준비가 되어 있지 않습니다. 안내문구를 복사해 전달해 주세요.',
   email_send_failed: '안내 메일을 보내지 못했습니다. 잠시 후 다시 시도하거나 안내문구를 복사해 전달해 주세요.',
   email_recipient_missing: '보낼 이메일 주소가 없어 안내 메일을 발송하지 못했습니다.',
+  signup_member_exists: '이미 가입된 회원이 있습니다. 같은 분이면 이 신청은 반려해 주세요.',
+  signup_member_student_id_variant: '학번 표기만 다른 기존 회원 정보가 있어 승인할 수 없습니다. 같은 분인지 확인해 주세요.',
+  signup_member_account_exists: '이 학번으로 이미 만들어진 계정이 있어 일반 가입 승인으로 처리할 수 없습니다. 회원 관리에서 처리하고 이 신청은 반려해 주세요.',
+  signup_member_email_mismatch: '기존 회원 정보의 이메일과 신청 이메일이 다릅니다. 회원 관리에서 본인 확인 후 이메일을 정정한 뒤 다시 승인해 주세요.',
+  signup_email_in_use: '신청 이메일을 이미 다른 회원이 사용하고 있습니다. 같은 분인지 확인한 뒤 이 신청을 반려해 주세요.',
+  signup_approve_conflict: '다른 회원 정보와 학번 또는 이메일이 겹쳐 승인하지 못했습니다. 목록을 새로 고친 뒤 확인해 주세요.',
 
   // 게시글/행사 관련
   post_not_found: '게시글을 찾을 수 없습니다.',
@@ -77,4 +85,22 @@ export function apiErrorToMessage(code?: string, fallback?: string): string {
 export function memberApiErrorToMessage(code?: string, fallback?: string): string {
   const message = code ? ERROR_MESSAGES[code] : undefined;
   return message ?? safeFallback(fallback) ?? '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+}
+
+// 운영자 화면 전용: 서버 detail에 충돌 회원 학번 같은 다음 행동 정보가 담기는 코드.
+const ADMIN_DETAIL_CODES = new Set([
+  'signup_member_exists',
+  'signup_member_student_id_variant',
+  'signup_member_account_exists',
+  'signup_member_email_mismatch',
+  'signup_email_in_use',
+  'signup_approve_conflict',
+]);
+
+export function adminApiErrorToMessage(code?: string, detail?: string): string {
+  if (code && ADMIN_DETAIL_CODES.has(code)) {
+    const safe = safeFallback(detail);
+    if (safe) return safe;
+  }
+  return apiErrorToMessage(code, detail);
 }

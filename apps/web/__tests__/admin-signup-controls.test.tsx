@@ -142,6 +142,7 @@ describe('가입신청 안내 메일 버튼', () => {
         token_tail: 'token',
         issued_at: '2026-08-13T01:00:00Z',
       },
+      activation_email: { status: 'not_attempted', sent_to: null, error_code: null },
     };
 
     render(

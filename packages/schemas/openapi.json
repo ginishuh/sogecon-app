@@ -8696,6 +8696,47 @@
         ],
         "title": "SignupActivationContextResponse"
       },
+      "SignupActivationEmailResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "sent",
+              "failed",
+              "not_attempted"
+            ],
+            "title": "Status"
+          },
+          "sent_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent To"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "SignupActivationEmailResult",
+        "description": "\uc2b9\uc778 \uc9c1\ud6c4 \uc548\ub0b4 \uba54\uc77c \uc790\ub3d9 \ubc1c\uc1a1 \uacb0\uacfc.\n\n- `sent`: \ubc1c\uc1a1 \uc644\ub8cc. `sent_to`\ub294 \uc218\uc2e0 \uc8fc\uc18c(\uc218\ub3d9 \ubc1c\uc1a1 \uc751\ub2f5\uacfc \uac19\uc740 \ub178\ucd9c \uc218\uc900).\n- `failed`: \uc2b9\uc778\uc740 \uc644\ub8cc\ub410\uc9c0\ub9cc \ubc1c\uc1a1\ud558\uc9c0 \ubabb\ud568. `error_code`\ub294\n  `email_not_configured`\u00b7`email_send_failed`\u00b7`email_recipient_missing` \ub4f1.\n- `not_attempted`: \uc790\ub3d9 \ubc1c\uc1a1 \ub300\uc0c1\uc774 \uc544\ub2d8(\ud1a0\ud070 \uc7ac\ubc1c\uae09 \uc751\ub2f5)."
+      },
       "SignupActivationEmailSendPayload": {
         "properties": {
           "activation_token": {
@@ -8826,6 +8867,9 @@
           },
           "activation_issue": {
             "$ref": "#/components/schemas/SignupActivationIssueLogRead"
+          },
+          "activation_email": {
+            "$ref": "#/components/schemas/SignupActivationEmailResult"
           }
         },
         "type": "object",
@@ -8833,7 +8877,8 @@
           "request",
           "activation_context",
           "activation_token",
-          "activation_issue"
+          "activation_issue",
+          "activation_email"
         ],
         "title": "SignupActivationIssueResponse"
       },

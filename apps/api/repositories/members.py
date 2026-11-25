@@ -12,6 +12,7 @@ from sqlalchemy.sql.elements import ColumnElement
 from .. import models, schemas
 from ..errors import NotFoundError
 from ..models_directory_view import DirectoryViewRequest
+from ..student_id_key import EDGE_WHITESPACE, student_id_match_clause
 from . import escape_like
 
 _SUPER_ADMIN_ROLE_LOCK_ID = 0x534F4745434F4E
@@ -314,6 +315,48 @@ async def get_member_by_student_id(db: AsyncSession, student_id: str) -> models.
     if row is None:
         raise NotFoundError(code="member_not_found", detail="Member not found")
     return row
+
+
+async def list_members_by_student_key(
+    db: AsyncSession, student_id: str
+) -> Sequence[models.Member]:
+    """같은 학번의 회원(`student_id_match_clause`: ASCII는 표기 변형 포함)."""
+    stmt = (
+        select(models.Member)
+        .where(
+            student_id_match_clause(models.Member.student_id, student_id)
+        )
+        .order_by(models.Member.id)
+    )
+    return (await db.execute(stmt)).scalars().all()
+
+
+async def get_member_for_update(
+    db: AsyncSession, member_id: int
+) -> models.Member | None:
+    """회원 행을 트랜잭션 끝까지 잠그고 최신 값으로 다시 읽는다."""
+    stmt = (
+        select(models.Member)
+        .where(models.Member.id == member_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    return (await db.execute(stmt)).scalars().first()
+
+
+async def find_member_by_email_ci(
+    db: AsyncSession, email: str, *, exclude_member_id: int | None = None
+) -> models.Member | None:
+    """대소문자와 앞뒤 공백을 무시하고 이메일이 같은 회원 하나."""
+    normalized = email.strip().lower()
+    if not normalized:
+        return None
+    # 저장 값에도 같은 규칙을 적용한다(앞뒤 공백이 남은 기존 행 대비).
+    stored = func.lower(func.btrim(models.Member.email, EDGE_WHITESPACE))
+    stmt = select(models.Member).where(stored == normalized)
+    if exclude_member_id is not None:
+        stmt = stmt.where(models.Member.id != exclude_member_id)
+    return (await db.execute(stmt.order_by(models.Member.id))).scalars().first()
 
 
 async def list_members_by_student_ids(

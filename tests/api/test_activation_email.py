@@ -78,6 +78,7 @@ def test_send_activation_email_success(
 
     monkeypatch.setattr(email_service, "deliver_message", fake_deliver)
     signup_id, token, email, issue_id = _create_approved_signup(admin_login)
+    sent.clear()  # 승인 시 자동 발송분은 test_signup_approve_conflicts에서 검증
 
     res = admin_login.post(
         f"/admin/signup-requests/{signup_id}/send-activation-email",
@@ -131,6 +132,7 @@ def test_send_activation_email_succeeds_when_audit_write_fails(
 
     monkeypatch.setattr(email_service, "deliver_message", fake_deliver)
     signup_id, token, email, _issue_id = _create_approved_signup(admin_login)
+    sent.clear()
 
     async def fail_audit(*_args: object, **_kwargs: object) -> None:
         raise SQLAlchemyError("audit write failed")
@@ -152,7 +154,10 @@ def test_send_activation_email_succeeds_when_audit_write_fails(
         f"/admin/signup-requests/{signup_id}/activation-token-logs"
     )
     assert logs.status_code == HTTPStatus.OK
-    assert all(item["issued_type"] != "send" for item in logs.json()["items"])
+    # 승인 시 자동 발송 기록 1건만 남고, 감사 저장이 실패한 수동 발송 기록은 없다.
+    assert [
+        item["issued_type"] for item in logs.json()["items"]
+    ].count("send") == 1
     assert "activation_email_audit_failed" in caplog.text
     assert token not in caplog.text
     assert email not in caplog.text
@@ -189,7 +194,7 @@ def test_send_activation_email_rejects_other_request_token(
     admin_login: TestClient, monkeypatch: MonkeyPatch
 ) -> None:
     _configure_smtp(monkeypatch)
-    monkeypatch.setattr(email_service, "deliver_message", _must_not_send)
+    monkeypatch.setattr(email_service, "deliver_message", lambda *_a, **_k: None)
     first_id, first_token, _email, _issue_id = _create_approved_signup(admin_login)
     create_res = admin_login.post(
         "/auth/member/signup",
@@ -207,6 +212,7 @@ def test_send_activation_email_rejects_other_request_token(
     assert approve_res.status_code == HTTPStatus.OK
     assert first_id != second_id
 
+    monkeypatch.setattr(email_service, "deliver_message", _must_not_send)
     res = admin_login.post(
         f"/admin/signup-requests/{second_id}/send-activation-email",
         json={"activation_token": first_token},
