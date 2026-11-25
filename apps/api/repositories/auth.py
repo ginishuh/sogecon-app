@@ -100,3 +100,9 @@ async def create_or_update_member_auth(
             password_hash=password_hash,
         )
     return await update_member_auth_password(db, auth, password_hash)
+
+
+async def member_has_auth(db: AsyncSession, member_id: int) -> bool:
+    """회원이 첫 로그인 설정(비밀번호 생성)을 마쳤는지."""
+    stmt = select(MemberAuth.id).where(MemberAuth.member_id == member_id).limit(1)
+    return (await db.execute(stmt)).first() is not None

@@ -46,6 +46,44 @@ export function signupRequestStatusLabel(status: SignupRequestStatus): string {
   return '활성화 완료';
 }
 
+export type ActivationEmailResult = SignupActivationIssueResponse['activation_email'];
+
+/** 승인 직후 자동 발송 결과를 운영자 피드백으로 바꾼다. 실패해도 승인은 완료 상태다. */
+export function approveFeedback(email: ActivationEmailResult): {
+  tone: 'success' | 'error';
+  message: string;
+} {
+  if (email.status === 'sent') {
+    return {
+      tone: 'success',
+      message: `가입신청을 승인했고 ${email.sent_to ?? '신청 이메일'}으로 안내 메일을 보냈습니다.`,
+    };
+  }
+  return {
+    tone: 'error',
+    message:
+      '승인은 완료됐지만 안내 메일을 보내지 못했습니다. 아래에서 다시 보내거나 링크·안내문구를 복사해 전달하세요.',
+  };
+}
+
+function ActivationEmailStatus({ email }: { email: ActivationEmailResult }) {
+  if (email.status === 'sent') {
+    return (
+      <p className="text-sm text-state-success">
+        안내 메일을 보냈습니다. 받지 못했다면 다시 보내거나 링크·안내문구를 복사해 전달하세요.
+      </p>
+    );
+  }
+  if (email.status === 'failed') {
+    return (
+      <p className="text-sm text-state-error">
+        안내 메일을 보내지 못했습니다. 다시 보내거나 링크·안내문구를 복사해 전달하세요.
+      </p>
+    );
+  }
+  return null;
+}
+
 const secondaryButtonClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.secondary}`;
 const primaryButtonClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.primary}`;
 const dangerButtonClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.danger}`;
@@ -84,7 +122,8 @@ export function ApproveTokenCard({
   isSendPending,
 }: {
   lastApprove: SignupActivationIssueResponse | null;
-  activationLogs: SignupActivationIssueLogRead[];
+  /** null이면 현재 카드의 이력을 불러오는 중이다. */
+  activationLogs: SignupActivationIssueLogRead[] | null;
   onCopyToken: () => void;
   onCopyLink: () => void;
   onCopyMessage: () => void;
@@ -115,13 +154,18 @@ export function ApproveTokenCard({
         <p className="text-sm text-text-primary">
           보낼 주소: <span className="font-medium">{lastApprove.activation_context.email}</span>
         </p>
+        <ActivationEmailStatus email={lastApprove.activation_email} />
         <button
           type="button"
           className={sendBtnClass}
           onClick={onSendEmail}
           disabled={isSendPending}
         >
-          {isSendPending ? '보내는 중...' : '안내 메일 보내기'}
+          {isSendPending
+            ? '보내는 중...'
+            : lastApprove.activation_email.status === 'sent'
+              ? '안내 메일 다시 보내기'
+              : '안내 메일 보내기'}
         </button>
       </div>
 
@@ -166,7 +210,11 @@ export function ApproveTokenCard({
 
       <div className="space-y-1">
         <span className="text-xs font-medium text-state-success">최근 발급 이력</span>
-        {activationLogs.length === 0 ? (
+        {activationLogs == null ? (
+          <p className="rounded bg-white px-3 py-2 text-xs text-text-muted" role="status">
+            발급 이력을 불러오는 중입니다.
+          </p>
+        ) : activationLogs.length === 0 ? (
           <p className="rounded bg-white px-3 py-2 text-xs text-text-muted">
             아직 발급 이력이 없습니다.
           </p>

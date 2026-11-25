@@ -3,7 +3,11 @@ import { resolve } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { apiErrorToMessage, memberApiErrorToMessage } from '../lib/error-map';
+import {
+  adminApiErrorToMessage,
+  apiErrorToMessage,
+  memberApiErrorToMessage,
+} from '../lib/error-map';
 import { MEMBER_LANGUAGE } from '../lib/member-language';
 
 const PUBLIC_COPY_FILES = [
@@ -85,6 +89,25 @@ describe('동문 사용자 언어', () => {
     );
     expect(memberApiErrorToMessage('post_owner_required')).toBe(
       '작성자 본인의 게시판 글만 수정하거나 삭제할 수 있습니다.'
+    );
+  });
+
+  it('승인됐지만 첫 로그인 설정 전인 재신청은 안내 메일과 사무국 문의로 안내한다', () => {
+    const message = memberApiErrorToMessage('member_activation_pending', '가입 승인이 이미 완료되었습니다.');
+    expect(message).toContain('가입 승인이 이미 완료되었습니다.');
+    expect(message).toContain(MEMBER_LANGUAGE.activation);
+    expect(message).toContain(MEMBER_LANGUAGE.officeName);
+    expect(message).not.toBe(memberApiErrorToMessage('member_already_active'));
+  });
+
+  it('가입 승인 충돌은 서버 상세(기존 회원 학번)를 보이고, 내부 문자열이면 일반 안내로 대체한다', () => {
+    const detail = '이미 가입된 회원(학번 61041)이 있습니다. 같은 분이면 이 신청은 반려해 주세요.';
+    expect(adminApiErrorToMessage('signup_member_exists', detail)).toBe(detail);
+    expect(adminApiErrorToMessage('signup_member_exists', 'signup_member_exists')).toBe(
+      '이미 가입된 회원이 있습니다. 같은 분이면 이 신청은 반려해 주세요.'
+    );
+    expect(adminApiErrorToMessage('signup_request_not_pending', '임의 상세')).toBe(
+      '대기 중인 신청만 처리할 수 있습니다.'
     );
   });
 

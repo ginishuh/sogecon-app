@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 
 from .. import models, schemas
+from ..student_id_key import student_id_lock_name, student_id_match_clause
 from . import escape_like
 
 
@@ -48,13 +49,14 @@ async def create_signup_request(
     return row
 
 
-async def get_pending_by_student_id(
+async def get_pending_by_student_key(
     db: AsyncSession,
     student_id: str,
 ) -> models.SignupRequest | None:
+    """학번 키가 같은 대기 신청(표기만 다른 학번 포함)."""
     stmt = select(models.SignupRequest).where(
         and_(
-            models.SignupRequest.student_id == student_id,
+            student_id_match_clause(models.SignupRequest.student_id, student_id),
             models.SignupRequest.status == "pending",
         )
     )
@@ -71,6 +73,40 @@ async def get_signup_request_by_id(
     )
     result = await db.execute(stmt)
     return result.scalars().first()
+
+
+async def get_signup_request_for_update(
+    db: AsyncSession,
+    signup_request_id: int,
+) -> models.SignupRequest | None:
+    """신청 행을 트랜잭션 끝까지 잠근다(동시 승인·반려 직렬화)."""
+    stmt = (
+        select(models.SignupRequest)
+        .where(models.SignupRequest.id == signup_request_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    result = await db.execute(stmt)
+    return result.scalars().first()
+
+
+async def _advisory_xact_lock(db: AsyncSession, name: str) -> None:
+    await db.execute(
+        select(func.pg_advisory_xact_lock(func.hashtextextended(name, 0)))
+    )
+
+
+async def lock_student_key(db: AsyncSession, student_id: str) -> None:
+    """같은 학번 키의 접수·승인을 커밋/롤백까지 직렬화한다.
+
+    잠금 순서는 항상 신청 행 → 학번 키 → 이메일이다.
+    """
+    await _advisory_xact_lock(db, student_id_lock_name(student_id))
+
+
+async def lock_email(db: AsyncSession, email: str) -> None:
+    """대소문자를 무시한 같은 이메일의 승인을 직렬화한다(학번 키 잠금 다음)."""
+    await _advisory_xact_lock(db, f"signup:email:{email.strip().lower()}")
 
 
 async def list_signup_requests_with_total(

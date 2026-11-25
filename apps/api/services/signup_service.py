@@ -6,14 +6,16 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import cast
 
-from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import models, schemas
 from ..errors import ApiError, ConflictError, NotFoundError
 from ..logging_utils import log_json
+from ..repositories import auth as auth_repo
+from ..repositories import members as members_repo
 from ..repositories import signup_requests as signup_requests_repo
+from ..student_id_key import clean_student_id
 from . import email_service
 from .activation_service import (
     create_member_activation_token,
@@ -55,7 +57,7 @@ def _build_activation_context(row: models.SignupRequest) -> SignupActivationCont
     )
 
 
-async def _issue_activation_token(
+async def issue_activation_token(
     db: AsyncSession,
     *,
     row: models.SignupRequest,
@@ -91,17 +93,40 @@ async def create_signup_request(
     db: AsyncSession,
     payload: schemas.SignupRequestCreate,
 ) -> models.SignupRequest:
-    member_stmt = select(models.Member).where(
-        models.Member.student_id == payload.student_id
+    # 학번 표기만 다른 재신청(`S61041` ↔ `61041`)도 같은 사람으로 본다.
+    # 이메일만 겹치는 경우는 공개 엔드포인트에서 거절하지 않는다(계정 열거 방지,
+    # 같은 사람인지는 승인 단계에서 사무국이 판단).
+    # 같은 학번 키의 동시 접수·승인을 트랜잭션 잠금으로 직렬화한 뒤 조회한다.
+    # 웹 폼이 보내던 것처럼 앞뒤 공백만 지워 저장한다(내부 표기·비ASCII 원문 유지).
+    payload = payload.model_copy(
+        update={"student_id": clean_student_id(payload.student_id)}
     )
-    existing_member = (await db.execute(member_stmt)).scalars().first()
-    if existing_member is not None and cast(str, existing_member.status) == "active":
+    if not payload.student_id:
+        # 공백뿐인 학번은 로그인할 수 없는 회원을 만든다. 자유 입력(한글 등)은 허용.
+        raise ApiError(
+            code="student_id_required",
+            detail="학번을 입력해 주세요.",
+            status=422,
+        )
+    await signup_requests_repo.lock_student_key(db, payload.student_id)
+    members = await members_repo.list_members_by_student_key(db, payload.student_id)
+    active_members = [m for m in members if cast(str, m.status) == "active"]
+    for member in active_members:
+        if await auth_repo.member_has_auth(db, cast(int, member.id)):
+            raise ConflictError(
+                code="member_already_active",
+                detail="이미 활성화된 회원입니다.",
+            )
+    if active_members:
         raise ConflictError(
-            code="member_already_active",
-            detail="이미 활성화된 회원입니다.",
+            code="member_activation_pending",
+            detail=(
+                "가입 승인이 이미 완료되었습니다. "
+                "안내 메일의 링크로 첫 로그인 설정을 진행해 주세요."
+            ),
         )
 
-    pending_row = await signup_requests_repo.get_pending_by_student_id(
+    pending_row = await signup_requests_repo.get_pending_by_student_key(
         db, payload.student_id
     )
     if pending_row is not None:
@@ -137,72 +162,6 @@ async def list_signup_requests_with_total(
     )
 
 
-async def approve_signup_request(
-    db: AsyncSession,
-    *,
-    signup_request_id: int,
-    decided_by_student_id: str,
-) -> tuple[models.SignupRequest, SignupActivationIssueResult]:
-    row = await signup_requests_repo.get_signup_request_by_id(db, signup_request_id)
-    if row is None:
-        raise NotFoundError(
-            code="signup_request_not_found",
-            detail="가입신청을 찾을 수 없습니다.",
-        )
-
-    if cast(str, row.status) != "pending":
-        raise ConflictError(
-            code="signup_request_not_pending",
-            detail="대기 중인 신청만 승인할 수 있습니다.",
-        )
-
-    member_stmt = select(models.Member).where(
-        models.Member.student_id == row.student_id
-    )
-    member = (await db.execute(member_stmt)).scalars().first()
-    if member is None:
-        member = models.Member(
-            student_id=row.student_id,
-            email=row.email,
-            name=row.name,
-            cohort=row.cohort,
-            major=row.major,
-            roles="member",
-            status="active",
-            visibility=models.Visibility.PRIVATE,
-        )
-        db.add(member)
-    else:
-        if cast(str, member.status) == "active":
-            raise ConflictError(
-                code="member_already_active",
-                detail="이미 활성화된 회원입니다.",
-            )
-        setattr(member, "email", cast(str, row.email))
-        setattr(member, "name", cast(str, row.name))
-        setattr(member, "cohort", cast(int, row.cohort))
-        setattr(member, "major", cast(str | None, row.major))
-        setattr(member, "status", "active")
-        if cast(datetime | None, member.directory_consent_at) is None:
-            setattr(member, "visibility", models.Visibility.PRIVATE)
-
-    setattr(row, "status", "approved")
-    setattr(row, "decided_at", datetime.now(tz=UTC))
-    setattr(row, "decided_by_student_id", decided_by_student_id)
-    setattr(row, "reject_reason", None)
-
-    issue = await _issue_activation_token(
-        db,
-        row=row,
-        issued_by_student_id=decided_by_student_id,
-        issued_type="approve",
-        commit=False,
-    )
-    await db.commit()
-    await db.refresh(row)
-    return row, issue
-
-
 async def reissue_signup_activation_token(
     db: AsyncSession,
     *,
@@ -222,7 +181,7 @@ async def reissue_signup_activation_token(
             detail="승인 완료된 신청만 토큰을 재발급할 수 있습니다.",
         )
 
-    issue = await _issue_activation_token(
+    issue = await issue_activation_token(
         db,
         row=row,
         issued_by_student_id=issued_by_student_id,
@@ -257,7 +216,10 @@ async def reject_signup_request(
     decided_by_student_id: str,
     reject_reason: str,
 ) -> models.SignupRequest:
-    row = await signup_requests_repo.get_signup_request_by_id(db, signup_request_id)
+    # 동시 승인·반려가 같은 대기 상태를 읽지 않도록 신청 행을 잠근 뒤 판정한다.
+    row = await signup_requests_repo.get_signup_request_for_update(
+        db, signup_request_id
+    )
     if row is None:
         raise NotFoundError(
             code="signup_request_not_found",

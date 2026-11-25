@@ -112,6 +112,7 @@ function activationIssuePayload() {
       token_tail: 'ion-token',
       issued_at: '2026-02-18T08:05:00Z',
     },
+    activation_email: { status: 'sent', sent_to: 'new-member@example.com', error_code: null },
   };
 }
 

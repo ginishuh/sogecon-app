@@ -68,14 +68,22 @@ def test_member_signup_duplicate_pending_returns_409(client: TestClient) -> None
 
 def test_member_signup_active_member_conflict_returns_409(client: TestClient) -> None:
     async def _seed_active_member(session: AsyncSession) -> None:
+        member = models.Member(
+            student_id="s116003",
+            email="s116003@test.example.com",
+            name="기존회원",
+            cohort=2020,
+            roles="member",
+            status="active",
+        )
+        session.add(member)
+        await session.flush()
+        # 첫 로그인 설정(비밀번호)까지 마친 회원. 설정 전이면 member_activation_pending.
         session.add(
-            models.Member(
+            models.MemberAuth(
+                member_id=member.id,
                 student_id="s116003",
-                email="s116003@test.example.com",
-                name="기존회원",
-                cohort=2020,
-                roles="member",
-                status="active",
+                password_hash="not-a-real-hash",
             )
         )
         await session.commit()

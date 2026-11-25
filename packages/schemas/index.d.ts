@@ -2231,6 +2231,26 @@ export interface components {
             /** Cohort */
             cohort: number;
         };
+        /**
+         * SignupActivationEmailResult
+         * @description 승인 직후 안내 메일 자동 발송 결과.
+         *
+         *     - `sent`: 발송 완료. `sent_to`는 수신 주소(수동 발송 응답과 같은 노출 수준).
+         *     - `failed`: 승인은 완료됐지만 발송하지 못함. `error_code`는
+         *       `email_not_configured`·`email_send_failed`·`email_recipient_missing` 등.
+         *     - `not_attempted`: 자동 발송 대상이 아님(토큰 재발급 응답).
+         */
+        SignupActivationEmailResult: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "sent" | "failed" | "not_attempted";
+            /** Sent To */
+            sent_to?: string | null;
+            /** Error Code */
+            error_code?: string | null;
+        };
         /** SignupActivationEmailSendPayload */
         SignupActivationEmailSendPayload: {
             /** Activation Token */
@@ -2278,6 +2298,7 @@ export interface components {
             /** Activation Token */
             activation_token: string;
             activation_issue: components["schemas"]["SignupActivationIssueLogRead"];
+            activation_email: components["schemas"]["SignupActivationEmailResult"];
         };
         /** SignupRejectPayload */
         SignupRejectPayload: {
