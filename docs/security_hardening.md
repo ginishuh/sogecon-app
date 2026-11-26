@@ -38,7 +38,7 @@
 | 관리자 알림 발송 | `RATE_LIMIT_NOTIFY_SEND` | `6/minute` | `POST /notifications/admin/notifications/send` |
 | Web Push 구독/해지 | `RATE_LIMIT_SUBSCRIBE` | `30/minute` | `POST/DELETE /notifications/subscriptions` |
 | 문의 접수 | `RATE_LIMIT_SUPPORT` | `1/minute` | `POST /support/contact` |
-| 가입 승인 안내 메일 | `RATE_LIMIT_ACTIVATION_EMAIL` | `10/minute` | `POST /admin/signup-requests/{id}/send-activation-email` (IP당 엔드포인트 공용 한도, 신청 ID와 무관) |
+| 가입 승인 안내 메일 | `RATE_LIMIT_ACTIVATION_EMAIL` | `10/minute` | `POST /admin/signup-requests/{id}/send-activation-email`, `POST /admin/signup-requests/{id}/reissue-token` (두 엔드포인트가 IP당 한도를 공유, 신청 ID와 무관) |
 | 커뮤니티 게시글 작성(멤버) | `RATE_LIMIT_POST_CREATE` | `5/minute` | `POST /posts` (멤버 작성 한정) |
 | 동문 수첩 열람 요청 | `RATE_LIMIT_VIEW_REQUEST` | `10/minute` | `POST /members/{id}/view-requests` |
 

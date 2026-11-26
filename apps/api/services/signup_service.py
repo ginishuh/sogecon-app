@@ -21,6 +21,7 @@ from .activation_service import (
     create_member_activation_token,
     load_activation_payload,
     resolve_activation_signup_request,
+    token_matches_member_email,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,14 +64,19 @@ async def issue_activation_token(
     row: models.SignupRequest,
     issued_by_student_id: str,
     issued_type: schemas.SignupActivationIssueTypeLiteral,
-    commit: bool = True,
+    member_email: str | None,
 ) -> SignupActivationIssueResult:
+    """`member_email`(회원의 현재 이메일)에 묶인 활성화 토큰을 발급한다.
+
+    커밋하지 않는다. 호출자가 응답 스냅샷을 확보한 뒤 커밋한다.
+    """
     context = _build_activation_context(row)
     token = create_member_activation_token(
         signup_request_id=context.signup_request_id,
         student_id=context.student_id,
         cohort=context.cohort,
         name=context.name,
+        email=member_email,
     )
     issue_log = await signup_requests_repo.create_activation_issue_log(
         db,
@@ -80,7 +86,7 @@ async def issue_activation_token(
             issued_by_student_id=issued_by_student_id,
             token=token,
         ),
-        commit=commit,
+        commit=False,
     )
     return SignupActivationIssueResult(
         context=context,
@@ -93,7 +99,7 @@ async def create_signup_request(
     db: AsyncSession,
     payload: schemas.SignupRequestCreate,
 ) -> models.SignupRequest:
-    # 학번 표기만 다른 재신청(`S61041` ↔ `61041`)도 같은 사람으로 본다.
+    # 학번 표기만 다른 재신청(`S90041` ↔ `90041`)도 같은 사람으로 본다.
     # 이메일만 겹치는 경우는 공개 엔드포인트에서 거절하지 않는다(계정 열거 방지,
     # 같은 사람인지는 승인 단계에서 사무국이 판단).
     # 같은 학번 키의 동시 접수·승인을 트랜잭션 잠금으로 직렬화한 뒤 조회한다.
@@ -162,34 +168,6 @@ async def list_signup_requests_with_total(
     )
 
 
-async def reissue_signup_activation_token(
-    db: AsyncSession,
-    *,
-    signup_request_id: int,
-    issued_by_student_id: str,
-) -> tuple[models.SignupRequest, SignupActivationIssueResult]:
-    row = await signup_requests_repo.get_signup_request_by_id(db, signup_request_id)
-    if row is None:
-        raise NotFoundError(
-            code="signup_request_not_found",
-            detail="가입신청을 찾을 수 없습니다.",
-        )
-
-    if cast(str, row.status) != "approved":
-        raise ConflictError(
-            code="signup_request_not_approved",
-            detail="승인 완료된 신청만 토큰을 재발급할 수 있습니다.",
-        )
-
-    issue = await issue_activation_token(
-        db,
-        row=row,
-        issued_by_student_id=issued_by_student_id,
-        issued_type="reissue",
-    )
-    return row, issue
-
-
 async def list_signup_activation_issue_logs(
     db: AsyncSession,
     *,
@@ -239,6 +217,44 @@ async def reject_signup_request(
     return await signup_requests_repo.save_signup_request(db, row)
 
 
+async def resolve_activation_member_for_send(
+    db: AsyncSession, row: models.SignupRequest
+) -> models.Member:
+    """안내 메일을 받을 회원: 활성화가 찾는 회원(학번 완전 일치, 활성)의 현재 값.
+
+    같은 세션이 먼저 읽어 둔 값이 아니라 지금 저장된 값으로 판정한다.
+    """
+    try:
+        member = await members_repo.get_member_by_student_id(
+            db, cast(str, row.student_id)
+        )
+    except NotFoundError:
+        raise ConflictError(code="activation_member_missing") from None
+    await db.refresh(member)
+    if cast(str, member.status) != "active":
+        raise ConflictError(code="member_not_active")
+    return member
+
+
+async def resolve_activation_recipient(
+    db: AsyncSession, row: models.SignupRequest
+) -> str:
+    """안내 메일을 받을 주소: 활성화될 회원의 현재 이메일.
+
+    신청서의 이메일은 접수 시점 값이다. 승인 뒤 관리자가 회원 이메일을 고쳤다면
+    (오타, 다른 사람의 주소 등) 신청서 주소가 아니라 고친 주소로만 보낸다.
+    """
+    member = await resolve_activation_member_for_send(db, row)
+    return _member_recipient(member)
+
+
+def _member_recipient(member: models.Member) -> str:
+    to_email = (cast(str | None, member.email) or "").strip()
+    if not to_email:
+        raise ConflictError(code="email_recipient_missing")
+    return to_email
+
+
 async def send_signup_activation_email(
     db: AsyncSession,
     *,
@@ -255,9 +271,25 @@ async def send_signup_activation_email(
         )
 
     row = await resolve_activation_signup_request(db, payload)
-    to_email = cast(str, row.email).strip()
-    if not to_email:
-        raise ConflictError(code="email_recipient_missing")
+    # 같은 세션이 먼저 읽어 둔 값이 아니라 현재 상태로 판정한다(그사이 활성화 완료 등).
+    await db.refresh(row)
+    row_status = cast(str, row.status)
+    if row_status == "activated":
+        raise ConflictError(code="activation_already_used")
+    if row_status != "approved":
+        raise ConflictError(code="signup_request_not_approved")
+    member = await resolve_activation_member_for_send(db, row)
+    to_email = _member_recipient(member)
+    if not token_matches_member_email(
+        payload,
+        request_email=cast(str | None, row.email),
+        member_email=to_email,
+    ):
+        # 발급 뒤 회원 이메일이 바뀌었다. 이 링크는 활성화에서 거절되므로 보내지 않는다.
+        raise ConflictError(
+            code="activation_link_outdated",
+            detail="회원 이메일이 바뀌어 이 링크는 더 쓸 수 없습니다. 재발급해 주세요.",
+        )
 
     sent_to = await email_service.send_activation_email(
         to_email=to_email,

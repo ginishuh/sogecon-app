@@ -26,6 +26,8 @@ import {
 } from '../../../services/signup-requests';
 import {
   approveFeedback,
+  isCardBlockingSendFailure,
+  reissueFeedback,
   ApproveTokenCard,
   FiltersPanel,
   getListState,
@@ -148,10 +150,10 @@ function useSignupRequestsModel() {
   const reissueMutation = useMutation({
     mutationFn: (id: number) => reissueAdminSignupRequestActivationToken(id),
     onSuccess: (data) => {
-      const message = '활성화 토큰을 재발급했습니다.';
+      const next = reissueFeedback(data.activation_email);
       applyActivationIssue(data);
-      setFeedback({ tone: 'success', message });
-      show(message, { type: 'success' });
+      setFeedback(next);
+      show(next.message, { type: next.tone });
       void queryClient.invalidateQueries({ queryKey: ['admin-signup-requests'] });
     },
     onError: (error: unknown) =>
@@ -186,6 +188,8 @@ function useSignupRequestsModel() {
         prev.activation_issue.id === target.issueId
           ? {
               ...prev,
+              // 실제로 나간 주소를 "보낼 주소"에도 반영한다(그사이 회원 이메일이 바뀐 경우).
+              activation_context: { ...prev.activation_context, email: data.sent_to },
               activation_email: { status: 'sent', sent_to: data.sent_to, error_code: null },
             }
           : prev
@@ -200,6 +204,21 @@ function useSignupRequestsModel() {
       show(`${target.label} ${message}`, { type: 'error' });
       if (!isCurrentCard(target.requestId, target.issueId)) return;
       setFeedback({ tone: 'error', message });
+      const code = error instanceof ApiError ? error.code : undefined;
+      if (code != null && isCardBlockingSendFailure(code)) {
+        // 이 카드로는 더 보낼 수 없다. 옛 주소·성공 표시를 치우고 실패 사유를 남긴다.
+        setLastApprove((prev) =>
+          prev != null &&
+          prev.request.id === target.requestId &&
+          prev.activation_issue.id === target.issueId
+            ? {
+                ...prev,
+                activation_context: { ...prev.activation_context, email: '' },
+                activation_email: { status: 'failed', sent_to: null, error_code: code },
+              }
+            : prev
+        );
+      }
     },
   });
 

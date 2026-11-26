@@ -76,7 +76,7 @@ const approveResponse: SignupActivationIssueResponse = {
 
 const approveMailFailedResponse: SignupActivationIssueResponse = {
   ...approveResponse,
-  activation_email: { status: 'failed', sent_to: null, error_code: 'email_not_configured' },
+  activation_email: { status: 'failed', sent_to: null, error_code: 'email_send_failed' },
 };
 
 function Providers({ children }: { children: ReactNode }) {
@@ -209,6 +209,71 @@ describe('가입신청 안내 메일 발송', () => {
   });
 });
 
+describe('가입신청 안내 메일: 회원 이메일이 바뀐 뒤의 카드', () => {
+  it('더 쓸 수 없는 링크는 주소·복사·발송을 치우고 재발급만 안내한다', async () => {
+    vi.clearAllMocks();
+    mocks.auth.status = 'authorized';
+    mocks.auth.data = { roles: ['member', 'admin', 'admin_signup'] };
+    mocks.listAdminSignupRequests.mockResolvedValue({ items: [request], total: 1 });
+    mocks.listAdminSignupRequestActivationTokenLogs.mockResolvedValue({ items: [] });
+    mocks.approveAdminSignupRequest.mockResolvedValue(approveResponse);
+    mocks.sendAdminSignupActivationEmail.mockRejectedValue(
+      new ApiError(409, '회원 이메일이 바뀌어 이 링크는 더 쓸 수 없습니다.', 'activation_link_outdated'),
+    );
+
+    render(<AdminSignupRequestsPage />, { wrapper: Providers });
+    fireEvent.click((await screen.findAllByRole('button', { name: '승인' }))[0]);
+    fireEvent.click(await screen.findByRole('button', { name: '안내 메일 다시 보내기' }));
+
+    expect(await screen.findByText(/이전에 발급한 링크는 더 쓸 수 없습니다/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '링크 복사' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /안내 메일/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/보낼 주소/)).not.toBeInTheDocument();
+  });
+
+  it('보낸 뒤 회원이 정지되면 재발송 실패가 카드의 성공 표시와 주소를 대신한다', async () => {
+    vi.clearAllMocks();
+    mocks.auth.status = 'authorized';
+    mocks.auth.data = { roles: ['member', 'admin', 'admin_signup'] };
+    mocks.listAdminSignupRequests.mockResolvedValue({ items: [request], total: 1 });
+    mocks.listAdminSignupRequestActivationTokenLogs.mockResolvedValue({ items: [] });
+    mocks.approveAdminSignupRequest.mockResolvedValue(approveResponse);
+    mocks.sendAdminSignupActivationEmail.mockRejectedValue(
+      new ApiError(409, 'member_not_active', 'member_not_active'),
+    );
+
+    render(<AdminSignupRequestsPage />, { wrapper: Providers });
+    fireEvent.click((await screen.findAllByRole('button', { name: '승인' }))[0]);
+    fireEvent.click(await screen.findByRole('button', { name: '안내 메일 다시 보내기' }));
+
+    expect(await screen.findByText(/회원 상태가 활성이 아닙니다/)).toBeInTheDocument();
+    expect(screen.getByText(/없음 \(회원 정보를 확인하세요\)/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^안내 메일/ })).not.toBeInTheDocument();
+  });
+
+  it('회원에 이메일이 없으면 이메일 입력 뒤 재발급을 안내하고 발송 버튼을 숨긴다', async () => {
+    vi.clearAllMocks();
+    mocks.auth.status = 'authorized';
+    mocks.auth.data = { roles: ['member', 'admin', 'admin_signup'] };
+    const approved = { ...request, status: 'approved' as const };
+    mocks.listAdminSignupRequests.mockResolvedValue({ items: [approved], total: 1 });
+    mocks.listAdminSignupRequestActivationTokenLogs.mockResolvedValue({ items: [] });
+    mocks.reissueAdminSignupRequestActivationToken.mockResolvedValue({
+      ...approveResponse,
+      activation_context: { ...approveResponse.activation_context, email: '' },
+      activation_email: { status: 'failed', sent_to: null, error_code: 'email_recipient_missing' },
+    });
+
+    render(<AdminSignupRequestsPage />, { wrapper: Providers });
+    fireEvent.click((await screen.findAllByRole('button', { name: '재발급·메일 발송' }))[0]);
+
+    // 배너·토스트·카드가 같은 복구 방법을 안내한다.
+    expect(await screen.findAllByText(/이메일을 입력한 뒤 재발급하세요/)).not.toHaveLength(0);
+    expect(screen.getByText(/없음 \(회원 정보를 확인하세요\)/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^안내 메일/ })).not.toBeInTheDocument();
+  });
+});
+
 const otherRequest: SignupRequestRead = {
   ...request,
   id: 18,
@@ -324,12 +389,12 @@ describe('가입신청 발급 이력 조회 순서', () => {
     };
     const oldLog = { ...approveResponse.activation_issue, issued_by_student_id: 'admin-old' };
     mocks.reissueAdminSignupRequestActivationToken
-      .mockResolvedValueOnce({ ...approveResponse, activation_email: { status: 'not_attempted', sent_to: null, error_code: null } })
+      .mockResolvedValueOnce({ ...approveResponse, activation_email: { status: 'failed', sent_to: null, error_code: 'email_send_failed' } })
       .mockResolvedValueOnce({
         ...approveResponse,
         activation_issue: reissueLog,
         activation_token: 'newer-token',
-        activation_email: { status: 'not_attempted', sent_to: null, error_code: null },
+        activation_email: { status: 'failed', sent_to: null, error_code: 'email_send_failed' },
       });
     let resolveOld: (value: { items: unknown[] }) => void = () => undefined;
     mocks.listAdminSignupRequestActivationTokenLogs
@@ -342,9 +407,9 @@ describe('가입신청 발급 이력 조회 순서', () => {
       .mockResolvedValueOnce({ items: [reissueLog, oldLog] });
 
     render(<AdminSignupRequestsPage />, { wrapper: Providers });
-    fireEvent.click((await screen.findAllByRole('button', { name: '재발급' }))[0]);
+    fireEvent.click((await screen.findAllByRole('button', { name: '재발급·메일 발송' }))[0]);
     expect(await screen.findByText('발급 이력을 불러오는 중입니다.')).toBeInTheDocument();
-    fireEvent.click(screen.getAllByRole('button', { name: '재발급' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: '재발급·메일 발송' })[0]);
 
     // 카드 머리말(최근 발급)과 이력 목록에 최신 재발급이 함께 보인다.
     await waitFor(() => {

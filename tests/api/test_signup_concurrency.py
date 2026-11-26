@@ -14,12 +14,14 @@ from typing import Any, cast
 
 from fastapi.testclient import TestClient
 from pytest import MonkeyPatch
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from apps.api import models, schemas
 from apps.api.errors import ConflictError
+from apps.api.repositories import signup_requests as signup_requests_repo
 from apps.api.services import signup_approval_service, signup_service
+from tests.api.signup_helpers import configure_smtp, signup_id_of
 
 _DELAY_SECONDS = 0.4
 _ADMIN = "__seed__admin"
@@ -332,3 +334,93 @@ def test_suspension_after_lock_waits_and_is_kept(
 
     assert _conflict_codes(results) == []
     assert _member_status("s72008") == "suspended"
+
+
+def test_send_decides_on_current_status_not_on_value_cached_in_session(
+    admin_login: TestClient, monkeypatch: MonkeyPatch
+) -> None:
+    """세션이 신청 행을 먼저 읽은 뒤 다른 세션에서 활성화가 끝나면 보내지 않는다."""
+    sent = configure_smtp(monkeypatch)
+    signup_id = signup_id_of(
+        admin_login, student_id="s72020", email="s72020@test.example.com"
+    )
+    approve = admin_login.post(f"/admin/signup-requests/{signup_id}/approve")
+    token = approve.json()["activation_token"]
+    assert len(sent) == 1
+
+    async def _call(session: AsyncSession) -> Any:
+        row = await signup_requests_repo.get_signup_request_by_id(session, signup_id)
+        assert row is not None and row.status == "approved"
+        other = create_async_engine(_test_db_url())
+        try:
+            async with other.begin() as conn:
+                await conn.execute(
+                    update(models.SignupRequest)
+                    .where(models.SignupRequest.id == signup_id)
+                    .values(status="activated")
+                )
+        finally:
+            await other.dispose()
+        return await signup_service.send_signup_activation_email(
+            session,
+            signup_request_id=signup_id,
+            activation_token=token,
+            sent_by_student_id=_ADMIN,
+        )
+
+    results = _run_concurrently((0, _call))
+
+    assert _conflict_codes(results) == ["activation_already_used"]
+    assert len(sent) == 1
+
+
+def test_activation_waits_for_uncommitted_email_correction_and_is_refused(
+    admin_login: TestClient, monkeypatch: MonkeyPatch
+) -> None:
+    """회원 이메일 수정이 진행 중이면 활성화는 그 결과를 보고 판정한다.
+
+    잠금 없이 읽으면 수정 전 주소로 판정해 옛 주소의 링크로 비밀번호가 설정된다.
+    """
+    configure_smtp(monkeypatch)
+    signup_id = signup_id_of(
+        admin_login, student_id="s72021", email="s72021@test.example.com"
+    )
+    approve = admin_login.post(f"/admin/signup-requests/{signup_id}/approve")
+    old_token = approve.json()["activation_token"]
+
+    async def _main() -> tuple[bool, Any]:
+        engine = create_async_engine(_test_db_url())
+        try:
+            async with engine.connect() as conn:
+                tx = await conn.begin()
+                await conn.execute(
+                    update(models.Member)
+                    .where(models.Member.student_id == "s72021")
+                    .values(email="fixed-s72021@test.example.com")
+                )
+                activation = asyncio.create_task(
+                    asyncio.to_thread(
+                        admin_login.post,
+                        "/auth/member/activate",
+                        json={"token": old_token, "password": "stolen-pass-9"},
+                    )
+                )
+                await asyncio.sleep(_DELAY_SECONDS)
+                finished_early = activation.done()
+                await tx.commit()
+                return finished_early, await activation
+        finally:
+            await engine.dispose()
+
+    finished_early, res = asyncio.run(_main())
+
+    assert not finished_early
+    assert res.status_code == 401, res.text
+    assert (
+        _count(
+            select(func.count())
+            .select_from(models.MemberAuth)
+            .where(models.MemberAuth.student_id == "s72021")
+        )
+        == 0
+    )

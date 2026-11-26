@@ -34,24 +34,6 @@ async def get_member_auth_by_student_id(
     return result.scalars().first()
 
 
-async def create_member_auth(
-    db: AsyncSession,
-    *,
-    member_id: int,
-    student_id: str,
-    password_hash: str,
-) -> MemberAuth:
-    """새로운 멤버 인증 정보 생성."""
-    auth = MemberAuth(
-        member_id=member_id,
-        student_id=student_id,
-        password_hash=password_hash,
-    )
-    db.add(auth)
-    await db.commit()
-    return auth
-
-
 async def update_member_auth_password(
     db: AsyncSession,
     auth: MemberAuth,
@@ -83,23 +65,29 @@ async def replace_member_auth_password_if_unchanged(
     return changed
 
 
-async def create_or_update_member_auth(
+async def stage_member_auth(
     db: AsyncSession,
     *,
     member_id: int,
     student_id: str,
     password_hash: str,
-) -> MemberAuth:
-    """멤버 인증 정보 생성 또는 업데이트."""
+) -> None:
+    """멤버 인증 정보를 만들거나 비밀번호를 바꾸되 커밋하지 않는다.
+
+    호출자가 다른 변경(가입신청 상태 등)과 한 트랜잭션으로 커밋한다.
+    """
     auth = await get_member_auth_by_student_id(db, student_id)
     if auth is None:
-        return await create_member_auth(
-            db,
-            member_id=member_id,
-            student_id=student_id,
-            password_hash=password_hash,
+        db.add(
+            MemberAuth(
+                member_id=member_id,
+                student_id=student_id,
+                password_hash=password_hash,
+            )
         )
-    return await update_member_auth_password(db, auth, password_hash)
+    else:
+        setattr(auth, "password_hash", password_hash)
+    await db.flush()
 
 
 async def member_has_auth(db: AsyncSession, member_id: int) -> bool:

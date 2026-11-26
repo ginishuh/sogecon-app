@@ -164,8 +164,9 @@ def test_approve_reuses_preregistered_member_with_same_or_empty_email(
     res = admin_login.post(f"/admin/signup-requests/{signup_id}/approve")
 
     assert res.status_code == HTTPStatus.OK, res.text
-    assert res.json()["activation_email"]["sent_to"] == requested
-    assert [m["To"] for m in sent] == [requested]
+    # 안내 메일은 회원에 저장된 주소(앞뒤 공백 제외)로 간다.
+    assert res.json()["activation_email"]["sent_to"] == expected_email.strip()
+    assert [m["To"] for m in sent] == [expected_email.strip()]
     assert db_state(signup_id) == ("approved", ["s63006"])
     assert _member_snapshot("s63006") == (expected_email, "active", "member")
 
@@ -174,9 +175,9 @@ def test_approve_reuses_preregistered_member_with_same_or_empty_email(
 
 
 _KEY_SAMPLES = [
-    "S61041",
-    "61041",
-    " s 61041\t",
+    "S90041",
+    "90041",
+    " s 90041\t",
     "ss70001",
     "Ss70001",
     "s",

@@ -1,6 +1,6 @@
 """가입 신청·승인의 학번 표기 변형 충돌과 승인 안내 메일 자동 발송 회귀 테스트.
 
-운영에서 이미 가입한 회원이 학번 표기만 바꿔(`S61041` ↔ `61041`) 다시 신청한
+운영에서 이미 가입한 회원이 학번 표기만 바꿔(`S90041` ↔ `90041`) 다시 신청한
 건을 승인하면 `members.email` UNIQUE 위반으로 500이 났고, 승인 API가 메일을
 보내지 않아 연속 승인한 신청자에게 안내 메일이 한 통도 가지 않았다.
 """
@@ -12,16 +12,22 @@ from http import HTTPStatus
 
 import pytest
 from fastapi.testclient import TestClient
+from itsdangerous import URLSafeTimedSerializer
 from pytest import MonkeyPatch
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api import models
+from apps.api.config import get_settings
 from apps.api.db import get_db
 from apps.api.errors import BadGatewayError
 from apps.api.main import app
 from apps.api.services import email_service, signup_approval_service
+from apps.api.services.activation_service import ACTIVATION_SIGNER_NAMESPACE
 from tests.api.signup_helpers import (
     configure_smtp,
     db_state,
+    run_in_test_session,
     seed_member,
     signup,
     signup_id_of,
@@ -33,7 +39,7 @@ from tests.api.signup_helpers import (
 @pytest.mark.parametrize(
     ("requested", "existing"),
     [
-        ("S61041", "61041"),
+        ("S90041", "90041"),
         ("63015", "S63015"),
         ("67012", "s67012"),
         ("s61031", "S61031"),
@@ -114,21 +120,21 @@ def test_approve_rejects_email_used_by_other_member_with_409(
 def test_approve_rejects_student_id_variant_of_active_member_with_409(
     admin_login: TestClient,
 ) -> None:
-    """운영 재현: 대기 신청 `S61049`, 같은 이메일의 활성 회원 `61049`."""
+    """운영 재현: 대기 신청 `S90049`, 같은 이메일의 활성 회원 `90049`."""
     signup_id = signup_id_of(
-        admin_login, student_id="S61049", email="same61049@test.example.com"
+        admin_login, student_id="S90049", email="same90049@test.example.com"
     )
-    seed_member(student_id="61049", email="same61049@test.example.com")
+    seed_member(student_id="90049", email="same90049@test.example.com")
 
     res = admin_login.post(f"/admin/signup-requests/{signup_id}/approve")
 
     assert res.status_code == HTTPStatus.CONFLICT
     body = res.json()
     assert body["code"] == "signup_member_exists"
-    assert "61049" in body["detail"]
+    assert "90049" in body["detail"]
     status, members = db_state(signup_id)
     assert status == "pending"
-    assert members == ["61049"]
+    assert members == ["90049"]
 
 
 def test_approve_rejects_student_id_variant_of_inactive_member_with_409(
@@ -310,7 +316,7 @@ def test_approve_keeps_approval_when_smtp_delivery_fails(
     assert len(sent) == 1
 
 
-def test_reissue_does_not_send_email(
+def test_reissue_sends_new_link_to_applicant(
     admin_login: TestClient, monkeypatch: MonkeyPatch
 ) -> None:
     sent = configure_smtp(monkeypatch)
@@ -323,10 +329,237 @@ def test_reissue_does_not_send_email(
 
     res = admin_login.post(f"/admin/signup-requests/{signup_id}/reissue-token")
 
-    assert res.status_code == HTTPStatus.OK
-    assert res.json()["activation_email"] == {
-        "status": "not_attempted",
-        "sent_to": None,
+    assert res.status_code == HTTPStatus.OK, res.text
+    body = res.json()
+    assert body["activation_email"] == {
+        "status": "sent",
+        "sent_to": "s62004@test.example.com",
         "error_code": None,
     }
+    assert [m["To"] for m in sent] == ["s62004@test.example.com"] * 2
+    # 메일의 링크는 재발급 응답으로 돌려준 토큰이다.
+    assert body["activation_token"] in _all_text(sent[1])
+
+
+def test_reissue_keeps_new_token_when_email_fails(admin_login: TestClient) -> None:
+    """SMTP 미설정 등으로 발송에 실패해도 재발급은 완료되고 수동 전달이 가능하다."""
+    signup_id = signup_id_of(
+        admin_login, student_id="s62005", email="s62005@test.example.com"
+    )
+    approve = admin_login.post(f"/admin/signup-requests/{signup_id}/approve")
+    assert approve.status_code == HTTPStatus.OK
+
+    res = admin_login.post(f"/admin/signup-requests/{signup_id}/reissue-token")
+
+    assert res.status_code == HTTPStatus.OK, res.text
+    body = res.json()
+    assert body["activation_email"]["status"] == "failed"
+    assert body["activation_email"]["error_code"] == "email_not_configured"
+    assert body["activation_issue"]["issued_type"] == "reissue"
+    logs = admin_login.get(
+        f"/admin/signup-requests/{signup_id}/activation-token-logs"
+    ).json()["items"]
+    assert [item["issued_type"] for item in logs] == ["reissue", "approve"]
+
+
+def _approved_signup(admin_login: TestClient, student_id: str) -> tuple[int, str]:
+    signup_id = signup_id_of(
+        admin_login, student_id=student_id, email=f"old-{student_id}@test.example.com"
+    )
+    approve = admin_login.post(f"/admin/signup-requests/{signup_id}/approve")
+    assert approve.status_code == HTTPStatus.OK, approve.text
+    return signup_id, approve.json()["activation_token"]
+
+
+def _member_id(student_id: str) -> int:
+    out: dict[str, int] = {}
+
+    async def _load(session: AsyncSession) -> None:
+        out["id"] = int(
+            (
+                await session.execute(
+                    select(models.Member.id).where(
+                        models.Member.student_id == student_id
+                    )
+                )
+            ).scalar_one()
+        )
+
+    run_in_test_session(_load)
+    return out["id"]
+
+
+def test_reissue_after_admin_corrects_member_email_sends_only_to_new_address(
+    admin_login: TestClient, monkeypatch: MonkeyPatch
+) -> None:
+    """신청서의 주소가 틀려(남의 주소 등) 관리자가 회원 이메일을 고친 뒤 재발급."""
+    sent = configure_smtp(monkeypatch)
+    signup_id, old_token = _approved_signup(admin_login, "s62010")
+    fixed = admin_login.patch(
+        f"/admin/members/{_member_id('s62010')}",
+        json={"email": "fixed-s62010@test.example.com"},
+    )
+    assert fixed.status_code == HTTPStatus.OK, fixed.text
+    del sent[:]
+
+    res = admin_login.post(f"/admin/signup-requests/{signup_id}/reissue-token")
+
+    assert res.status_code == HTTPStatus.OK, res.text
+    body = res.json()
+    assert body["activation_email"]["sent_to"] == "fixed-s62010@test.example.com"
+    assert body["activation_context"]["email"] == "fixed-s62010@test.example.com"
+    assert [m["To"] for m in sent] == ["fixed-s62010@test.example.com"]
+
+    # 주소를 고치기 전에 발급한 링크는 다시 보낼 수도, 활성화에 쓸 수도 없다.
+    resend_old = admin_login.post(
+        f"/admin/signup-requests/{signup_id}/send-activation-email",
+        json={"activation_token": old_token},
+    )
+    assert resend_old.status_code == HTTPStatus.CONFLICT, resend_old.text
+    assert resend_old.json()["code"] == "activation_link_outdated"
     assert len(sent) == 1
+    activate_old = admin_login.post(
+        "/auth/member/activate",
+        json={"token": old_token, "password": "stolen-pass-1"},
+    )
+    assert activate_old.status_code == HTTPStatus.UNAUTHORIZED, activate_old.text
+
+    # 고친 주소로 간 새 링크는 다시 보낼 수 있고 활성화된다.
+    resend_new = admin_login.post(
+        f"/admin/signup-requests/{signup_id}/send-activation-email",
+        json={"activation_token": body["activation_token"]},
+    )
+    assert resend_new.status_code == HTTPStatus.OK, resend_new.text
+    assert [m["To"] for m in sent] == ["fixed-s62010@test.example.com"] * 2
+    activate_new = admin_login.post(
+        "/auth/member/activate",
+        json={"token": body["activation_token"], "password": "owner-pass-1"},
+    )
+    assert activate_new.status_code == HTTPStatus.OK, activate_new.text
+
+
+def test_email_correction_alone_invalidates_link_sent_to_old_address(
+    admin_login: TestClient, monkeypatch: MonkeyPatch
+) -> None:
+    """재발급을 하지 않아도, 주소를 고친 순간 옛 주소로 나간 링크는 죽는다."""
+    configure_smtp(monkeypatch)
+    _signup_id, old_token = _approved_signup(admin_login, "s62012")
+    _update_member("s62012", email="fixed-s62012@test.example.com")
+
+    res = admin_login.post(
+        "/auth/member/activate",
+        json={"token": old_token, "password": "stolen-pass-2"},
+    )
+
+    assert res.status_code == HTTPStatus.UNAUTHORIZED, res.text
+    assert not _has_password("s62012")
+
+
+def test_link_survives_case_only_rewrite_of_member_email(
+    admin_login: TestClient, monkeypatch: MonkeyPatch
+) -> None:
+    configure_smtp(monkeypatch)
+    _signup_id, token = _approved_signup(admin_login, "s62013")
+    _update_member("s62013", email=" OLD-s62013@Test.example.com ")
+
+    res = admin_login.post(
+        "/auth/member/activate", json={"token": token, "password": "owner-pass-2"}
+    )
+
+    assert res.status_code == HTTPStatus.OK, res.text
+
+
+def test_link_issued_by_previous_version_follows_request_email(
+    admin_login: TestClient, monkeypatch: MonkeyPatch
+) -> None:
+    """지문이 없는 이전 버전 토큰은 신청서 주소로만 나갔다. 주소가 바뀌면 거절한다."""
+    configure_smtp(monkeypatch)
+    signup_id, _token = _approved_signup(admin_login, "s62014")
+    legacy = URLSafeTimedSerializer(
+        get_settings().jwt_secret, salt=ACTIVATION_SIGNER_NAMESPACE
+    ).dumps(
+        {
+            "signup_request_id": signup_id,
+            "student_id": "s62014",
+            "cohort": 20,
+            "name": "재신청자",
+        }
+    )
+    _update_member("s62014", email="fixed-s62014@test.example.com")
+    rejected = admin_login.post(
+        "/auth/member/activate", json={"token": legacy, "password": "stolen-pass-3"}
+    )
+    assert rejected.status_code == HTTPStatus.UNAUTHORIZED, rejected.text
+
+    _update_member("s62014", email="old-s62014@test.example.com")
+    accepted = admin_login.post(
+        "/auth/member/activate", json={"token": legacy, "password": "owner-pass-3"}
+    )
+    assert accepted.status_code == HTTPStatus.OK, accepted.text
+
+
+def _has_password(student_id: str) -> bool:
+    out: dict[str, bool] = {}
+
+    async def _load(session: AsyncSession) -> None:
+        out["has"] = (
+            await session.execute(
+                select(models.MemberAuth.id).where(
+                    models.MemberAuth.student_id == student_id
+                )
+            )
+        ).first() is not None
+
+    run_in_test_session(_load)
+    return out["has"]
+
+
+def _update_member(student_id: str, **values: str | None) -> None:
+    async def _update(session: AsyncSession) -> None:
+        await session.execute(
+            update(models.Member)
+            .where(models.Member.student_id == student_id)
+            .values(**values)
+        )
+        await session.commit()
+
+    run_in_test_session(_update)
+
+
+@pytest.mark.parametrize(
+    ("member_values", "error_code"),
+    [
+        ({"status": "suspended"}, "member_not_active"),
+        ({"email": None}, "email_recipient_missing"),
+    ],
+)
+def test_reissue_does_not_send_when_member_cannot_receive(
+    admin_login: TestClient,
+    monkeypatch: MonkeyPatch,
+    member_values: dict[str, str | None],
+    error_code: str,
+) -> None:
+    sent = configure_smtp(monkeypatch)
+    signup_id, _token = _approved_signup(admin_login, "s62011")
+    _update_member("s62011", **member_values)
+    del sent[:]
+
+    res = admin_login.post(f"/admin/signup-requests/{signup_id}/reissue-token")
+
+    assert res.status_code == HTTPStatus.OK, res.text
+    assert res.json()["activation_email"] == {
+        "status": "failed",
+        "sent_to": None,
+        "error_code": error_code,
+    }
+    # 보낼 수 없을 때 화면에 옛 신청서 주소를 수신 주소로 보이지 않는다.
+    assert res.json()["activation_context"]["email"] == ""
+    assert sent == []
+
+
+def _all_text(message: EmailMessage) -> str:
+    return "\n".join(
+        part.get_content()
+        for part in message.walk()
+        if part.get_content_maintype() == "text"
+    )

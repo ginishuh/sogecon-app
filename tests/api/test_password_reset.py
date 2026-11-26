@@ -207,7 +207,11 @@ def test_activation_token_cannot_be_used_as_reset_token(
     member_client: TestClient, monkeypatch: MonkeyPatch
 ) -> None:
     activation = create_member_activation_token(
-        signup_request_id=1, student_id="member001", cohort=1, name="Member"
+        signup_request_id=1,
+        student_id="member001",
+        cohort=1,
+        name="Member",
+        email=None,
     )
     res = member_client.post(
         CONFIRM, json={"token": activation, "password": "brand-new-pass"}

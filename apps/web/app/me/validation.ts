@@ -21,7 +21,8 @@ export type ProfileErrors = Partial<Record<keyof ProfileForm, string>> & {
 };
 
 export type ProfilePayload = {
-  email: string | null;
+  /** 고치지 않은 이메일은 보내지 않는다(열어 둔 화면의 옛 주소로 덮지 않게). */
+  email?: string | null;
   major: string | null;
   visibility: ProfileVisibility;
   birth_date: string | null;
@@ -101,9 +102,14 @@ const optional = (value: string): string | null => {
   return trimmed === '' ? null : trimmed;
 };
 
-export function buildProfilePayload(form: ProfileForm): ProfilePayload {
+export function buildProfilePayload(
+  form: ProfileForm,
+  savedEmail?: string | null,
+): ProfilePayload {
+  const email = optional(form.email);
+  const emailTouched = savedEmail === undefined || email !== optional(savedEmail ?? '');
   return {
-    email: optional(form.email),
+    ...(emailTouched ? { email } : {}),
     major: optional(form.major),
     visibility: form.visibility,
     birth_date: optional(form.birth_date),

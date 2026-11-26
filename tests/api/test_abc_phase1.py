@@ -122,6 +122,7 @@ def test_member_activate_pending_blocked_401(admin_login: TestClient) -> None:
         student_id="abc-pending",
         cohort=1,
         name="Pending",
+        email=None,
     )
     res = admin_login.post(
         "/auth/member/activate",
