@@ -428,6 +428,8 @@ export default function MePage() {
     });
   };
 
+  const savedEmail = me?.email ?? null;
+
   const onSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!form) return;
@@ -444,7 +446,7 @@ export default function MePage() {
         router.push('/directory-consent' as Route);
         return;
       }
-      const updated = await updateMe(buildProfilePayload(form));
+      const updated = await updateMe(buildProfilePayload(form, savedEmail));
       setMe(updated);
       setForm(toFormState(updated));
       setErrors({});

@@ -101,7 +101,7 @@ describe('동문 사용자 언어', () => {
   });
 
   it('가입 승인 충돌은 서버 상세(기존 회원 학번)를 보이고, 내부 문자열이면 일반 안내로 대체한다', () => {
-    const detail = '이미 가입된 회원(학번 61041)이 있습니다. 같은 분이면 이 신청은 반려해 주세요.';
+    const detail = '이미 가입된 회원(학번 90041)이 있습니다. 같은 분이면 이 신청은 반려해 주세요.';
     expect(adminApiErrorToMessage('signup_member_exists', detail)).toBe(detail);
     expect(adminApiErrorToMessage('signup_member_exists', 'signup_member_exists')).toBe(
       '이미 가입된 회원이 있습니다. 같은 분이면 이 신청은 반려해 주세요.'

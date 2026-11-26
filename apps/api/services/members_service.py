@@ -16,8 +16,14 @@ from starlette.datastructures import Headers
 from .. import models, schemas
 from ..errors import AlreadyExistsError, ApiError, ForbiddenError
 from ..repositories import members as members_repo
+from ..repositories import signup_requests as signup_requests_repo
 from . import upload_service as upload_service_module
 from .activation_service import create_member_activation_token
+from .member_identity import (
+    lock_and_check_new_member_identity,
+    normalize_email_update,
+    require_student_id,
+)
 from .roles_service import (
     normalize_assignable_roles,
     parse_roles,
@@ -245,11 +251,12 @@ def _to_directory_member(
 async def create_member(
     db: AsyncSession, payload: schemas.MemberCreate
 ) -> models.Member:
-    # 이메일 중복 방지(사전 검사)
-    stmt = select(models.Member).where(models.Member.email == payload.email)
-    result = await db.execute(stmt)
-    if result.scalars().first() is not None:
-        raise AlreadyExistsError(code="member_exists", detail="Email already in use")
+    student_id = require_student_id(payload.student_id)
+    if student_id != payload.student_id:
+        payload = payload.model_copy(update={"student_id": student_id})
+    await lock_and_check_new_member_identity(
+        db, student_id=student_id, email=str(payload.email)
+    )
     phone = payload.phone.strip() if isinstance(payload.phone, str) else None
     normalized_phone = phone or None
     if isinstance(normalized_phone, str):
@@ -328,21 +335,9 @@ async def update_member_profile_admin(
         for key, value in raw_payload.items()
     }
 
-    email_value = sanitized_data.get("email")
-    if isinstance(email_value, str):
-        normalized_email = email_value.strip().lower() or None
-        sanitized_data["email"] = normalized_email
-        if isinstance(normalized_email, str):
-            stmt = select(models.Member.id).where(
-                models.Member.email == normalized_email,
-                models.Member.id != member_id,
-            )
-            result = await db.execute(stmt)
-            if result.scalar_one_or_none() is not None:
-                raise AlreadyExistsError(
-                    code="member_email_already_in_use",
-                    detail="Email already in use",
-                )
+    email_unchanged = await normalize_email_update(
+        db, member=member, sanitized_data=sanitized_data
+    )
 
     phone_value = sanitized_data.get("phone")
     if isinstance(phone_value, str):
@@ -364,6 +359,8 @@ async def update_member_profile_admin(
         db, member_id=member_id, visibility=sanitized_data.get("visibility")
     )
     sanitized = data.model_copy(update=sanitized_data)
+    if email_unchanged:
+        sanitized.model_fields_set.discard("email")
     try:
         return await members_repo.update_member_profile_admin(
             db, member_id=member_id, data=sanitized
@@ -398,21 +395,11 @@ async def update_member_profile(
         key: value.strip() if isinstance(value, str) else value
         for key, value in raw_payload.items()
     }
-    email_value = sanitized_data.get("email")
-    if isinstance(email_value, str):
-        normalized_email = email_value.strip().lower() or None
-        sanitized_data["email"] = normalized_email
-        if isinstance(normalized_email, str):
-            stmt = select(models.Member.id).where(
-                models.Member.email == normalized_email,
-                models.Member.id != member_id,
-            )
-            result = await db.execute(stmt)
-            if result.scalar_one_or_none() is not None:
-                raise AlreadyExistsError(
-                    code="member_email_already_in_use",
-                    detail="Email already in use",
-                )
+    email_unchanged = "email" in sanitized_data and await normalize_email_update(
+        db,
+        member=await members_repo.get_member(db, member_id),
+        sanitized_data=sanitized_data,
+    )
     phone_value = sanitized_data.get("phone")
     if isinstance(phone_value, str):
         normalized_phone = phone_value.strip() or None
@@ -432,6 +419,8 @@ async def update_member_profile(
         db, member_id=member_id, visibility=sanitized_data.get("visibility")
     )
     sanitized = data.model_copy(update=sanitized_data)
+    if email_unchanged:
+        sanitized.model_fields_set.discard("email")
     try:
         return await members_repo.update_member_profile(
             db, member_id=member_id, data=sanitized
@@ -468,60 +457,43 @@ async def create_member_direct(
     Returns:
         (생성된 Member, 활성화 토큰 문자열) 튜플
     """
-    stmt = select(models.Member).where(
-        models.Member.student_id == payload.student_id
+    student_id = require_student_id(payload.student_id)
+    email = str(payload.email)
+    await lock_and_check_new_member_identity(
+        db, student_id=student_id, email=email
     )
-    result = await db.execute(stmt)
-    if result.scalars().first() is not None:
-        raise AlreadyExistsError(
-            code="member_exists",
-            detail="Student ID already in use",
-        )
-
-    stmt = select(models.Member).where(models.Member.email == payload.email)
-    result = await db.execute(stmt)
-    if result.scalars().first() is not None:
-        raise AlreadyExistsError(
-            code="member_email_already_in_use",
-            detail="Email already in use",
-        )
 
     normalized_roles = normalize_assignable_roles(payload.roles)
     serialized_roles = serialize_roles(normalized_roles)
 
-    # Member 생성
     member = models.Member(
-        student_id=payload.student_id,
-        email=str(payload.email),
+        student_id=student_id,
+        email=email,
         name=payload.name,
         cohort=payload.cohort,
         roles=serialized_roles,
         status="active",
         visibility=models.Visibility.PRIVATE,
     )
-    db.add(member)
-    await db.flush()
-
     # SignupRequest 레코드 생성 (activation_service가 signup_request_id 필요)
     signup_request = models.SignupRequest(
-        student_id=payload.student_id,
-        email=str(payload.email),
+        student_id=student_id,
+        email=email,
         name=payload.name,
         cohort=payload.cohort,
         status="approved",
     )
-    db.add(signup_request)
-    await db.flush()
-
-    # 활성화 토큰 발급
-    activation_token = create_member_activation_token(
-        signup_request_id=cast(int, signup_request.id),
-        student_id=payload.student_id,
-        cohort=payload.cohort,
-        name=payload.name,
-    )
-
     try:
+        # flush에서 난 UNIQUE 위반도 500이 아니라 409로 바꾼다.
+        await members_repo.add_member(db, member)
+        await signup_requests_repo.add_signup_request(db, signup_request)
+        activation_token = create_member_activation_token(
+            signup_request_id=cast(int, signup_request.id),
+            student_id=student_id,
+            cohort=payload.cohort,
+            name=payload.name,
+            email=email,
+        )
         await db.commit()
     except IntegrityError as exc:
         await db.rollback()

@@ -77,3 +77,22 @@ describe('buildProfilePayload', () => {
     expect(payload.birth_lunar).toBe(false);
   });
 });
+
+describe('buildProfilePayload 이메일 전송 범위', () => {
+  it('저장된 주소와 같으면 이메일을 보내지 않는다', () => {
+    const payload = buildProfilePayload(
+      createForm({ email: ' user@example.com ', company: '새 회사' }),
+      'user@example.com',
+    );
+
+    expect('email' in payload).toBe(false);
+    expect(payload.company).toBe('새 회사');
+  });
+
+  it('주소를 고쳤거나 지웠으면 이메일을 보낸다', () => {
+    expect(buildProfilePayload(createForm({ email: 'new@example.com' }), 'user@example.com').email).toBe(
+      'new@example.com',
+    );
+    expect(buildProfilePayload(createForm({ email: '' }), 'user@example.com').email).toBeNull();
+  });
+});

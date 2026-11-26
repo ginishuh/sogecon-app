@@ -49,9 +49,9 @@ def _member_status(student_id: str) -> str | None:
 @pytest.mark.parametrize(
     ("raw", "stored"),
     [
-        ("기억안남", "기억안남"),
-        ("기억안나요 ㅠㅠ", "기억안나요 ㅠㅠ"),
-        (" 경제대학원 2020 ", "경제대학원 2020"),
+        ("학번모름", "학번모름"),
+        ("모르겠어요 ㅠㅠ", "모르겠어요 ㅠㅠ"),
+        (" 대학원 2019 ", "대학원 2019"),
     ],
 )
 def test_non_ascii_student_id_signup_and_approval_work(
@@ -70,11 +70,11 @@ def test_non_ascii_student_id_signup_and_approval_work(
     assert _member_status(stored) == "active"
 
 
-@pytest.mark.parametrize("raw", ["기억안남", "  기억안남 "])
+@pytest.mark.parametrize("raw", ["학번모름", "  학번모름 "])
 def test_non_ascii_student_id_conflicts_with_exact_active_member(
     client: TestClient, raw: str
 ) -> None:
-    seed_member(student_id="기억안남", email="forgot-old@test.example.com")
+    seed_member(student_id="학번모름", email="forgot-old@test.example.com")
 
     res = signup(client, student_id=raw, email="forgot-new@test.example.com")
 
@@ -84,9 +84,9 @@ def test_non_ascii_student_id_conflicts_with_exact_active_member(
 
 def test_non_ascii_student_id_has_no_variant_matching(client: TestClient) -> None:
     """한글 원문은 `s` 제거·대소문자 변형으로 묶지 않는다."""
-    seed_member(student_id="s기억안남", email="s-forgot@test.example.com")
+    seed_member(student_id="s학번모름", email="s-forgot@test.example.com")
 
-    res = signup(client, student_id="기억안남", email="forgot2@test.example.com")
+    res = signup(client, student_id="학번모름", email="forgot2@test.example.com")
 
     assert res.status_code == HTTPStatus.CREATED
 
@@ -94,10 +94,10 @@ def test_non_ascii_student_id_has_no_variant_matching(client: TestClient) -> Non
 @pytest.mark.parametrize(
     ("existing", "requested"),
     [
-        ("i61041", "İ61041"),  # 비ASCII 입력 → 완전 일치만
-        ("k61041", f"{_KELVIN}61041"),  # Python lower면 'k61041'이 되는 입력
-        (f"{_KELVIN}61042", "k61042"),  # 비ASCII 저장값은 ASCII 키 비교에서 제외
-        ("İ61043", "i61043"),
+        ("i90041", "İ90041"),  # 비ASCII 입력 → 완전 일치만
+        ("k90041", f"{_KELVIN}90041"),  # Python lower면 'k90041'이 되는 입력
+        (f"{_KELVIN}90042", "k90042"),  # 비ASCII 저장값은 ASCII 키 비교에서 제외
+        ("İ90043", "i90043"),
     ],
 )
 def test_lowercase_differences_never_join_ascii_and_non_ascii_ids(
@@ -113,16 +113,16 @@ def test_lowercase_differences_never_join_ascii_and_non_ascii_ids(
 
 
 def test_exact_non_ascii_member_still_conflicts(client: TestClient) -> None:
-    seed_member(student_id="İ61044", email="dotted@test.example.com")
+    seed_member(student_id="İ90044", email="dotted@test.example.com")
 
-    res = signup(client, student_id="İ61044", email="dotted2@test.example.com")
+    res = signup(client, student_id="İ90044", email="dotted2@test.example.com")
 
     assert res.status_code == HTTPStatus.CONFLICT
     assert res.json()["code"] == "member_already_active"
 
 
 def test_lock_name_uses_key_for_ascii_and_raw_text_otherwise() -> None:
-    assert student_id_lock_name(" S61041") == student_id_lock_name("61041")
-    assert student_id_lock_name("기억안남") == student_id_lock_name(" 기억안남 ")
-    assert student_id_lock_name("기억안남") != student_id_lock_name("s기억안남")
-    assert student_id_lock_name("İ61041") != student_id_lock_name("i61041")
+    assert student_id_lock_name(" S90041") == student_id_lock_name("90041")
+    assert student_id_lock_name("학번모름") == student_id_lock_name(" 학번모름 ")
+    assert student_id_lock_name("학번모름") != student_id_lock_name("s학번모름")
+    assert student_id_lock_name("İ90041") != student_id_lock_name("i90041")

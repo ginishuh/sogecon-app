@@ -1,4 +1,4 @@
-"""가입 신청 승인: 충돌 판정, 회원 생성/재사용, 승인 직후 안내 메일 자동 발송.
+"""가입 신청 승인·토큰 재발급: 충돌 판정, 회원 생성/재사용, 안내 메일 자동 발송.
 
 잠금 순서(교착 방지): 신청 행(`FOR UPDATE`) → 학번 키 advisory lock → 이메일
 advisory lock → 재사용 후보 회원 행(`FOR UPDATE`). 공개 접수는 학번 키 잠금만,
@@ -8,7 +8,7 @@ advisory lock → 재사용 후보 회원 행(`FOR UPDATE`). 공개 접수는 �
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Literal, cast
 
@@ -27,6 +27,7 @@ from .roles_service import normalize_roles
 from .signup_service import (
     SignupActivationContext,
     issue_activation_token,
+    resolve_activation_recipient,
     send_signup_activation_email,
 )
 
@@ -34,24 +35,21 @@ logger = logging.getLogger(__name__)
 
 _UNIQUE_VIOLATION = "23505"
 
-ActivationEmailStatus = Literal["sent", "failed", "not_attempted"]
+ActivationEmailStatus = Literal["sent", "failed"]
 
 
 @dataclass(frozen=True)
 class SignupActivationEmailOutcome:
-    """승인 직후 자동 발송 결과. 재발급처럼 발송하지 않은 경우 `not_attempted`."""
+    """승인·재발급 직후 자동 발송 결과."""
 
     status: ActivationEmailStatus
     sent_to: str | None = None
     error_code: str | None = None
 
 
-ACTIVATION_EMAIL_NOT_ATTEMPTED = SignupActivationEmailOutcome(status="not_attempted")
-
-
 @dataclass(frozen=True)
-class SignupApprovalResult:
-    """커밋 전에 확보한 응답 스냅샷. 커밋 이후 DB 재조회 없이 응답할 수 있다."""
+class SignupActivationIssueOutcome:
+    """발송 전에 확보한 응답 스냅샷. 발송 단계가 실패해도 재조회 없이 응답한다."""
 
     request: schemas.SignupRequestRead
     context: SignupActivationContext
@@ -65,7 +63,7 @@ async def approve_signup_request(
     *,
     signup_request_id: int,
     decided_by_student_id: str,
-) -> SignupApprovalResult:
+) -> SignupActivationIssueOutcome:
     row = await signup_requests_repo.get_signup_request_for_update(
         db, signup_request_id
     )
@@ -119,7 +117,7 @@ async def approve_signup_request(
             row=row,
             issued_by_student_id=decided_by_student_id,
             issued_type="approve",
-            commit=False,
+            member_email=cast(str | None, member.email),
         )
         await db.refresh(row)
         request_snapshot = schemas.SignupRequestRead.model_validate(row)
@@ -140,19 +138,86 @@ async def approve_signup_request(
             ),
         ) from exc
 
-    email = await _send_activation_email_after_approval(
+    email = await _send_activation_email_after_commit(
         db,
         signup_request_id=signup_request_id,
         activation_token=issue.token,
         sent_by_student_id=decided_by_student_id,
     )
-    return SignupApprovalResult(
+    return SignupActivationIssueOutcome(
         request=request_snapshot,
         context=issue.context,
         token=issue.token,
         issue_log=issue_snapshot,
         email=email,
     )
+
+
+async def reissue_signup_activation_token(
+    db: AsyncSession,
+    *,
+    signup_request_id: int,
+    issued_by_student_id: str,
+) -> SignupActivationIssueOutcome:
+    """토큰을 재발급하고 새 링크를 회원의 현재 이메일로 바로 보낸다.
+
+    신청 행을 잠근 뒤 상태를 판정하고, 응답 스냅샷을 커밋 전에 확보한다. 발송
+    실패는 재발급을 되돌리지 않는다. 응답의 토큰으로 다시 보내거나 링크를 복사해
+    전달할 수 있다.
+    """
+    row = await signup_requests_repo.get_signup_request_for_update(
+        db, signup_request_id
+    )
+    if row is None:
+        raise NotFoundError(
+            code="signup_request_not_found",
+            detail="가입신청을 찾을 수 없습니다.",
+        )
+    if cast(str, row.status) != "approved":
+        raise ConflictError(
+            code="signup_request_not_approved",
+            detail="승인 완료된 신청만 토큰을 재발급할 수 있습니다.",
+        )
+
+    recipient = await _current_recipient(db, row)
+    issue = await issue_activation_token(
+        db,
+        row=row,
+        issued_by_student_id=issued_by_student_id,
+        issued_type="reissue",
+        member_email=recipient,
+    )
+    request_snapshot = schemas.SignupRequestRead.model_validate(row)
+    issue_snapshot = schemas.SignupActivationIssueLogRead.model_validate(
+        issue.issue_log
+    )
+    # 화면의 "보낼 주소"는 실제 수신 주소다. 보낼 수 없으면 비워 둔다.
+    context = replace(issue.context, email=recipient or "")
+    await db.commit()
+
+    email = await _send_activation_email_after_commit(
+        db,
+        signup_request_id=signup_request_id,
+        activation_token=issue.token,
+        sent_by_student_id=issued_by_student_id,
+    )
+    return SignupActivationIssueOutcome(
+        request=request_snapshot,
+        context=context,
+        token=issue.token,
+        issue_log=issue_snapshot,
+        email=email,
+    )
+
+
+async def _current_recipient(
+    db: AsyncSession, row: models.SignupRequest
+) -> str | None:
+    """회원의 현재 이메일. 보낼 수 없는 상태(회원 없음·비활성·이메일 없음)면 None."""
+    try:
+        return await resolve_activation_recipient(db, row)
+    except ApiError:
+        return None
 
 
 def _normalized_email(value: str | None) -> str:
@@ -271,18 +336,18 @@ _POST_COMMIT_SEND_ERRORS = (
 )
 
 
-async def _send_activation_email_after_approval(
+async def _send_activation_email_after_commit(
     db: AsyncSession,
     *,
     signup_request_id: int,
     activation_token: str,
     sent_by_student_id: str,
 ) -> SignupActivationEmailOutcome:
-    """승인 커밋 이후 안내 메일을 보낸다.
+    """승인·재발급 커밋 이후 안내 메일을 보낸다.
 
     `ApiError`·`HTTPException`과 `_POST_COMMIT_SEND_ERRORS`에 든 예외는 `failed`
-    결과로 격리해 승인 응답(200)을 지킨다. 그 밖의 예상 밖 예외는 500이 될 수
-    있으며, 이때도 승인은 이미 커밋돼 있으므로 토큰 재발급으로 복구한다.
+    결과로 격리해 응답(200)을 지킨다. 그 밖의 예상 밖 예외는 500이 될 수 있으며,
+    이때도 승인·발급은 이미 커밋돼 있으므로 토큰 재발급으로 복구한다.
     """
     try:
         result = await send_signup_activation_email(
@@ -302,7 +367,7 @@ async def _send_activation_email_after_approval(
         )
         error_type = type(exc).__name__
     except _POST_COMMIT_SEND_ERRORS as exc:
-        # 이미 커밋된 승인을 500으로 바꾸지 않는다(DB 장애, 메일 생성 오류 등).
+        # 이미 커밋된 승인·발급을 500으로 바꾸지 않는다(DB 장애, 메일 생성 오류 등).
         logger.exception(
             "activation_email_auto_send_unexpected_error",
             extra={"signup_request_id": signup_request_id},

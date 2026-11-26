@@ -42,7 +42,7 @@ def test_approve_rejects_email_of_member_stored_with_surrounding_whitespace(
 @pytest.mark.parametrize(
     ("stored", "requested"),
     [
-        (" 기억안남 ", "기억안남"),  # 비ASCII 원문 앞뒤 공백
+        (" 학번모름 ", "학번모름"),  # 비ASCII 원문 앞뒤 공백
         (" S61203 ", "61203"),  # ASCII 변형 + 앞뒤 공백
     ],
 )

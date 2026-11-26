@@ -18,6 +18,22 @@ import type {
   SignupRequestStatus,
 } from '../../../services/signup-requests';
 
+import {
+  ActivationEmailStatus,
+  LINK_OUTDATED,
+  OutdatedLinkNotice,
+  RESEND_USELESS,
+  sendFailureCode,
+} from './activation-email';
+
+export {
+  LINK_OUTDATED,
+  approveFeedback,
+  isCardBlockingSendFailure,
+  reissueFeedback,
+  type ActivationEmailResult,
+} from './activation-email';
+
 export type ListState = 'loading' | 'error' | 'empty' | 'ready';
 
 function issueTypeLabel(value: string): string {
@@ -44,44 +60,6 @@ export function signupRequestStatusLabel(status: SignupRequestStatus): string {
   if (status === 'approved') return '승인';
   if (status === 'rejected') return '반려';
   return '활성화 완료';
-}
-
-export type ActivationEmailResult = SignupActivationIssueResponse['activation_email'];
-
-/** 승인 직후 자동 발송 결과를 운영자 피드백으로 바꾼다. 실패해도 승인은 완료 상태다. */
-export function approveFeedback(email: ActivationEmailResult): {
-  tone: 'success' | 'error';
-  message: string;
-} {
-  if (email.status === 'sent') {
-    return {
-      tone: 'success',
-      message: `가입신청을 승인했고 ${email.sent_to ?? '신청 이메일'}으로 안내 메일을 보냈습니다.`,
-    };
-  }
-  return {
-    tone: 'error',
-    message:
-      '승인은 완료됐지만 안내 메일을 보내지 못했습니다. 아래에서 다시 보내거나 링크·안내문구를 복사해 전달하세요.',
-  };
-}
-
-function ActivationEmailStatus({ email }: { email: ActivationEmailResult }) {
-  if (email.status === 'sent') {
-    return (
-      <p className="text-sm text-state-success">
-        안내 메일을 보냈습니다. 받지 못했다면 다시 보내거나 링크·안내문구를 복사해 전달하세요.
-      </p>
-    );
-  }
-  if (email.status === 'failed') {
-    return (
-      <p className="text-sm text-state-error">
-        안내 메일을 보내지 못했습니다. 다시 보내거나 링크·안내문구를 복사해 전달하세요.
-      </p>
-    );
-  }
-  return null;
 }
 
 const secondaryButtonClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.secondary}`;
@@ -137,6 +115,12 @@ export function ApproveTokenCard({
   const activationMessage = buildActivationMessage(name, student_id, activationUrl);
   const currentIssue = lastApprove.activation_issue;
 
+  const failureCode = sendFailureCode(lastApprove.activation_email);
+  if (failureCode === LINK_OUTDATED) {
+    return <OutdatedLinkNotice name={name} studentId={student_id} />;
+  }
+  const canSend = !RESEND_USELESS.has(failureCode);
+
   const copyBtnClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} border border-state-success-ring bg-white text-state-success hover:bg-surface-raised`;
   const sendBtnClass = `${CONTROL_BASE} ${CONTROL_SIZE.sm} ${CONTROL_VARIANT.primary}`;
 
@@ -152,21 +136,26 @@ export function ApproveTokenCard({
 
       <div className="space-y-2 rounded bg-white px-3 py-3">
         <p className="text-sm text-text-primary">
-          보낼 주소: <span className="font-medium">{lastApprove.activation_context.email}</span>
+          보낼 주소:{' '}
+          <span className="font-medium">
+            {lastApprove.activation_context.email || '없음 (회원 정보를 확인하세요)'}
+          </span>
         </p>
         <ActivationEmailStatus email={lastApprove.activation_email} />
-        <button
-          type="button"
-          className={sendBtnClass}
-          onClick={onSendEmail}
-          disabled={isSendPending}
-        >
-          {isSendPending
-            ? '보내는 중...'
-            : lastApprove.activation_email.status === 'sent'
-              ? '안내 메일 다시 보내기'
-              : '안내 메일 보내기'}
-        </button>
+        {canSend ? (
+          <button
+            type="button"
+            className={sendBtnClass}
+            onClick={onSendEmail}
+            disabled={isSendPending}
+          >
+            {isSendPending
+              ? '보내는 중...'
+              : lastApprove.activation_email.status === 'sent'
+                ? '안내 메일 다시 보내기'
+                : '안내 메일 보내기'}
+          </button>
+        ) : null}
       </div>
 
       {/* 토큰 */}
@@ -389,7 +378,7 @@ function SignupRequestMobileCard({
           disabled={row.status !== 'approved' || isReissuePending}
           onClick={() => onReissue(row.id)}
         >
-          재발급
+          재발급·메일 발송
         </button>
         <button
           type="button"
@@ -491,7 +480,7 @@ export function SignupRequestsTable({
                       disabled={row.status !== 'approved' || isReissuePending}
                       onClick={() => onReissue(row.id)}
                     >
-                      재발급
+                      재발급·메일 발송
                     </button>
                     <button
                       type="button"

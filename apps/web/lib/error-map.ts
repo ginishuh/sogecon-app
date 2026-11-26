@@ -27,6 +27,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   email_not_configured: '안내 메일을 보낼 준비가 되어 있지 않습니다. 안내문구를 복사해 전달해 주세요.',
   email_send_failed: '안내 메일을 보내지 못했습니다. 잠시 후 다시 시도하거나 안내문구를 복사해 전달해 주세요.',
   email_recipient_missing: '보낼 이메일 주소가 없어 안내 메일을 발송하지 못했습니다.',
+  activation_member_missing: '연결된 회원 정보를 찾을 수 없어 안내 메일을 보내지 않았습니다.',
+  activation_link_outdated: '회원 이메일이 바뀌어 이 링크는 더 쓸 수 없습니다. 재발급해 주세요.',
   signup_member_exists: '이미 가입된 회원이 있습니다. 같은 분이면 이 신청은 반려해 주세요.',
   signup_member_student_id_variant: '학번 표기만 다른 기존 회원 정보가 있어 승인할 수 없습니다. 같은 분인지 확인해 주세요.',
   signup_member_account_exists: '이 학번으로 이미 만들어진 계정이 있어 일반 가입 승인으로 처리할 수 없습니다. 회원 관리에서 처리하고 이 신청은 반려해 주세요.',

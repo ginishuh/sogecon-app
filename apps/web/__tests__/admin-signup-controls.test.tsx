@@ -56,7 +56,7 @@ describe('가입신청 심사 화면 상태', () => {
 
     expect(screen.queryByText('pending')).not.toBeInTheDocument();
     expect(screen.getAllByText('대기')).toHaveLength(2);
-    for (const name of ['승인', '재발급', '반려']) {
+    for (const name of ['승인', '재발급·메일 발송', '반려']) {
       for (const button of screen.getAllByRole('button', { name })) {
         expect(button).toHaveClass('min-h-11');
         expect(button).toHaveClass('focus-visible:ring-2');
@@ -142,7 +142,7 @@ describe('가입신청 안내 메일 버튼', () => {
         token_tail: 'token',
         issued_at: '2026-08-13T01:00:00Z',
       },
-      activation_email: { status: 'not_attempted', sent_to: null, error_code: null },
+      activation_email: { status: 'failed', sent_to: null, error_code: 'email_send_failed' },
     };
 
     render(

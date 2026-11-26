@@ -28,6 +28,7 @@ from .activation_service import (
     load_activation_payload,
     resolve_activation_member,
     resolve_activation_signup_request,
+    token_matches_member_email,
 )
 from .roles_service import ensure_member_role, has_permission, normalize_roles
 
@@ -391,12 +392,27 @@ async def activate_member(
     consume_limit(limiter_login, request, settings.rate_limit_login)
 
     payload = load_activation_payload(token)
-    row = await resolve_activation_signup_request(db, payload)
-    member = await resolve_activation_member(db, payload.student_id)
+    # 신청 행 → 회원 행 순서로 잠근 뒤 판정한다(승인·재발급과 같은 순서). 판정과
+    # 비밀번호 저장 사이에 회원 이메일 수정이나 재발급이 끼어들지 못한다.
+    row = await resolve_activation_signup_request(db, payload, for_update=True)
+    member = await resolve_activation_member(
+        db, payload.student_id, for_update=True
+    )
+    if not token_matches_member_email(
+        payload,
+        request_email=cast(str | None, row.email),
+        member_email=cast(str | None, member.email),
+    ):
+        # 발급 뒤 회원 이메일이 바뀐 링크(옛 주소로 나간 것)는 받지 않는다.
+        raise HTTPException(
+            status_code=401,
+            detail="invalid_or_expired_activation_token",
+        )
 
     # 비밀번호 해시 생성 및 저장
     pwd_hash = hash_password(password)
-    await auth_repo.create_or_update_member_auth(
+    # 비밀번호와 신청 상태를 한 트랜잭션으로 저장한다.
+    await auth_repo.stage_member_auth(
         db,
         member_id=cast(int, member.id),
         student_id=cast(str, member.student_id),

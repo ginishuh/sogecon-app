@@ -49,6 +49,16 @@ async def create_signup_request(
     return row
 
 
+async def add_signup_request(
+    db: AsyncSession,
+    row: models.SignupRequest,
+) -> models.SignupRequest:
+    """신청 행을 추가하고 flush한다(커밋은 호출한 서비스가 한다)."""
+    db.add(row)
+    await db.flush()
+    return row
+
+
 async def get_pending_by_student_key(
     db: AsyncSession,
     student_id: str,

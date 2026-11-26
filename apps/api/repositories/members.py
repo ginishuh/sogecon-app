@@ -308,6 +308,13 @@ async def create_member(
     return member
 
 
+async def add_member(db: AsyncSession, member: models.Member) -> models.Member:
+    """회원 행을 추가하고 flush한다(커밋은 호출한 서비스가 한다)."""
+    db.add(member)
+    await db.flush()
+    return member
+
+
 async def get_member_by_student_id(db: AsyncSession, student_id: str) -> models.Member:
     stmt = select(models.Member).where(models.Member.student_id == student_id)
     result = await db.execute(stmt)
